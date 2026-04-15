@@ -1215,9 +1215,7 @@ const resumeBtn = document.getElementById('resume_questions_button');
                 </div>
             `;
 switchEl.querySelector('input').addEventListener('change', () => {
-    console.log('switch fired');
     if (typeof TimelineMax === 'undefined') {
-        console.log('GSAP not loaded, skipping animation');
         resumeBtn.click();
         return;
     }
@@ -1440,14 +1438,9 @@ const mapPanelObserver = new MutationObserver(() => {
 mapPanelObserver.observe(document.body, { childList: true, subtree: true });
 
 window.playCreditsMusic = function() {
-    console.log('playCreditsMusic fired');
-    console.log('window.playlist:', window.playlist);
-    console.log('window.loadAndPlay:', window.loadAndPlay);
     if (!window.playlist) {
         setupMusicPlayer();
     }
-    console.log('after setup - window.playlist:', window.playlist);
-    console.log('after setup - window.loadAndPlay:', window.loadAndPlay);
     window.playlist.currentSongIndex = 2;
     window.loadAndPlay();
 }

@@ -11954,7 +11954,7 @@ updateStyling(imgUrl);
 
 function changeImage(newImgUrl) {
     imgUrl = newImgUrl;
-    console.log("Banner changed");
+
     updateStyling(newImgUrl);
 }
 //draggable sign mechanics, here because it doesn't fire correctly in code 1 without stacking, delta based after 4 iterations
