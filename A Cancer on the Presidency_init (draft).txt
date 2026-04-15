@@ -1135,10 +1135,6 @@ function replaceButtonText() {
         } else if (el.innerText.includes("Democratic")) {
             el.style.color = "#ff0000";
         }
-        const advisorH3 = document.querySelector('.overlay_window_content h3');
-        if (advisorH3 && advisorH3.textContent.includes('Advisor Feedback')) {
-            advisorH3.textContent = 'Feedback';
-        }
     });
     const progressH3 = document.querySelector('#progress_bar h3');
     if (progressH3 && !progressH3.dataset.animated) {
