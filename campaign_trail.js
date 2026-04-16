@@ -1228,10 +1228,8 @@ const shining_cal = (polling) => {
     );
     const currMult = target.fields.state_multiplier;
     const boost = (currMult * f.amount) / 750000000;
-    console.log(target.fields.state_multiplier);
     target.fields.state_multiplier
       += boost * (our_info ? our_info.ad_effect : 1);
-    console.log(target.fields.state_multiplier);
 
     e.shining_data.balance -= f.amount;
   });
@@ -1530,7 +1528,6 @@ function updateUsMapStyles(config) {
 function showOutcomePopup(election, results) {
   if (!election || !results) return;
   const electionUsed = PROPS.ELECTIONS.get(String(election));
-  console.log(results);
   $("#game_window").append(`
         <div class="overlay" id="election_night_overlay"></div>
         <div class="overlay_window" id="election_night_window">
@@ -2228,7 +2225,6 @@ function renderOptions(electionId, candId, runId) {
       || e.hotload
       || loadingFromModButton
     ) {
-      console.log('ttrying');
       try {
         $("#game_window").load(aaa, async () => {
           const cands = PROPS.CANDIDATES;
