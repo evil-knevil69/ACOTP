@@ -12149,3 +12149,77 @@ document.addEventListener('keydown', (e) => {
     }
 });
 document.body.appendChild(honk);
+
+// ─── Section Transition Screens ───────────────────────────────────────────────
+// Shows a full-screen narrative overlay at the start of a given question_number.
+// Current question order (add/update as new questions are written):
+//   0  → pk 409 : Kissinger / Fallaci
+//   1  → pk 401 : Campaign strategy
+//   2  → pk 402 : Honesty & pardon
+//   3–10        : Policy questions (priority 3, may shuffle within group)
+//   11 → pk 408 : Carter Playboy interview
+//   12 → pk 404 : Presidential debate
+//   13–15       : Attacks & vetoes (priority 7)
+//   16–23       : Foreign / domestic policy (priority 8)
+//   24 → pk 447 : Last day
+//
+// To add a new transition: add an object to sectionTransitions below.
+// atQuestion  — question_number that triggers the screen (shown before that question)
+// title       — large header text
+// body        — narrative paragraph(s); HTML is supported
+
+const sectionTransitions = [
+    {
+        atQuestion: 3,
+        title: "PART II",
+        body: "Placeholder — replace with your narrative intro for the policy section."
+    },
+    {
+        atQuestion: 11,
+        title: "PART III",
+        body: "Placeholder — replace with your narrative intro for the campaign trail section."
+    }
+];
+
+const _shownTransitions = new Set();
+
+function showSectionTransition(t) {
+    if (_shownTransitions.has(t.atQuestion)) return;
+    _shownTransitions.add(t.atQuestion);
+
+    const overlay = document.createElement('div');
+    overlay.id = 'section-transition-' + t.atQuestion;
+    overlay.style.cssText = `
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png');
+        background-size: cover; background-position: center;
+        z-index: 500;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        text-align: center; padding: 40px; box-sizing: border-box;
+        animation: blurtosharp 2s ease-in forwards;
+        pointer-events: all;
+    `;
+
+    const dismissId = 'section-transition-' + t.atQuestion;
+    overlay.innerHTML = `
+        <h2 style="font-family:'CenturyOldStyle',serif;font-size:28px;letter-spacing:0.2em;
+                   text-transform:uppercase;margin-bottom:24px;">${t.title}</h2>
+        <p style="font-family:'TypewriterDry',monospace;font-size:16px;max-width:600px;
+                  line-height:1.8;margin-bottom:36px;">${t.body}</p>
+        <button onclick="document.getElementById('${dismissId}').remove();">Continue</button>
+    `;
+
+    const target = document.querySelector('.content_single') || document.getElementById('game_window');
+    if (target) target.appendChild(overlay);
+}
+
+const _transitionObserver = new MutationObserver(() => {
+    if (typeof e === 'undefined' || e.question_number == null) return;
+    if (!document.getElementById('question_form')) return;
+    const t = sectionTransitions.find(s => s.atQuestion === e.question_number);
+    if (t) showSectionTransition(t);
+});
+
+_transitionObserver.observe(document.getElementById('game_window'), { childList: true, subtree: true });
