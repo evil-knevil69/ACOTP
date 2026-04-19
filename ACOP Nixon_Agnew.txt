@@ -12170,7 +12170,7 @@ document.body.appendChild(honk);
 
 const sectionTransitions = [
     {
-        atQuestion: 3,
+        atQuestion: 0,
         title: "PART II",
         body: "Placeholder — replace with your narrative intro for the policy section."
     },
