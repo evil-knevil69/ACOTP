@@ -12216,7 +12216,10 @@ function showSectionTransition(t) {
     `;
 
     const target = document.getElementById('game_window');
-    if (target) target.appendChild(overlay);
+    if (target) {
+        target.style.position = 'relative';
+        target.appendChild(overlay);
+    }
 }
 
 const _transitionObserver = new MutationObserver(() => {
