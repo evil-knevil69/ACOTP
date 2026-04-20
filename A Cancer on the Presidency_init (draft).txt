@@ -988,6 +988,51 @@ background: transparent !important;
 .footer h4 {
     visibility: hidden !important;
 }
+.mytooltip {
+                position: relative;
+                display: inline-block;
+                cursor: pointer;
+            }
+            .mytooltip .mytooltiptext {
+                display: none;
+                position: fixed;
+                z-index: 999999;
+                width: 270px;
+                background: #fff;
+                padding: 8px 8px 30px 8px;
+                border-radius: 2px;
+                box-shadow: 2px 2px 8px rgba(0,0,0,0.4), 0 0 1px rgba(0,0,0,0.2);
+                pointer-events: none;
+                text-align: center;
+            }
+            .mytooltip .mytooltiptext img {
+                width: 100%;
+                height: auto;
+                display: block;
+                margin: 0 0 8px 0;
+            }
+            .mytooltip .mytooltiptext .tt-label {
+                font-family: Georgia, serif;
+                font-size: 14px;
+                font-weight: bold;
+                color: #333;
+                margin-bottom: 4px;
+            }
+            .mytooltip .mytooltiptext .tt-body {
+                font-family: 'PermanentMarker', cursive;
+                font-size: 12px;
+                color: rgb(96, 115, 129);
+                transform: rotate(-1.5deg) skewX(-3deg);
+                display: block;
+                margin-top: 6px;
+                line-height: 1.1;
+                letter-spacing: 0.05em;
+                text-align: left;
+                padding: 4px;
+                background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,240,240,0.9) 100%);
+                box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), 0 1px 3px rgba(0,0,0,0.15);
+                border-radius: 2px;
+            }
 .game_answer_row span {
     text-decoration: underline;
     text-decoration-color: transparent;
@@ -1725,51 +1770,6 @@ setInterval(() => {
                 height: 100%;
                 background: linear-gradient(transparent 70%, rgba(0,0,0,0.8));
                 background-repeat: no-repeat;
-            }
-            .mytooltip {
-                position: relative;
-                display: inline-block;
-                cursor: pointer;
-            }
-            .mytooltip .mytooltiptext {
-                display: none;
-                position: fixed;
-                z-index: 999999;
-                width: 270px;
-                background: #fff;
-                padding: 8px 8px 30px 8px;
-                border-radius: 2px;
-                box-shadow: 2px 2px 8px rgba(0,0,0,0.4), 0 0 1px rgba(0,0,0,0.2);
-                pointer-events: none;
-                text-align: center;
-            }
-            .mytooltip .mytooltiptext img {
-                width: 100%;
-                height: auto;
-                display: block;
-                margin: 0 0 8px 0;
-            }
-            .mytooltip .mytooltiptext .tt-label {
-                font-family: Georgia, serif;
-                font-size: 14px;
-                font-weight: bold;
-                color: #333;
-                margin-bottom: 4px;
-            }
-            .mytooltip .mytooltiptext .tt-body {
-                font-family: 'PermanentMarker', cursive;
-                font-size: 12px;
-                color: rgb(96, 115, 129);
-                transform: rotate(-1.5deg) skewX(-3deg);
-                display: block;
-                margin-top: 6px;
-                line-height: 1.1;
-                letter-spacing: 0.05em;
-                text-align: left;
-                padding: 4px;
-                background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,240,240,0.9) 100%);
-                box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), 0 1px 3px rgba(0,0,0,0.15);
-                border-radius: 2px;
             }
             @keyframes flicker {
                 0% { opacity: 1; }
