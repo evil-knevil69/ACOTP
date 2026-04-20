@@ -12210,7 +12210,7 @@ function showSectionTransition(t) {
         <h2 style="font-family:'TypewriterDry',serif;font-size:24px;letter-spacing:0.2em;
                    text-transform:uppercase;margin-bottom:24px;">${t.title}</h2>
         <p style="font-family:'TypewriterDry',monospace;font-size:16px;max-width:600px;
-                  line-height:1.8;margin-bottom:${t.img ? '24px' : '36px'};">${t.body}</p>
+                  line-height:1.5;margin-bottom:${t.img ? '24px' : '36px'};">${t.body}</p>
         ${t.img ? `<img src="${t.img}" style="display:block;max-width:400px;height:auto;margin:0 auto 36px auto;">` : ''}
         <button onclick="document.getElementById('${dismissId}').remove();">Continue</button>
     `;
