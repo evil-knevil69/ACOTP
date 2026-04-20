@@ -12230,3 +12230,119 @@ const _transitionObserver = new MutationObserver(() => {
 });
 
 _transitionObserver.observe(document.getElementById('game_window'), { childList: true, subtree: true });
+
+// ─── Tooltip Data ─────────────────────────────────────────────────────────────
+const tooltipList = [
+    {
+        searchString: "Henry Kissinger",
+        img: null,
+        label: "Henry Kissinger",
+        body: "You know who he is. Read a book."
+    },
+    {
+        searchString: "Kissinger",
+        img: null,
+        label: "Henry Kissinger",
+        body: "You know who he is. Read a book."
+    },
+
+    {
+        searchString: "Earl Butz",
+        img: null,
+        label: "Earl Butz",
+        body: "Secretary of Agriculture. Known for crude humour and an unfortunate surname."
+    },
+    {
+        searchString: "Oriana Fallaci",
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/oriana_fallaci.jpg",
+        label: "Oriana Fallaci",
+        body: "Italian journalist. Notoriously unsparing interviewer. Made Kissinger look a fool."
+    },
+    {
+        searchString: "Fallaci",
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/oriana_fallaci.jpg",
+        label: "Oriana Fallaci",
+        body: "Italian journalist. Notoriously unsparing interviewer. Made Kissinger look a fool."
+    },
+];
+
+// ─── Pen Stroke ───────────────────────────────────────────────────────────────
+function generatePenStroke() {
+    const height = 6;
+    const d = 'M 0 0 Q 35 5 50 3 Q 65 1 100 4';
+    return `<svg style="position:absolute;bottom:-4px;left:0;width:100%;height:${height}px;overflow:visible;pointer-events:none" preserveAspectRatio="none" viewBox="0 0 100 ${height}"><path d="${d}" fill="none" stroke="rgb(96, 115, 129)" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+// ─── Match & Apply ────────────────────────────────────────────────────────────
+function getTooltips(str) {
+    let matches = [];
+    tooltipList.forEach((tooltip, index) => {
+        const escaped = tooltip.searchString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(?<=[\\b\\s]|^)${escaped}(?=[.,;!?]?(?:[\\s\\b]|$))`, 'g');
+        let match;
+        while ((match = regex.exec(str)) !== null) {
+            matches.push({
+                start: match.index,
+                end: match.index + match[0].length,
+                tooltipIndex: index
+            });
+        }
+    });
+    matches.sort((a, b) => a.start - b.start || b.end - b.start - (a.end - a.start));
+    for (let i = 0; i < matches.length - 1; ) {
+        if (matches[i + 1].start < matches[i].end) {
+            matches.splice(i + 1, 1);
+        } else {
+            i++;
+        }
+    }
+    return matches;
+}
+
+function applyTooltips(str) {
+    const matches = getTooltips(str);
+    let result = '';
+    let lastIndex = 0;
+    matches.forEach(match => {
+        const tooltip = tooltipList[match.tooltipIndex];
+        result += str.slice(lastIndex, match.start);
+        result += `<span class='mytooltip' style='position:relative'>${tooltip.searchString}${generatePenStroke()}<span class='mytooltiptext'><img src='${tooltip.img}'/><div class='tt-label'>${tooltip.label}</div><div class='tt-body'>${tooltip.body}</div></span></span>`;
+        lastIndex = match.end;
+    });
+    result += str.slice(lastIndex);
+    return result;
+}
+
+function applyTooltipsToObject(obj) {
+    for (let key in obj) {
+        if (typeof obj[key] === 'string') {
+            obj[key] = applyTooltips(obj[key]);
+        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+            applyTooltipsToObject(obj[key]);
+        }
+    }
+}
+
+applyTooltipsToObject(campaignTrail_temp.questions_json);
+applyTooltipsToObject(campaignTrail_temp.answers_json);
+applyTooltipsToObject(campaignTrail_temp.answer_feedback_json);
+
+// ─── Follow-cursor positioning ────────────────────────────────────────────────
+document.addEventListener('mousemove', (e) => {
+    const tip = document.querySelector('.mytooltip:hover .mytooltiptext');
+    if (!tip) return;
+    tip.style.display = 'block';
+    const pad = 16;
+    const tw = tip.offsetWidth;
+    const th = tip.offsetHeight;
+    let x = e.clientX + pad;
+    let y = e.clientY + pad;
+    if (x + tw > window.innerWidth) x = e.clientX - tw - pad;
+    if (y + th > window.innerHeight) y = e.clientY - th - pad;
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+});
+
+document.addEventListener('mouseleave', () => {
+    document.querySelectorAll('.mytooltiptext').forEach(t => t.style.display = 'none');
+}, true);
