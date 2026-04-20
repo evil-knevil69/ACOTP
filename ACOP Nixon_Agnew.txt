@@ -12345,4 +12345,4 @@ document.addEventListener('mousemove', (e) => {
 
 document.addEventListener('mouseleave', () => {
     document.querySelectorAll('.mytooltiptext').forEach(t => t.style.display = 'none');
-}, false);
+}, true);
