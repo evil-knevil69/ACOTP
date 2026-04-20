@@ -12121,12 +12121,6 @@ honk.style.cssText = `
     cursor: pointer;
     background: transparent;
 `;
-//stop running mate from changing the background when clicked for easter egg
-document.body.addEventListener('click', (e) => {
-    if (e.target.closest('#candidate_pic') || e.target.closest('#running_mate_pic')) {
-        e.stopPropagation();
-    }
-});
 //Konami code easter egg
 const konamiCode = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
 let konamiIndex = 0;
