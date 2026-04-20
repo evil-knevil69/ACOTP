@@ -12264,6 +12264,12 @@ const tooltipList = [
         label: "Oriana Fallaci",
         body: "Italian journalist. Notoriously unsparing interviewer. Made Kissinger look a fool."
     },
+    {
+        searchString: "your crown still aches",
+        img: null,
+        label: "",
+        body: "Nixon broke one of his crowns during an election eve dinner with his family and had to have emergency dentistry. Not a bad omen."
+    },
 ];
 
 // ─── Pen Stroke ───────────────────────────────────────────────────────────────
