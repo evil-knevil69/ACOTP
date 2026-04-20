@@ -12174,7 +12174,7 @@ const sectionTransitions = [
         atQuestion: 0,
         title: "PART I: Remission",
         body: "During the first term we stopped their revolution. Now we can move forward with our own.",
-        img: https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif"
     },
     {
         atQuestion: 11,
@@ -12210,7 +12210,7 @@ function showSectionTransition(t) {
         <h2 style="font-family:'TypewriterDry',serif;font-size:24px;letter-spacing:0.2em;
                    text-transform:uppercase;margin-bottom:24px;">${t.title}</h2>
         <p style="font-family:'TypewriterDry',monospace;font-size:16px;max-width:600px;
-                  line-height:1.8;margin-bottom:${t.img ? '24px' : '36px'};">${t.body}</p>
+                  line-height:1.5;margin-bottom:${t.img ? '24px' : '36px'};">${t.body}</p>
         ${t.img ? `<img src="${t.img}" style="display:block;max-width:400px;height:auto;margin:0 auto 36px auto;">` : ''}
         <button onclick="document.getElementById('${dismissId}').remove();">Continue</button>
     `;
@@ -12312,7 +12312,7 @@ function applyTooltips(str) {
     matches.forEach(match => {
         const tooltip = tooltipList[match.tooltipIndex];
         result += str.slice(lastIndex, match.start);
-        result += `<span class='mytooltip' style='position:relative'>${tooltip.searchString}${generatePenStroke()}<span class='mytooltiptext'><img src='${tooltip.img}'/><div class='tt-label'>${tooltip.label}</div><div class='tt-body'>${tooltip.body}</div></span></span>`;
+        result += `<span class='mytooltip' style='position:relative'>${tooltip.searchString}${generatePenStroke()}<span class='mytooltiptext'>${tooltip.img ? `<img src='${tooltip.img}'/>` : ''}<div class='tt-label'>${tooltip.label}</div><div class='tt-body'>${tooltip.body}</div></span></span>`;
         lastIndex = match.end;
     });
     result += str.slice(lastIndex);
@@ -12351,4 +12351,4 @@ document.addEventListener('mousemove', (e) => {
 
 document.addEventListener('mouseleave', () => {
     document.querySelectorAll('.mytooltiptext').forEach(t => t.style.display = 'none');
-}, true);
+}, false);
