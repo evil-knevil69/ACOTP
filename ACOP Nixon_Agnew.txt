@@ -12264,7 +12264,7 @@ const tooltipList = [
 function generatePenStroke() {
     const height = 6;
     const d = 'M 0 0 Q 35 5 50 3 Q 65 1 100 4';
-    return `<svg style="position:absolute;bottom:-4px;left:0;width:100%;height:${height}px;overflow:visible;pointer-events:none" preserveAspectRatio="none" viewBox="0 0 100 ${height}"><path d="${d}" fill="none" stroke="rgb(96, 115, 129)" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>`;
+    return `<svg style="position:absolute;bottom:-4px;left:0;width:100%;height:${height}px;overflow:visible;pointer-events:none" preserveAspectRatio="none" viewBox="0 0 100 ${height}"><path d="${d}" fill="none" stroke="rgb(96, 115, 129)" stroke-width="1.9" vector-effect="non-scaling-stroke"/></svg>`;
 }
 
 // ─── Match & Apply ────────────────────────────────────────────────────────────
