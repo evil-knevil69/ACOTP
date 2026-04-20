@@ -12174,7 +12174,7 @@ const sectionTransitions = [
         atQuestion: 0,
         title: "PART I: Remission",
         body: "During the first term we stopped their revolution. Now we can move forward with our own.",
-        img: https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif"
     },
     {
         atQuestion: 11,
@@ -12306,7 +12306,7 @@ function applyTooltips(str) {
     matches.forEach(match => {
         const tooltip = tooltipList[match.tooltipIndex];
         result += str.slice(lastIndex, match.start);
-        result += `<span class='mytooltip' style='position:relative'>${tooltip.searchString}${generatePenStroke()}<span class='mytooltiptext'><img src='${tooltip.img}'/><div class='tt-label'>${tooltip.label}</div><div class='tt-body'>${tooltip.body}</div></span></span>`;
+        result += `<span class='mytooltip' style='position:relative'>${tooltip.searchString}${generatePenStroke()}<span class='mytooltiptext'>${tooltip.img ? `<img src='${tooltip.img}'/>` : ''}<div class='tt-label'>${tooltip.label}</div><div class='tt-body'>${tooltip.body}</div></span></span>`;
         lastIndex = match.end;
     });
     result += str.slice(lastIndex);
@@ -12345,4 +12345,4 @@ document.addEventListener('mousemove', (e) => {
 
 document.addEventListener('mouseleave', () => {
     document.querySelectorAll('.mytooltiptext').forEach(t => t.style.display = 'none');
-}, true);
+}, false);
