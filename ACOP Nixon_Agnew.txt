@@ -12300,7 +12300,7 @@ function applyTooltips(str) {
     matches.forEach(match => {
         const tooltip = tooltipList[match.tooltipIndex];
         result += str.slice(lastIndex, match.start);
-        result += `<span class='mytooltip' style='position:relative'>${tooltip.searchString}${generatePenStroke()}<span class='mytooltiptext'>${tooltip.img ? `<img src='${tooltip.img}'/>` : ''}<div class='tt-label'>${tooltip.label}</div><div class='tt-body'>${tooltip.body}</div></span></span>`;
+        result += `<span class='mytooltip' style='position:relative'>${tooltip.searchString}${generatePenStroke()}<span class='mytooltiptext'>${tooltip.img ? `<img src='${tooltip.img}'/>` : ''}<div class='tt-label'>${tooltip.label}</div><div class='tt-body'><span class='tt-body-text'>${tooltip.body}</span></div></span></span>`;
         lastIndex = match.end;
     });
     result += str.slice(lastIndex);
