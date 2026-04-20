@@ -12167,17 +12167,20 @@ document.body.appendChild(honk);
 // atQuestion  — question_number that triggers the screen (shown before that question)
 // title       — large header text
 // body        — narrative paragraph(s); HTML is supported
+// img         — optional image URL, displayed centred below the body (omit or set null to skip)
 
 const sectionTransitions = [
     {
         atQuestion: 0,
-        title: "PART II",
-        body: "Placeholder — replace with your narrative intro for the policy section."
+        title: "PART I: Remission",
+        body: "During the first term we stopped their revolution. Now we can move forward with our own.",
+        img: https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif
     },
     {
         atQuestion: 11,
-        title: "PART III",
-        body: "Placeholder — replace with your narrative intro for the campaign trail section."
+        title: "PART II: Fulmination",
+        body: "One day we will get them on the ground where we want them, and will stick our heels in, step on them hard and twist… crush them, show them no mercy.",
+        img: null
     }
 ];
 
@@ -12191,28 +12194,32 @@ function showSectionTransition(t) {
     overlay.id = 'section-transition-' + t.atQuestion;
     overlay.style.cssText = `
         position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
+        top: 0; left: 0; width: 989px; height: 625px;
         background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png');
         background-size: cover; background-position: center;
         z-index: 500;
         display: flex; flex-direction: column;
         align-items: center; justify-content: center;
         text-align: center; padding: 40px; box-sizing: border-box;
-        animation: blurtosharp 2s ease-in forwards;
+        animation: blurtosharp 1s ease-in forwards;
         pointer-events: all;
     `;
 
     const dismissId = 'section-transition-' + t.atQuestion;
     overlay.innerHTML = `
-        <h2 style="font-family:'CenturyOldStyle',serif;font-size:28px;letter-spacing:0.2em;
+        <h2 style="font-family:'TypewriterDry',serif;font-size:24px;letter-spacing:0.2em;
                    text-transform:uppercase;margin-bottom:24px;">${t.title}</h2>
         <p style="font-family:'TypewriterDry',monospace;font-size:16px;max-width:600px;
-                  line-height:1.8;margin-bottom:36px;">${t.body}</p>
+                  line-height:1.8;margin-bottom:${t.img ? '24px' : '36px'};">${t.body}</p>
+        ${t.img ? `<img src="${t.img}" style="display:block;max-width:400px;height:auto;margin:0 auto 36px auto;">` : ''}
         <button onclick="document.getElementById('${dismissId}').remove();">Continue</button>
     `;
 
-    const target = document.querySelector('.content_single') || document.getElementById('game_window');
-    if (target) target.appendChild(overlay);
+    const target = document.getElementById('game_window');
+    if (target) {
+        target.style.position = 'relative';
+        target.appendChild(overlay);
+    }
 }
 
 const _transitionObserver = new MutationObserver(() => {
