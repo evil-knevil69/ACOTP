@@ -1339,7 +1339,7 @@ function replaceRadioButtons() {
 
     radios.forEach(radio => {
     const label = document.querySelector('label[for="' + radio.id + '"]');
-    const labelText = label ? label.textContent.trim() : '';
+    const labelText = label ? label.innerHTML.trim() : '';
 
     const row = document.createElement('div');
     row.className = 'game_answer_row';
@@ -1361,7 +1361,7 @@ function replaceRadioButtons() {
     checkLabel.appendChild(svg);
 
     const textSpan = document.createElement('span');
-    textSpan.textContent = labelText;
+    textSpan.innerHTML = labelText;
     row.appendChild(checkLabel);
     row.appendChild(textSpan);
 
