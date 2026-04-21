@@ -12246,25 +12246,49 @@ const tooltipList = [
         searchString: "Earl Butz",
         img: null,
         label: "Earl Butz",
-        body: "Secretary of Agriculture. Known for crude humour and an unfortunate surname."
+        body: "Secretary of Agriculture. Known for crude humour and blind support for agribusiness."
     },
     {
         searchString: "Oriana Fallaci",
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/oriana_fallaci.jpg",
         label: "Oriana Fallaci",
-        body: "Italian journalist. Uncompromising, unsparing interviewer. Was in the Resistance in WW2, which explains alot."
+        body: "Italian journalist. Uncompromising, unsparing interviewer. Joined the Resistance in WW2, shot and left for dead in '68 by the Mexican Police. Explains alot."
     },
     {
         searchString: "Fallaci",
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/oriana_fallaci.jpg",
         label: "Oriana Fallaci",
-        body: "Italian journalist. Uncompromising, unsparing interviewer. Was in the Resistance in WW2, which explains alot."
+        body: "Italian journalist. Uncompromising, unsparing interviewer. Joined the Resistance in WW2, shot and left for dead in '68 by the Mexican Police. Explains alot."
     },
     {
         searchString: "Romney",
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/portrait-george-romney-39048741.jpg",
         label: "George Romney",
         body: "George Romney, outgoing Secretary of HUD. Tried to turn every cabinet into a debating session, which he promptly went on to lose..."
+    },
+    {
+        searchString: "Mundt",
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/Rep._Karl_Mundt%2C_Repub.%2C_of_S.D.%2C_2-21-40_LCCN2016877155_(cropped).jpg",
+        label: "Karl Mundt",
+        body: "Senator (R-SD). One of Nixon's earliest supporters and fellow bagman on HUAC. Now a modern-day Woodrow Wilson having suffered a stroke in '69 but still sitting as a Senator until the end of his term in January"
+    },
+    {
+        searchString: "HUAC",
+        img: null,
+        label: "House Committee on Unamerican Activities",
+        body: "Of 'are you now or have you ever been a communist?' fame. Gave Nixon his first national platform and which he ruthlessly exploited to build his reputation as a red-baiter."
+    },
+    {
+        searchString: "Kraft",
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/IMG_9593.gif",
+        label: "Joseph Kraft",
+        body: "Syndicated columnist and ex-Kennedy speechwriter. Coined the term 'Middle America' and fierce liberal critic of the Presidency."
+    },
+    {
+        searchString: "Laird",
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/melvinlaird.jpg",
+        label: "Melvin Laird",
+        body: "Outgoing Defense Secretary. "
     },
 ];
 
