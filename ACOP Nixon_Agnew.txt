@@ -12202,7 +12202,7 @@ function showSectionTransition(t) {
 
     const dismissId = 'section-transition-' + t.atQuestion;
     const titleLen = t.title.length;
-    const typeDuration = (titleLen * 0.15).toFixed(2);
+    const typeDuration = (titleLen * 0.25).toFixed(2);
     overlay.innerHTML = `
         <style>
             #${dismissId} h2 {
@@ -12336,9 +12336,7 @@ const _gameObserver = new MutationObserver((() => {
                 const t = sectionTransitions.find(s => s.atQuestion === e.question_number);
                 if (t) showSectionTransition(t);
             }
-            if (document.getElementById('advisor_window') || document.querySelector('.overlay_window')) {
-                document.querySelectorAll('.mytooltiptext').forEach(tip => tip.style.display = 'none');
-            }
+
         });
     };
 })());
