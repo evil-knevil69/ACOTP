@@ -1006,7 +1006,8 @@ background: transparent !important;
     text-align: center;
 }
 .mytooltip .mytooltiptext img {
-    width: 100%;
+    width: auto;
+    max-width: 200px;
     height: auto;
     display: block;
     margin: 0 0 8px 0;
