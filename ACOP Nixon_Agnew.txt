@@ -11915,7 +11915,6 @@ function updateTypewriterVisibility() {
     }
 }
 
-// observer2 replaced by consolidated _gameObserver below
 setInterval(updateTypewriterVisibility, 200);
 
 // This updates the candidate banner logos into question specific photos. Taken from 1992 - Moonbeam
@@ -12105,8 +12104,6 @@ document.body.addEventListener('click', (e) => {
     }
 });
 
-// observerSign replaced by consolidated _gameObserver below
-
 const honk = document.createElement('div');
 honk.id = 'honk';
 honk.style.cssText = `
@@ -12205,9 +12202,9 @@ function showSectionTransition(t) {
 
     const dismissId = 'section-transition-' + t.atQuestion;
     overlay.innerHTML = `
-        <h2 style="font-family:'TypewriterDry',serif;font-size:24px;letter-spacing:0.2em;
-                   text-transform:uppercase;margin-bottom:24px;">${t.title}</h2>
-        <p style="font-family:'TypewriterDry',monospace;font-size:16px;max-width:600px;
+        <h2 style="font-family:'TypewriterDry',monospace;font-size:24px;letter-spacing:0.2em;
+                   text-transform:uppercase;margin-bottom:34px;">${t.title}</h2>
+        <p style="font-family:'TypewriterDry',monospace;font-size:14px;max-width:600px;
                   line-height:1.5;margin-bottom:${t.img ? '24px' : '36px'};">${t.body}</p>
         ${t.img ? `<img src="${t.img}" style="display:block;max-width:400px;height:auto;margin:0 auto 36px auto;">` : ''}
         <button onclick="document.getElementById('${dismissId}').remove();">Continue</button>
@@ -12220,23 +12217,20 @@ function showSectionTransition(t) {
     }
 }
 
-// _transitionObserver consolidated into _gameObserver below
-
-// ─── Tooltip Data ─────────────────────────────────────────────────────────────
+// Tooltip Data
 const tooltipList = [
     {
         searchString: "Henry Kissinger",
-        img: null,
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/kissinger.jpeg",
         label: "Henry Kissinger",
         body: "You know who he is. Read a book."
     },
     {
         searchString: "Kissinger",
-        img: null,
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/kissinger.jpeg",
         label: "Henry Kissinger",
         body: "You know who he is. Read a book."
     },
-
     {
         searchString: "Earl Butz",
         img: null,
@@ -12247,24 +12241,23 @@ const tooltipList = [
         searchString: "Oriana Fallaci",
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/oriana_fallaci.jpg",
         label: "Oriana Fallaci",
-        body: "Italian journalist. Notoriously unsparing interviewer. Made Kissinger look a fool."
+        body: "Italian journalist. Uncompromising, unsparing interviewer. Was in the Resistance in WW2, which explains alot."
     },
     {
         searchString: "Fallaci",
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/oriana_fallaci.jpg",
         label: "Oriana Fallaci",
-        body: "Italian journalist. Notoriously unsparing interviewer. Made Kissinger look a fool."
+        body: "Italian journalist. Uncompromising, unsparing interviewer. Was in the Resistance in WW2, which explains alot."
     },
 ];
 
-// ─── Pen Stroke ───────────────────────────────────────────────────────────────
+// Pen Stroke
 function generatePenStroke() {
     const height = 6;
     const d = 'M 0 0 Q 35 5 50 3 Q 65 1 100 4';
     return `<svg style="position:absolute;bottom:-4px;left:0;width:100%;height:${height}px;overflow:visible;pointer-events:none" preserveAspectRatio="none" viewBox="0 0 100 ${height}"><path d="${d}" fill="none" stroke="rgb(96, 115, 129)" stroke-width="1.9" vector-effect="non-scaling-stroke"/></svg>`;
 }
 
-// ─── Match & Apply ────────────────────────────────────────────────────────────
 function getTooltips(str) {
     let matches = [];
     tooltipList.forEach((tooltip, index) => {
@@ -12318,8 +12311,6 @@ applyTooltipsToObject(campaignTrail_temp.questions_json);
 applyTooltipsToObject(campaignTrail_temp.answers_json);
 applyTooltipsToObject(campaignTrail_temp.answer_feedback_json);
 
-// ─── Consolidated game observer ───────────────────────────────────────────────
-// Single RAF-debounced observer on #game_window replaces observer2, observerSign,
 // _transitionObserver, and _feedbackObserver.
 const _gameObserver = new MutationObserver((() => {
     let _pending = false;
@@ -12342,7 +12333,7 @@ const _gameObserver = new MutationObserver((() => {
 })());
 _gameObserver.observe(document.getElementById('game_window'), { childList: true, subtree: true });
 
-// ─── Follow-cursor positioning ────────────────────────────────────────────────
+// tooltip hover over
 document.addEventListener('mousemove', (e) => {
     const tip = document.querySelector('.mytooltip:hover .mytooltiptext');
     if (!tip) return;
