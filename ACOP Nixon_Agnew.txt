@@ -12171,8 +12171,14 @@ const sectionTransitions = [
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif"
     },
     {
-        atQuestion: 11,
+        atQuestion: 4,
         title: "PART II: Fulmination",
+        body: "We are embarking here today on an era that presents challenges great as those any nation, or any generation, has ever faced. We shall answer to God, to history, and to our conscience for the way in which we use these years.",
+        img: null
+    },
+    {
+        atQuestion: 6,
+        title: "PART III: Metastasis",
         body: "One day we will get them on the ground where we want them, and will stick our heels in, step on them hard and twist… crush them, show them no mercy.",
         img: null
     }
