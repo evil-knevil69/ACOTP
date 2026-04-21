@@ -12363,22 +12363,41 @@ const _gameObserver = new MutationObserver((() => {
 })());
 _gameObserver.observe(document.getElementById('game_window'), { childList: true, subtree: true });
 
-// tooltip hover over
+// Tooltip portal — appended to document.body so position:fixed works correctly
+// even when the trigger element is inside a CSS-transformed ancestor (e.g. #visit_window).
+const _tooltipPortal = document.createElement('div');
+_tooltipPortal.id = 'tooltip-portal';
+document.body.appendChild(_tooltipPortal);
+
+let _hoveredTooltip = null;
+
+document.addEventListener('mouseover', (e) => {
+    const src = e.target.closest('.mytooltip');
+    if (src === _hoveredTooltip) return;
+    _hoveredTooltip = src;
+    if (src) {
+        const inner = src.querySelector('.mytooltiptext');
+        if (inner) _tooltipPortal.innerHTML = inner.innerHTML;
+    } else {
+        _tooltipPortal.style.display = 'none';
+    }
+});
+
 document.addEventListener('mousemove', (e) => {
-    const tip = document.querySelector('.mytooltip:hover .mytooltiptext');
-    if (!tip) return;
-    tip.style.display = 'block';
+    if (!_hoveredTooltip) return;
+    _tooltipPortal.style.display = 'block';
     const pad = 16;
-    const tw = tip.offsetWidth;
-    const th = tip.offsetHeight;
+    const tw = _tooltipPortal.offsetWidth;
+    const th = _tooltipPortal.offsetHeight;
     let x = e.clientX + pad;
     let y = e.clientY + pad;
     if (x + tw > window.innerWidth) x = e.clientX - tw - pad;
     if (y + th > window.innerHeight) y = e.clientY - th - pad;
-    tip.style.left = x + 'px';
-    tip.style.top = y + 'px';
+    _tooltipPortal.style.left = x + 'px';
+    _tooltipPortal.style.top = y + 'px';
 });
 
 document.addEventListener('mouseleave', () => {
-    document.querySelectorAll('.mytooltiptext').forEach(t => t.style.display = 'none');
+    _tooltipPortal.style.display = 'none';
+    _hoveredTooltip = null;
 }, true);

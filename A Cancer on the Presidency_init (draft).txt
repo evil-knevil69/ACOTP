@@ -993,7 +993,7 @@ background: transparent !important;
     display: inline-block;
     cursor: pointer;
 }
-.mytooltip .mytooltiptext {
+.mytooltip .mytooltiptext, #tooltip-portal {
     display: none;
     position: fixed;
     z-index: 999999;
@@ -1005,14 +1005,14 @@ background: transparent !important;
     pointer-events: none;
     text-align: center;
 }
-.mytooltip .mytooltiptext img {
+.mytooltip .mytooltiptext img, #tooltip-portal img {
     width: auto;
     max-width: 200px;
     height: auto;
     display: block;
     margin: 0 auto 8px auto;
 }
-.mytooltip .mytooltiptext .tt-label {
+.mytooltip .mytooltiptext .tt-label, #tooltip-portal .tt-label {
     display: block;
     font-family: Georgia, serif;
     font-size: 14px;
@@ -1020,7 +1020,7 @@ background: transparent !important;
     color: #333;
     margin-bottom: 4px;
 }
-.mytooltip .mytooltiptext .tt-body {
+.mytooltip .mytooltiptext .tt-body, #tooltip-portal .tt-body {
     display: block;
     margin-top: 6px;
     padding: 4px;
@@ -1028,7 +1028,7 @@ background: transparent !important;
     box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), 0 1px 3px rgba(0,0,0,0.15);
     border-radius: 2px;
 }
-.mytooltip .mytooltiptext .tt-body-text {
+.mytooltip .mytooltiptext .tt-body-text, #tooltip-portal .tt-body-text {
     font-family: 'PermanentMarker', cursive;
     font-size: 12px;
     color: rgb(96, 115, 129);
