@@ -1013,6 +1013,7 @@ background: transparent !important;
     margin: 0 0 8px 0;
 }
 .mytooltip .mytooltiptext .tt-label {
+    display: block;
     font-family: Georgia, serif;
     font-size: 14px;
     font-weight: bold;
