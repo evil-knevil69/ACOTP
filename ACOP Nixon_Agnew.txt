@@ -12270,7 +12270,7 @@ const tooltipList = [
         searchString: "Mundt",
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/Rep._Karl_Mundt%2C_Repub.%2C_of_S.D.%2C_2-21-40_LCCN2016877155_(cropped).jpg",
         label: "Karl Mundt",
-        body: "Senator (R-SD). One of Nixon's earliest supporters and fellow bagman on HUAC. Now a modern-day Woodrow Wilson having suffered a stroke in '69 but still sitting as a Senator until the end of his term in January"
+        body: "Senator (R-SD). One of Nixon's earliest supporters and fellow bagman on HUAC. Now a modern-day Woodrow Wilson having suffered a stroke in '69 but still sitting as a Senator until the end of his term in January."
     },
     {
         searchString: "HUAC",
@@ -12288,7 +12288,7 @@ const tooltipList = [
         searchString: "Laird",
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/melvinlaird.jpg",
         label: "Melvin Laird",
-        body: "Outgoing Defense Secretary. "
+        body: "Outgoing Defense Secretary. Architect of the volunteer army and Vietnamization. Leaving for personal reasons."
     },
 ];
 
