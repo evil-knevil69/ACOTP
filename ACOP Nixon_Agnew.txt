@@ -11915,8 +11915,7 @@ function updateTypewriterVisibility() {
     }
 }
 
-const observer2 = new MutationObserver(updateTypewriterVisibility);
-observer2.observe(document.body, { childList: true, subtree: true });
+// observer2 replaced by consolidated _gameObserver below
 setInterval(updateTypewriterVisibility, 200);
 
 // This updates the candidate banner logos into question specific photos. Taken from 1992 - Moonbeam
@@ -11995,10 +11994,9 @@ const resizeObserver = new ResizeObserver(() => {
         savedSignHeight = activeSign.style.height;
     }
 });
-const observerSign = new MutationObserver(() => {
+function updateCampaignSign() {
     const sign = document.querySelector('#campaign_sign');
     if (sign && sign !== activeSign) {
-        // Remove any previously moved sign from content_single
         if (activeSign && activeSign.parentElement && activeSign.parentElement.classList.contains('content_single')) {
             activeSign.remove();
         }
@@ -12038,7 +12036,7 @@ const observerSign = new MutationObserver(() => {
         resizeObserver.observe(sign);
         updateTypewriterVisibility();
     }
-});
+}
 
 //easter egg stuff
 let nixonClickCount = 0;
@@ -12107,7 +12105,7 @@ document.body.addEventListener('click', (e) => {
     }
 });
 
-observerSign.observe(document.body, { childList: true, subtree: true });
+// observerSign replaced by consolidated _gameObserver below
 
 const honk = document.createElement('div');
 honk.id = 'honk';
@@ -12222,14 +12220,7 @@ function showSectionTransition(t) {
     }
 }
 
-const _transitionObserver = new MutationObserver(() => {
-    if (typeof e === 'undefined' || e.question_number == null) return;
-    if (!document.getElementById('question_form')) return;
-    const t = sectionTransitions.find(s => s.atQuestion === e.question_number);
-    if (t) showSectionTransition(t);
-});
-
-_transitionObserver.observe(document.getElementById('game_window'), { childList: true, subtree: true });
+// _transitionObserver consolidated into _gameObserver below
 
 // ─── Tooltip Data ─────────────────────────────────────────────────────────────
 const tooltipList = [
@@ -12327,13 +12318,29 @@ applyTooltipsToObject(campaignTrail_temp.questions_json);
 applyTooltipsToObject(campaignTrail_temp.answers_json);
 applyTooltipsToObject(campaignTrail_temp.answer_feedback_json);
 
-// Clear any stale open tooltips when the feedback overlay opens
-const _feedbackObserver = new MutationObserver(() => {
-    if (document.getElementById('advisor_window') || document.querySelector('.overlay_window')) {
-        document.querySelectorAll('.mytooltiptext').forEach(t => t.style.display = 'none');
-    }
-});
-_feedbackObserver.observe(document.getElementById('game_window'), { childList: true, subtree: false });
+// ─── Consolidated game observer ───────────────────────────────────────────────
+// Single RAF-debounced observer on #game_window replaces observer2, observerSign,
+// _transitionObserver, and _feedbackObserver.
+const _gameObserver = new MutationObserver((() => {
+    let _pending = false;
+    return () => {
+        if (_pending) return;
+        _pending = true;
+        requestAnimationFrame(() => {
+            _pending = false;
+            updateTypewriterVisibility();
+            updateCampaignSign();
+            if (typeof e !== 'undefined' && e.question_number != null && document.getElementById('question_form')) {
+                const t = sectionTransitions.find(s => s.atQuestion === e.question_number);
+                if (t) showSectionTransition(t);
+            }
+            if (document.getElementById('advisor_window') || document.querySelector('.overlay_window')) {
+                document.querySelectorAll('.mytooltiptext').forEach(tip => tip.style.display = 'none');
+            }
+        });
+    };
+})());
+_gameObserver.observe(document.getElementById('game_window'), { childList: true, subtree: true });
 
 // ─── Follow-cursor positioning ────────────────────────────────────────────────
 document.addEventListener('mousemove', (e) => {

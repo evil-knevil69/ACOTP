@@ -1405,10 +1405,18 @@ function replaceRadioButtons() {
         }, true); // capture phase so it fires before engine handler
     }
 }
-const observer = new MutationObserver(() => {
-    replaceButtonText();
-    replaceRadioButtons();
-});
+const observer = new MutationObserver((() => {
+    let _pending = false;
+    return () => {
+        if (_pending) return;
+        _pending = true;
+        requestAnimationFrame(() => {
+            _pending = false;
+            replaceButtonText();
+            replaceRadioButtons();
+        });
+    };
+})());
 
 //event listeners, play music add watergate button, adjust image containers
 
