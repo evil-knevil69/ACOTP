@@ -1482,17 +1482,25 @@ function makeDraggable(elId, savedPos) {
     new MutationObserver(updatePin).observe(el, { attributes: true, attributeFilter: ['style'] });
 }
 
-const mapPanelObserver = new MutationObserver(() => {
-    const overall = document.getElementById('overall_result_container');
-    const state = document.getElementById('state_result_container');
-    if (overall && !overall.dataset.dragHooked) {
-        makeDraggable('overall_result_container', { left: savedOverallLeft, top: savedOverallTop });
-    }
-    if (state && !state.dataset.dragHooked) {
-        makeDraggable('state_result_container', { left: savedStateLeft, top: savedStateTop });
-    }
-});
-mapPanelObserver.observe(document.body, { childList: true, subtree: true });
+const mapPanelObserver = new MutationObserver((() => {
+    let _pending = false;
+    return () => {
+        if (_pending) return;
+        _pending = true;
+        requestAnimationFrame(() => {
+            _pending = false;
+            const overall = document.getElementById('overall_result_container');
+            const state = document.getElementById('state_result_container');
+            if (overall && !overall.dataset.dragHooked) {
+                makeDraggable('overall_result_container', { left: savedOverallLeft, top: savedOverallTop });
+            }
+            if (state && !state.dataset.dragHooked) {
+                makeDraggable('state_result_container', { left: savedStateLeft, top: savedStateTop });
+            }
+        });
+    };
+})());
+mapPanelObserver.observe(document.getElementById('game_window'), { childList: true, subtree: true });
 
 window.playCreditsMusic = function() {
     if (!window.playlist) {
