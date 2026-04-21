@@ -12260,6 +12260,12 @@ const tooltipList = [
         label: "Oriana Fallaci",
         body: "Italian journalist. Uncompromising, unsparing interviewer. Was in the Resistance in WW2, which explains alot."
     },
+    {
+        searchString: "Romney",
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/portrait-george-romney-39048741.jpg",
+        label: "George Romney",
+        body: "George Romney, outgoing Secretary of HUD. Tried to turn every cabinet into a debating session, which he promptly went on to lose..."
+    },
 ];
 
 // Pen Stroke
