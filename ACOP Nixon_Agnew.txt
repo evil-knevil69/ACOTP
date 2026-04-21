@@ -12201,9 +12201,20 @@ function showSectionTransition(t) {
     `;
 
     const dismissId = 'section-transition-' + t.atQuestion;
+    const titleLen = t.title.length;
+    const typeDuration = (titleLen * 0.15).toFixed(2);
     overlay.innerHTML = `
+        <style>
+            #${dismissId} h2 {
+                overflow: hidden;
+                border-right: .15em solid orange;
+                white-space: nowrap;
+                animation: typing ${typeDuration}s steps(${titleLen}, end),
+                           blink-caret .5s step-end infinite;
+            }
+        </style>
         <h2 style="font-family:'TypewriterDry',monospace;font-size:24px;letter-spacing:0.2em;
-                   text-transform:uppercase;margin-bottom:34px;">${t.title}</h2>
+                   text-transform:uppercase;margin-top:-20px;margin-bottom:34px;">${t.title}</h2>
         <p style="font-family:'TypewriterDry',monospace;font-size:14px;max-width:600px;
                   line-height:1.5;margin-bottom:${t.img ? '24px' : '36px'};">${t.body}</p>
         ${t.img ? `<img src="${t.img}" style="display:block;max-width:400px;height:auto;margin:0 auto 36px auto;">` : ''}
