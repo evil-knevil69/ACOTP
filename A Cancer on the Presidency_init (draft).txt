@@ -1048,6 +1048,74 @@ background: transparent !important;
 .game_answer_row:hover span {
     text-decoration-color: rgba(96, 115, 129, 0.55);
 }
+/* ── Inner Circle / Enemies panels ────────────────────────────── */
+#inner_circle_panel, #enemies_panel {
+    position: absolute;
+    top: 0; left: 0;
+    width: 989px; height: 625px;
+    background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png');
+    background-size: cover; background-position: center;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 24px 32px; box-sizing: border-box;
+    overflow-y: auto;
+    z-index: 400;
+    font-family: 'TypewriterDry', serif;
+}
+#inner_circle_panel h2, #enemies_panel h2 {
+    font-size: 20px; letter-spacing: 0.18em;
+    text-transform: uppercase; margin-bottom: 16px;
+}
+.ic-panel-buttons {
+    display: flex; gap: 12px; margin-top: auto; padding-top: 16px;
+}
+/* Organogram */
+.org-tree {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 0; width: 100%;
+}
+.org-level {
+    display: flex; justify-content: center;
+    gap: 16px; position: relative;
+}
+.org-level + .org-level {
+    margin-top: 0;
+}
+.org-node {
+    display: flex; flex-direction: column;
+    align-items: center; position: relative;
+}
+.org-node::before {
+    content: '';
+    display: block;
+    width: 1px; height: 16px;
+    background: #555;
+    margin: 0 auto;
+}
+.org-level:first-child .org-node::before { display: none; }
+.org-card {
+    border: 1px solid #888;
+    background: rgba(255,255,255,0.82);
+    padding: 6px 12px;
+    font-family: 'TypewriterDry', serif;
+    font-size: 12px;
+    text-align: center;
+    min-width: 90px;
+    box-shadow: 1px 1px 4px rgba(0,0,0,0.15);
+}
+.org-card .org-role {
+    font-size: 10px;
+    color: #666;
+    display: block;
+    margin-top: 2px;
+    letter-spacing: 0.05em;
+}
+/* Enemies panel */
+.enemies-list {
+    width: 100%; max-width: 600px;
+    display: flex; flex-direction: column; gap: 8px;
+    margin-top: 8px;
+}
   #results_container { color: #fcfcfc; }
   .inner_window_w_desc { background-color: transparent !important; }
   #credits { height: 120px !important; visibility: hidden; }

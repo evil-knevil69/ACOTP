@@ -12352,6 +12352,132 @@ applyTooltipsToObject(campaignTrail_temp.questions_json);
 applyTooltipsToObject(campaignTrail_temp.answers_json);
 applyTooltipsToObject(campaignTrail_temp.answer_feedback_json);
 
+// ─── Inner Circle & Enemies Panels ───────────────────────────────────────────
+
+function addInnerCircleButton() {
+    if (document.getElementById('inner_circle_button')) return;
+    const ref = document.getElementById('view_electoral_map');
+    if (!ref) return;
+    const btn = document.createElement('button');
+    btn.id = 'inner_circle_button';
+    btn.textContent = 'Inner Circle';
+    btn.style.marginLeft = '10px';
+    btn.addEventListener('click', openInnerCircle);
+    ref.insertAdjacentElement('afterend', btn);
+}
+
+function openInnerCircle() {
+    const questions = document.querySelector('.inner_window_question');
+    if (questions) questions.style.display = 'none';
+    document.getElementById('inner_circle_button')?.remove();
+
+    const panel = document.createElement('div');
+    panel.id = 'inner_circle_panel';
+
+    const title = document.createElement('h2');
+    title.textContent = 'The Committee to Re-Elect the President';
+    panel.appendChild(title);
+
+    // ── Organogram ── (populate nodes here when ready)
+    const tree = document.createElement('div');
+    tree.className = 'org-tree';
+
+    const orgData = [
+        [
+            { name: 'Richard Nixon', role: 'President' }
+        ],
+        [
+            { name: 'TBD', role: 'TBD' },
+            { name: 'TBD', role: 'TBD' },
+            { name: 'TBD', role: 'TBD' }
+        ],
+        [
+            { name: 'TBD', role: 'TBD' },
+            { name: 'TBD', role: 'TBD' },
+            { name: 'TBD', role: 'TBD' },
+            { name: 'TBD', role: 'TBD' }
+        ]
+    ];
+
+    orgData.forEach(level => {
+        const row = document.createElement('div');
+        row.className = 'org-level';
+        level.forEach(person => {
+            const node = document.createElement('div');
+            node.className = 'org-node';
+            const card = document.createElement('div');
+            card.className = 'org-card';
+            card.innerHTML = `${person.name}<span class="org-role">${person.role}</span>`;
+            node.appendChild(card);
+            row.appendChild(node);
+        });
+        tree.appendChild(row);
+    });
+
+    panel.appendChild(tree);
+
+    const btnRow = document.createElement('div');
+    btnRow.className = 'ic-panel-buttons';
+
+    const enemiesBtn = document.createElement('button');
+    enemiesBtn.textContent = 'Known Enemies';
+    enemiesBtn.addEventListener('click', () => {
+        panel.remove();
+        openEnemiesPanel(questions);
+    });
+    btnRow.appendChild(enemiesBtn);
+
+    const backBtn = document.createElement('button');
+    backBtn.textContent = 'Back';
+    backBtn.addEventListener('click', () => {
+        panel.remove();
+        if (questions) questions.style.display = '';
+        addInnerCircleButton();
+    });
+    btnRow.appendChild(backBtn);
+
+    panel.appendChild(btnRow);
+    document.getElementById('game_window').appendChild(panel);
+}
+
+function openEnemiesPanel(questions) {
+    document.getElementById('enemies_panel')?.remove();
+
+    const panel = document.createElement('div');
+    panel.id = 'enemies_panel';
+
+    const title = document.createElement('h2');
+    title.textContent = "Nixon's Enemies List";
+    panel.appendChild(title);
+
+    // ── Enemies list ── (populate entries here based on variables when ready)
+    const list = document.createElement('div');
+    list.className = 'enemies-list';
+
+    const placeholder = document.createElement('p');
+    placeholder.style.fontFamily = "'TypewriterDry', serif";
+    placeholder.style.fontSize = '14px';
+    placeholder.style.color = '#555';
+    placeholder.textContent = '— No enemies tracked yet —';
+    list.appendChild(placeholder);
+
+    panel.appendChild(list);
+
+    const btnRow = document.createElement('div');
+    btnRow.className = 'ic-panel-buttons';
+
+    const backBtn = document.createElement('button');
+    backBtn.textContent = 'Back';
+    backBtn.addEventListener('click', () => {
+        panel.remove();
+        openInnerCircle();
+    });
+    btnRow.appendChild(backBtn);
+    panel.appendChild(btnRow);
+
+    document.getElementById('game_window').appendChild(panel);
+}
+
 // _transitionObserver, and _feedbackObserver.
 const _gameObserver = new MutationObserver((() => {
     let _pending = false;
@@ -12362,6 +12488,7 @@ const _gameObserver = new MutationObserver((() => {
             _pending = false;
             updateTypewriterVisibility();
             updateCampaignSign();
+            addInnerCircleButton();
             if (typeof e !== 'undefined' && e.question_number != null && document.getElementById('question_form')) {
                 const t = sectionTransitions.find(s => s.atQuestion === e.question_number);
                 if (t) showSectionTransition(t);
