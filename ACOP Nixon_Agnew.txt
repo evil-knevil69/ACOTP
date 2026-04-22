@@ -12420,7 +12420,7 @@ function openInnerCircle() {
     btnRow.className = 'ic-panel-buttons';
 
     const enemiesBtn = document.createElement('button');
-    enemiesBtn.textContent = 'Known Enemies';
+    enemiesBtn.textContent = 'Enemies List';
     enemiesBtn.addEventListener('click', () => {
         panel.remove();
         openEnemiesPanel(questions);
