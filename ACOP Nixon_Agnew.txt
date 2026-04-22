@@ -12360,7 +12360,7 @@ function addInnerCircleButton() {
     if (!ref) return;
     const btn = document.createElement('button');
     btn.id = 'inner_circle_button';
-    btn.textContent = 'Inner Circle';
+    btn.textContent = 'Enemies/Friends';
     btn.style.marginLeft = '10px';
     btn.addEventListener('click', openInnerCircle);
     ref.insertAdjacentElement('afterend', btn);
