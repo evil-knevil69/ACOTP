@@ -2794,17 +2794,30 @@ playBtn.addEventListener('click', () => {
     tapeRecorder.style.position = 'absolute';
     tapeRecorder.style.cursor = 'grab';
     tapeRecorder.style.opacity = '0';
-    setTimeout(() => {
+
+    let _playerDragged = false;
+
+    function _positionRecorder() {
         const gameWindow = document.getElementById('game_window');
+        if (!gameWindow || !contentSingle) return;
         const gameWindowRect = gameWindow.getBoundingClientRect();
         const contentSingleRect = contentSingle.getBoundingClientRect();
         tapeRecorder.style.left = (gameWindowRect.left - contentSingleRect.left - 20) + 'px';
         tapeRecorder.style.top = (gameWindowRect.bottom - contentSingleRect.top + window.scrollY) + 'px';
+    }
+
+    setTimeout(() => {
+        _positionRecorder();
         tapeRecorder.style.opacity = '1';
     }, 500);
 
+    window.addEventListener('resize', () => {
+        if (!_playerDragged) _positionRecorder();
+    });
+
     tapeRecorder.addEventListener('mousedown', (e) => {
         if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'A' || e.target.tagName === 'SELECT') return;
+        _playerDragged = true;
         isDragging = true;
         const recRect = tapeRecorder.getBoundingClientRect();
         dragOffsetX = e.clientX - recRect.left;
