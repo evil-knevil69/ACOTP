@@ -1120,6 +1120,43 @@ background: transparent !important;
     display: flex; flex-direction: column; gap: 8px;
     margin-top: 8px;
 }
+/* ── Historical panel ──────────────────────────────────────────── */
+#historical-panel {
+    position: absolute;
+    top: 0; left: 0;
+    width: 989px; height: 625px;
+    background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png');
+    background-size: cover; background-position: center;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 32px 48px; box-sizing: border-box;
+    overflow-y: auto;
+    z-index: 450;
+    font-family: 'TypewriterDry', serif;
+}
+#historical-panel h2 {
+    font-size: 20px; letter-spacing: 0.18em;
+    text-transform: uppercase; margin-bottom: 20px;
+}
+#historical-panel-body {
+    font-size: 13px; line-height: 1.6;
+    max-width: 640px; flex: 1; overflow-y: auto;
+    text-align: left;
+}
+.historical-placeholder {
+    color: #888; font-style: italic;
+}
+/* ── Question date box (appended below progress bar) ────────────── */
+#question-date-box {
+    width: 100%;
+    text-align: center;
+    color: #333;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: default;
+    padding-top: 4px;
+}
   #results_container { color: #fcfcfc; }
   .inner_window_w_desc { background-color: transparent !important; }
   #credits { height: 120px !important; visibility: hidden; }

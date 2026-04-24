@@ -12139,54 +12139,75 @@ document.addEventListener('keydown', (e) => {
 });
 document.body.appendChild(honk);
 
-// ─── Section Transition Screens ───────────────────────────────────────────────
-// Shows a full-screen narrative overlay at the start of a given question_number.
-// Current question order (add/update as new questions are written):
-//   0  → pk 409 : Kissinger / Fallaci
-//   1  → pk 401 : Campaign strategy
-//   2  → pk 402 : Honesty & pardon
-//   3–10        : Policy questions (priority 3, may shuffle within group)
-//   11 → pk 408 : Carter Playboy interview
-//   12 → pk 404 : Presidential debate
-//   13–15       : Attacks & vetoes (priority 7)
-//   16–23       : Foreign / domestic policy (priority 8)
-//   24 → pk 447 : Last day
-//
-// To add a new transition: add an object to sectionTransitions below.
-// atQuestion  — question_number that triggers the screen (shown before that question)
-// title       — large header text
-// body        — narrative paragraph(s); HTML is supported
-// img         — optional image URL, displayed centred below the body (omit or set null to skip)
+// ─── Per-Question Data Bank ────────────────────────────────────────────────────
+// Unified source of truth keyed by question PK.
+// Fields (all optional):
+//   date       — shown on progress bar; hover swaps to "Question X of Y"
+//   signImg    — URL to swap the campaign sign when this question loads
+//   transition — { title, body, img } full-screen narrative overlay
+//   historical — HTML string (or null) for the Historical panel; populate later
 
-const sectionTransitions = [
-    {
-        atQuestion: 0,
-        title: "PART I: Remission",
-        body: "During the first term we stopped their revolution. Now we can move forward with our own.",
-        img: "https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif"
+const questionData = {
+    409: {
+        date: "October 1972",
+        signImg: "https://...nixon_sign_v1.png",
+        transition: {
+            title: "PART I: Remission",
+            body: "During the first term we stopped their revolution. Now we can move forward with our own.",
+            img: "https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif"
+        },
+        historical: null
     },
-    {
-        atQuestion: 4,
-        title: "PART II: Fulmination",
-        body: "We are embarking here today on an era that presents challenges great as those any nation, or any generation, has ever faced. We shall answer to God, to history, and to our conscience for the way in which we use these years.",
-        img: null
+    401: { date: "July 1976",          historical: null },
+    402: { date: "August 1976",        historical: null },
+    429: { date: "October 1975",       historical: null },
+    430: {
+        date: "September 1976",
+        transition: {
+            title: "PART II: Fulmination",
+            body: "We are embarking here today on an era that presents challenges great as those any nation, or any generation, has ever faced. We shall answer to God, to history, and to our conscience for the way in which we use these years.",
+            img: null
+        },
+        historical: null
     },
-    {
-        atQuestion: 6,
-        title: "PART III: Metastasis",
-        body: "One day we will get them on the ground where we want them, and will stick our heels in, step on them hard and twist… crush them, show them no mercy.",
-        img: null
-    }
-];
+    431: { date: "September 1976",     historical: null },
+    432: {
+        date: "September 1976",
+        transition: {
+            title: "PART III: Metastasis",
+            body: "One day we will get them on the ground where we want them, and will stick our heels in, step on them hard and twist… crush them, show them no mercy.",
+            img: null
+        },
+        historical: null
+    },
+    433: { date: "September 1976",     historical: null },
+    434: { date: "September 1976",     historical: null },
+    444: { date: "September 1976",     historical: null },
+    445: { date: "September 1976",     historical: null },
+    408: { date: "September 1976",     signImg: "https://...nixon_sign_v2.png", historical: null },
+    404: { date: "August 1976",        historical: null },
+    403: { date: "September 1976",     historical: null },
+    406: { date: "September 1976",     historical: null },
+    407: { date: "September 1976",     historical: null },
+    405: { date: "October 1976",       historical: null },
+    410: { date: "October 1976",       historical: null },
+    435: { date: "September 1976",     historical: null },
+    436: { date: "September 1976",     historical: null },
+    438: { date: "September 1976",     historical: null },
+    440: { date: "September 1976",     historical: null },
+    443: { date: "September 1976",     historical: null },
+    446: { date: "October 1976",       historical: null },
+    447: { date: "November 2, 1976",   historical: null },
+};
 
 const _shownTransitions = new Set();
 
-function showSectionTransition(t) {
-    if (_shownTransitions.has(t.atQuestion)) return;
-    _shownTransitions.add(t.atQuestion);
+function showSectionTransition(t, pk) {
+    if (_shownTransitions.has(pk)) return;
+    _shownTransitions.add(pk);
 
     const overlay = document.createElement('div');
-    overlay.id = 'section-transition-' + t.atQuestion;
+    overlay.id = 'section-transition-' + pk;
     overlay.style.cssText = `
         position: absolute;
         top: 0; left: 0; width: 989px; height: 625px;
@@ -12200,7 +12221,7 @@ function showSectionTransition(t) {
         pointer-events: all;
     `;
 
-    const dismissId = 'section-transition-' + t.atQuestion;
+    const dismissId = 'section-transition-' + pk;
     const titleLen = t.title.length;
     const typeDuration = (titleLen * 0.25).toFixed(2);
     overlay.innerHTML = `
@@ -12226,6 +12247,61 @@ function showSectionTransition(t) {
         target.style.position = 'relative';
         target.appendChild(overlay);
     }
+}
+
+function fadeText(el, newText) {
+    el.style.transition = 'opacity 0.25s ease';
+    el.style.opacity = '0';
+    setTimeout(() => {
+        el.textContent = newText;
+        el.style.opacity = '1';
+    }, 150);
+}
+
+function attachDateToProgressBar(date, qNum) {
+    const progressBar = document.getElementById('progress_bar');
+    if (!progressBar) return;
+    const total = campaignTrail_temp.global_parameter_json[0].fields.question_count;
+    const questionInfo = 'Question ' + (qNum + 1) + ' of ' + total;
+
+    const box = document.createElement('div');
+    box.id = 'question-date-box';
+    box.textContent = date;
+    box.addEventListener('pointerenter', () => fadeText(box, questionInfo));
+    box.addEventListener('pointerleave', () => fadeText(box, date));
+    progressBar.appendChild(box);
+}
+
+function injectHistoricalButton(noFeedbackBtn, pk) {
+    noFeedbackBtn.dataset.historicalHooked = 'true';
+    noFeedbackBtn.style.display = 'none';
+    const histBtn = document.createElement('button');
+    histBtn.id = 'historical_button';
+    histBtn.textContent = 'Historical';
+    histBtn.addEventListener('click', () => {
+        const qd = (pk != null && questionData[pk]) || {};
+        showHistoricalPanel(qd.historical);
+    });
+    noFeedbackBtn.insertAdjacentElement('afterend', histBtn);
+}
+
+function showHistoricalPanel(data) {
+    const existing = document.getElementById('historical-panel');
+    if (existing) existing.remove();
+
+    const panel = document.createElement('div');
+    panel.id = 'historical-panel';
+    panel.innerHTML = `
+        <h2>Historical Context</h2>
+        <div id="historical-panel-body">
+            ${data ? data : '<p class="historical-placeholder">Historical context coming soon.</p>'}
+        </div>
+        <button id="historical-panel-back">Back</button>
+    `;
+    panel.querySelector('#historical-panel-back').addEventListener('click', () => panel.remove());
+
+    const target = document.getElementById('game_window');
+    if (target) target.appendChild(panel);
 }
 
 // Tooltip Data
@@ -12478,7 +12554,8 @@ function openEnemiesPanel(questions) {
     document.getElementById('game_window').appendChild(panel);
 }
 
-// _transitionObserver, and _feedbackObserver.
+// ─── Game Observer ────────────────────────────────────────────────────────────
+let _lastQuestionPK = null;
 const _gameObserver = new MutationObserver((() => {
     let _pending = false;
     return () => {
@@ -12489,11 +12566,28 @@ const _gameObserver = new MutationObserver((() => {
             updateTypewriterVisibility();
             updateCampaignSign();
             addInnerCircleButton();
-            if (typeof e !== 'undefined' && e.question_number != null && document.getElementById('question_form')) {
-                const t = sectionTransitions.find(s => s.atQuestion === e.question_number);
-                if (t) showSectionTransition(t);
+
+            const noFeedbackBtn = document.getElementById('no_feedback_button');
+            if (noFeedbackBtn && !noFeedbackBtn.dataset.historicalHooked) {
+                injectHistoricalButton(noFeedbackBtn, _lastQuestionPK);
             }
 
+            if (typeof e !== 'undefined' && e.question_number != null) {
+                const currentPK = campaignTrail_temp.questions_json?.[e.question_number]?.pk ?? null;
+                if (currentPK !== _lastQuestionPK) {
+                    _lastQuestionPK = currentPK;
+                    const qd = (currentPK != null && questionData[currentPK]) || {};
+                    if (qd.signImg) changeImage(qd.signImg);
+                    const old = document.getElementById('question-date-box');
+                    if (old) old.remove();
+                    if (document.getElementById('progress_bar')) {
+                        attachDateToProgressBar(qd.date || '', e.question_number);
+                    }
+                    if (qd.transition && !_shownTransitions.has(currentPK) && document.getElementById('question_form')) {
+                        showSectionTransition(qd.transition, currentPK);
+                    }
+                }
+            }
         });
     };
 })());
