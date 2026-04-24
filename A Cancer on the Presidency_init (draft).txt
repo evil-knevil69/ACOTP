@@ -2298,6 +2298,7 @@ setInterval(() => {
                                     mapSvg.removeEventListener('click', _planeClickHandler, true);
                                     delete mapSvg.dataset.planeHooked;
                                     plane.remove();
+                                    ev.stopPropagation();
                                     ev.target.dispatchEvent(new MouseEvent('click', {
                                         bubbles: true,
                                         cancelable: true,
