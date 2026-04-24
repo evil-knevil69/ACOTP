@@ -218,7 +218,6 @@ campaignTrail_temp.opponents_default_json = [
         "candidates": [
             92,
             50000,
-            60000,
             70000,
             80000
         ]
@@ -231,7 +230,6 @@ campaignTrail_temp.opponents_weighted_json = [
         "candidates": [
             92,
             50000,
-            60000,
             70000,
             80000
         ]
