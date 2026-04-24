@@ -11920,8 +11920,8 @@ setInterval(updateTypewriterVisibility, 200);
 // This updates the candidate banner logos into question specific photos. Taken from 1992 - Moonbeam
 let imgUrl = "https://file.garden/aXPgNT-ZRCxxpy0g/creepv2.jpg";
 
-const customStyling = document.createElement("style");
-document.head.appendChild(customStyling);
+const _signStyling = document.createElement("style");
+document.head.appendChild(_signStyling);
 
 function updateStyling(url) {
     const img = new Image();
@@ -11931,7 +11931,7 @@ function updateStyling(url) {
         const currentTop = sign ? sign.style.top : '';
         const currentWidth = sign ? sign.style.width : '380px';
         const currentHeight = sign ? sign.style.height : '';
-        customStyling.textContent = `
+        _signStyling.textContent = `
             #campaign_sign {
                 background-image: url("${url}");
                 background-size: 100% 100% !important;
