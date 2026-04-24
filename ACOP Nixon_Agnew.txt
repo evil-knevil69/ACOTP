@@ -12158,7 +12158,7 @@ const questionData = {
         },
         historical: null
     },
-    401: { date: "July 1976",          historical: null },
+    401: { date: "20 November 1972",          historical: null },
     402: { date: "August 1976",        historical: null },
     429: { date: "October 1975",       historical: null },
     430: {
@@ -12451,7 +12451,7 @@ function openInnerCircle() {
     panel.id = 'inner_circle_panel';
 
     const title = document.createElement('h2');
-    title.textContent = 'The Committee to Re-Elect the President';
+    title.textContent = 'All the President's Men';
     panel.appendChild(title);
 
     // ── Organogram ── (populate nodes here when ready)
@@ -12523,7 +12523,7 @@ function openEnemiesPanel(questions) {
     panel.id = 'enemies_panel';
 
     const title = document.createElement('h2');
-    title.textContent = "Nixon's Enemies List";
+    title.textContent = "Enemies List";
     panel.appendChild(title);
 
     // ── Enemies list ── (populate entries here based on variables when ready)
@@ -12593,8 +12593,8 @@ const _gameObserver = new MutationObserver((() => {
 })());
 _gameObserver.observe(document.getElementById('game_window'), { childList: true, subtree: true });
 
-// Tooltip portal — appended to document.body so position:fixed works correctly
-// even when the trigger element is inside a CSS-transformed ancestor (e.g. #visit_window).
+// Tooltip fixer for outside elements
+
 const _tooltipPortal = document.createElement('div');
 _tooltipPortal.id = 'tooltip-portal';
 document.body.appendChild(_tooltipPortal);
