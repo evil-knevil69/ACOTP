@@ -2284,18 +2284,21 @@ setInterval(() => {
                     const mapSvg = mapContainerEl ? mapContainerEl.querySelector('svg:not(#visit-noise-overlay):not(.visit-pin-svg)') : null;
                     if (mapSvg && !mapSvg.dataset.planeHooked) {
                         mapSvg.dataset.planeHooked = 'true';
-                        mapSvg.addEventListener('click', function(e) {
+                        let _flyTimer = null;
+                        function _planeClickHandler(ev) {
                             const now = Date.now();
                             const lastClick = parseInt(plane.dataset.lastClick || '0');
                             if (plane.dataset.flying === 'true') {
                                 if (now - lastClick < 500) {
-                                    plane.remove();
+                                    clearTimeout(_flyTimer);
+                                    mapSvg.removeEventListener('click', _planeClickHandler, true);
                                     delete mapSvg.dataset.planeHooked;
-                                    e.target.dispatchEvent(new MouseEvent('click', {
+                                    plane.remove();
+                                    ev.target.dispatchEvent(new MouseEvent('click', {
                                         bubbles: true,
                                         cancelable: true,
-                                        clientX: e.clientX,
-                                        clientY: e.clientY
+                                        clientX: ev.clientX,
+                                        clientY: ev.clientY
                                     }));
                                 }
                                 return;
@@ -2303,8 +2306,8 @@ setInterval(() => {
                             plane.dataset.lastClick = now;
                             plane.dataset.flying = 'true';
                             const containerRect = mapContainerEl.getBoundingClientRect();
-                            const clickX = e.clientX - containerRect.left;
-                            const clickY = e.clientY - containerRect.top;
+                            const clickX = ev.clientX - containerRect.left;
+                            const clickY = ev.clientY - containerRect.top;
                             const dx = clickX - startPin.x;
                             const dy = clickY - startPin.y;
                             const hitEaster = (clickX >= 680 && clickX <= 925 && clickY >= 335 && clickY <= 502);
@@ -2317,25 +2320,27 @@ setInterval(() => {
                                 plane.style.left = (clickX - 17) + 'px';
                                 plane.style.top = (clickY - 17) + 'px';
                             }, 50);
-                            e.stopPropagation();
-                            const originalTarget = e.target;
+                            ev.stopPropagation();
+                            const originalTarget = ev.target;
                             if (hitEaster) {
-                                            setTimeout(() => {
-                                                const plop = new Audio('https://file.garden/aXPgNT-ZRCxxpy0g/plop2.mp3');
-                                                plop.play();
-                                            }, 3500);
-                                        }
-                                        setTimeout(() => {
-                                            plane.remove();
-                                            originalTarget.dispatchEvent(new MouseEvent('click', {
-                                                bubbles: true,
-                                                cancelable: true,
-                                                clientX: e.clientX,
-                                                clientY: e.clientY
-                                            }));
-                                            delete mapSvg.dataset.planeHooked;
-                                        }, 5000);
-                        }, true);
+                                setTimeout(() => {
+                                    const plop = new Audio('https://file.garden/aXPgNT-ZRCxxpy0g/plop2.mp3');
+                                    plop.play();
+                                }, 3500);
+                            }
+                            _flyTimer = setTimeout(() => {
+                                mapSvg.removeEventListener('click', _planeClickHandler, true);
+                                plane.remove();
+                                originalTarget.dispatchEvent(new MouseEvent('click', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    clientX: ev.clientX,
+                                    clientY: ev.clientY
+                                }));
+                                delete mapSvg.dataset.planeHooked;
+                            }, 5000);
+                        }
+                        mapSvg.addEventListener('click', _planeClickHandler, true);
                  }
                             }
                         } else {
