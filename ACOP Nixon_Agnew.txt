@@ -12140,7 +12140,7 @@ function openEnemiesPanel(questions) {
     list.className = 'enemies-list';
 
     const placeholder = document.createElement('p');
-    placeholder.style.fontFamily = "sans-serif";
+    placeholder.style.fontFamily = "'TypewriterDry', serif";
     placeholder.style.fontSize = '16px';
     placeholder.style.color = '#555';
     placeholder.textContent = '— No enemies tracked yet —';
@@ -12477,9 +12477,9 @@ function showSectionTransition(t, pk) {
                            blink-caret .5s step-end infinite;
             }
         </style>
-        <h2 style="font-family:sans-serif;font-size:24px;letter-spacing:0.2em;
+        <h2 style="font-family:'TypewriterDry',monospace;font-size:24px;letter-spacing:0.2em;
                    text-transform:uppercase;margin-top:-20px;margin-bottom:34px;">${t.title}</h2>
-        <p style="font-family:sans-serif;font-size:14px;max-width:600px;
+        <p style="font-family:'TypewriterDry',monospace;font-size:14px;max-width:600px;
                   line-height:1.5;margin-bottom:${t.img ? '24px' : '36px'};">${t.body}</p>
         ${t.img ? `<img src="${t.img}" style="display:block;max-width:400px;height:auto;margin:0 auto 36px auto;">` : ''}
         <button onclick="document.getElementById('${dismissId}').remove();">Continue</button>
