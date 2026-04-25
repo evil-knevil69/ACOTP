@@ -1149,8 +1149,9 @@ background: transparent !important;
 /* ── Question date (replaces "Question X of Y" h3 in progress bar) ─ */
 #progress_bar h3[data-date-attached] {
     font-family: 'TypewriterDry', sans-serif;
-    font-size: 14px;
+    font-size: 16px;
     cursor: default;
+    pointer-events: auto !important;
 }
   #results_container { color: #fcfcfc; }
   .inner_window_w_desc { background-color: transparent !important; }

@@ -11864,6 +11864,7 @@ style2.innerHTML = `
         margin-top: 34px !important;
         position: absolute !important;
         z-index: 15 !important;
+        font-size: 16px !important;
     }
 `;
 document.head.appendChild(style2);
