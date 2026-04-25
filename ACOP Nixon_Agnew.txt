@@ -12258,19 +12258,17 @@ function fadeText(el, newText) {
     }, 150);
 }
 
-function attachDateToProgressBar(date, qNum) {
+function attachDateToProgressBar(date, qNum, pk) {
     if (!date) return;
-    const progressBar = document.getElementById('progress_bar');
-    if (!progressBar) return;
+    const h3 = document.querySelector('#progress_bar h3');
+    if (!h3) return;
     const total = campaignTrail_temp.global_parameter_json[0].fields.question_count;
     const questionInfo = 'Question ' + (qNum + 1) + ' of ' + total;
-
-    const box = document.createElement('div');
-    box.id = 'question-date-box';
-    box.textContent = date;
-    box.addEventListener('pointerenter', () => fadeText(box, questionInfo));
-    box.addEventListener('pointerleave', () => fadeText(box, date));
-    progressBar.appendChild(box);
+    h3.dataset.dateAttached = String(pk);
+    h3.textContent = date;
+    h3.style.cursor = 'default';
+    h3.addEventListener('pointerenter', () => fadeText(h3, questionInfo));
+    h3.addEventListener('pointerleave', () => fadeText(h3, date));
 }
 
 function injectHistoricalButton(noFeedbackBtn, pk) {
@@ -12574,13 +12572,17 @@ const _gameObserver = new MutationObserver((() => {
                     _lastQuestionPK = currentPK;
                     const qd = (currentPK != null && questionData[currentPK]) || {};
                     if (qd.signImg) changeImage(qd.signImg);
-                    const old = document.getElementById('question-date-box');
-                    if (old) old.remove();
-                    if (document.getElementById('progress_bar')) {
-                        attachDateToProgressBar(qd.date || '', e.question_number);
-                    }
                     if (qd.transition && !_shownTransitions.has(currentPK) && document.getElementById('question_form')) {
                         showSectionTransition(qd.transition, currentPK);
+                    }
+                }
+                // Attach date to the h3 whenever the progress bar is freshly rendered
+                // (h3 is rebuilt each question; data-date-attached detects a fresh one)
+                if (_lastQuestionPK != null) {
+                    const h3 = document.querySelector('#progress_bar h3');
+                    if (h3 && h3.dataset.dateAttached !== String(_lastQuestionPK)) {
+                        const qd = questionData[_lastQuestionPK] || {};
+                        attachDateToProgressBar(qd.date || '', e.question_number, _lastQuestionPK);
                     }
                 }
             }

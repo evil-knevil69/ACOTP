@@ -1146,16 +1146,11 @@ background: transparent !important;
 .historical-placeholder {
     color: #888; font-style: italic;
 }
-/* ── Question date box (appended below progress bar) ────────────── */
-#question-date-box {
-    width: 100%;
-    text-align: center;
-    color: #333;
+/* ── Question date (replaces "Question X of Y" h3 in progress bar) ─ */
+#progress_bar h3[data-date-attached] {
     font-family: "TypewriterDry", Times, sans-serif;
     font-size: 14px;
-    font-weight: bold;
     cursor: default;
-    padding-top: 4px;
 }
   #results_container { color: #fcfcfc; }
   .inner_window_w_desc { background-color: transparent !important; }
