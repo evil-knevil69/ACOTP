@@ -12141,7 +12141,7 @@ function openEnemiesPanel(questions) {
 
     const placeholder = document.createElement('p');
     placeholder.style.fontFamily = "'TypewriterDry', serif";
-    placeholder.style.fontSize = '14px';
+    placeholder.style.fontSize = '16px';
     placeholder.style.color = '#555';
     placeholder.textContent = '— No enemies tracked yet —';
     list.appendChild(placeholder);
@@ -12165,10 +12165,10 @@ function openEnemiesPanel(questions) {
 
 // ─── Visit Advisor Images ─────────────────────────────────────────────────────
 const _visitAdvisorImages = [
-    'https://file.garden/aXPgNT-ZRCxxpy0g/ADVISOR/advisor_v1.png',
-    'https://file.garden/aXPgNT-ZRCxxpy0g/ADVISOR/advisor_v2.png',
-    'https://file.garden/aXPgNT-ZRCxxpy0g/ADVISOR/advisor_v3.png',
-    'https://file.garden/aXPgNT-ZRCxxpy0g/ADVISOR/advisor_v4.png',
+    'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback1.jpg',
+    'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback2.jpg',
+    'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback3.jpg',
+    'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback4.gif',
 ];
 
 // ─── Game Observer ────────────────────────────────────────────────────────────
@@ -12392,7 +12392,7 @@ document.addEventListener('mouseleave', () => {
 
 const questionData = {
     409: {
-        date: "October 1972",
+        date: "20 November 1972",
         signImg: "https://...nixon_sign_v1.png",
         transition: {
             title: "PART I: Remission",
@@ -12401,7 +12401,7 @@ const questionData = {
         },
         historical: null
     },
-    401: { date: "20 November 1972",          historical: null },
+    401: { date: "20 November 1973", signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/PK401.jpg", historical: null },
     402: { date: "August 1976",        historical: null },
     429: { date: "October 1975",       historical: null },
     430: {
