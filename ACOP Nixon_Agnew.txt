@@ -12206,7 +12206,7 @@ const _gameObserver = new MutationObserver((() => {
             }
 
             const visitImg = document.querySelector('#visit_content img');
-            if (visitImg && !visitImg.dataset.visitImgSet) {
+            if (visitImg && !visitImg.dataset.visitImgSet && document.querySelector('#confirm_visit_button')) {
                 visitImg.dataset.visitImgSet = '1';
                 visitImg.src = _visitAdvisorImages[Math.floor(Math.random() * _visitAdvisorImages.length)];
             }
@@ -12508,10 +12508,10 @@ function attachDateToProgressBar(date, qNum, pk) {
     const total = campaignTrail_temp.global_parameter_json[0].fields.question_count;
     const questionInfo = 'Question ' + (qNum + 1) + ' of ' + total;
     h3.dataset.dateAttached = String(pk);
-    h3.textContent = date;
+    h3.textContent = questionInfo;
     h3.style.cursor = 'default';
-    h3.addEventListener('pointerenter', () => fadeText(h3, questionInfo));
-    h3.addEventListener('pointerleave', () => fadeText(h3, date));
+    h3.addEventListener('pointerenter', () => fadeText(h3, date));
+    h3.addEventListener('pointerleave', () => fadeText(h3, questionInfo));
 }
 
 function injectHistoricalButton(noFeedbackBtn, pk) {
