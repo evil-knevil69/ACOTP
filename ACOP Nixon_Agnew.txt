@@ -12452,7 +12452,7 @@ function openInnerCircle() {
     panel.id = 'inner_circle_panel';
 
     const title = document.createElement('h2');
-    title.textContent = 'All the President's Men';
+    title.textContent = "All the President's Men";
     panel.appendChild(title);
 
     // ── Organogram ── (populate nodes here when ready)
