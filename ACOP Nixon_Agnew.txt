@@ -12037,396 +12037,6 @@ function updateCampaignSign() {
     }
 }
 
-//easter egg stuff
-let nixonClickCount = 0;
-let nixonClickTimer = null;
-
-document.body.addEventListener('click', (e) => {
-    if (!e.target.closest('#candidate_pic')) return;
-    nixonClickCount++;
-    if (nixonClickTimer) clearTimeout(nixonClickTimer);
-    nixonClickTimer = setTimeout(() => { nixonClickCount = 0; }, 10000);
-    if (nixonClickCount >= 3) {
-        nixonClickCount = 0;
-        clearTimeout(nixonClickTimer);
-        const audio = document.getElementById('audio');
-        const crook = new Audio (window.konamiActive 
-        ? 'https://file.garden/aXPgNT-ZRCxxpy0g/drunkasever.mp3'
-        : 'https://file.garden/aXPgNT-ZRCxxpy0g/Richard_Nixon_-__I\'m_not_a_crook._.mp3');
-        if (audio) audio.muted = true;
-        crook.play();
-        crook.addEventListener('ended', () => {
-            if (audio) audio.muted = false;
-        }, { once: true });
-    }
-});
-let agnewClickCount = 0;
-let agnewClickTimer = null;
-
-document.body.addEventListener('click', (e) => {
-    if (!e.target.closest('#running_mate_pic')) return;
-    agnewClickCount++;
-    if (agnewClickTimer) clearTimeout(agnewClickTimer);
-    agnewClickTimer = setTimeout(() => { agnewClickCount = 0; }, 10000);
-    if (agnewClickCount >= 3) {
-        agnewClickCount = 0;
-        clearTimeout(agnewClickTimer);
-        const audio = document.getElementById('audio');
-        const nabobs = new Audio(window.konamiActive 
-            ? 'https://file.garden/aXPgNT-ZRCxxpy0g/stampofapproval.mp3'
-            : 'https://file.garden/aXPgNT-ZRCxxpy0g/Spiro%20Agnew%20-%20Nattering%20Nabobs%20of%20Negativism%20-%201970%20-%20(128%20Kbps).mp3');
-        if (audio) audio.muted = true;
-        nabobs.play();
-        nabobs.addEventListener('ended', () => {
-            if (audio) audio.muted = false;
-        }, { once: true });
-    }
-});
-
-let honkClickCount = 0;
-let honkClickTimer = null;
-
-document.body.addEventListener('click', (e) => {
-    if (!e.target.closest('#honk')) return;
-    honkClickCount++;
-    if (honkClickTimer) clearTimeout(honkClickTimer);
-    honkClickTimer = setTimeout(() => { honkClickCount = 0; }, 10000);
-    if (honkClickCount >= 2) {
-        honkClickCount = 0;
-        clearTimeout(honkClickTimer);
-        const audio = document.getElementById('audio');
-        const honk = new Audio('https://file.garden/aXPgNT-ZRCxxpy0g/Classic%20Car%20Horn%20Sound%20Effect%20Best%20Audio%20Quality.mp3');
-        if (audio) audio.muted = true;
-        honk.play();
-        honk.addEventListener('ended', () => {
-            if (audio) audio.muted = false;
-        }, { once: true });
-    }
-});
-
-const honk = document.createElement('div');
-honk.id = 'honk';
-honk.style.cssText = `
-    position: absolute;
-    left: 1598px;
-    top: 748px;
-    width: 100px;
-    height: 155px;
-    z-index: 9999;
-    cursor: pointer;
-    background: transparent;
-`;
-//Konami code easter egg
-const konamiCode = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
-let konamiIndex = 0;
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === konamiCode[konamiIndex]) {
-        konamiIndex++;
-        if (konamiIndex === konamiCode.length) {
-            konamiIndex = 0;
-            const candPic = document.getElementById('candidate_pic');
-            const matePic = document.getElementById('running_mate_pic');
-            if (candPic) candPic.src = 'https://file.garden/aXPgNT-ZRCxxpy0g/konaminixon.png';
-            if (matePic) matePic.src = 'https://file.garden/aXPgNT-ZRCxxpy0g/konamiagnew.png';
-            window.konamiActive = true;
-            const headerImg = document.getElementById('header');
-            if (headerImg) headerImg.src = 'https://file.garden/aXPgNT-ZRCxxpy0g/oldfreebie.png';
-        }
-    } else {
-        konamiIndex = 0;
-    }
-});
-document.body.appendChild(honk);
-
-// ─── Per-Question Data Bank ────────────────────────────────────────────────────
-// Unified source of truth keyed by question PK.
-// Fields (all optional):
-//   date       — shown on progress bar; hover swaps to "Question X of Y"
-//   signImg    — URL to swap the campaign sign when this question loads
-//   transition — { title, body, img } full-screen narrative overlay
-//   historical — HTML string (or null) for the Historical panel; populate later
-
-const questionData = {
-    409: {
-        date: "October 1972",
-        signImg: "https://...nixon_sign_v1.png",
-        transition: {
-            title: "PART I: Remission",
-            body: "During the first term we stopped their revolution. Now we can move forward with our own.",
-            img: "https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif"
-        },
-        historical: null
-    },
-    401: { date: "20 November 1972",          historical: null },
-    402: { date: "August 1976",        historical: null },
-    429: { date: "October 1975",       historical: null },
-    430: {
-        date: "September 1976",
-        transition: {
-            title: "PART II: Fulmination",
-            body: "We are embarking here today on an era that presents challenges great as those any nation, or any generation, has ever faced. We shall answer to God, to history, and to our conscience for the way in which we use these years.",
-            img: null
-        },
-        historical: null
-    },
-    431: { date: "September 1976",     historical: null },
-    432: {
-        date: "September 1976",
-        transition: {
-            title: "PART III: Metastasis",
-            body: "One day we will get them on the ground where we want them, and will stick our heels in, step on them hard and twist… crush them, show them no mercy.",
-            img: null
-        },
-        historical: null
-    },
-    433: { date: "September 1976",     historical: null },
-    434: { date: "September 1976",     historical: null },
-    444: { date: "September 1976",     historical: null },
-    445: { date: "September 1976",     historical: null },
-    408: { date: "September 1976",     signImg: "https://...nixon_sign_v2.png", historical: null },
-    404: { date: "August 1976",        historical: null },
-    403: { date: "September 1976",     historical: null },
-    406: { date: "September 1976",     historical: null },
-    407: { date: "September 1976",     historical: null },
-    405: { date: "October 1976",       historical: null },
-    410: { date: "October 1976",       historical: null },
-    435: { date: "September 1976",     historical: null },
-    436: { date: "September 1976",     historical: null },
-    438: { date: "September 1976",     historical: null },
-    440: { date: "September 1976",     historical: null },
-    443: { date: "September 1976",     historical: null },
-    446: { date: "October 1976",       historical: null },
-    447: { date: "November 2, 1976",   historical: null },
-};
-
-const _shownTransitions = new Set();
-
-function showSectionTransition(t, pk) {
-    if (_shownTransitions.has(pk)) return;
-    _shownTransitions.add(pk);
-
-    const overlay = document.createElement('div');
-    overlay.id = 'section-transition-' + pk;
-    overlay.style.cssText = `
-        position: absolute;
-        top: 0; left: 0; width: 989px; height: 625px;
-        background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png');
-        background-size: cover; background-position: center;
-        z-index: 500;
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        text-align: center; padding: 40px; box-sizing: border-box;
-        animation: blurtosharp 1s ease-in forwards;
-        pointer-events: all;
-    `;
-
-    const dismissId = 'section-transition-' + pk;
-    const titleLen = t.title.length;
-    const typeDuration = (titleLen * 0.25).toFixed(2);
-    overlay.innerHTML = `
-        <style>
-            #${dismissId} h2 {
-                overflow: hidden;
-                border-right: .15em solid orange;
-                white-space: nowrap;
-                animation: typing ${typeDuration}s steps(${titleLen}, end),
-                           blink-caret .5s step-end infinite;
-            }
-        </style>
-        <h2 style="font-family:'TypewriterDry',monospace;font-size:24px;letter-spacing:0.2em;
-                   text-transform:uppercase;margin-top:-20px;margin-bottom:34px;">${t.title}</h2>
-        <p style="font-family:'TypewriterDry',monospace;font-size:14px;max-width:600px;
-                  line-height:1.5;margin-bottom:${t.img ? '24px' : '36px'};">${t.body}</p>
-        ${t.img ? `<img src="${t.img}" style="display:block;max-width:400px;height:auto;margin:0 auto 36px auto;">` : ''}
-        <button onclick="document.getElementById('${dismissId}').remove();">Continue</button>
-    `;
-
-    const target = document.getElementById('game_window');
-    if (target) {
-        target.style.position = 'relative';
-        target.appendChild(overlay);
-    }
-}
-
-function fadeText(el, newText) {
-    el.style.transition = 'opacity 0.25s ease';
-    el.style.opacity = '0';
-    setTimeout(() => {
-        el.textContent = newText;
-        el.style.opacity = '1';
-    }, 150);
-}
-
-function attachDateToProgressBar(date, qNum, pk) {
-    if (!date) return;
-    const h3 = document.querySelector('#progress_bar h3');
-    if (!h3) return;
-    const total = campaignTrail_temp.global_parameter_json[0].fields.question_count;
-    const questionInfo = 'Question ' + (qNum + 1) + ' of ' + total;
-    h3.dataset.dateAttached = String(pk);
-    h3.textContent = date;
-    h3.style.cursor = 'default';
-    h3.addEventListener('pointerenter', () => fadeText(h3, questionInfo));
-    h3.addEventListener('pointerleave', () => fadeText(h3, date));
-}
-
-function injectHistoricalButton(noFeedbackBtn, pk) {
-    noFeedbackBtn.dataset.historicalHooked = 'true';
-    noFeedbackBtn.style.display = 'none';
-    const histBtn = document.createElement('button');
-    histBtn.id = 'historical_button';
-    histBtn.textContent = 'Historical';
-    histBtn.addEventListener('click', () => {
-        const qd = (pk != null && questionData[pk]) || {};
-        showHistoricalPanel(qd.historical);
-    });
-    noFeedbackBtn.insertAdjacentElement('afterend', histBtn);
-}
-
-function showHistoricalPanel(data) {
-    const existing = document.getElementById('historical-panel');
-    if (existing) existing.remove();
-
-    const panel = document.createElement('div');
-    panel.id = 'historical-panel';
-    panel.innerHTML = `
-        <h2>Historical Context</h2>
-        <div id="historical-panel-body">
-            ${data ? data : '<p class="historical-placeholder">Historical context coming soon.</p>'}
-        </div>
-        <button id="historical-panel-back">Back</button>
-    `;
-    panel.querySelector('#historical-panel-back').addEventListener('click', () => panel.remove());
-
-    const target = document.getElementById('game_window');
-    if (target) target.appendChild(panel);
-}
-
-// Tooltip Data
-const tooltipList = [
-    {
-        searchString: "Henry Kissinger",
-        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/kissinger.jpeg",
-        label: "Henry Kissinger",
-        body: "You know who he is. Read a book."
-    },
-    {
-        searchString: "Kissinger",
-        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/kissinger.jpeg",
-        label: "Henry Kissinger",
-        body: "You know who he is. Read a book."
-    },
-    {
-        searchString: "Earl Butz",
-        img: null,
-        label: "Earl Butz",
-        body: "Secretary of Agriculture. Known for crude humour and blind support for agribusiness."
-    },
-    {
-        searchString: "Oriana Fallaci",
-        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/oriana_fallaci.jpg",
-        label: "Oriana Fallaci",
-        body: "Italian journalist. Uncompromising, unsparing interviewer. Joined the Resistance in WW2, shot and left for dead in '68 by the Mexican Police. Explains alot."
-    },
-    {
-        searchString: "Fallaci",
-        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/oriana_fallaci.jpg",
-        label: "Oriana Fallaci",
-        body: "Italian journalist. Uncompromising, unsparing interviewer. Joined the Resistance in WW2, shot and left for dead in '68 by the Mexican Police. Explains alot."
-    },
-    {
-        searchString: "Romney",
-        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/portrait-george-romney-39048741.jpg",
-        label: "George Romney",
-        body: "George Romney, outgoing Secretary of HUD. Tried to turn every cabinet into a debating session, which he promptly went on to lose..."
-    },
-    {
-        searchString: "Mundt",
-        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/Rep._Karl_Mundt%2C_Repub.%2C_of_S.D.%2C_2-21-40_LCCN2016877155_(cropped).jpg",
-        label: "Karl Mundt",
-        body: "Senator (R-SD). One of Nixon's earliest supporters and fellow bagman on HUAC. Now a modern-day Woodrow Wilson having suffered a stroke in '69 but still sitting as a Senator until the end of his term in January."
-    },
-    {
-        searchString: "HUAC",
-        img: null,
-        label: "House Committee on Unamerican Activities",
-        body: "Of 'are you now or have you ever been a communist?' fame. Gave Nixon his first national platform and which he ruthlessly exploited to build his reputation as a red-baiter."
-    },
-    {
-        searchString: "Kraft",
-        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/IMG_9593.gif",
-        label: "Joseph Kraft",
-        body: "Syndicated columnist and ex-Kennedy speechwriter. Coined the term 'Middle America' and fierce liberal critic of the Presidency."
-    },
-    {
-        searchString: "Laird",
-        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/melvinlaird.jpg",
-        label: "Melvin Laird",
-        body: "Outgoing Defense Secretary. Architect of the volunteer army and Vietnamization. Leaving for personal reasons."
-    },
-];
-
-// Pen Stroke
-function generatePenStroke() {
-    const height = 6;
-    const d = 'M 0 0 Q 35 5 50 3 Q 65 1 100 4';
-    return `<svg style="position:absolute;bottom:-1px;left:0;width:100%;height:${height}px;overflow:visible;pointer-events:none" preserveAspectRatio="none" viewBox="0 0 100 ${height}"><path d="${d}" fill="none" stroke="rgb(96, 115, 129)" stroke-width="2.1" vector-effect="non-scaling-stroke"/></svg>`;
-}
-
-function getTooltips(str) {
-    let matches = [];
-    tooltipList.forEach((tooltip, index) => {
-        const escaped = tooltip.searchString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(`(?<=[\\b\\s]|^)${escaped}(?=[.,;!?]?(?:[\\s\\b]|$))`, 'g');
-        let match;
-        while ((match = regex.exec(str)) !== null) {
-            matches.push({
-                start: match.index,
-                end: match.index + match[0].length,
-                tooltipIndex: index
-            });
-        }
-    });
-    matches.sort((a, b) => a.start - b.start || b.end - b.start - (a.end - a.start));
-    for (let i = 0; i < matches.length - 1; ) {
-        if (matches[i + 1].start < matches[i].end) {
-            matches.splice(i + 1, 1);
-        } else {
-            i++;
-        }
-    }
-    return matches;
-}
-
-function applyTooltips(str) {
-    const matches = getTooltips(str);
-    let result = '';
-    let lastIndex = 0;
-    matches.forEach(match => {
-        const tooltip = tooltipList[match.tooltipIndex];
-        result += str.slice(lastIndex, match.start);
-        result += `<span class='mytooltip' style='position:relative'>${tooltip.searchString}${generatePenStroke()}<span class='mytooltiptext'>${tooltip.img ? `<img src='${tooltip.img}'/>` : ''}<span class='tt-label'>${tooltip.label}</span><span class='tt-body'><span class='tt-body-text'>${tooltip.body}</span></span></span></span>`;
-        lastIndex = match.end;
-    });
-    result += str.slice(lastIndex);
-    return result;
-}
-
-function applyTooltipsToObject(obj) {
-    for (let key in obj) {
-        if (typeof obj[key] === 'string') {
-            obj[key] = applyTooltips(obj[key]);
-        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-            applyTooltipsToObject(obj[key]);
-        }
-    }
-}
-
-applyTooltipsToObject(campaignTrail_temp.questions_json);
-applyTooltipsToObject(campaignTrail_temp.answers_json);
-applyTooltipsToObject(campaignTrail_temp.answer_feedback_json);
-
 // ─── Inner Circle & Enemies Panels ───────────────────────────────────────────
 
 function addInnerCircleButton() {
@@ -12610,6 +12220,130 @@ const _gameObserver = new MutationObserver((() => {
 })());
 _gameObserver.observe(document.getElementById('game_window'), { childList: true, subtree: true });
 
+// Tooltip Data
+const tooltipList = [
+    {
+        searchString: "Henry Kissinger",
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/kissinger.jpeg",
+        label: "Henry Kissinger",
+        body: "You know who he is. Read a book."
+    },
+    {
+        searchString: "Kissinger",
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/kissinger.jpeg",
+        label: "Henry Kissinger",
+        body: "You know who he is. Read a book."
+    },
+    {
+        searchString: "Earl Butz",
+        img: null,
+        label: "Earl Butz",
+        body: "Secretary of Agriculture. Known for crude humour and blind support for agribusiness."
+    },
+    {
+        searchString: "Oriana Fallaci",
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/oriana_fallaci.jpg",
+        label: "Oriana Fallaci",
+        body: "Italian journalist. Uncompromising, unsparing interviewer. Joined the Resistance in WW2, shot and left for dead in '68 by the Mexican Police. Explains alot."
+    },
+    {
+        searchString: "Fallaci",
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/oriana_fallaci.jpg",
+        label: "Oriana Fallaci",
+        body: "Italian journalist. Uncompromising, unsparing interviewer. Joined the Resistance in WW2, shot and left for dead in '68 by the Mexican Police. Explains alot."
+    },
+    {
+        searchString: "Romney",
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/portrait-george-romney-39048741.jpg",
+        label: "George Romney",
+        body: "George Romney, outgoing Secretary of HUD. Tried to turn every cabinet into a debating session, which he promptly went on to lose..."
+    },
+    {
+        searchString: "Mundt",
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/Rep._Karl_Mundt%2C_Repub.%2C_of_S.D.%2C_2-21-40_LCCN2016877155_(cropped).jpg",
+        label: "Karl Mundt",
+        body: "Senator (R-SD). One of Nixon's earliest supporters and fellow bagman on HUAC. Now a modern-day Woodrow Wilson having suffered a stroke in '69 but still sitting as a Senator until the end of his term in January."
+    },
+    {
+        searchString: "HUAC",
+        img: null,
+        label: "House Committee on Unamerican Activities",
+        body: "Of 'are you now or have you ever been a communist?' fame. Gave Nixon his first national platform and which he ruthlessly exploited to build his reputation as a red-baiter."
+    },
+    {
+        searchString: "Kraft",
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/IMG_9593.gif",
+        label: "Joseph Kraft",
+        body: "Syndicated columnist and ex-Kennedy speechwriter. Coined the term 'Middle America' and fierce liberal critic of the Presidency."
+    },
+    {
+        searchString: "Laird",
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/melvinlaird.jpg",
+        label: "Melvin Laird",
+        body: "Outgoing Defense Secretary. Architect of the volunteer army and Vietnamization. Leaving for personal reasons."
+    },
+];
+
+// Pen Stroke
+function generatePenStroke() {
+    const height = 6;
+    const d = 'M 0 0 Q 35 5 50 3 Q 65 1 100 4';
+    return `<svg style="position:absolute;bottom:-1px;left:0;width:100%;height:${height}px;overflow:visible;pointer-events:none" preserveAspectRatio="none" viewBox="0 0 100 ${height}"><path d="${d}" fill="none" stroke="rgb(96, 115, 129)" stroke-width="2.1" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+function getTooltips(str) {
+    let matches = [];
+    tooltipList.forEach((tooltip, index) => {
+        const escaped = tooltip.searchString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(?<=[\\b\\s]|^)${escaped}(?=[.,;!?]?(?:[\\s\\b]|$))`, 'g');
+        let match;
+        while ((match = regex.exec(str)) !== null) {
+            matches.push({
+                start: match.index,
+                end: match.index + match[0].length,
+                tooltipIndex: index
+            });
+        }
+    });
+    matches.sort((a, b) => a.start - b.start || b.end - b.start - (a.end - a.start));
+    for (let i = 0; i < matches.length - 1; ) {
+        if (matches[i + 1].start < matches[i].end) {
+            matches.splice(i + 1, 1);
+        } else {
+            i++;
+        }
+    }
+    return matches;
+}
+
+function applyTooltips(str) {
+    const matches = getTooltips(str);
+    let result = '';
+    let lastIndex = 0;
+    matches.forEach(match => {
+        const tooltip = tooltipList[match.tooltipIndex];
+        result += str.slice(lastIndex, match.start);
+        result += `<span class='mytooltip' style='position:relative'>${tooltip.searchString}${generatePenStroke()}<span class='mytooltiptext'>${tooltip.img ? `<img src='${tooltip.img}'/>` : ''}<span class='tt-label'>${tooltip.label}</span><span class='tt-body'><span class='tt-body-text'>${tooltip.body}</span></span></span></span>`;
+        lastIndex = match.end;
+    });
+    result += str.slice(lastIndex);
+    return result;
+}
+
+function applyTooltipsToObject(obj) {
+    for (let key in obj) {
+        if (typeof obj[key] === 'string') {
+            obj[key] = applyTooltips(obj[key]);
+        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+            applyTooltipsToObject(obj[key]);
+        }
+    }
+}
+
+applyTooltipsToObject(campaignTrail_temp.questions_json);
+applyTooltipsToObject(campaignTrail_temp.answers_json);
+applyTooltipsToObject(campaignTrail_temp.answer_feedback_json);
+
 // Tooltip fixer for outside elements
 
 const _tooltipPortal = document.createElement('div');
@@ -12648,3 +12382,269 @@ document.addEventListener('mouseleave', () => {
     _tooltipPortal.style.display = 'none';
     _hoveredTooltip = null;
 }, true);
+// ─── Per-Question Data Bank ────────────────────────────────────────────────────
+// Unified source of truth keyed by question PK.
+// Fields (all optional):
+//   date       — shown on progress bar; hover swaps to "Question X of Y"
+//   signImg    — URL to swap the campaign sign when this question loads
+//   transition — { title, body, img } full-screen narrative overlay
+//   historical — HTML string (or null) for the Historical panel; populate later
+
+const questionData = {
+    409: {
+        date: "October 1972",
+        signImg: "https://...nixon_sign_v1.png",
+        transition: {
+            title: "PART I: Remission",
+            body: "During the first term we stopped their revolution. Now we can move forward with our own.",
+            img: "https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif"
+        },
+        historical: null
+    },
+    401: { date: "20 November 1972",          historical: null },
+    402: { date: "August 1976",        historical: null },
+    429: { date: "October 1975",       historical: null },
+    430: {
+        date: "September 1976",
+        transition: {
+            title: "PART II: Fulmination",
+            body: "We are embarking here today on an era that presents challenges great as those any nation, or any generation, has ever faced. We shall answer to God, to history, and to our conscience for the way in which we use these years.",
+            img: null
+        },
+        historical: null
+    },
+    431: { date: "September 1976",     historical: null },
+    432: {
+        date: "September 1976",
+        transition: {
+            title: "PART III: Metastasis",
+            body: "One day we will get them on the ground where we want them, and will stick our heels in, step on them hard and twist… crush them, show them no mercy.",
+            img: null
+        },
+        historical: null
+    },
+    433: { date: "September 1976",     historical: null },
+    434: { date: "September 1976",     historical: null },
+    444: { date: "September 1976",     historical: null },
+    445: { date: "September 1976",     historical: null },
+    408: { date: "September 1976",     signImg: "https://...nixon_sign_v2.png", historical: null },
+    404: { date: "August 1976",        historical: null },
+    403: { date: "September 1976",     historical: null },
+    406: { date: "September 1976",     historical: null },
+    407: { date: "September 1976",     historical: null },
+    405: { date: "October 1976",       historical: null },
+    410: { date: "October 1976",       historical: null },
+    435: { date: "September 1976",     historical: null },
+    436: { date: "September 1976",     historical: null },
+    438: { date: "September 1976",     historical: null },
+    440: { date: "September 1976",     historical: null },
+    443: { date: "September 1976",     historical: null },
+    446: { date: "October 1976",       historical: null },
+    447: { date: "November 2, 1976",   historical: null },
+};
+
+const _shownTransitions = new Set();
+
+function showSectionTransition(t, pk) {
+    if (_shownTransitions.has(pk)) return;
+    _shownTransitions.add(pk);
+
+    const overlay = document.createElement('div');
+    overlay.id = 'section-transition-' + pk;
+    overlay.style.cssText = `
+        position: absolute;
+        top: 0; left: 0; width: 989px; height: 625px;
+        background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png');
+        background-size: cover; background-position: center;
+        z-index: 500;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        text-align: center; padding: 40px; box-sizing: border-box;
+        animation: blurtosharp 1s ease-in forwards;
+        pointer-events: all;
+    `;
+
+    const dismissId = 'section-transition-' + pk;
+    const titleLen = t.title.length;
+    const typeDuration = (titleLen * 0.25).toFixed(2);
+    overlay.innerHTML = `
+        <style>
+            #${dismissId} h2 {
+                overflow: hidden;
+                border-right: .15em solid orange;
+                white-space: nowrap;
+                animation: typing ${typeDuration}s steps(${titleLen}, end),
+                           blink-caret .5s step-end infinite;
+            }
+        </style>
+        <h2 style="font-family:'TypewriterDry',monospace;font-size:24px;letter-spacing:0.2em;
+                   text-transform:uppercase;margin-top:-20px;margin-bottom:34px;">${t.title}</h2>
+        <p style="font-family:'TypewriterDry',monospace;font-size:14px;max-width:600px;
+                  line-height:1.5;margin-bottom:${t.img ? '24px' : '36px'};">${t.body}</p>
+        ${t.img ? `<img src="${t.img}" style="display:block;max-width:400px;height:auto;margin:0 auto 36px auto;">` : ''}
+        <button onclick="document.getElementById('${dismissId}').remove();">Continue</button>
+    `;
+
+    const target = document.getElementById('game_window');
+    if (target) {
+        target.style.position = 'relative';
+        target.appendChild(overlay);
+    }
+}
+
+function fadeText(el, newText) {
+    el.style.transition = 'opacity 0.25s ease';
+    el.style.opacity = '0';
+    setTimeout(() => {
+        el.textContent = newText;
+        el.style.opacity = '1';
+    }, 150);
+}
+
+function attachDateToProgressBar(date, qNum, pk) {
+    if (!date) return;
+    const h3 = document.querySelector('#progress_bar h3');
+    if (!h3) return;
+    const total = campaignTrail_temp.global_parameter_json[0].fields.question_count;
+    const questionInfo = 'Question ' + (qNum + 1) + ' of ' + total;
+    h3.dataset.dateAttached = String(pk);
+    h3.textContent = date;
+    h3.style.cursor = 'default';
+    h3.addEventListener('pointerenter', () => fadeText(h3, questionInfo));
+    h3.addEventListener('pointerleave', () => fadeText(h3, date));
+}
+
+function injectHistoricalButton(noFeedbackBtn, pk) {
+    noFeedbackBtn.dataset.historicalHooked = 'true';
+    noFeedbackBtn.style.display = 'none';
+    const histBtn = document.createElement('button');
+    histBtn.id = 'historical_button';
+    histBtn.textContent = 'Historical';
+    histBtn.addEventListener('click', () => {
+        const qd = (pk != null && questionData[pk]) || {};
+        showHistoricalPanel(qd.historical);
+    });
+    noFeedbackBtn.insertAdjacentElement('afterend', histBtn);
+}
+
+function showHistoricalPanel(data) {
+    const existing = document.getElementById('historical-panel');
+    if (existing) existing.remove();
+
+    const panel = document.createElement('div');
+    panel.id = 'historical-panel';
+    panel.innerHTML = `
+        <h2>Historical Context</h2>
+        <div id="historical-panel-body">
+            ${data ? data : '<p class="historical-placeholder">Historical context coming soon.</p>'}
+        </div>
+        <button id="historical-panel-back">Back</button>
+    `;
+    panel.querySelector('#historical-panel-back').addEventListener('click', () => panel.remove());
+
+    const target = document.getElementById('game_window');
+    if (target) target.appendChild(panel);
+}
+
+//easter egg stuff
+let nixonClickCount = 0;
+let nixonClickTimer = null;
+
+document.body.addEventListener('click', (e) => {
+    if (!e.target.closest('#candidate_pic')) return;
+    nixonClickCount++;
+    if (nixonClickTimer) clearTimeout(nixonClickTimer);
+    nixonClickTimer = setTimeout(() => { nixonClickCount = 0; }, 10000);
+    if (nixonClickCount >= 3) {
+        nixonClickCount = 0;
+        clearTimeout(nixonClickTimer);
+        const audio = document.getElementById('audio');
+        const crook = new Audio (window.konamiActive 
+        ? 'https://file.garden/aXPgNT-ZRCxxpy0g/drunkasever.mp3'
+        : 'https://file.garden/aXPgNT-ZRCxxpy0g/Richard_Nixon_-__I\'m_not_a_crook._.mp3');
+        if (audio) audio.muted = true;
+        crook.play();
+        crook.addEventListener('ended', () => {
+            if (audio) audio.muted = false;
+        }, { once: true });
+    }
+});
+let agnewClickCount = 0;
+let agnewClickTimer = null;
+
+document.body.addEventListener('click', (e) => {
+    if (!e.target.closest('#running_mate_pic')) return;
+    agnewClickCount++;
+    if (agnewClickTimer) clearTimeout(agnewClickTimer);
+    agnewClickTimer = setTimeout(() => { agnewClickCount = 0; }, 10000);
+    if (agnewClickCount >= 3) {
+        agnewClickCount = 0;
+        clearTimeout(agnewClickTimer);
+        const audio = document.getElementById('audio');
+        const nabobs = new Audio(window.konamiActive 
+            ? 'https://file.garden/aXPgNT-ZRCxxpy0g/stampofapproval.mp3'
+            : 'https://file.garden/aXPgNT-ZRCxxpy0g/Spiro%20Agnew%20-%20Nattering%20Nabobs%20of%20Negativism%20-%201970%20-%20(128%20Kbps).mp3');
+        if (audio) audio.muted = true;
+        nabobs.play();
+        nabobs.addEventListener('ended', () => {
+            if (audio) audio.muted = false;
+        }, { once: true });
+    }
+});
+
+let honkClickCount = 0;
+let honkClickTimer = null;
+
+document.body.addEventListener('click', (e) => {
+    if (!e.target.closest('#honk')) return;
+    honkClickCount++;
+    if (honkClickTimer) clearTimeout(honkClickTimer);
+    honkClickTimer = setTimeout(() => { honkClickCount = 0; }, 10000);
+    if (honkClickCount >= 2) {
+        honkClickCount = 0;
+        clearTimeout(honkClickTimer);
+        const audio = document.getElementById('audio');
+        const honk = new Audio('https://file.garden/aXPgNT-ZRCxxpy0g/Classic%20Car%20Horn%20Sound%20Effect%20Best%20Audio%20Quality.mp3');
+        if (audio) audio.muted = true;
+        honk.play();
+        honk.addEventListener('ended', () => {
+            if (audio) audio.muted = false;
+        }, { once: true });
+    }
+});
+
+const honk = document.createElement('div');
+honk.id = 'honk';
+honk.style.cssText = `
+    position: absolute;
+    left: 1598px;
+    top: 748px;
+    width: 100px;
+    height: 155px;
+    z-index: 9999;
+    cursor: pointer;
+    background: transparent;
+`;
+//Konami code easter egg
+const konamiCode = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+let konamiIndex = 0;
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === konamiCode[konamiIndex]) {
+        konamiIndex++;
+        if (konamiIndex === konamiCode.length) {
+            konamiIndex = 0;
+            const candPic = document.getElementById('candidate_pic');
+            const matePic = document.getElementById('running_mate_pic');
+            if (candPic) candPic.src = 'https://file.garden/aXPgNT-ZRCxxpy0g/konaminixon.png';
+            if (matePic) matePic.src = 'https://file.garden/aXPgNT-ZRCxxpy0g/konamiagnew.png';
+            window.konamiActive = true;
+            const headerImg = document.getElementById('header');
+            if (headerImg) headerImg.src = 'https://file.garden/aXPgNT-ZRCxxpy0g/oldfreebie.png';
+        }
+    } else {
+        konamiIndex = 0;
+    }
+});
+document.body.appendChild(honk);
+
