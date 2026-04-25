@@ -12259,6 +12259,7 @@ function fadeText(el, newText) {
 }
 
 function attachDateToProgressBar(date, qNum) {
+    if (!date) return;
     const progressBar = document.getElementById('progress_bar');
     if (!progressBar) return;
     const total = campaignTrail_temp.global_parameter_json[0].fields.question_count;
@@ -12567,11 +12568,6 @@ const _gameObserver = new MutationObserver((() => {
             updateCampaignSign();
             addInnerCircleButton();
 
-            const noFeedbackBtn = document.getElementById('no_feedback_button');
-            if (noFeedbackBtn && !noFeedbackBtn.dataset.historicalHooked) {
-                injectHistoricalButton(noFeedbackBtn, _lastQuestionPK);
-            }
-
             if (typeof e !== 'undefined' && e.question_number != null) {
                 const currentPK = campaignTrail_temp.questions_json?.[e.question_number]?.pk ?? null;
                 if (currentPK !== _lastQuestionPK) {
@@ -12587,6 +12583,11 @@ const _gameObserver = new MutationObserver((() => {
                         showSectionTransition(qd.transition, currentPK);
                     }
                 }
+            }
+
+            const noFeedbackBtn = document.getElementById('no_feedback_button');
+            if (noFeedbackBtn && !noFeedbackBtn.dataset.historicalHooked) {
+                injectHistoricalButton(noFeedbackBtn, _lastQuestionPK);
             }
         });
     };
