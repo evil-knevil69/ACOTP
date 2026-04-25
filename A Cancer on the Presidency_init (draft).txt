@@ -1003,7 +1003,7 @@ background: transparent !important;
     z-index: 999999;
     width: 270px;
     background: #fff;
-    padding: 5px 5px 22px 5px;
+    padding: 2px 2px 14px 2px;
     border-radius: 2px;
     box-shadow: 2px 2px 8px rgba(0,0,0,0.4), 0 0 1px rgba(0,0,0,0.2);
     pointer-events: none;
@@ -1014,7 +1014,7 @@ background: transparent !important;
     max-width: 200px;
     height: auto;
     display: block;
-    margin: 0 auto 4px auto;
+    margin: 0 auto 2px auto;
 }
 .mytooltip .mytooltiptext .tt-label, #tooltip-portal .tt-label {
     display: block;
