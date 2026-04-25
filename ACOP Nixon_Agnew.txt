@@ -12553,6 +12553,14 @@ function openEnemiesPanel(questions) {
     document.getElementById('game_window').appendChild(panel);
 }
 
+// ─── Visit Advisor Images ─────────────────────────────────────────────────────
+const _visitAdvisorImages = [
+    'https://file.garden/aXPgNT-ZRCxxpy0g/ADVISOR/advisor_v1.png',
+    'https://file.garden/aXPgNT-ZRCxxpy0g/ADVISOR/advisor_v2.png',
+    'https://file.garden/aXPgNT-ZRCxxpy0g/ADVISOR/advisor_v3.png',
+    'https://file.garden/aXPgNT-ZRCxxpy0g/ADVISOR/advisor_v4.png',
+];
+
 // ─── Game Observer ────────────────────────────────────────────────────────────
 let _lastQuestionPK = null;
 const _gameObserver = new MutationObserver((() => {
@@ -12585,6 +12593,12 @@ const _gameObserver = new MutationObserver((() => {
                         attachDateToProgressBar(qd.date || '', e.question_number, _lastQuestionPK);
                     }
                 }
+            }
+
+            const visitImg = document.querySelector('#visit_content img');
+            if (visitImg && !visitImg.dataset.visitImgSet) {
+                visitImg.dataset.visitImgSet = '1';
+                visitImg.src = _visitAdvisorImages[Math.floor(Math.random() * _visitAdvisorImages.length)];
             }
 
             const noFeedbackBtn = document.getElementById('no_feedback_button');
