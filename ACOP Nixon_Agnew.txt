@@ -11978,22 +11978,12 @@ document.addEventListener('mouseup', () => {
         activeSign.style.cursor = 'grab';
         savedSignLeft = activeSign.style.left;
         savedSignTop = activeSign.style.top;
-        savedSignWidth = activeSign.style.width;
-        savedSignHeight = activeSign.style.height;
     }
 });
 
 let savedSignLeft = '';
 let savedSignTop = '';
-let savedSignWidth = '';
-let savedSignHeight = '';
 
-const resizeObserver = new ResizeObserver(() => {
-    if (activeSign) {
-        savedSignWidth = activeSign.style.width;
-        savedSignHeight = activeSign.style.height;
-    }
-});
 function updateCampaignSign() {
     const sign = document.querySelector('#campaign_sign');
     if (sign && sign !== activeSign) {
@@ -12015,11 +12005,7 @@ function updateCampaignSign() {
             }
             sign.style.position = 'absolute';
         }
-        if (savedSignWidth) sign.style.width = savedSignWidth;
-        if (savedSignHeight) sign.style.height = savedSignHeight;
         sign.style.cursor = 'grab';
-        sign.style.resize = 'both';
-        sign.style.overflow = 'auto';
         sign.style.transform = 'rotate(-1.0deg)';
         sign.addEventListener('mousedown', (e) => {
             isDraggingSign = true;
@@ -12033,7 +12019,6 @@ function updateCampaignSign() {
         sign.addEventListener('click', (e) => {
             e.stopPropagation();
         });
-        resizeObserver.observe(sign);
         updateTypewriterVisibility();
     }
 }
