@@ -1,19 +1,10 @@
 campaignTrail_temp.questions_json = [
     {
         "model": "campaign_trail.question",
-        "pk": 409,
-        "fields": {
-            "priority": 0,
-            "description": "Henry Kissinger has just given a disastrous interview to Oriana Fallaci in the New Republic. It is a character study of a vain, egotistical, dull man. Worse, he calls himself “the cowboy who leads the wagon train”, and Vietnam “a useless war” winking to his friends in the press that he is the sole hero of your foreign policy successes. Haig has questioned his mental stability and insists he needs to go for you to set your stamp over your second term. What is your decision?",
-            "likelihood": 1
-        }
-    },
-    {
-        "model": "campaign_trail.question",
         "pk": 401,
         "fields": {
             "priority": 1,
-            "description": "What will your overall campaign strategy be this year?",
+            "description": "It’s not a fair world, if it was you’d already be in Key Biscayne, alone with your legal pads. But. Mr President, 49 states, a near historic landslide! You have to return to the Oval for a few hours of photos. The edges of your smile are softened by victory. But your crown still aches, a pinprick of pain around which all your other thoughts rotate. Haldeman stands by your desk, notebook open, waiting for your instructions. ",
             "likelihood": 1
         }
     },
@@ -22,7 +13,16 @@ campaignTrail_temp.questions_json = [
         "pk": 402,
         "fields": {
             "priority": 2,
-            "description": "A lot of voters are concerned about honesty and integrity in our government. What can you say about yourself in this aspect, particularly in light of your pardon of Richard Nixon?",
+            "description": "You have 5 weeks planned at Camp David. On top of a mountain it’s easier to get on top of the job. Away from the crowds, those god-awful press conferences, the endless traffic in and out of the Oval and, of course, discussions about that caper at the DNC. You planned this time to set an agenda for your second term. Where are your thoughts taking you?",
+            "likelihood": 1
+        }
+    },
+    {
+        "model": "campaign_trail.question",
+        "pk": 409,
+        "fields": {
+            "priority": 0,
+            "description": "Henry Kissinger has just given a disastrous interview to Oriana Fallaci in the New Republic. It is a character study of a vain, egotistical, dull man. Worse, he calls himself “the cowboy who leads the wagon train”, and Vietnam “a useless war” winking to his friends in the press that he is the sole hero of your foreign policy successes. Haig has questioned his mental stability and insists he needs to go for you to set your stamp over your second term. What is your decision?",
             "likelihood": 1
         }
     },
@@ -224,7 +224,7 @@ campaignTrail_temp.questions_json = [
             "likelihood": 1
         }
     }
-]
+];
 
 campaignTrail_temp.answers_json = [
     {
@@ -232,7 +232,7 @@ campaignTrail_temp.answers_json = [
         "pk": 3545,
         "fields": {
             "question": 401,
-            "description": "I am the President of the United States and we should exploit that fact. Show me presiding over the Bicentennial, meeting with Queen Elizabeth, and generally looking like a President. My record speaks for itself."
+            "description": "Inform the Cabinet and staff that I want their letters of resignation on my desk by this afternoon. Yes. All of them. They serve at the pleasure of the President. One of the big mistakes I saw under Eisenhower was relying on the spent volcanoes from his first term. Every man must make a case for staying on for a second term."
         }
     },
     {
@@ -240,7 +240,7 @@ campaignTrail_temp.answers_json = [
         "pk": 3546,
         "fields": {
             "question": 401,
-            "description": "We barely defeated Ronald Reagan to win our nomination in the first place. We should take conservative positions and make sure we shore up our support in that area."
+            "description": "We need to go into the agencies and fire some men at the top. 96% of them don’t support us. Clear house and really show those bastards that we’re here to stay. They’ll have to adapt to us for once."
         }
     },
     {
@@ -248,7 +248,7 @@ campaignTrail_temp.answers_json = [
         "pk": 3547,
         "fields": {
             "question": 401,
-            "description": "Who is this Jimmy Carter person anyway? He's untested and takes both sides of every important issue. We need to make sure people understand that."
+            "description": "I said some intemperate things earlier in the year but Kathy Graham needs to wind her turkey neck in. Get the director of the IRS on the phone and leave a memo for Chuck to continue the letter writing campaign about their broadcast licenses. I need leverage, not headlines."
         }
     },
     {
@@ -256,7 +256,7 @@ campaignTrail_temp.answers_json = [
         "pk": 3548,
         "fields": {
             "question": 401,
-            "description": "I'm an approachable, open guy with an open Administration. Let's emphasize my mainstream values and positions, and avoid extremist rhetoric or attacks on Jimmy Carter."
+            "description": "Get John Dean in here. Long weekend? Dammit, send a car. I want a clear briefing on that Watergate affair, there are so many parts that don’t make sense to me and I can’t join the dots."
         }
     },
     {
@@ -264,7 +264,7 @@ campaignTrail_temp.answers_json = [
         "pk": 3549,
         "fields": {
             "question": 402,
-            "description": "I will let the cameras into the White House so the people can see for themselves. I'm a normal, approachable, friendly President. I didn't spend my whole life trying to run for the office."
+            "description": "We have made incredible strides towards peace in my first term, but far too much remains to be done. Let’s really get our hooks into State. Get Roger’s retirement kicked off and we can start working on SALT II. The American people have just given us a vote of confidence, we need to push forwards."
         }
     },
     {
@@ -272,7 +272,7 @@ campaignTrail_temp.answers_json = [
         "pk": 3550,
         "fields": {
             "question": 402,
-            "description": "I've taken our country and led it past the nightmares of Watergate and Vietnam. Anyone can see that I've led an open, honest Administration."
+            "description": "There are far too many fiefdoms in the Federal bureaucracy, and disloyal ones at that.  I want to work up a plan to streamline decision making, have say, four top executive agencies and a kitchen cabinet like the British. Congress will resist, but this is structural, not ideological."
         }
     },
     {
@@ -280,15 +280,7 @@ campaignTrail_temp.answers_json = [
         "pk": 3551,
         "fields": {
             "question": 402,
-            "description": "Honesty and integrity is one thing, but voters want to hear about solutions. I've led our economy back from a steep recession while passing a tax cut for the American people."
-        }
-    },
-    {
-        "model": "campaign_trail.answer",
-        "pk": 3552,
-        "fields": {
-            "question": 402,
-            "description": "What about the honesty and integrity of Jimmy Carter? Whether it's abortion, gun control, busing, or labor, he's taken both sides of too many issues to count."
+            "description": "I’ve been accused of lacking a domestic agenda over and over. Unfairly. As soon as I put my name to something Ted Kennedy and his pricks pour manure all over it. Have you seen how fat he’s getting? Maybe he’s hoping to float the next time he ends up in a lake. Let’s wake Pat Moynihan up and get him working again on some common sense reforms to the AFDC. If we can get something that the likes of Ervin and Byrd will hold their noses for maybe we push it through this term. "
         }
     },
     {
@@ -939,7 +931,7 @@ campaignTrail_temp.answers_json = [
             "description": "He’s losing his head, Tho must be getting in his head. I had this problem when I was on HUAC and that pipe-smoking fool Mundt kept trying to take the limelight. Everyone has to know who the sheriff in town is. Al, tell Henry he can mosey along. "
         }
     }
-]
+];
 
 campaignTrail_temp.states_json = [
     {
@@ -1605,28 +1597,28 @@ campaignTrail_temp.states_json = [
             "election": 10
         }
     }
-]
+];
 
 campaignTrail_temp.issues_json = [
     {
         "model": "campaign_trail.issue",
         "pk": 32,
         "fields": {
-            "name": "Government Integrity",
+            "name": "Trust in the Government",
             "description": 0,
-            "stance_1": "Not Important",
+            "stance_1": "Does your conscience bother you?",
             "stance_desc_1": 0,
-            "stance_2": "Not Important",
+            "stance_2": "You haven't done nothing",
             "stance_desc_2": 0,
-            "stance_3": "Not Important",
+            "stance_3": "Don't bug me",
             "stance_desc_3": 0,
-            "stance_4": "Neutral",
-            "stance_desc_4": 0,
-            "stance_5": "Important",
+            "stance_4": "One foot high and risin'",
+            "stance_desc_4": "0",
+            "stance_5": "You can have Watergate, but gimme some bucks and I'll be straight",
             "stance_desc_5": 0,
-            "stance_6": "Important",
+            "stance_6": "Never mind the stars and stripes. Lets print the Watergate tapes.",
             "stance_desc_6": 0,
-            "stance_7": "Important",
+            "stance_7": "I can't stand it, I know you planned it",
             "stance_desc_7": 0,
             "election": 10
         }
@@ -1708,22 +1700,22 @@ campaignTrail_temp.issues_json = [
             "description": 0,
             "stance_1": "Let God sort them out",
             "stance_desc_1": 0,
-            "stance_2": "Hawkish",
+            "stance_2": "Mors Ab Alto",
             "stance_desc_2": 0,
-            "stance_3": "Moderate",
+            "stance_3": "Vincere Vel Mori",
             "stance_desc_3": 0,
-            "stance_4": "Moderate",
+            "stance_4": "The things we do, that others may live",
             "stance_desc_4": 0,
             "stance_5": "Pro-Detente",
             "stance_desc_5": 0,
             "stance_6": "Dovish",
             "stance_desc_6": 0,
-            "stance_7": "Dovish",
+            "stance_7": "Make peace or die",
             "stance_desc_7": 0,
             "election": 10
         }
     }
-]
+];
 
 campaignTrail_temp.state_issue_score_json = [
     {
@@ -4276,7 +4268,7 @@ campaignTrail_temp.state_issue_score_json = [
             "weight": 0.5
         }
     }
-]
+];
 
 campaignTrail_temp.candidate_issue_score_json = [
     {
@@ -4285,7 +4277,7 @@ campaignTrail_temp.candidate_issue_score_json = [
         "fields": {
             "candidate": 10701,
             "issue": 32,
-            "issue_score": 0.75
+            "issue_score": 0.5
         }
     },
     {
@@ -4321,7 +4313,7 @@ campaignTrail_temp.candidate_issue_score_json = [
         "fields": {
             "candidate": 10701,
             "issue": 36,
-            "issue_score": 0.55
+            "issue_score": 0.45
         }
     },
     {
@@ -4330,7 +4322,7 @@ campaignTrail_temp.candidate_issue_score_json = [
         "fields": {
             "candidate": 50000,
             "issue": 32,
-            "issue_score": 0.333
+            "issue_score": 0.75
         }
     },
     {
@@ -4366,7 +4358,7 @@ campaignTrail_temp.candidate_issue_score_json = [
         "fields": {
             "candidate": 50000,
             "issue": 36,
-            "issue_score": -0.55
+            "issue_score": 0.8
         }
     },
     {
@@ -4411,7 +4403,7 @@ campaignTrail_temp.candidate_issue_score_json = [
         "fields": {
             "candidate": 70000,
             "issue": 36,
-            "issue_score": 0.75
+            "issue_score": 0.55
         }
     },
     {
@@ -4456,10 +4448,10 @@ campaignTrail_temp.candidate_issue_score_json = [
         "fields": {
             "candidate": 80000,
             "issue": 36,
-            "issue_score": -0.75
+            "issue_score": 1
         }
     }
-]
+];
 
 campaignTrail_temp.running_mate_issue_score_json = [
     {
@@ -4507,7 +4499,7 @@ campaignTrail_temp.running_mate_issue_score_json = [
             "issue_score": -0.6
         }
     }
-]
+];
 
 campaignTrail_temp.candidate_state_multiplier_json = [
     {
@@ -6346,7 +6338,7 @@ campaignTrail_temp.candidate_state_multiplier_json = [
             "state_multiplier": 0.013125
         }
     }
-]
+];
 
 campaignTrail_temp.answer_score_global_json = [
     {
@@ -6941,16 +6933,6 @@ campaignTrail_temp.answer_score_global_json = [
     },
     {
         "model": "campaign_trail.answer_score_global",
-        "pk": 1422,
-        "fields": {
-            "answer": 3552,
-            "candidate": 10701,
-            "affected_candidate": 50000,
-            "global_multiplier": 0.005
-        }
-    },
-    {
-        "model": "campaign_trail.answer_score_global",
         "pk": 1423,
         "fields": {
             "answer": 3555,
@@ -7339,7 +7321,7 @@ campaignTrail_temp.answer_score_global_json = [
             "global_multiplier": -0.001
         }
     }
-]
+];
 
 campaignTrail_temp.answer_score_issue_json = [
     {
@@ -7529,16 +7511,6 @@ campaignTrail_temp.answer_score_issue_json = [
             "answer": 3550,
             "issue": 36,
             "issue_score": -0.15,
-            "issue_importance": 1
-        }
-    },
-    {
-        "model": "campaign_trail.answer_score_issue",
-        "pk": 1114,
-        "fields": {
-            "answer": 3552,
-            "issue": 32,
-            "issue_score": 0.55,
             "issue_importance": 1
         }
     },
@@ -8292,7 +8264,7 @@ campaignTrail_temp.answer_score_issue_json = [
             "issue_importance": 1
         }
     }
-]
+];
 
 campaignTrail_temp.answer_score_state_json = [
     {
@@ -8443,160 +8415,6 @@ campaignTrail_temp.answer_score_state_json = [
         "pk": 12332,
         "fields": {
             "answer": 3547,
-            "state": 280,
-            "candidate": 10701,
-            "affected_candidate": 50000,
-            "state_multiplier": -0.007
-        }
-    },
-    {
-        "model": "campaign_trail.answer_score_state",
-        "pk": 12333,
-        "fields": {
-            "answer": 3552,
-            "state": 232,
-            "candidate": 10701,
-            "affected_candidate": 50000,
-            "state_multiplier": -0.007
-        }
-    },
-    {
-        "model": "campaign_trail.answer_score_state",
-        "pk": 12334,
-        "fields": {
-            "answer": 3552,
-            "state": 233,
-            "candidate": 10701,
-            "affected_candidate": 50000,
-            "state_multiplier": -0.007
-        }
-    },
-    {
-        "model": "campaign_trail.answer_score_state",
-        "pk": 12335,
-        "fields": {
-            "answer": 3552,
-            "state": 241,
-            "candidate": 10701,
-            "affected_candidate": 50000,
-            "state_multiplier": -0.007
-        }
-    },
-    {
-        "model": "campaign_trail.answer_score_state",
-        "pk": 12336,
-        "fields": {
-            "answer": 3552,
-            "state": 249,
-            "candidate": 10701,
-            "affected_candidate": 50000,
-            "state_multiplier": -0.007
-        }
-    },
-    {
-        "model": "campaign_trail.answer_score_state",
-        "pk": 12337,
-        "fields": {
-            "answer": 3552,
-            "state": 255,
-            "candidate": 10701,
-            "affected_candidate": 50000,
-            "state_multiplier": -0.007
-        }
-    },
-    {
-        "model": "campaign_trail.answer_score_state",
-        "pk": 12338,
-        "fields": {
-            "answer": 3552,
-            "state": 264,
-            "candidate": 10701,
-            "affected_candidate": 50000,
-            "state_multiplier": -0.007
-        }
-    },
-    {
-        "model": "campaign_trail.answer_score_state",
-        "pk": 12339,
-        "fields": {
-            "answer": 3552,
-            "state": 271,
-            "candidate": 10701,
-            "affected_candidate": 50000,
-            "state_multiplier": -0.007
-        }
-    },
-    {
-        "model": "campaign_trail.answer_score_state",
-        "pk": 12340,
-        "fields": {
-            "answer": 3552,
-            "state": 273,
-            "candidate": 10701,
-            "affected_candidate": 50000,
-            "state_multiplier": -0.007
-        }
-    },
-    {
-        "model": "campaign_trail.answer_score_state",
-        "pk": 12341,
-        "fields": {
-            "answer": 3552,
-            "state": 240,
-            "candidate": 10701,
-            "affected_candidate": 50000,
-            "state_multiplier": -0.007
-        }
-    },
-    {
-        "model": "campaign_trail.answer_score_state",
-        "pk": 12342,
-        "fields": {
-            "answer": 3552,
-            "state": 248,
-            "candidate": 10701,
-            "affected_candidate": 50000,
-            "state_multiplier": -0.007
-        }
-    },
-    {
-        "model": "campaign_trail.answer_score_state",
-        "pk": 12343,
-        "fields": {
-            "answer": 3552,
-            "state": 256,
-            "candidate": 10701,
-            "affected_candidate": 50000,
-            "state_multiplier": -0.007
-        }
-    },
-    {
-        "model": "campaign_trail.answer_score_state",
-        "pk": 12344,
-        "fields": {
-            "answer": 3552,
-            "state": 267,
-            "candidate": 10701,
-            "affected_candidate": 50000,
-            "state_multiplier": -0.007
-        }
-    },
-    {
-        "model": "campaign_trail.answer_score_state",
-        "pk": 12345,
-        "fields": {
-            "answer": 3552,
-            "state": 277,
-            "candidate": 10701,
-            "affected_candidate": 50000,
-            "state_multiplier": -0.007
-        }
-    },
-    {
-        "model": "campaign_trail.answer_score_state",
-        "pk": 12346,
-        "fields": {
-            "answer": 3552,
             "state": 280,
             "candidate": 10701,
             "affected_candidate": 50000,
@@ -10638,7 +10456,7 @@ campaignTrail_temp.answer_score_state_json = [
             "state_multiplier": 0.01
         }
     }
-]
+];
 
 campaignTrail_temp.answer_feedback_json = [
     {
@@ -11106,7 +10924,7 @@ campaignTrail_temp.answer_feedback_json = [
         "fields": {
             "answer": 3545,
             "candidate": 10701,
-            "answer_feedback": "This is probably your best strategy. The voters like Carter for now, but hopefully some will think twice about his leadership as election day approaches."
+            "answer_feedback": "Of course you don’t deliver the message yourself. You deliver a nice homily to the staff, disappear and Haldeman gets up on the dais to deliver the order. The instruction passes down the ranks via your lieutenants. You screen calls from Romney, Butz and others. Oddly, one person who gets skipped over is Henry Peterson. Someone within your inner circle realises he’s too important to play with. This was intended as a dramatic gesture, but the change in atmosphere is immediate and striking, triumph turns sour and Haldeman later records that this decision was one of your most “alienating” and “bizarre”. Yet, if the plan is to strengthen the executive, this ensures that it's kept under tight reins."
         }
     },
     {
@@ -11115,7 +10933,7 @@ campaignTrail_temp.answer_feedback_json = [
         "fields": {
             "answer": 3546,
             "candidate": 10701,
-            "answer_feedback": "Reagan's supporters are just a vocal minority right now. It's good to unite the party, but will this really help you beat Jimmy Carter in 1976?"
+            "answer_feedback": "The Nixon axe will go as far as the Lloyd–La Follette Act allows it to. Several layers are stripped out of the IRS, the DOJ and most savagely, the State Department. There is a low level hum of panic in Foggy Bottom until the penny finally drops that this is not about efficiency or impoundment or some other doctrine. It's about loyalty. You will find many grateful second and third rankers now with room to maneuver, but eyes cast upwards toward ‘the Boss’."
         }
     },
     {
@@ -11124,7 +10942,7 @@ campaignTrail_temp.answer_feedback_json = [
         "fields": {
             "answer": 3547,
             "candidate": 10701,
-            "answer_feedback": "It's risky to attack Carter so heavily. Voters like him as a person -- even some who might be on the fence out his politics or readiness for office."
+            "answer_feedback": "You promised your inner circle that “ there ain’t going to be no forgetting and there’ll be Goddamn little forgiving”  in your second term. Time to build on that chickenshit stuff that the Democrats have been doing for years. \nThe message moves through the sinews of power, notes scribbled, favors called. The Washington Post’s share price dips. But for now, both the Post and now the LA Times continue their slow drip of poison. \n"
         }
     },
     {
@@ -11133,7 +10951,7 @@ campaignTrail_temp.answer_feedback_json = [
         "fields": {
             "answer": 3548,
             "candidate": 10701,
-            "answer_feedback": "This is a good strategy. You need to make the case that you've also acted with integrity in office, given the climate of this year's election."
+            "answer_feedback": "Dean shows up mid-afternoon, rumpled papers and no tie but perfectly poised. You like him in some abstract way. The briefing you get is elliptical, Colson is in, then he’s out. Haldeman might have known something. And then there’s that burglary in LA. Unlike before, it stays with you long past the lengthening shadows. You agree to meet again at Camp David. "
         }
     },
     {
@@ -11142,7 +10960,7 @@ campaignTrail_temp.answer_feedback_json = [
         "fields": {
             "answer": 3549,
             "candidate": 10701,
-            "answer_feedback": "This is a good strategy. You need to make the case that you've also acted with integrity in office, given the climate of this year's election."
+            "answer_feedback": "Rogers accepts the plan with studied neutrality. He’ll go in February after the Peace Accords are hopefully signed. Meanwhile Dobrynin becomes a semi-regular visitor at your Maryland redoubt. The beautiful, subtle dance of diplomacy begins anew. This is the arena where Presidents leave their mark.\n"
         }
     },
     {
@@ -11151,7 +10969,7 @@ campaignTrail_temp.answer_feedback_json = [
         "fields": {
             "answer": 3550,
             "candidate": 10701,
-            "answer_feedback": "This is a good strategy. You need to make the case that you've also acted with integrity in office, given the climate of this year's election."
+            "answer_feedback": "This had been on your mind for some time and is not merely about being a “good-government conservative”, as much as you try to claim otherwise. The idea is to keep Defense and State but fold everything else into Departments of Human Resources, Natural Resources, Community Development, and Economic Development, all under cabinet heads reporting directly to you. Policy making and the power to control funding would be removed from the Federal bureaucracy and held close to your inner circle. Best of all you don’t have to spend so much time making small talk with the penny-ante people from places like the NRCS and the REA. Expect a fight from Congress."
         }
     },
     {
@@ -11160,16 +10978,7 @@ campaignTrail_temp.answer_feedback_json = [
         "fields": {
             "answer": 3551,
             "candidate": 10701,
-            "answer_feedback": "This is out of step with the current mood. Voters <em>do</em> want to hear about honesty and integrity."
-        }
-    },
-    {
-        "model": "campaign_trail.answer_feedback",
-        "pk": 1107,
-        "fields": {
-            "answer": 3552,
-            "candidate": 10701,
-            "answer_feedback": "It's risky to attack Carter so heavily. Voters like him as a person -- even some who might be on the fence about his politics or readiness for office."
+            "answer_feedback": "Moynihan is delighted to hear from you and not a bit slurry. He monologues about your victory. You fire back with a list of specific political ‘wins’ that you want him to think about. You both circle around for a bit, but agree that the most plausible narrative is in streamlining and reducing welfare costs.  White backlash is to be managed by putting Agnew out front to talk about welfare ethics. It’s risky, but a success here would quiet a lingering criticism."
         }
     },
     {
@@ -11811,35 +11620,147 @@ campaignTrail_temp.answer_feedback_json = [
             "answer_feedback": "A brief post-election announcement is made that Kissinger will not be rejoining your cabinet. The news is taken in context with the departure of Laird, Romney and others. Henry lumbers off back to a berth at Harvard and to his think tanks carrying with him a Rolodex of press and establishment contacts."
         }
     }
-]
+];
 
 campaignTrail_temp.candidate_image_url = "https://file.garden/aXPgNT-ZRCxxpy0g/candidatecode2v5.png";
 campaignTrail_temp.running_mate_image_url = "https://file.garden/aXPgNT-ZRCxxpy0g/running_matev3.png";
 campaignTrail_temp.candidate_last_name = "Nixon";
 campaignTrail_temp.running_mate_last_name = "Agnew";
 
-campaignTrail_temp.jet_data = [{
-    "banner_enabled": true,
-    "banner_data": {
-        "canName": "Nixon",
-        "runName": "Agnew",
-        "canImage": "https://file.garden/aXPgNT-ZRCxxpy0g/candidatecode2v5.png",
-        "runImage": "https://file.garden/aXPgNT-ZRCxxpy0g/running_matev3.png"
-    },
-    "nicknames": {
-        "10701": "Nixon",
-        "50000": "Democrats",
-        "60000": "The Media",
-        "70000": "The Libertarians",
-        "80000": "McCarthy"
-    },
-    "mapping_enabled": false,
-    "mapping_data": {},
-    "endings_enabled": false,
-    "ending_data": {},
-    "cyoa_enabled": false,
-    "cyoa_data": {},
-}]
+//#startcode
+
+campaignTrail_temp.cyoa = true;
+
+// pk -> index lookup for questions
+let _questionIdxByPk = null;
+
+function _rebuildQuestionIdxMap() {
+  _questionIdxByPk = new Map();
+  const arr = campaignTrail_temp.questions_json;
+  for (let i = 0; i < arr.length; i++) {
+    _questionIdxByPk.set(Number(arr[i].pk), i);
+  }
+}
+
+// returns the true array index (>= 0) or -1 if not found
+function getQuestionIndexFromPk(pk) {
+  const n = Number(pk);
+  if (!_questionIdxByPk) _rebuildQuestionIdxMap();
+
+  let idx = _questionIdxByPk.get(n);
+  // if map is stale, rebuild once
+  if (idx == null || campaignTrail_temp.questions_json[idx]?.pk !== n) {
+    _rebuildQuestionIdxMap();
+    idx = _questionIdxByPk.get(n);
+  }
+  return idx ?? -1;
+}
+
+// index to assign into question_number before nextQuestion()
+function getJumpIndexFromPk(pk) {
+  const idx = getQuestionIndexFromPk(pk);
+  return idx >= 0 ? idx - 1 : -1;
+}
+
+// for backwards compatibility
+function getQuestionNumberFromPk(pk) {
+  return getJumpIndexFromPk(pk);
+}
+
+function questionSwapper(pk1, pk2) {
+    const questionData = campaignTrail_temp.questions_json;
+    
+    // find indices of the questions
+    const index1 = getQuestionIndexFromPk(pk1);
+    const index2 = getQuestionIndexFromPk(pk2);
+    
+    // validate both questions exist
+    if (index1 === -1 || index2 === -1) {
+        console.warn(`questionSwapper: Could not find question(s) with pk ${pk1} and/or ${pk2}`);
+        return false;
+    }
+    
+    // swap the entire question objects
+    [questionData[index1], questionData[index2]] = [questionData[index2], questionData[index1]];
+    
+    // rebuild the index map since positions changed
+    _rebuildQuestionIdxMap();
+    
+    return true;
+}
+
+function answerSwapper(pk1, pk2, takeEffects = true) {
+    const answerData = campaignTrail_temp.answers_json;
+
+   // find the indices of the objects with the specified PKs
+    const index1 = answerData.findIndex(item => Number(item.pk) === Number(pk1));
+    const index2 = answerData.findIndex(item => Number(item.pk) === Number(pk2));
+
+    // check if objects with those PKs exist
+    if (index1 === -1 || index2 === -1) return;
+
+    // swap the question assignment
+    const tempQuestion = answerData[index1].fields.question;
+    answerData[index1].fields.question = answerData[index2].fields.question;
+    answerData[index2].fields.question = tempQuestion;
+
+    // if takeEffects is true, answers swap effects also
+    if (takeEffects) {
+        const otherJsons = [
+            campaignTrail_temp.answer_score_global_json,
+            campaignTrail_temp.answer_score_issue_json,
+            campaignTrail_temp.answer_score_state_json,
+            campaignTrail_temp.answer_feedback_json
+        ];
+
+        otherJsons.forEach(jsonData => {
+            if (!jsonData) return;
+            jsonData.forEach(item => {
+                const itemAns = Number(item.fields.answer);
+                if (itemAns === Number(pk1)) {
+                    item.fields.answer = pk2;
+                } else if (itemAns === Number(pk2)) {
+                    item.fields.answer = pk1;
+                }
+            });
+        });
+    }
+}
+
+// CYOA Variables
+// TODO: invalid JS — variable names cannot contain spaces.
+// Convert to a single object (e.g. const modVars = { "Mental State": 0, ... })
+// before referencing these from cyoAdventure or elsewhere.
+// var Mental State = 0;
+// var Approval Rating = 62;
+// var Congressional Support = 6;
+// var Republican Support = 9;
+// var Relations with the Soviets = 5;
+// var Vietnam = 6;
+// var The Economy = 7;
+// var Haldeman = 2;
+// var Erlichman = 2;
+// var Mitchell = 1;
+// var Dean = 2;
+// var Magruder = 1;
+// var Kissinger = 2;
+// var Krogh = 1;
+// var Chapin = 2;
+// var Segretti = 1;
+// var Strachan = 2;
+// var Hunt = 0;
+// var McCord = 0;
+// var Liddy = 0;
+// var Larue = 2;
+// var Stans = 2;
+// var Klambach = 2;
+// var Kleindienst  = 2;
+
+cyoAdventure = function (a) {
+    const ans = campaignTrail_temp.player_answers[campaignTrail_temp.player_answers.length - 1];
+    e.noCounter = campaignTrail_temp.player_answers.length;
+}
+
 const style2 = document.createElement('style');
 style2.innerHTML = `
     #game_window g {
@@ -11879,7 +11800,7 @@ function updateTypewriterVisibility() {
         if (sign && sign.parentElement && sign.parentElement.classList.contains('content_single')) {
             sign.style.display = 'none';
         }
-        // Remove any engine-rendered duplicate signs
+
         const allSigns = document.querySelectorAll('#campaign_sign');
         allSigns.forEach(s => {
             if (!s.parentElement || !s.parentElement.classList.contains('content_single')) {
@@ -11918,7 +11839,6 @@ function updateTypewriterVisibility() {
 
 setInterval(updateTypewriterVisibility, 200);
 
-// This updates the candidate banner logos into question specific photos. Taken from 1992 - Moonbeam
 let imgUrl = "https://file.garden/aXPgNT-ZRCxxpy0g/creepv2.jpg";
 
 const _signStyling = document.createElement("style");
@@ -11948,7 +11868,6 @@ function updateStyling(url) {
     img.src = url;
 }
 
-// initial render
 updateStyling(imgUrl);
 
 function changeImage(newImgUrl) {
@@ -11956,7 +11875,7 @@ function changeImage(newImgUrl) {
 
     updateStyling(newImgUrl);
 }
-//draggable sign mechanics, here because it doesn't fire correctly in code 1 without stacking, delta based after 4 iterations
+
 let activeSign = null;
 let isDraggingSign = false;
 let signDragStartX = 0;
@@ -12023,8 +11942,6 @@ function updateCampaignSign() {
     }
 }
 
-// ─── Inner Circle & Enemies Panels ───────────────────────────────────────────
-
 function addInnerCircleButton() {
     if (document.getElementById('inner_circle_button')) return;
     const ref = document.getElementById('view_electoral_map');
@@ -12049,7 +11966,6 @@ function openInnerCircle() {
     title.textContent = "All the President's Men";
     panel.appendChild(title);
 
-    // ── Organogram ── (populate nodes here when ready)
     const tree = document.createElement('div');
     tree.className = 'org-tree';
 
@@ -12121,7 +12037,6 @@ function openEnemiesPanel(questions) {
     title.textContent = "Enemies List";
     panel.appendChild(title);
 
-    // ── Enemies list ── (populate entries here based on variables when ready)
     const list = document.createElement('div');
     list.className = 'enemies-list';
 
@@ -12149,7 +12064,6 @@ function openEnemiesPanel(questions) {
     document.getElementById('game_window').appendChild(panel);
 }
 
-// ─── Visit Advisor Images ─────────────────────────────────────────────────────
 const _visitAdvisorImages = [
     'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback1.jpg',
     'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback2.jpg',
@@ -12157,7 +12071,6 @@ const _visitAdvisorImages = [
     'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback4.gif',
 ];
 
-// ─── Game Observer ────────────────────────────────────────────────────────────
 let _lastQuestionPK = null;
 const _gameObserver = new MutationObserver((() => {
     let _pending = false;
@@ -12180,8 +12093,7 @@ const _gameObserver = new MutationObserver((() => {
                         showSectionTransition(qd.transition, currentPK);
                     }
                 }
-                // Attach date to the h3 whenever the progress bar is freshly rendered
-                // (h3 is rebuilt each question; data-date-attached detects a fresh one)
+
                 if (_lastQuestionPK != null) {
                     const h3 = document.querySelector('#progress_bar h3');
                     if (h3 && h3.dataset.dateAttached !== String(_lastQuestionPK)) {
@@ -12206,7 +12118,6 @@ const _gameObserver = new MutationObserver((() => {
 })());
 _gameObserver.observe(document.getElementById('game_window'), { childList: true, subtree: true });
 
-// Tooltip Data
 const tooltipList = [
     {
         searchString: "Henry Kissinger",
@@ -12270,7 +12181,6 @@ const tooltipList = [
     },
 ];
 
-// Pen Stroke
 function generatePenStroke() {
     const height = 6;
     const d = 'M 0 0 Q 35 5 50 3 Q 65 1 100 4';
@@ -12330,8 +12240,6 @@ applyTooltipsToObject(campaignTrail_temp.questions_json);
 applyTooltipsToObject(campaignTrail_temp.answers_json);
 applyTooltipsToObject(campaignTrail_temp.answer_feedback_json);
 
-// Tooltip fixer for outside elements
-
 const _tooltipPortal = document.createElement('div');
 _tooltipPortal.id = 'tooltip-portal';
 document.body.appendChild(_tooltipPortal);
@@ -12368,13 +12276,6 @@ document.addEventListener('mouseleave', () => {
     _tooltipPortal.style.display = 'none';
     _hoveredTooltip = null;
 }, true);
-// ─── Per-Question Data Bank ────────────────────────────────────────────────────
-// Unified source of truth keyed by question PK.
-// Fields (all optional):
-//   date       — shown on progress bar; hover swaps to "Question X of Y"
-//   signImg    — URL to swap the campaign sign when this question loads
-//   transition — { title, body, img } full-screen narrative overlay
-//   historical — HTML string (or null) for the Historical panel; populate later
 
 const questionData = {
     409: {
@@ -12532,7 +12433,6 @@ function showHistoricalPanel(data) {
     if (target) target.appendChild(panel);
 }
 
-//easter egg stuff
 let nixonClickCount = 0;
 let nixonClickTimer = null;
 
@@ -12545,7 +12445,7 @@ document.body.addEventListener('click', (e) => {
         nixonClickCount = 0;
         clearTimeout(nixonClickTimer);
         const audio = document.getElementById('audio');
-        const crook = new Audio (window.konamiActive 
+        const crook = new Audio (window.konamiActive
         ? 'https://file.garden/aXPgNT-ZRCxxpy0g/drunkasever.mp3'
         : 'https://file.garden/aXPgNT-ZRCxxpy0g/Richard_Nixon_-__I\'m_not_a_crook._.mp3');
         if (audio) audio.muted = true;
@@ -12567,7 +12467,7 @@ document.body.addEventListener('click', (e) => {
         agnewClickCount = 0;
         clearTimeout(agnewClickTimer);
         const audio = document.getElementById('audio');
-        const nabobs = new Audio(window.konamiActive 
+        const nabobs = new Audio(window.konamiActive
             ? 'https://file.garden/aXPgNT-ZRCxxpy0g/stampofapproval.mp3'
             : 'https://file.garden/aXPgNT-ZRCxxpy0g/Spiro%20Agnew%20-%20Nattering%20Nabobs%20of%20Negativism%20-%201970%20-%20(128%20Kbps).mp3');
         if (audio) audio.muted = true;
@@ -12611,7 +12511,7 @@ honk.style.cssText = `
     cursor: pointer;
     background: transparent;
 `;
-//Konami code easter egg
+
 const konamiCode = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
 let konamiIndex = 0;
 
@@ -12633,4 +12533,334 @@ document.addEventListener('keydown', (e) => {
     }
 });
 document.body.appendChild(honk);
+
+// [JETS_CYOA_CAMPAIGN_DATA_START]
+;(() => {
+    const styleEl = document.createElement("style");
+        styleEl.textContent = `
+        #gameStatsPopup {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 320px;
+            background-color: #222449;
+            border: 2px solid #727C96;
+            border-radius: 2px;
+            padding: 10px 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            z-index: 10000;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            color: #fff;
+            cursor: move;
+        }
+        #gameStatsContent { pointer-events: none; }
+        #gameStatsPopup h3 {
+            margin: 0 0 8px;
+            font-weight: bold;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 4px;
+            font-size: 16px;
+        }
+        .stats-list { line-height: 1.5; }
+        #btn_game_stats { margin-left: 1.5em; }
+    `;
+    document.head.appendChild(styleEl);
+
+    const bold = (text, color) =>
+        `<span style="color: ${color}; font-weight: bold">${text}</span>`;
+
+    function matchTier(value, tiers) {
+        for (const [max, text, color] of tiers) {
+            if (value <= max) return [text, color];
+        }
+        const fallback = tiers.at(-1);
+        return [fallback?.[1] || "", fallback?.[2] || "#e6e6e6"];
+    }
+
+    const STATS = [
+    {
+            getValue: () => 0, // TODO: wire to "Mental State" CYOA variable
+            label: `Mental State`,
+            tiers: [
+                [2, `Prefers to have the blinds closed`, "#ff4d4d"],
+                [7, `Talking to paintings`, "#e6e6e6"],
+                [Infinity, `No longer the madman 'theory'`, "#4dff4d"],
+            ],
+        },
+    {
+            getValue: () => 62, // TODO: wire to "Approval Rating" CYOA variable
+            label: `Approval Rating`,
+            tiers: [
+                [40, `Approval Rating is struggling.`, "#ff4d4d"],
+                [60, `Approval Rating is steady.`, "#e6e6e6"],
+                [Infinity, `Historic approval levels`, "#4dff4d"],
+            ],
+        }
+    ];
+
+    function updateGameStatsPopup() {
+        const content = document.getElementById("gameStatsContent");
+        if (!content) return;
+
+        const lines = STATS.map(({ getValue, tiers, label }) => {
+            const value = Number(getValue?.());
+            const score = Number.isFinite(value) ? value : 0;
+            const [text, color] = matchTier(score, tiers);
+            return `• ${label}: ${bold(text, color)} (${score})`;
+        });
+
+        content.innerHTML = `
+            <h3>Campaign Data</h3>
+            <div class="stats-list">${lines.join("<br>")}</div>
+        `;
+    }
+
+    function createGameStatsPopup() {
+        if (document.getElementById("gameStatsPopup")) return;
+
+        const popup = document.createElement("div");
+        popup.id = "gameStatsPopup";
+        popup.style.display = "none";
+        popup.innerHTML = '<div id="gameStatsContent"></div>';
+        document.body.appendChild(popup);
+
+        makePopupDraggable(popup);
+        updateGameStatsPopup();
+    }
+
+    function makePopupDraggable(el) {
+        let offsetX, offsetY;
+
+        function onMouseMove(e) {
+            const maxX = window.innerWidth - el.offsetWidth;
+            const maxY = window.innerHeight - el.offsetHeight;
+            el.style.left   = `${Math.max(0, Math.min(e.clientX - offsetX, maxX))}px`;
+            el.style.top    = `${Math.max(0, Math.min(e.clientY - offsetY, maxY))}px`;
+            el.style.bottom = "auto";
+            el.style.right  = "auto";
+        }
+
+        function onMouseUp() {
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+        }
+
+        el.addEventListener("mousedown", (e) => {
+            const rect = el.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            document.addEventListener("mousemove", onMouseMove);
+            document.addEventListener("mouseup", onMouseUp);
+        });
+    }
+
+    function toggleGameStatsPopup() {
+        const popup = document.getElementById("gameStatsPopup");
+        if (!popup) return;
+        const showing = popup.style.display === "none";
+        popup.style.display = showing ? "block" : "none";
+        if (showing) updateGameStatsPopup();
+    }
+
+    function injectGameStatsButton() {
+        if (document.getElementById("btn_game_stats")) return;
+        const anchor = document.getElementById("view_electoral_map");
+        if (!anchor) return;
+
+        const btn = document.createElement("button");
+        btn.id = "btn_game_stats";
+        btn.textContent = "Campaign Data";
+        btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            toggleGameStatsPopup();
+        });
+        anchor.insertAdjacentElement("afterend", btn);
+    }
+
+    createGameStatsPopup();
+
+    const gameWindow = document.getElementById("game_window");
+    if (gameWindow) {
+        new MutationObserver(() => {
+            injectGameStatsButton();
+            updateGameStatsPopup();
+        }).observe(gameWindow, { childList: true, subtree: true });
+    }
+})();
+// [JETS_CYOA_CAMPAIGN_DATA_END]
+//#endcode
+
+campaignTrail_temp.jet_data = [{
+    "banner_enabled": true,
+    "banner_data": {
+        "canName": "Nixon",
+        "runName": "Agnew",
+        "canImage": "https://file.garden/aXPgNT-ZRCxxpy0g/candidatecode2v5.png",
+        "runImage": "https://file.garden/aXPgNT-ZRCxxpy0g/running_matev3.png"
+    },
+    "nicknames": {
+        "10701": "Nixon",
+        "50000": "Democrats",
+        "60000": "The Media",
+        "70000": "The Libertarians",
+        "80000": "McCarthy"
+    },
+    "mapping_enabled": false,
+    "mapping_data": {},
+    "endings_enabled": false,
+    "ending_data": {},
+    "cyoa_enabled": true,
+    "cyoa_data": {},
+    "player_candidate": 10701,
+    "cyoa_variables": {
+        "1777239737987": {
+            "id": 1777239737987,
+            "name": "Mental State",
+            "defaultValue": 0
+        },
+        "1777239773755": {
+            "id": 1777239773755,
+            "name": "Approval Rating",
+            "defaultValue": 62
+        },
+        "1777239994117": {
+            "id": 1777239994117,
+            "name": "Congressional Support",
+            "defaultValue": 6
+        },
+        "1777240009245": {
+            "id": 1777240009245,
+            "name": "Republican Support",
+            "defaultValue": 9
+        },
+        "1777240079566": {
+            "id": 1777240079566,
+            "name": "Relations with the Soviets",
+            "defaultValue": 5
+        },
+        "1777240106309": {
+            "id": 1777240106309,
+            "name": "Vietnam",
+            "defaultValue": 6
+        },
+        "1777240165582": {
+            "id": 1777240165582,
+            "name": "The Economy",
+            "defaultValue": 7
+        },
+        "1777240234961": {
+            "id": 1777240234961,
+            "name": "Haldeman",
+            "defaultValue": 2
+        },
+        "1777240250646": {
+            "id": 1777240250646,
+            "name": "Erlichman",
+            "defaultValue": 2
+        },
+        "1777240257634": {
+            "id": 1777240257634,
+            "name": "Mitchell",
+            "defaultValue": 1
+        },
+        "1777240265007": {
+            "id": 1777240265007,
+            "name": "Dean",
+            "defaultValue": 2
+        },
+        "1777240276513": {
+            "id": 1777240276513,
+            "name": "Magruder",
+            "defaultValue": 1
+        },
+        "1777240284879": {
+            "id": 1777240284879,
+            "name": "Kissinger",
+            "defaultValue": 2
+        },
+        "1777240296559": {
+            "id": 1777240296559,
+            "name": "Krogh",
+            "defaultValue": 1
+        },
+        "1777240422946": {
+            "id": 1777240422946,
+            "name": "Chapin",
+            "defaultValue": 2
+        },
+        "1777240430792": {
+            "id": 1777240430792,
+            "name": "Segretti",
+            "defaultValue": 1
+        },
+        "1777240438256": {
+            "id": 1777240438256,
+            "name": "Strachan",
+            "defaultValue": 2
+        },
+        "1777240475488": {
+            "id": 1777240475488,
+            "name": "Hunt",
+            "defaultValue": 0
+        },
+        "1777240517432": {
+            "id": 1777240517432,
+            "name": "McCord",
+            "defaultValue": 0
+        },
+        "1777240533762": {
+            "id": 1777240533762,
+            "name": "Liddy",
+            "defaultValue": 0
+        },
+        "1777240566547": {
+            "id": 1777240566547,
+            "name": "Larue",
+            "defaultValue": 2
+        },
+        "1777240577282": {
+            "id": 1777240577282,
+            "name": "Stans",
+            "defaultValue": 2
+        },
+        "1777240585185": {
+            "id": 1777240585185,
+            "name": "Klambach",
+            "defaultValue": 2
+        },
+        "1777240595689": {
+            "id": 1777240595689,
+            "name": "Kleindienst ",
+            "defaultValue": 2
+        }
+    },
+    "cyoa_variable_effects": {},
+    "cyoa_question_swaps": {},
+    "cyoa_answer_swaps": {},
+    "cyoa_campaign_data_enabled": true,
+    "cyoa_campaign_data_stats": {
+        "1777240061560": {
+            "id": 1777240061560,
+            "variable": "Mental State",
+            "label": "Mental State",
+            "lowMax": 2,
+            "midMax": 7,
+            "lowText": "Prefers to have the blinds closed",
+            "midText": "Talking to paintings",
+            "highText": "No longer the madman 'theory'"
+        },
+        "1777241148238": {
+            "id": 1777241148238,
+            "variable": "Approval Rating",
+            "label": "Approval Rating",
+            "lowMax": 40,
+            "midMax": 60,
+            "lowText": "Approval Rating is struggling.",
+            "midText": "Approval Rating is steady.",
+            "highText": "Historic approval levels"
+        }
+    }
+}
+]
 
