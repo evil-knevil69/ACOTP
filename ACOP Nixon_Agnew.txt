@@ -12923,156 +12923,329 @@ document.body.appendChild(honk);
 
 // [JETS_CYOA_CAMPAIGN_DATA_START]
 ;(() => {
-    const styleEl = document.createElement("style");
-        styleEl.textContent = `
-        #gameStatsPopup {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 320px;
-            background-color: #222449;
-            border: 2px solid #727C96;
-            border-radius: 2px;
-            padding: 10px 12px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-            z-index: 10000;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            font-size: 14px;
-            color: #fff;
-            cursor: move;
-        }
-        #gameStatsContent { pointer-events: none; }
-        #gameStatsPopup h3 {
-            margin: 0 0 8px;
-            font-weight: bold;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 4px;
-            font-size: 16px;
-        }
-        .stats-list { line-height: 1.5; }
-        #btn_game_stats { margin-left: 1.5em; }
-    `;
-    document.head.appendChild(styleEl);
-
-    const bold = (text, color) =>
-        `<span style="color: ${color}; font-weight: bold">${text}</span>`;
-
-    function matchTier(value, tiers) {
-        for (const [max, text, color] of tiers) {
-            if (value <= max) return [text, color];
-        }
-        const fallback = tiers.at(-1);
-        return [fallback?.[1] || "", fallback?.[2] || "#e6e6e6"];
+    /* Load Permanent Marker from Google Fonts */
+    if (!document.getElementById('fd-pm-font')) {
+        const l = document.createElement('link');
+        l.id = 'fd-pm-font';
+        l.rel = 'stylesheet';
+        l.href = 'https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap';
+        document.head.appendChild(l);
     }
 
-    const STATS = [
-    {
-            getValue: () => MentalState,
-            label: `Mental State`,
-            tiers: [
-                [2, `Prefers to have the blinds closed`, "#ff4d4d"],
-                [7, `Talking to paintings`, "#e6e6e6"],
-                [Infinity, `No longer the madman 'theory'`, "#4dff4d"],
-            ],
-        },
-    {
-            getValue: () => ApprovalRating,
-            label: `Approval Rating`,
-            tiers: [
-                [40, `Approval Rating is struggling.`, "#ff4d4d"],
-                [60, `Approval Rating is steady.`, "#e6e6e6"],
-                [Infinity, `Historic approval levels`, "#4dff4d"],
-            ],
-        }
+    /* ── CSS ── */
+    const _fdStyle = document.createElement('style');
+    _fdStyle.textContent = `
+    #fd-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(40,20,0,.6);
+    }
+    .fd-inner {
+        width: 580px;
+        max-height: 88vh;
+        display: flex;
+        flex-direction: column;
+        filter: drop-shadow(4px 8px 22px rgba(0,0,0,.7));
+    }
+    .fd-tabs-row {
+        display: flex;
+        align-items: flex-end;
+        gap: 3px;
+        padding-left: 16px;
+    }
+    .fd-tab {
+        padding: 6px 14px 8px;
+        background: #9c6a1a;
+        border-radius: 6px 6px 0 0;
+        border: 1.5px solid #6b400a;
+        border-bottom: none;
+        cursor: pointer;
+        font-family: 'TypewriterDry', 'Courier New', monospace;
+        font-size: 11px;
+        color: #2a1200;
+        user-select: none;
+        letter-spacing: .04em;
+        transition: background .15s;
+    }
+    .fd-tab:hover { background: #b87e22; }
+    .fd-tab.fd-active {
+        background: #d4a843;
+        color: #110500;
+        font-size: 12px;
+        padding-top: 8px;
+        position: relative;
+        top: 1px;
+    }
+    .fd-body {
+        flex: 1;
+        background: #d4a843;
+        background-image: linear-gradient(148deg,
+            rgba(255,230,120,.25) 0%,
+            transparent 40%,
+            rgba(0,0,0,.06) 100%);
+        border: 2px solid #6b400a;
+        border-radius: 0 10px 10px 10px;
+        padding: 10px;
+        position: relative;
+        overflow: hidden;
+    }
+    .fd-close {
+        position: absolute;
+        top: 7px; right: 10px;
+        background: none;
+        border: none;
+        font-family: 'TypewriterDry', monospace;
+        font-size: 18px;
+        color: #5a3300;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0 4px;
+        z-index: 1;
+    }
+    .fd-close:hover { color: #110500; }
+    .fd-pad {
+        background-color: #fdf4b0;
+        background-image:
+            linear-gradient(90deg,
+                transparent 46px,
+                #e57373 46px, #e57373 48px,
+                transparent 48px),
+            repeating-linear-gradient(180deg,
+                transparent 0px,
+                transparent 27px,
+                #90caf9 27px,
+                #90caf9 28.5px);
+        border: 1px solid #b89820;
+        border-radius: 3px;
+        padding: 12px 14px 24px 60px;
+        max-height: calc(88vh - 90px);
+        overflow-y: auto;
+        box-shadow: inset 1px 2px 8px rgba(0,0,0,.10);
+        scrollbar-width: thin;
+    }
+    .fd-head {
+        font-family: 'TypewriterDry', 'Courier New', monospace !important;
+        font-size: 19px !important;
+        color: #1a0800 !important;
+        margin: 4px 0 20px !important;
+        letter-spacing: .04em;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        line-height: 28px;
+    }
+    .fd-entry { margin-bottom: 22px; }
+    .fd-entry-label {
+        font-family: 'TypewriterDry', 'Courier New', monospace;
+        font-size: 11px;
+        font-weight: bold;
+        color: #5a3300;
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: .1em;
+        line-height: 28px;
+    }
+    .fd-entry-body {
+        font-family: 'Permanent Marker', cursive;
+        font-size: 15px;
+        color: #110500;
+        display: block;
+        line-height: 1.65;
+    }
+    .fd-crime-entry { margin-bottom: 18px; }
+    .fd-crime-date {
+        font-family: 'TypewriterDry', 'Courier New', monospace;
+        font-size: 11px;
+        color: #7b3f00;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        display: block;
+        line-height: 28px;
+    }
+    .fd-empty {
+        font-family: 'TypewriterDry', 'Courier New', monospace !important;
+        font-size: 13px !important;
+        color: #888;
+        font-style: italic;
+    }
+    #btn_game_stats { margin-left: 1.5em; }
+    `;
+    document.head.appendChild(_fdStyle);
+
+    /* ── Narrative maps ── */
+    function _pick(v, tiers) {
+        for (const [max, text] of tiers) if (v <= max) return text;
+        return tiers.at(-1)[1];
+    }
+
+    const _N = {
+        MentalState: [
+            [2, "Erratic and paranoid — increasingly isolated in the bunker of his own mind."],
+            [5, "The strains of office show. The President broods, drinks, paces. Functioning, but barely."],
+            [7, "Composed and focused. The pressures are contained, the mask stays on."],
+            [10, "Whatever his enemies say, this man will not break."],
+        ],
+        ApprovalRating: [
+            [30, "The country has turned. Approval is in the gutter. Impeachment talk is no longer fringe."],
+            [45, "Support is hemorrhaging. The scandals are taking their toll."],
+            [60, "The President maintains reasonable public confidence. The silent majority holds."],
+            [100, "Nixon rides high. The landslide mandate of '72 still resonates."],
+        ],
+        CongressionalSupport: [
+            [3, "Congress is openly hostile. The constitutional machinery grinds toward him."],
+            [6, "Congressional relations are strained. Key allies are losing their nerve."],
+            [10, "The Hill is manageable. Enough support to govern — for now."],
+        ],
+        RepublicanSupport: [
+            [3, "The party is in open revolt. Republicans are distancing themselves in droves."],
+            [6, "Nervous loyalty. The party faithful hold, but the private conversations are damning."],
+            [10, "The Republican establishment stands firm. Party discipline holds."],
+        ],
+        RelationsWithTheSoviets: [
+            [3, "Détente is in crisis. Moscow is emboldened by the President's domestic weakness."],
+            [6, "Relations are cool but stable. SALT II negotiations limp forward."],
+            [10, "Détente is the crown jewel. Soviet relations have never been stronger."],
+        ],
+        Vietnam: [
+            [3, "The peace is unraveling. North Vietnamese forces advance. The endgame nears."],
+            [6, "An uneasy ceasefire. The Paris Accords hold — for now."],
+            [10, "Peace with honor. Vietnam has receded from the front pages."],
+        ],
+        TheEconomy: [
+            [3, "The economy is in trouble. Inflation, energy crisis. The stagflation trap closes in."],
+            [6, "Economic headwinds. Not catastrophic, but voters are noticing."],
+            [10, "The economy performs. The President can point to real growth."],
+        ],
+    };
+
+    /* ── High Crimes log ── */
+    window._hcEvents = [
+        { date: 'Jun 17, 1972', text: 'Operatives from CREEP arrested inside the Watergate complex.' },
+        { date: 'Jun 23, 1972', text: "The President instructs Haldeman to use the CIA to obstruct the FBI's Watergate investigation. The cover-up begins." },
+    ];
+    window._hcLog = (text, date) => {
+        window._hcEvents.push({ date: date || '', text });
+        _refresh();
+    };
+
+    /* ── Render ── */
+    const _VARS = [
+        { key: 'MentalState',            label: 'Mental State',          val: () => MentalState },
+        { key: 'ApprovalRating',          label: 'Approval Rating',       val: () => ApprovalRating },
+        { key: 'CongressionalSupport',    label: 'Congressional Support', val: () => CongressionalSupport },
+        { key: 'RepublicanSupport',       label: 'Republican Support',    val: () => RepublicanSupport },
+        { key: 'RelationsWithTheSoviets', label: 'Soviet Relations',      val: () => RelationsWithTheSoviets },
+        { key: 'Vietnam',                 label: 'Vietnam',               val: () => Vietnam },
+        { key: 'TheEconomy',              label: 'The Economy',           val: () => TheEconomy },
     ];
 
-    function updateGameStatsPopup() {
-        const content = document.getElementById("gameStatsContent");
-        if (!content) return;
+    function _buildNation() {
+        let h = `<p class="fd-head">State of the Nation</p>`;
+        for (const { key, label, val } of _VARS) {
+            const text = _pick(Number(val()) || 0, _N[key]);
+            h += `<div class="fd-entry"><span class="fd-entry-label">${label}</span><span class="fd-entry-body">${text}</span></div>`;
+        }
+        return h;
+    }
 
-        const lines = STATS.map(({ getValue, tiers, label }) => {
-            const value = Number(getValue?.());
-            const score = Number.isFinite(value) ? value : 0;
-            const [text, color] = matchTier(score, tiers);
-            return `• ${label}: ${bold(text, color)} (${score})`;
+    function _buildCrimes() {
+        let h = `<p class="fd-head">High Crimes &amp; Misdemeanours</p>`;
+        if (!window._hcEvents.length) {
+            h += `<p class="fd-empty">No entries yet.</p>`;
+        } else {
+            for (const ev of window._hcEvents) {
+                h += `<div class="fd-crime-entry">`;
+                if (ev.date) h += `<span class="fd-crime-date">${ev.date}</span>`;
+                h += `<span class="fd-entry-body">${ev.text}</span></div>`;
+            }
+        }
+        return h;
+    }
+
+    function _refresh() {
+        const pad = document.getElementById('fd-pad');
+        if (!pad) return;
+        const which = document.querySelector('.fd-tab.fd-active')?.dataset.tab;
+        if (which === 'nation') pad.innerHTML = _buildNation();
+        else if (which === 'crimes') pad.innerHTML = _buildCrimes();
+    }
+
+    /* ── Open / close ── */
+    function _open() {
+        if (document.getElementById('fd-overlay')) return;
+
+        const ov = document.createElement('div');
+        ov.id = 'fd-overlay';
+        ov.addEventListener('click', ev => { if (ev.target === ov) _close(); });
+
+        const inner = document.createElement('div');
+        inner.className = 'fd-inner';
+
+        const tabRow = document.createElement('div');
+        tabRow.className = 'fd-tabs-row';
+
+        [
+            { label: 'State of the Nation',         key: 'nation' },
+            { label: 'High Crimes & Misdemeanours', key: 'crimes' },
+        ].forEach(({ label, key }, i) => {
+            const t = document.createElement('button');
+            t.className = 'fd-tab' + (i === 0 ? ' fd-active' : '');
+            t.dataset.tab = key;
+            t.textContent = label;
+            t.onclick = () => {
+                document.querySelectorAll('.fd-tab').forEach(x => x.classList.remove('fd-active'));
+                t.classList.add('fd-active');
+                _refresh();
+            };
+            tabRow.appendChild(t);
         });
 
-        content.innerHTML = `
-            <h3>State of the Nation</h3>
-            <div class="stats-list">${lines.join("<br>")}</div>
-        `;
+        const body = document.createElement('div');
+        body.className = 'fd-body';
+
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'fd-close';
+        closeBtn.innerHTML = '&#x2715;';
+        closeBtn.onclick = _close;
+        body.appendChild(closeBtn);
+
+        const pad = document.createElement('div');
+        pad.className = 'fd-pad';
+        pad.id = 'fd-pad';
+        pad.innerHTML = _buildNation();
+        body.appendChild(pad);
+
+        inner.appendChild(tabRow);
+        inner.appendChild(body);
+        ov.appendChild(inner);
+        document.body.appendChild(ov);
     }
 
-    function createGameStatsPopup() {
-        if (document.getElementById("gameStatsPopup")) return;
-
-        const popup = document.createElement("div");
-        popup.id = "gameStatsPopup";
-        popup.style.display = "none";
-        popup.innerHTML = '<div id="gameStatsContent"></div>';
-        document.body.appendChild(popup);
-
-        makePopupDraggable(popup);
-        updateGameStatsPopup();
+    function _close() {
+        document.getElementById('fd-overlay')?.remove();
     }
 
-    function makePopupDraggable(el) {
-        let offsetX, offsetY;
-
-        function onMouseMove(e) {
-            const maxX = window.innerWidth - el.offsetWidth;
-            const maxY = window.innerHeight - el.offsetHeight;
-            el.style.left   = `${Math.max(0, Math.min(e.clientX - offsetX, maxX))}px`;
-            el.style.top    = `${Math.max(0, Math.min(e.clientY - offsetY, maxY))}px`;
-            el.style.bottom = "auto";
-            el.style.right  = "auto";
-        }
-
-        function onMouseUp() {
-            document.removeEventListener("mousemove", onMouseMove);
-            document.removeEventListener("mouseup", onMouseUp);
-        }
-
-        el.addEventListener("mousedown", (e) => {
-            const rect = el.getBoundingClientRect();
-            offsetX = e.clientX - rect.left;
-            offsetY = e.clientY - rect.top;
-            document.addEventListener("mousemove", onMouseMove);
-            document.addEventListener("mouseup", onMouseUp);
-        });
-    }
-
-    function toggleGameStatsPopup() {
-        const popup = document.getElementById("gameStatsPopup");
-        if (!popup) return;
-        const showing = popup.style.display === "none";
-        popup.style.display = showing ? "block" : "none";
-        if (showing) updateGameStatsPopup();
-    }
-
-    function injectGameStatsButton() {
-        if (document.getElementById("btn_game_stats")) return;
-        const anchor = document.getElementById("view_electoral_map");
+    /* ── Button ── */
+    function _injectBtn() {
+        if (document.getElementById('btn_game_stats')) return;
+        const anchor = document.getElementById('view_electoral_map');
         if (!anchor) return;
-
-        const btn = document.createElement("button");
-        btn.id = "btn_game_stats";
-        btn.textContent = "Legal Pad";
-        btn.addEventListener("click", (e) => {
-            e.preventDefault();
-            toggleGameStatsPopup();
-        });
-        anchor.insertAdjacentElement("afterend", btn);
+        const btn = document.createElement('button');
+        btn.id = 'btn_game_stats';
+        btn.textContent = 'Legal Pad';
+        btn.addEventListener('click', _open);
+        anchor.insertAdjacentElement('afterend', btn);
     }
 
-    createGameStatsPopup();
-
-    const gameWindow = document.getElementById("game_window");
-    if (gameWindow) {
+    const gw = document.getElementById('game_window');
+    if (gw) {
         new MutationObserver(() => {
-            injectGameStatsButton();
-            updateGameStatsPopup();
-        }).observe(gameWindow, { childList: true, subtree: true });
+            _injectBtn();
+            _refresh();
+        }).observe(gw, { childList: true, subtree: true });
     }
 })();
 // [JETS_CYOA_CAMPAIGN_DATA_END]

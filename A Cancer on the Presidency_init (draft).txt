@@ -665,12 +665,21 @@ div.content_single {
     height: 85px !important;
     padding-bottom: 5px !important;
 }
-#game_window {
+/* Early screens (intro, candidate select, difficulty): keep CT's natural fixed height */
+#game_window:not(:has(#question_form)) {
+    height: 515px !important;
+    min-height: 0 !important;
+    max-height: 515px !important;
+    overflow: hidden !important;
+    padding-bottom: 0 !important;
+}
+/* Question gameplay: expand freely, with padding to clear the g overlay */
+#game_window:has(#question_form) {
     height: auto !important;
-    min-height: 450px !important;     /* 450 + 175px padding-bottom = 625px minimum total */
+    min-height: 450px !important;
     max-height: none !important;
     overflow: visible !important;
-    padding-bottom: 175px !important; /* reserves space for the g overlay so content never overlaps it */
+    padding-bottom: 175px !important;
 }
 
 #game_window, .inner_window, #game_header, .description_window_small, .inner_window_front, .inner_window_w_desc, .inner_window_question, .inner_inner_window, .below_header, .election_description_window, .person_description_window, #candidate_description_window, #question_header, #answers_container, #feedback_container {
