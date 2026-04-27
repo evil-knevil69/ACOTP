@@ -12995,7 +12995,7 @@ document.body.appendChild(honk);
         });
 
         content.innerHTML = `
-            <h3>Campaign Data</h3>
+            <h3>State of the Nation</h3>
             <div class="stats-list">${lines.join("<br>")}</div>
         `;
     }
@@ -13054,7 +13054,7 @@ document.body.appendChild(honk);
 
         const btn = document.createElement("button");
         btn.id = "btn_game_stats";
-        btn.textContent = "Campaign Data";
+        btn.textContent = "Legal Pad";
         btn.addEventListener("click", (e) => {
             e.preventDefault();
             toggleGameStatsPopup();
