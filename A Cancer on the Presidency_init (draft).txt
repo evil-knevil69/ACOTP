@@ -915,6 +915,8 @@ div.center img#header {
     overflow: visible !important;
     width: auto !important;
     max-width: 920px !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
 }
 .overlay_window_content {
     height: auto !important;
@@ -1021,7 +1023,9 @@ background: transparent !important;
     position: fixed;
     z-index: 999999;
     width: 270px;
-    background: #fff;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     padding: 2px 2px 14px 2px;
     border-radius: 2px;
     box-shadow: 2px 2px 8px rgba(0,0,0,0.4), 0 0 1px rgba(0,0,0,0.2);
@@ -1070,6 +1074,14 @@ background: transparent !important;
 }
 .game_answer_row:hover span {
     text-decoration-color: rgba(96, 115, 129, 0.55);
+}
+@keyframes answerFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.game_answer_row {
+    animation: answerFadeIn 0.28s ease-out both;
+    animation-delay: var(--answer-i-delay, 0ms);
 }
 /* ── Inner Circle / Enemies panels ────────────────────────────── */
 #inner_circle_panel, #enemies_panel {

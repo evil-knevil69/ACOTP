@@ -12089,6 +12089,9 @@ const _gameObserver = new MutationObserver((() => {
                     if (qd.transition && !_shownTransitions.has(currentPK) && document.getElementById('question_form')) {
                         showSectionTransition(qd.transition, currentPK);
                     }
+                    document.querySelectorAll('.game_answer_row').forEach((row, i) => {
+                        row.style.setProperty('--answer-i-delay', `${i * 60}ms`);
+                    });
                 }
 
                 if (_lastQuestionPK != null) {
