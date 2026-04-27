@@ -11728,33 +11728,30 @@ function answerSwapper(pk1, pk2, takeEffects = true) {
 }
 
 // CYOA Variables
-// TODO: invalid JS — variable names cannot contain spaces.
-// Convert to a single object (e.g. const modVars = { "Mental State": 0, ... })
-// before referencing these from cyoAdventure or elsewhere.
-// var Mental State = 0;
-// var Approval Rating = 62;
-// var Congressional Support = 6;
-// var Republican Support = 9;
-// var Relations with the Soviets = 5;
-// var Vietnam = 6;
-// var The Economy = 7;
-// var Haldeman = 2;
-// var Erlichman = 2;
-// var Mitchell = 1;
-// var Dean = 2;
-// var Magruder = 1;
-// var Kissinger = 2;
-// var Krogh = 1;
-// var Chapin = 2;
-// var Segretti = 1;
-// var Strachan = 2;
-// var Hunt = 0;
-// var McCord = 0;
-// var Liddy = 0;
-// var Larue = 2;
-// var Stans = 2;
-// var Klambach = 2;
-// var Kleindienst  = 2;
+var MentalState = 0;
+var ApprovalRating = 62;
+var CongressionalSupport = 6;
+var RepublicanSupport = 9;
+var RelationsWithTheSoviets = 5;
+var Vietnam = 6;
+var TheEconomy = 7;
+var Haldeman = 2;
+var Erlichman = 2;
+var Mitchell = 1;
+var Dean = 2;
+var Magruder = 1;
+var Kissinger = 2;
+var Krogh = 1;
+var Chapin = 2;
+var Segretti = 1;
+var Strachan = 2;
+var Hunt = 0;
+var McCord = 0;
+var Liddy = 0;
+var Larue = 2;
+var Stans = 2;
+var Klambach = 2;
+var Kleindienst = 2;
 
 cyoAdventure = function (a) {
     const ans = campaignTrail_temp.player_answers[campaignTrail_temp.player_answers.length - 1];
@@ -12580,7 +12577,7 @@ document.body.appendChild(honk);
 
     const STATS = [
     {
-            getValue: () => 0, // TODO: wire to "Mental State" CYOA variable
+            getValue: () => MentalState,
             label: `Mental State`,
             tiers: [
                 [2, `Prefers to have the blinds closed`, "#ff4d4d"],
@@ -12589,7 +12586,7 @@ document.body.appendChild(honk);
             ],
         },
     {
-            getValue: () => 62, // TODO: wire to "Approval Rating" CYOA variable
+            getValue: () => ApprovalRating,
             label: `Approval Rating`,
             tiers: [
                 [40, `Approval Rating is struggling.`, "#ff4d4d"],
@@ -12842,7 +12839,7 @@ campaignTrail_temp.jet_data = [{
     "cyoa_campaign_data_stats": {
         "1777240061560": {
             "id": 1777240061560,
-            "variable": "Mental State",
+            "variable": "MentalState",
             "label": "Mental State",
             "lowMax": 2,
             "midMax": 7,
@@ -12852,7 +12849,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1777241148238": {
             "id": 1777241148238,
-            "variable": "Approval Rating",
+            "variable": "ApprovalRating",
             "label": "Approval Rating",
             "lowMax": 40,
             "midMax": 60,
