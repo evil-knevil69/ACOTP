@@ -717,7 +717,23 @@ ul {
 }
 #inner_window_3,
 #inner_window_4 {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
     padding-bottom: 50px !important;
+    width: 100% !important;
+}
+.description_window_small {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    width: 100% !important;
+}
+#feedback_container {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    width: 100% !important;
 }
 #inner_window_question p {
     padding-top: 70px !important;
@@ -896,13 +912,15 @@ div.center img#header {
 .overlay_window {
     height: auto !important;
     max-height: none !important;
-    overflow-y: auto !important;
+    overflow: visible !important;
+    width: auto !important;
+    max-width: 920px !important;
 }
 .overlay_window_content {
     height: auto !important;
-    max-height: 450px !important;
     max-height: none !important;
-    overflow-y: auto !important;
+    overflow: visible !important;
+    width: auto !important;
 }
 .overlay_window_content img {
     width: auto !important;
