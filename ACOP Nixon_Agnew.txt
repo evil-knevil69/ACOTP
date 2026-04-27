@@ -12061,6 +12061,502 @@ function openEnemiesPanel(questions) {
     document.getElementById('game_window').appendChild(panel);
 }
 
+// =============================================
+// NETWORK / ORGANOGRAM PANEL
+// =============================================
+;(() => {
+    const _orgStyle = document.createElement('style');
+    _orgStyle.textContent = `
+        #org-panel {
+            position: fixed;
+            top: 40px;
+            left: 40px;
+            width: 92vw;
+            max-width: 1300px;
+            height: 82vh;
+            background: #12141f;
+            border: 2px solid #3a4060;
+            border-radius: 4px;
+            z-index: 10002;
+            overflow: auto;
+            display: none;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            color: #d0d4e8;
+            user-select: none;
+        }
+        #org-panel-inner {
+            position: relative;
+            padding: 50px 30px 40px;
+            min-width: 1100px;
+        }
+        #org-close-btn {
+            position: sticky;
+            top: 8px;
+            float: right;
+            z-index: 5;
+            background: none;
+            border: 1px solid #444;
+            color: #aaa;
+            cursor: pointer;
+            padding: 3px 10px;
+            border-radius: 2px;
+            font-size: 12px;
+        }
+        #org-nixon-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 0;
+        }
+        #org-columns-row {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            align-items: flex-start;
+            margin-top: 70px;
+            gap: 24px;
+            flex-wrap: nowrap;
+        }
+        .org-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .org-col-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #445;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+        .org-divider {
+            width: 1px;
+            background: #2a2d45;
+            align-self: stretch;
+            margin: 0 8px;
+            flex-shrink: 0;
+        }
+        .org-tree, .org-tree ul, .org-tree li {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .org-tree {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .org-tree > li {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .org-tree li > ul {
+            display: flex;
+            flex-direction: row;
+            position: relative;
+            margin-top: 20px;
+        }
+        .org-tree li > ul::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 20px;
+            background: #3a4060;
+        }
+        .org-tree li > ul > li {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding: 20px 6px 0;
+        }
+        .org-tree li > ul > li::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #3a4060;
+        }
+        .org-tree li > ul > li:first-child::before { left: 50%; }
+        .org-tree li > ul > li:last-child::before  { right: 50%; }
+        .org-tree li > ul > li:only-child::before  { display: none; }
+        .org-tree li > ul > li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 20px;
+            background: #3a4060;
+        }
+        .org-node {
+            width: 130px;
+            border: 2px solid #3a5a7a;
+            border-radius: 4px;
+            padding: 8px 7px;
+            background: #181c2e;
+            text-align: center;
+            cursor: default;
+            transition: border-color 0.4s, opacity 0.4s;
+        }
+        .org-node.creep-node {
+            border-color: #7a3a28;
+            background: #1e130e;
+        }
+        .org-node .org-photo-wrap {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            margin: 0 auto 5px;
+            overflow: hidden;
+            background: #262c44;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .org-node .org-photo-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .org-node .org-initials {
+            font-size: 16px;
+            font-weight: bold;
+            color: #7a8ab0;
+        }
+        .org-node .org-name {
+            font-size: 10px;
+            font-weight: bold;
+            color: #c8d0e8;
+            margin-bottom: 2px;
+            line-height: 1.3;
+        }
+        .org-node .org-title {
+            font-size: 8.5px;
+            color: #5a6070;
+            font-style: italic;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+        .org-node .org-bio {
+            font-size: 8px;
+            color: #778;
+            text-align: left;
+            line-height: 1.4;
+        }
+        .org-node[data-state="resigned"]            { border-color: #c8960a; }
+        .org-node[data-state="resigned"]   .org-photo-wrap { filter: sepia(70%); }
+        .org-node[data-state="indicted"]            { border-color: #b03030; }
+        .org-node[data-state="indicted"]   .org-photo-wrap { filter: grayscale(40%); }
+        .org-node[data-state="imprisoned"]          { border-color: #601818; opacity: 0.8; }
+        .org-node[data-state="imprisoned"] .org-photo-wrap { filter: grayscale(100%) brightness(0.65); }
+        #org-svg-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: visible;
+        }
+        #btn_org_chart { margin-left: 1em; }
+    `;
+    document.head.appendChild(_orgStyle);
+
+    const _orgPeople = {
+        Nixon: {
+            name: 'Richard Nixon',
+            title: 'President of the United States',
+            bio: '37th President. Elected 1968. Resigned August 9, 1974 — the only president ever to do so.',
+            initials: 'RN', images: {},
+        },
+        Haldeman: {
+            name: 'H.R. Haldeman',
+            title: 'White House Chief of Staff',
+            bio: 'Nixon\'s gatekeeper. Controlled all access to the President. Resigned April 30, 1973. Convicted and imprisoned.',
+            initials: 'HRH', images: {},
+        },
+        Erlichman: {
+            name: 'John Ehrlichman',
+            title: 'Asst. to President, Domestic Affairs',
+            bio: 'Established the Plumbers unit. Resigned alongside Haldeman. Convicted of obstruction of justice and perjury.',
+            initials: 'JE', images: {},
+        },
+        Dean: {
+            name: 'John Dean',
+            title: 'White House Counsel',
+            bio: 'Monitored FBI investigation on Nixon\'s behalf. Turned state\'s evidence. Described the cover-up as "a cancer on the Presidency".',
+            initials: 'JD', images: {},
+        },
+        Kissinger: {
+            name: 'Henry Kissinger',
+            title: 'National Security Adviser',
+            bio: 'Requested FBI wiretaps on staff and journalists. Largely uninvolved in Watergate directly.',
+            initials: 'HK', images: {},
+        },
+        Chapin: {
+            name: 'Dwight Chapin',
+            title: 'Deputy Asst. to the President',
+            bio: 'Coordinated the "dirty tricks" campaign. Hired Segretti to run political sabotage operations against Democrats.',
+            initials: 'DC', images: {},
+        },
+        Krogh: {
+            name: 'Egil Krogh',
+            title: 'Head of the Plumbers',
+            bio: 'Installed by Ehrlichman to run the Special Investigations Unit. Brought Liddy into the White House.',
+            initials: 'EK', images: {},
+        },
+        Strachan: {
+            name: 'Gordon Strachan',
+            title: 'Liaison, Haldeman–CREEP',
+            bio: 'Kept Haldeman updated on CREEP\'s surveillance operations. Indicted for obstruction, but charges eventually dropped.',
+            initials: 'GS', images: {},
+        },
+        Segretti: {
+            name: 'Donald Segretti',
+            title: 'Dirty Tricks Operative',
+            bio: 'Hired by Chapin for "ratfucking" — forged letters, disrupted Democratic rallies. Sentenced to six months.',
+            initials: 'DS', images: {},
+        },
+        Hunt: {
+            name: 'Howard Hunt',
+            title: 'Former CIA operative',
+            bio: 'Recruited into WH by Colson. Prime mover behind the DNC break-in. Led the Plumbers on covert operations. Convicted.',
+            initials: 'HH', images: {},
+        },
+        Liddy: {
+            name: 'Gordon Liddy',
+            title: 'Legal Counsel, CREEP',
+            bio: 'Former FBI agent. Devised CREEP\'s intelligence operation (GEMSTONE). Refused to cooperate with prosecutors ever. Sentenced to 20 years.',
+            initials: 'GL', images: {},
+        },
+        Mitchell: {
+            name: 'John Mitchell',
+            title: 'Director, CREEP',
+            bio: 'Former Attorney General. Approved CREEP\'s intelligence operations. Convicted of obstruction, perjury, and conspiracy.',
+            initials: 'JM', images: {},
+        },
+        Magruder: {
+            name: 'Jeb Magruder',
+            title: 'Deputy Director, CREEP',
+            bio: 'Approved the Watergate break-in alongside Mitchell. Turned state\'s evidence. Sentenced to ten months.',
+            initials: 'JsM', images: {},
+        },
+        Larue: {
+            name: 'Frederick LaRue',
+            title: 'Asst. to Mitchell, CREEP',
+            bio: 'Close Mitchell aide. Helped coordinate and deliver hush money payments to the seven Watergate defendants.',
+            initials: 'FL', images: {},
+        },
+        Stans: {
+            name: 'Maurice Stans',
+            title: 'Finance Chairman, CREEP',
+            bio: 'Former Secretary of Commerce. Raised millions in illegal campaign contributions. Pleaded guilty to campaign violations.',
+            initials: 'MS', images: {},
+        },
+        Klambach: {
+            name: 'Herbert Kalmbach',
+            title: 'Assoc. Finance Chairman, CREEP',
+            bio: 'Nixon\'s personal attorney. Raised and delivered hush money to the seven Watergate defendants. Pleaded guilty.',
+            initials: 'HKb', images: {},
+        },
+        McCord: {
+            name: 'James McCord',
+            title: 'Security Director, CREEP',
+            bio: 'Former CIA officer. One of the five Watergate burglars. Wrote a letter to Judge Sirica exposing the cover-up.',
+            initials: 'JMc', images: {},
+        },
+    };
+
+    const _whTree1 = {
+        id: 'Haldeman',
+        children: [
+            { id: 'Chapin', children: [{ id: 'Segretti' }] },
+            { id: 'Strachan' },
+        ],
+    };
+    const _whTree2 = {
+        id: 'Erlichman',
+        children: [
+            { id: 'Krogh', children: [{ id: 'Hunt' }, { id: 'Liddy' }] },
+        ],
+    };
+    const _creepTree = {
+        id: 'Mitchell',
+        children: [
+            { id: 'Magruder' },
+            { id: 'Larue' },
+            { id: 'Stans', children: [{ id: 'Klambach' }] },
+            { id: 'McCord' },
+        ],
+    };
+
+    const _crossLinks = [
+        { from: 'Strachan', to: 'Mitchell', color: '#664422', dashed: true },
+        { from: 'Hunt',     to: 'Magruder', color: '#664422', dashed: true },
+        { from: 'Liddy',    to: 'Magruder', color: '#664422', dashed: true },
+        { from: 'Klambach', to: 'Larue',    color: '#665522', dashed: true },
+    ];
+
+    function _buildOrgNode(id, isCREEP) {
+        const p = _orgPeople[id] || { name: id, title: '', bio: '', initials: id.slice(0, 2), images: {} };
+        const photo = p.images.active
+            ? `<img src="${p.images.active}" alt="${p.name}">`
+            : `<span class="org-initials">${p.initials}</span>`;
+        return `<div class="org-node${isCREEP ? ' creep-node' : ''}" data-person="${id}" data-state="active">
+            <div class="org-photo-wrap">${photo}</div>
+            <div class="org-name">${p.name}</div>
+            <div class="org-title">${p.title}</div>
+            <div class="org-bio">${p.bio}</div>
+        </div>`;
+    }
+
+    function _buildOrgTree(node, isCREEP) {
+        const kids = (node.children || []).map(c => `<li>${_buildOrgTree(c, isCREEP)}</li>`).join('');
+        return _buildOrgNode(node.id, isCREEP) + (kids ? `<ul>${kids}</ul>` : '');
+    }
+
+    function _createOrgPanel() {
+        if (document.getElementById('org-panel')) return;
+        const panel = document.createElement('div');
+        panel.id = 'org-panel';
+        panel.innerHTML = `
+            <div id="org-panel-inner">
+                <svg id="org-svg-overlay"></svg>
+                <button id="org-close-btn">&#x2715; Close</button>
+                <div id="org-nixon-row">${_buildOrgNode('Nixon', false)}</div>
+                <div id="org-columns-row">
+                    <div class="org-col">
+                        <div class="org-col-label">White House Staff</div>
+                        <ul class="org-tree"><li>${_buildOrgTree(_whTree1, false)}</li></ul>
+                    </div>
+                    <div class="org-col">
+                        <div class="org-col-label">&nbsp;</div>
+                        <ul class="org-tree"><li>${_buildOrgTree(_whTree2, false)}</li></ul>
+                    </div>
+                    <div class="org-col">
+                        <div class="org-col-label">&nbsp;</div>
+                        <ul class="org-tree"><li>${_buildOrgTree({ id: 'Dean' }, false)}</li></ul>
+                    </div>
+                    <div class="org-col">
+                        <div class="org-col-label">&nbsp;</div>
+                        <ul class="org-tree"><li>${_buildOrgTree({ id: 'Kissinger' }, false)}</li></ul>
+                    </div>
+                    <div class="org-divider"></div>
+                    <div class="org-col">
+                        <div class="org-col-label">C.R.E.E.P.</div>
+                        <ul class="org-tree"><li>${_buildOrgTree(_creepTree, true)}</li></ul>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(panel);
+        document.getElementById('org-close-btn').addEventListener('click', () => { panel.style.display = 'none'; });
+        _makeOrgDraggable(panel);
+    }
+
+    function _drawOrgLinks() {
+        const svg = document.getElementById('org-svg-overlay');
+        const inner = document.getElementById('org-panel-inner');
+        if (!svg || !inner) return;
+        svg.innerHTML = '';
+        const cr = inner.getBoundingClientRect();
+
+        // Nixon → each column root
+        const nixonNode = document.querySelector('#org-nixon-row .org-node');
+        document.querySelectorAll('#org-columns-row .org-col .org-tree > li > .org-node').forEach(root => {
+            _drawOrgArc(svg, cr, nixonNode, root, '#3a4860', false);
+        });
+
+        // Cross-connections
+        _crossLinks.forEach(({ from, to, color, dashed }) => {
+            const a = document.querySelector(`.org-node[data-person="${from}"]`);
+            const b = document.querySelector(`.org-node[data-person="${to}"]`);
+            if (a && b) _drawOrgArc(svg, cr, a, b, color, dashed);
+        });
+    }
+
+    function _drawOrgArc(svg, cr, elA, elB, color, dashed) {
+        const a = elA.getBoundingClientRect();
+        const b = elB.getBoundingClientRect();
+        const x1 = a.left + a.width / 2 - cr.left;
+        const y1 = a.bottom - cr.top;
+        const x2 = b.left + b.width / 2 - cr.left;
+        const y2 = b.top - cr.top;
+        const cy = (y1 + y2) / 2;
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', `M ${x1} ${y1} C ${x1} ${cy}, ${x2} ${cy}, ${x2} ${y2}`);
+        path.setAttribute('stroke', color);
+        path.setAttribute('stroke-width', '1.5');
+        path.setAttribute('fill', 'none');
+        if (dashed) path.setAttribute('stroke-dasharray', '4 3');
+        svg.appendChild(path);
+    }
+
+    window._setOrgState = function(personId, state) {
+        const node = document.querySelector(`.org-node[data-person="${personId}"]`);
+        if (!node) return;
+        node.dataset.state = state;
+        const p = _orgPeople[personId];
+        if (!p) return;
+        const img = node.querySelector('img');
+        if (img && p.images[state]) img.src = p.images[state];
+    };
+
+    function _makeOrgDraggable(el) {
+        let ox, oy;
+        el.addEventListener('mousedown', e => {
+            if (e.target.closest('.org-node, button')) return;
+            const r = el.getBoundingClientRect();
+            ox = e.clientX - r.left;
+            oy = e.clientY - r.top;
+            const onMove = ev => {
+                el.style.left   = `${ev.clientX - ox}px`;
+                el.style.top    = `${ev.clientY - oy}px`;
+                el.style.right  = 'auto';
+                el.style.bottom = 'auto';
+            };
+            const onUp = () => {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+            };
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+    }
+
+    function _injectOrgButton() {
+        if (document.getElementById('btn_org_chart')) return;
+        const anchor = document.getElementById('btn_game_stats') || document.getElementById('view_electoral_map');
+        if (!anchor) return;
+        const btn = document.createElement('button');
+        btn.id = 'btn_org_chart';
+        btn.textContent = 'The Network';
+        btn.style.marginLeft = '1em';
+        btn.addEventListener('click', e => {
+            e.preventDefault();
+            const panel = document.getElementById('org-panel');
+            if (!panel) return;
+            const show = panel.style.display !== 'block';
+            panel.style.display = show ? 'block' : 'none';
+            if (show) requestAnimationFrame(() => requestAnimationFrame(_drawOrgLinks));
+        });
+        anchor.insertAdjacentElement('afterend', btn);
+    }
+
+    _createOrgPanel();
+    const _orgGW = document.getElementById('game_window');
+    if (_orgGW) new MutationObserver(_injectOrgButton).observe(_orgGW, { childList: true, subtree: true });
+})();
+
 const _visitAdvisorImages = [
     'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback1.jpg',
     'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback2.jpg',
