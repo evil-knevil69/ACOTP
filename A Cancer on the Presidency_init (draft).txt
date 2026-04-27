@@ -667,9 +667,10 @@ div.content_single {
 }
 #game_window {
     height: auto !important;
-    min-height: 625px !important;
+    min-height: 450px !important;     /* 450 + 175px padding-bottom = 625px minimum total */
     max-height: none !important;
     overflow: visible !important;
+    padding-bottom: 175px !important; /* reserves space for the g overlay so content never overlaps it */
 }
 
 #game_window, .inner_window, #game_header, .description_window_small, .inner_window_front, .inner_window_w_desc, .inner_window_question, .inner_inner_window, .below_header, .election_description_window, .person_description_window, #candidate_description_window, #question_header, #answers_container, #feedback_container {
