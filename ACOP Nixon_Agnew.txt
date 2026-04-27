@@ -12041,10 +12041,18 @@ function openEnemiesPanel(questions) {
         #nw-chart-wrapper {
             position: relative;
             width: 100%;
+            overflow-x: auto;
+            overflow-y: visible;
+        }
+        #nw-chart-inner {
+            position: relative;
+            width: max-content;
+            margin: 0 auto;
         }
         #nw-nixon-row {
             display: flex;
             justify-content: center;
+            width: 100%;
             margin-bottom: 0;
         }
         #nw-columns-row {
@@ -12156,7 +12164,7 @@ function openEnemiesPanel(questions) {
         .nw-node .nw-photo-wrap {
             width: 48px;
             height: 48px;
-            border-radius: 50%;
+            border-radius: 3px;
             margin: 0 auto 4px;
             overflow: hidden;
             background: #ccc;
@@ -12373,6 +12381,7 @@ function openEnemiesPanel(questions) {
     window._renderOrgChart = function(wrapper) {
         wrapper.id = 'nw-chart-wrapper';
         wrapper.innerHTML = `
+            <div id="nw-chart-inner">
             <svg id="nw-svg-overlay"></svg>
             <div id="nw-nixon-row">${_buildOrgNode('Nixon', false)}</div>
             <div id="nw-columns-row">
@@ -12398,15 +12407,16 @@ function openEnemiesPanel(questions) {
                     <ul class="nw-tree"><li>${_buildOrgTree(_creepTree, true)}</li></ul>
                 </div>
             </div>
+            </div>
         `;
     };
 
     window._drawOrgLinks = function() {
         const svg   = document.getElementById('nw-svg-overlay');
-        const wrap  = document.getElementById('nw-chart-wrapper');
-        if (!svg || !wrap) return;
+        const inner = document.getElementById('nw-chart-inner');
+        if (!svg || !inner) return;
         svg.innerHTML = '';
-        const cr = wrap.getBoundingClientRect();
+        const cr = inner.getBoundingClientRect();
 
         const nixonNode = document.querySelector('#nw-nixon-row .nw-node');
         document.querySelectorAll('#nw-columns-row .nw-col .nw-tree > li > .nw-node').forEach(root => {
@@ -13075,51 +13085,35 @@ document.body.appendChild(honk);
     `;
     document.head.appendChild(_fdStyle);
 
-    /* ── Narrative maps ── */
-    function _pick(v, tiers) {
-        for (const [max, text] of tiers) if (v <= max) return text;
-        return tiers.at(-1)[1];
+    /* ── State of the Nation stats ── */
+    function _bold(text, color) {
+        return `<span style="color:${color};font-weight:bold">${text}</span>`;
     }
-
-    const _N = {
-        MentalState: [
-            [2, "Erratic and paranoid — increasingly isolated in the bunker of his own mind."],
-            [5, "The strains of office show. The President broods, drinks, paces. Functioning, but barely."],
-            [7, "Composed and focused. The pressures are contained, the mask stays on."],
-            [10, "Whatever his enemies say, this man will not break."],
-        ],
-        ApprovalRating: [
-            [30, "The country has turned. Approval is in the gutter. Impeachment talk is no longer fringe."],
-            [45, "Support is hemorrhaging. The scandals are taking their toll."],
-            [60, "The President maintains reasonable public confidence. The silent majority holds."],
-            [100, "Nixon rides high. The landslide mandate of '72 still resonates."],
-        ],
-        CongressionalSupport: [
-            [3, "Congress is openly hostile. The constitutional machinery grinds toward him."],
-            [6, "Congressional relations are strained. Key allies are losing their nerve."],
-            [10, "The Hill is manageable. Enough support to govern — for now."],
-        ],
-        RepublicanSupport: [
-            [3, "The party is in open revolt. Republicans are distancing themselves in droves."],
-            [6, "Nervous loyalty. The party faithful hold, but the private conversations are damning."],
-            [10, "The Republican establishment stands firm. Party discipline holds."],
-        ],
-        RelationsWithTheSoviets: [
-            [3, "Détente is in crisis. Moscow is emboldened by the President's domestic weakness."],
-            [6, "Relations are cool but stable. SALT II negotiations limp forward."],
-            [10, "Détente is the crown jewel. Soviet relations have never been stronger."],
-        ],
-        Vietnam: [
-            [3, "The peace is unraveling. North Vietnamese forces advance. The endgame nears."],
-            [6, "An uneasy ceasefire. The Paris Accords hold — for now."],
-            [10, "Peace with honor. Vietnam has receded from the front pages."],
-        ],
-        TheEconomy: [
-            [3, "The economy is in trouble. Inflation, energy crisis. The stagflation trap closes in."],
-            [6, "Economic headwinds. Not catastrophic, but voters are noticing."],
-            [10, "The economy performs. The President can point to real growth."],
-        ],
-    };
+    function _matchTier(v, tiers) {
+        for (const [max, text, color] of tiers) if (v <= max) return [text, color];
+        const f = tiers.at(-1);
+        return [f?.[1] || '', f?.[2] || '#444'];
+    }
+    const _STATS = [
+        {
+            getValue: () => MentalState,
+            label: 'Mental State',
+            tiers: [
+                [2,        "Prefers to have the blinds closed", "#c0392b"],
+                [7,        "Talking to paintings",              "#555555"],
+                [Infinity, "No longer the madman 'theory'",    "#1a7340"],
+            ],
+        },
+        {
+            getValue: () => ApprovalRating,
+            label: 'Approval Rating',
+            tiers: [
+                [40,       "Approval Rating is struggling", "#c0392b"],
+                [60,       "Approval Rating is steady",     "#555555"],
+                [Infinity, "Historic approval levels",      "#1a7340"],
+            ],
+        },
+    ];
 
     /* ── High Crimes log ── */
     window._hcEvents = [
@@ -13132,21 +13126,13 @@ document.body.appendChild(honk);
     };
 
     /* ── Render ── */
-    const _VARS = [
-        { key: 'MentalState',            label: 'Mental State',          val: () => MentalState },
-        { key: 'ApprovalRating',          label: 'Approval Rating',       val: () => ApprovalRating },
-        { key: 'CongressionalSupport',    label: 'Congressional Support', val: () => CongressionalSupport },
-        { key: 'RepublicanSupport',       label: 'Republican Support',    val: () => RepublicanSupport },
-        { key: 'RelationsWithTheSoviets', label: 'Soviet Relations',      val: () => RelationsWithTheSoviets },
-        { key: 'Vietnam',                 label: 'Vietnam',               val: () => Vietnam },
-        { key: 'TheEconomy',              label: 'The Economy',           val: () => TheEconomy },
-    ];
-
     function _buildNation() {
         let h = `<p class="fd-head">State of the Nation</p>`;
-        for (const { key, label, val } of _VARS) {
-            const text = _pick(Number(val()) || 0, _N[key]);
-            h += `<div class="fd-entry"><span class="fd-entry-label">${label}</span><span class="fd-entry-body">${text}</span></div>`;
+        for (const { getValue, label, tiers } of _STATS) {
+            const v = Number(getValue?.()) || 0;
+            const [text, color] = _matchTier(v, tiers);
+            h += `<div class="fd-entry"><span class="fd-entry-label">${label}</span>`;
+            h += `<span class="fd-entry-body">${_bold(text, color)} (${v})</span></div>`;
         }
         return h;
     }
