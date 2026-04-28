@@ -11728,13 +11728,13 @@ function answerSwapper(pk1, pk2, takeEffects = true) {
 }
 
 // CYOA Variables
-var Mental State = 0;
-var Approval Rating = 62;
-var Congressional Support = 6;
-var Republican Support = 9;
-var Relations with the Soviets = 5;
+var MentalState = 0;
+var ApprovalRating = 62;
+var CongressionalSupport = 6;
+var RepublicanSupport = 9;
+var RelationsWithTheSoviets = 5;
 var Vietnam = 6;
-var The Economy = 7;
+var TheEconomy = 7;
 var Haldeman = 2;
 var Erlichman = 2;
 var Mitchell = 1;
@@ -11751,7 +11751,7 @@ var Liddy = 0;
 var Larue = 2;
 var Stans = 2;
 var Klambach = 2;
-var Kleindienst  = 2;
+var Kleindienst = 2;
 
 cyoAdventure = function (a) {
     const ans = campaignTrail_temp.player_answers[campaignTrail_temp.player_answers.length - 1];
@@ -11963,42 +11963,9 @@ function openInnerCircle() {
     title.textContent = "All the President's Men";
     panel.appendChild(title);
 
-    const tree = document.createElement('div');
-    tree.className = 'org-tree';
-
-    const orgData = [
-        [
-            { name: 'Richard Nixon', role: 'President' }
-        ],
-        [
-            { name: 'TBD', role: 'TBD' },
-            { name: 'TBD', role: 'TBD' },
-            { name: 'TBD', role: 'TBD' }
-        ],
-        [
-            { name: 'TBD', role: 'TBD' },
-            { name: 'TBD', role: 'TBD' },
-            { name: 'TBD', role: 'TBD' },
-            { name: 'TBD', role: 'TBD' }
-        ]
-    ];
-
-    orgData.forEach(level => {
-        const row = document.createElement('div');
-        row.className = 'org-level';
-        level.forEach(person => {
-            const node = document.createElement('div');
-            node.className = 'org-node';
-            const card = document.createElement('div');
-            card.className = 'org-card';
-            card.innerHTML = `${person.name}<span class="org-role">${person.role}</span>`;
-            node.appendChild(card);
-            row.appendChild(node);
-        });
-        tree.appendChild(row);
-    });
-
-    panel.appendChild(tree);
+    const chartWrapper = document.createElement('div');
+    if (typeof window._renderOrgChart === 'function') window._renderOrgChart(chartWrapper);
+    panel.appendChild(chartWrapper);
 
     const btnRow = document.createElement('div');
     btnRow.className = 'ic-panel-buttons';
@@ -12022,6 +11989,9 @@ function openInnerCircle() {
 
     panel.appendChild(btnRow);
     document.getElementById('game_window').appendChild(panel);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (typeof window._drawOrgLinks === 'function') window._drawOrgLinks();
+    }));
 }
 
 function openEnemiesPanel(questions) {
@@ -12061,6 +12031,445 @@ function openEnemiesPanel(questions) {
     document.getElementById('game_window').appendChild(panel);
 }
 
+// =============================================
+// NETWORK / ORGANOGRAM — renderer used by openInnerCircle
+// =============================================
+;(() => {
+    const _orgStyle = document.createElement('style');
+    _orgStyle.textContent = `
+        /* nw- prefix avoids colliding with Code 1's .org- classes */
+        #nw-chart-wrapper {
+            position: relative;
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: visible;
+        }
+        #nw-chart-inner {
+            position: relative;
+            width: max-content;
+            margin: 0 auto;
+        }
+        #nw-nixon-row {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 0;
+        }
+        #nw-columns-row {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-start;
+            margin-top: 60px;
+            gap: 16px;
+            flex-wrap: nowrap;
+        }
+        .nw-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .nw-col-label {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: #888;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        .nw-divider {
+            width: 1px;
+            background: rgba(0,0,0,0.2);
+            align-self: stretch;
+            margin: 0 4px;
+            flex-shrink: 0;
+        }
+        .nw-tree, .nw-tree ul, .nw-tree li {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .nw-tree {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .nw-tree > li {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .nw-tree li > ul {
+            display: flex;
+            flex-direction: row;
+            position: relative;
+            margin-top: 20px;
+        }
+        .nw-tree li > ul::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 20px;
+            background: #666;
+        }
+        .nw-tree li > ul > li {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding: 20px 5px 0;
+        }
+        .nw-tree li > ul > li::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #666;
+        }
+        .nw-tree li > ul > li:first-child::before { left: 50%; }
+        .nw-tree li > ul > li:last-child::before  { right: 50%; }
+        .nw-tree li > ul > li:only-child::before  { display: none; }
+        .nw-tree li > ul > li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 20px;
+            background: #666;
+        }
+        .nw-node {
+            width: 110px;
+            border: 1px solid #888;
+            border-radius: 3px;
+            padding: 7px 6px;
+            background: rgba(255,255,255,0.84);
+            text-align: center;
+            cursor: default;
+            transition: border-color 0.4s, opacity 0.4s;
+            box-shadow: 1px 1px 4px rgba(0,0,0,0.18);
+        }
+        .nw-node.nw-creep {
+            background: rgba(255,245,235,0.86);
+            border-color: #a07060;
+        }
+        .nw-node .nw-photo-wrap {
+            width: 48px;
+            height: 48px;
+            border-radius: 3px;
+            margin: 0 auto 4px;
+            overflow: hidden;
+            background: #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nw-node .nw-photo-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .nw-node .nw-initials {
+            font-size: 14px;
+            font-weight: bold;
+            color: #777;
+            font-family: Arial, sans-serif;
+        }
+        .nw-node .nw-name {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 10px;
+            font-weight: bold;
+            color: #222;
+            margin-bottom: 2px;
+            line-height: 1.3;
+        }
+        .nw-node .nw-title {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 8px;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+        .nw-node .nw-bio {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 7.5px;
+            color: #444;
+            text-align: left;
+            line-height: 1.4;
+        }
+        .nw-node[data-state="resigned"]           { border-color: #c8960a; border-width: 2px; }
+        .nw-node[data-state="resigned"]  .nw-photo-wrap { filter: sepia(70%); }
+        .nw-node[data-state="indicted"]           { border-color: #aa2020; border-width: 2px; }
+        .nw-node[data-state="indicted"]  .nw-photo-wrap { filter: grayscale(40%); }
+        .nw-node[data-state="imprisoned"]         { border-color: #661010; border-width: 2px; opacity: 0.8; }
+        .nw-node[data-state="imprisoned"] .nw-photo-wrap { filter: grayscale(100%) brightness(0.65); }
+        #nw-svg-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: visible;
+        }
+    `;
+    document.head.appendChild(_orgStyle);
+
+    const _orgPeople = {
+        Nixon: {
+            name: 'Richard Nixon',
+            title: 'President of the United States',
+            bio: '37th President.',
+            initials: 'RN', images: {},
+        },
+        Haldeman: {
+            name: 'H.R. Haldeman',
+            title: 'White House Chief of Staff',
+            bio: 'Nixon\'s gatekeeper. Controlled all access to the President.',
+            initials: 'HRH', images: {},
+        },
+        Erlichman: {
+            name: 'John Ehrlichman',
+            title: 'Asst. to President, Domestic Affairs',
+            bio: 'Established the Plumbers unit. Knew about the Ellsberg break in from an early stage',
+            initials: 'JE', images: {},
+        },
+        Dean: {
+            name: 'John Dean',
+            title: 'White House Counsel',
+            bio: 'Monitored FBI investigation on Nixon\'s behalf. Participated in the cover-up since its inception and increasingly at its center',
+            initials: 'JD', images: {},
+        },
+        Kissinger: {
+            name: 'Henry Kissinger',
+            title: 'National Security Adviser',
+            bio: 'Requested FBI wiretaps on staff and journalists. Largely uninvolved in Watergate directly.',
+            initials: 'HK', images: {},
+        },
+        Chapin: {
+            name: 'Dwight Chapin',
+            title: 'Deputy Asst. to the President',
+            bio: 'Coordinated the "dirty tricks" campaign. Hired his friend, Segretti to run political sabotage operations against the Democrats.',
+            initials: 'DC', images: {},
+        },
+        Krogh: {
+            name: 'Egil Krogh',
+            title: 'Head of the Plumbers',
+            bio: 'Installed by Ehrlichman to run the Special Investigations Unit. Brought Liddy into the White House. Ran the Ellsberg break-in. Now in the Transportation Dept.',
+            initials: 'EK', images: {},
+        },
+        Strachan: {
+            name: 'Gordon Strachan',
+            title: 'Liaison, Haldeman–CREEP',
+            bio: 'Kept Haldeman updated on CREEP\'s surveillance operations.',
+            initials: 'GS', images: {},
+        },
+        Segretti: {
+            name: 'Donald Segretti',
+            title: 'Dirty Tricks Operative',
+            bio: 'Hired by Chapin for "ratfucking", forged letters, disrupted Democratic rallies.',
+            initials: 'DS', images: {},
+        },
+        Hunt: {
+            name: 'Howard Hunt',
+            title: 'Former CIA operative',
+            bio: 'Former CIA, novellist. Maybe inspired the 'whole Bay of Pigs thing' remark. Recruited into WH by Colson. Prime mover behind the DNC break-in. Led the Plumbers on covert operations. Currently on trial as part of the Watergate 7.',
+            initials: 'HH', images: {},
+        },
+        Liddy: {
+            name: 'Gordon Liddy',
+            title: 'Legal Counsel, CREEP',
+            bio: 'Former FBI agent. Devised CREEP\'s intelligence operation (GEMSTONE). Managed the DNC break-in with Hunt. A 'right wing exuberant', or a 'bit of a nut'. Currently on trial as part of the Watergate 7.',
+            initials: 'GL', images: {},
+        },
+        Mitchell: {
+            name: 'John Mitchell',
+            title: 'Director, CREEP',
+            bio: 'Former Attorney General. Personal friend of the President. Approved CREEP\'s intelligence operations if not the DNC break in specifically.',
+            initials: 'JM', images: {},
+        },
+        Magruder: {
+            name: 'Jeb Magruder',
+            title: 'Deputy Director, CREEP',
+            bio: 'Approved the Watergate break-in and probably gave the direct instruction to Liddy to go into the Watergate. Director of the 1972 inauguration and now in the Dept of Commerce',
+            initials: 'JsM', images: {},
+        },
+        Larue: {
+            name: 'Frederick LaRue',
+            title: 'Asst. to Mitchell, CREEP',
+            bio: 'Close Mitchell aide. Helped coordinate and deliver hush money payments to the seven Watergate defendants.',
+            initials: 'FL', images: {},
+        },
+        Stans: {
+            name: 'Maurice Stans',
+            title: 'Finance Chairman, CREEP',
+            bio: 'Former Secretary of Commerce. Raised millions in illegal campaign contributions.',
+            initials: 'MS', images: {},
+        },
+        Klambach: {
+            name: 'Herbert Kalmbach',
+            title: 'Assoc. Finance Chairman, CREEP',
+            bio: 'Nixon\'s personal attorney. Raised and delivered hush money to the seven Watergate defendants.',
+            initials: 'HKb', images: {},
+        },
+        McCord: {
+            name: 'James McCord',
+            title: 'Security Director, CREEP',
+            bio: 'Former CIA officer. One of the five Watergate burglars. Formerly on the WH payroll and bodyguard for Martha Mitchell. Currently on trial as part of the Watergate 7.',
+            initials: 'JMc', images: {},
+        },
+    };
+
+    const _whTree1 = {
+        id: 'Haldeman',
+        children: [
+            { id: 'Chapin', children: [{ id: 'Segretti' }] },
+            { id: 'Strachan' },
+        ],
+    };
+    const _whTree2 = {
+        id: 'Erlichman',
+        children: [
+            { id: 'Krogh', children: [{ id: 'Hunt' }, { id: 'Liddy' }] },
+        ],
+    };
+    const _creepTree = {
+        id: 'Mitchell',
+        children: [
+            { id: 'Magruder' },
+            { id: 'McCord' },
+            { id: 'Larue' },
+            { id: 'Stans', children: [{ id: 'Klambach' }] },
+        ],
+    };
+
+    const _crossLinks = [
+        { from: 'Strachan', to: 'Mitchell', color: '#664422', dashed: true },
+        { from: 'Hunt',     to: 'Magruder', color: '#664422', dashed: true },
+        { from: 'Liddy',    to: 'Magruder', color: '#664422', dashed: true },
+        { from: 'Klambach', to: 'Larue',    color: '#665522', dashed: true },
+    ];
+
+    function _buildOrgNode(id, isCREEP) {
+        const p = _orgPeople[id] || { name: id, title: '', bio: '', initials: id.slice(0, 2), images: {} };
+        const photo = p.images.active
+            ? `<img src="${p.images.active}" alt="${p.name}">`
+            : `<span class="nw-initials">${p.initials}</span>`;
+        return `<div class="nw-node${isCREEP ? ' nw-creep' : ''}" data-person="${id}" data-state="active">
+            <div class="nw-photo-wrap">${photo}</div>
+            <div class="nw-name">${p.name}</div>
+            <div class="nw-title">${p.title}</div>
+            <div class="nw-bio">${p.bio}</div>
+        </div>`;
+    }
+
+    function _buildOrgTree(node, isCREEP) {
+        const kids = (node.children || []).map(c => `<li>${_buildOrgTree(c, isCREEP)}</li>`).join('');
+        return _buildOrgNode(node.id, isCREEP) + (kids ? `<ul>${kids}</ul>` : '');
+    }
+
+    // Called by openInnerCircle — renders the chart into the supplied wrapper element
+    window._renderOrgChart = function(wrapper) {
+        wrapper.id = 'nw-chart-wrapper';
+        wrapper.innerHTML = `
+            <div id="nw-chart-inner">
+            <svg id="nw-svg-overlay"></svg>
+            <div id="nw-nixon-row">${_buildOrgNode('Nixon', false)}</div>
+            <div id="nw-columns-row">
+                <div class="nw-col">
+                    <div class="nw-col-label">&nbsp;</div>
+                    <ul class="nw-tree"><li>${_buildOrgTree({ id: 'Dean' }, false)}</li></ul>
+                </div>
+                <div class="nw-col">
+                    <div class="nw-col-label">White House Staff</div>
+                    <ul class="nw-tree"><li>${_buildOrgTree(_whTree1, false)}</li></ul>
+                </div>
+                <div class="nw-col">
+                    <div class="nw-col-label">&nbsp;</div>
+                    <ul class="nw-tree"><li>${_buildOrgTree(_whTree2, false)}</li></ul>
+                </div>
+                <div class="nw-divider"></div>
+                <div class="nw-col">
+                    <div class="nw-col-label">C.R.E.E.P.</div>
+                    <ul class="nw-tree"><li>${_buildOrgTree(_creepTree, true)}</li></ul>
+                </div>
+            </div>
+            </div>
+        `;
+    };
+
+    window._drawOrgLinks = function() {
+        const svg   = document.getElementById('nw-svg-overlay');
+        const inner = document.getElementById('nw-chart-inner');
+        if (!svg || !inner) return;
+        svg.innerHTML = '';
+        const cr = inner.getBoundingClientRect();
+
+        const nixonNode = document.querySelector('#nw-nixon-row .nw-node');
+        document.querySelectorAll('#nw-columns-row .nw-col .nw-tree > li > .nw-node').forEach(root => {
+            _drawOrgArc(svg, cr, nixonNode, root, '#666', false);
+        });
+
+        _crossLinks.forEach(({ from, to, color, dashed }) => {
+            const a = document.querySelector(`.nw-node[data-person="${from}"]`);
+            const b = document.querySelector(`.nw-node[data-person="${to}"]`);
+            if (a && b) _drawOrgArc(svg, cr, a, b, color, dashed);
+        });
+    };
+
+    function _drawOrgArc(svg, cr, elA, elB, color, dashed) {
+        const a = elA.getBoundingClientRect();
+        const b = elB.getBoundingClientRect();
+        const acx = a.left + a.width  / 2 - cr.left;
+        const bcx = b.left + b.width  / 2 - cr.left;
+        // If source box is clearly above target box, connect bottom-center → top-center.
+        // Otherwise (lateral / cross-link) connect the near side-edges at mid-height
+        // so the arc visually leaves the card border, not the photo area.
+        const isDownward = (a.bottom + 4) < b.top;
+        let d;
+        if (isDownward) {
+            const x1 = acx,           y1 = a.bottom - cr.top;
+            const x2 = bcx,           y2 = b.top    - cr.top;
+            const cy = (y1 + y2) / 2;
+            d = `M ${x1} ${y1} C ${x1} ${cy}, ${x2} ${cy}, ${x2} ${y2}`;
+        } else {
+            const aIsLeft = acx < bcx;
+            const x1 = (aIsLeft ? a.right : a.left) - cr.left;
+            const y1 = a.top + a.height / 2 - cr.top;
+            const x2 = (aIsLeft ? b.left  : b.right) - cr.left;
+            const y2 = b.top + b.height / 2 - cr.top;
+            const cmx = (x1 + x2) / 2;
+            d = `M ${x1} ${y1} C ${cmx} ${y1}, ${cmx} ${y2}, ${x2} ${y2}`;
+        }
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('stroke', color);
+        path.setAttribute('stroke-width', '1.5');
+        path.setAttribute('fill', 'none');
+        if (dashed) path.setAttribute('stroke-dasharray', '4 3');
+        svg.appendChild(path);
+    }
+
+    window._setOrgState = function(personId, state) {
+        const node = document.querySelector(`.nw-node[data-person="${personId}"]`);
+        if (!node) return;
+        node.dataset.state = state;
+        const p = _orgPeople[personId];
+        if (!p) return;
+        const img = node.querySelector('img');
+        if (img && p.images[state]) img.src = p.images[state];
+    };
+})();
+
 const _visitAdvisorImages = [
     'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback1.jpg',
     'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback2.jpg',
@@ -12089,6 +12498,9 @@ const _gameObserver = new MutationObserver((() => {
                     if (qd.transition && !_shownTransitions.has(currentPK) && document.getElementById('question_form')) {
                         showSectionTransition(qd.transition, currentPK);
                     }
+                    document.querySelectorAll('.game_answer_row').forEach((row, i) => {
+                        row.style.setProperty('--answer-i-delay', `${i * 60}ms`);
+                    });
                 }
 
                 if (_lastQuestionPK != null) {
@@ -12275,18 +12687,15 @@ document.addEventListener('mouseleave', () => {
 }, true);
 
 const questionData = {
-    409: {
-        date: "20 November 1972",
-        signImg: "https://...nixon_sign_v1.png",
-        transition: {
+
+    401: { date: "8 November 1972", transition: {
             title: "PART I: Remission",
             body: "During the first term we stopped their revolution. Now we can move forward with our own.",
-            img: "https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif"
-        },
-        historical: null
-    },
-    401: { date: "20 November 1973", signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/PK401.jpg", historical: null },
-    402: { date: "August 1976",        historical: null },
+            img: "https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif" },
+            signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk401.jpg", historical: null },
+    402: { date: "11 November 1972",  signImg: " https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk402.jpg",     historical: null },
+    409: { date: "20 November 1972", signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/PK409.jpg", 
+            historical: '<p>This interview really happened, and Nixon did debate cutting Henry loose.</p><p>In the end, Kissinger had to make a grovelling apology to Nixon but not before calling her a bitch, a liar and worse. He backed down when she offered to release the tape transcripts from their interview.</p>.<p> A copy of the interview is avaliable <a href="https://scrapsfromtheloft.com/history/oriana-fallaci-henry-kissinger-interview/" target="_blank">here</a>.</p>` },
     429: { date: "October 1975",       historical: null },
     430: {
         date: "September 1976",
@@ -12533,156 +12942,338 @@ document.body.appendChild(honk);
 
 // [JETS_CYOA_CAMPAIGN_DATA_START]
 ;(() => {
-    const styleEl = document.createElement("style");
-        styleEl.textContent = `
-        #gameStatsPopup {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 320px;
-            background-color: #222449;
-            border: 2px solid #727C96;
-            border-radius: 2px;
-            padding: 10px 12px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-            z-index: 10000;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            font-size: 14px;
-            color: #fff;
-            cursor: move;
-        }
-        #gameStatsContent { pointer-events: none; }
-        #gameStatsPopup h3 {
-            margin: 0 0 8px;
-            font-weight: bold;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 4px;
-            font-size: 16px;
-        }
-        .stats-list { line-height: 1.5; }
-        #btn_game_stats { margin-left: 1.5em; }
-    `;
-    document.head.appendChild(styleEl);
-
-    const bold = (text, color) =>
-        `<span style="color: ${color}; font-weight: bold">${text}</span>`;
-
-    function matchTier(value, tiers) {
-        for (const [max, text, color] of tiers) {
-            if (value <= max) return [text, color];
-        }
-        const fallback = tiers.at(-1);
-        return [fallback?.[1] || "", fallback?.[2] || "#e6e6e6"];
+    /* Load Permanent Marker from Google Fonts */
+    if (!document.getElementById('fd-pm-font')) {
+        const l = document.createElement('link');
+        l.id = 'fd-pm-font';
+        l.rel = 'stylesheet';
+        l.href = 'https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap';
+        document.head.appendChild(l);
     }
 
-    const STATS = [
-    {
-            getValue: () => Mental State,
-            label: `Mental State`,
+    /* ── CSS ── */
+    const _fdStyle = document.createElement('style');
+    _fdStyle.textContent = `
+    #fd-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9000;
+        background: rgba(40,20,0,.4);
+        pointer-events: none; /* backdrop doesn't block; fd-inner handles its own events */
+    }
+    .fd-inner {
+        position: absolute; /* placed by JS; draggable */
+        width: 580px;
+        max-height: 88vh;
+        display: flex;
+        flex-direction: column;
+        filter: drop-shadow(4px 8px 22px rgba(0,0,0,.7));
+    }
+    .fd-tabs-row {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        padding-left: 14px;
+        pointer-events: all;
+    }
+    .fd-tab {
+        all: unset;
+        box-sizing: border-box;
+        display: inline-block;
+        padding: 5px 15px 7px;
+        background: #a07028;
+        border-radius: 5px 5px 0 0;
+        border: 1.5px solid #6b400a;
+        border-bottom: 2px solid #a07028; /* inactive: solid bottom seam */
+        cursor: pointer;
+        font-family: 'TypewriterDry', 'Courier New', monospace;
+        font-size: 11px;
+        color: #2a1200;
+        letter-spacing: .05em;
+        user-select: none;
+    }
+    .fd-tab:not(.fd-active):hover { background: #b88030; border-bottom-color: #b88030; }
+    .fd-tab.fd-active {
+        background: #d4a843;
+        border-bottom: 2px solid #d4a843; /* active: blends into body */
+        color: #110500;
+        font-size: 12px;
+        position: relative;
+        top: 1px;
+    }
+    .fd-body {
+        flex: 1;
+        background: #d4a843;
+        background-image: linear-gradient(148deg,
+            rgba(255,230,120,.25) 0%,
+            transparent 40%,
+            rgba(0,0,0,.06) 100%);
+        border: 2px solid #6b400a;
+        border-radius: 0 10px 10px 10px;
+        padding: 10px;
+        position: relative;
+        overflow: hidden;
+        cursor: grab;
+    }
+    .fd-body:active { cursor: grabbing; }
+    .fd-close {
+        position: absolute;
+        top: 7px; right: 10px;
+        background: none;
+        border: none;
+        font-family: 'TypewriterDry', monospace;
+        font-size: 18px;
+        color: #5a3300;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0 4px;
+        z-index: 1;
+    }
+    .fd-close:hover { color: #110500; }
+    .fd-pad {
+        background-color: #fdf4b0;
+        background-image:
+            linear-gradient(90deg,
+                transparent 46px,
+                #e57373 46px, #e57373 48px,
+                transparent 48px),
+            repeating-linear-gradient(180deg,
+                transparent 0px,
+                transparent 27px,
+                #90caf9 27px,
+                #90caf9 28.5px);
+        border: 1px solid #b89820;
+        border-radius: 3px;
+        padding: 12px 14px 24px 60px;
+        max-height: calc(88vh - 90px);
+        overflow-y: auto;
+        box-shadow: inset 1px 2px 8px rgba(0,0,0,.10);
+        scrollbar-width: thin;
+        cursor: default; /* override grab from fd-body */
+    }
+    .fd-head {
+        font-family: 'TypewriterDry', 'Courier New', monospace !important;
+        font-size: 19px !important;
+        color: #1a0800 !important;
+        margin: 4px 0 20px !important;
+        letter-spacing: .04em;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        line-height: 28px;
+    }
+    .fd-entry { margin-bottom: 22px; }
+    .fd-entry-label {
+        font-family: 'TypewriterDry', 'Courier New', monospace;
+        font-size: 11px;
+        font-weight: bold;
+        color: #5a3300;
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: .1em;
+        line-height: 28px;
+    }
+    .fd-entry-body {
+        font-family: 'Permanent Marker', cursive;
+        font-size: 15px;
+        color: #110500;
+        display: block;
+        line-height: 1.65;
+    }
+    .fd-crime-entry { margin-bottom: 18px; }
+    .fd-crime-date {
+        font-family: 'TypewriterDry', 'Courier New', monospace;
+        font-size: 11px;
+        color: #7b3f00;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        display: block;
+        line-height: 28px;
+    }
+    .fd-empty {
+        font-family: 'TypewriterDry', 'Courier New', monospace !important;
+        font-size: 13px !important;
+        color: #888;
+        font-style: italic;
+    }
+    #btn_game_stats { margin-left: 1.5em; }
+    `;
+    document.head.appendChild(_fdStyle);
+
+    /* ── State of the Nation stats ── */
+    function _bold(text, color) {
+        return `<span style="color:${color};font-weight:bold">${text}</span>`;
+    }
+    function _matchTier(v, tiers) {
+        for (const [max, text, color] of tiers) if (v <= max) return [text, color];
+        const f = tiers.at(-1);
+        return [f?.[1] || '', f?.[2] || '#444'];
+    }
+    const _STATS = [
+        {
+            getValue: () => MentalState,
+            label: 'Mental State',
             tiers: [
-                [2, `Prefers to have the blinds closed`, "#ff4d4d"],
-                [7, `Talking to paintings`, "#e6e6e6"],
-                [Infinity, `No longer the madman 'theory'`, "#4dff4d"],
+                [2,        "Prefers to have the blinds closed", "#c0392b"],
+                [7,        "Talking to paintings",              "#555555"],
+                [Infinity, "No longer the madman 'theory'",    "#1a7340"],
             ],
         },
-    {
-            getValue: () => Approval Rating,
-            label: `Approval Rating`,
+        {
+            getValue: () => ApprovalRating,
+            label: 'Approval Rating',
             tiers: [
-                [40, `Approval Rating is struggling.`, "#ff4d4d"],
-                [60, `Approval Rating is steady.`, "#e6e6e6"],
-                [Infinity, `Historic approval levels`, "#4dff4d"],
+                [40,       "Approval Rating is struggling", "#c0392b"],
+                [60,       "Approval Rating is steady",     "#555555"],
+                [Infinity, "Historic approval levels",      "#1a7340"],
             ],
-        }
+        },
     ];
 
-    function updateGameStatsPopup() {
-        const content = document.getElementById("gameStatsContent");
-        if (!content) return;
+    /* ── High Crimes log ── */
+    window._hcEvents = [
+        { date: 'Jun 17, 1972', text: 'Operatives from CREEP arrested inside the Watergate complex.' },
+        { date: 'Jun 23, 1972', text: "The President instructs Haldeman to use the CIA to obstruct the FBI's Watergate investigation. The cover-up begins." },
+    ];
+    window._hcLog = (text, date) => {
+        window._hcEvents.push({ date: date || '', text });
+        _refresh();
+    };
 
-        const lines = STATS.map(({ getValue, tiers, label }) => {
-            const value = Number(getValue?.());
-            const score = Number.isFinite(value) ? value : 0;
-            const [text, color] = matchTier(score, tiers);
-            return `• ${label}: ${bold(text, color)} (${score})`;
-        });
-
-        content.innerHTML = `
-            <h3>Campaign Data</h3>
-            <div class="stats-list">${lines.join("<br>")}</div>
-        `;
+    /* ── Render ── */
+    function _buildNation() {
+        let h = `<p class="fd-head">State of the Nation</p>`;
+        for (const { getValue, label, tiers } of _STATS) {
+            const v = Number(getValue?.()) || 0;
+            const [text, color] = _matchTier(v, tiers);
+            h += `<div class="fd-entry"><span class="fd-entry-label">${label}</span>`;
+            h += `<span class="fd-entry-body">${_bold(text, color)} (${v})</span></div>`;
+        }
+        return h;
     }
 
-    function createGameStatsPopup() {
-        if (document.getElementById("gameStatsPopup")) return;
-
-        const popup = document.createElement("div");
-        popup.id = "gameStatsPopup";
-        popup.style.display = "none";
-        popup.innerHTML = '<div id="gameStatsContent"></div>';
-        document.body.appendChild(popup);
-
-        makePopupDraggable(popup);
-        updateGameStatsPopup();
+    function _buildCrimes() {
+        let h = `<p class="fd-head">High Crimes &amp; Misdemeanours</p>`;
+        if (!window._hcEvents.length) {
+            h += `<p class="fd-empty">No entries yet.</p>`;
+        } else {
+            for (const ev of window._hcEvents) {
+                h += `<div class="fd-crime-entry">`;
+                if (ev.date) h += `<span class="fd-crime-date">${ev.date}</span>`;
+                h += `<span class="fd-entry-body">${ev.text}</span></div>`;
+            }
+        }
+        return h;
     }
 
-    function makePopupDraggable(el) {
-        let offsetX, offsetY;
+    function _refresh() {
+        const pad = document.getElementById('fd-pad');
+        if (!pad) return;
+        const which = document.querySelector('.fd-tab.fd-active')?.dataset.tab;
+        if (which === 'nation') pad.innerHTML = _buildNation();
+        else if (which === 'crimes') pad.innerHTML = _buildCrimes();
+    }
 
-        function onMouseMove(e) {
-            const maxX = window.innerWidth - el.offsetWidth;
-            const maxY = window.innerHeight - el.offsetHeight;
-            el.style.left   = `${Math.max(0, Math.min(e.clientX - offsetX, maxX))}px`;
-            el.style.top    = `${Math.max(0, Math.min(e.clientY - offsetY, maxY))}px`;
-            el.style.bottom = "auto";
-            el.style.right  = "auto";
-        }
-
-        function onMouseUp() {
-            document.removeEventListener("mousemove", onMouseMove);
-            document.removeEventListener("mouseup", onMouseUp);
-        }
-
-        el.addEventListener("mousedown", (e) => {
+    /* ── Drag ── */
+    function _makeDraggable(el) {
+        let ox, oy;
+        el.addEventListener('mousedown', ev => {
+            if (ev.target.closest('.fd-pad, .fd-close, .fd-tab')) return;
             const rect = el.getBoundingClientRect();
-            offsetX = e.clientX - rect.left;
-            offsetY = e.clientY - rect.top;
-            document.addEventListener("mousemove", onMouseMove);
-            document.addEventListener("mouseup", onMouseUp);
+            ox = ev.clientX - rect.left;
+            oy = ev.clientY - rect.top;
+            function onMove(ev) {
+                const maxX = window.innerWidth  - el.offsetWidth;
+                const maxY = window.innerHeight - el.offsetHeight;
+                el.style.left = `${Math.max(0, Math.min(ev.clientX - ox, maxX))}px`;
+                el.style.top  = `${Math.max(0, Math.min(ev.clientY - oy, maxY))}px`;
+            }
+            function onUp() {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup',  onUp);
+            }
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup',  onUp);
+            ev.preventDefault();
         });
     }
 
-    function toggleGameStatsPopup() {
-        const popup = document.getElementById("gameStatsPopup");
-        if (!popup) return;
-        const showing = popup.style.display === "none";
-        popup.style.display = showing ? "block" : "none";
-        if (showing) updateGameStatsPopup();
+    /* ── Open / close ── */
+    function _open() {
+        if (document.getElementById('fd-overlay')) return;
+
+        const ov = document.createElement('div');
+        ov.id = 'fd-overlay';
+
+        const inner = document.createElement('div');
+        inner.className = 'fd-inner';
+        inner.style.pointerEvents = 'all';
+        /* centre on open */
+        inner.style.left = `${Math.max(0, Math.floor((window.innerWidth - 580) / 2))}px`;
+        inner.style.top  = `${Math.max(0, Math.floor(window.innerHeight * 0.08))}px`;
+        _makeDraggable(inner);
+
+        const tabRow = document.createElement('div');
+        tabRow.className = 'fd-tabs-row';
+
+        [
+            { label: 'State of the Nation',         key: 'nation' },
+            { label: 'High Crimes & Misdemeanours', key: 'crimes' },
+        ].forEach(({ label, key }, i) => {
+            const t = document.createElement('button');
+            t.className = 'fd-tab' + (i === 0 ? ' fd-active' : '');
+            t.dataset.tab = key;
+            t.textContent = label;
+            t.onclick = () => {
+                document.querySelectorAll('.fd-tab').forEach(x => x.classList.remove('fd-active'));
+                t.classList.add('fd-active');
+                _refresh();
+            };
+            tabRow.appendChild(t);
+        });
+
+        const body = document.createElement('div');
+        body.className = 'fd-body';
+
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'fd-close';
+        closeBtn.innerHTML = '&#x2715;';
+        closeBtn.onclick = _close;
+        body.appendChild(closeBtn);
+
+        const pad = document.createElement('div');
+        pad.className = 'fd-pad';
+        pad.id = 'fd-pad';
+        pad.innerHTML = _buildNation();
+        body.appendChild(pad);
+
+        inner.appendChild(tabRow);
+        inner.appendChild(body);
+        ov.appendChild(inner);
+        document.body.appendChild(ov);
     }
 
-    function injectGameStatsButton() {
-        if (document.getElementById("btn_game_stats")) return;
-        const anchor = document.getElementById("view_electoral_map");
+    function _close() {
+        document.getElementById('fd-overlay')?.remove();
+    }
+
+    /* ── Button ── */
+    function _injectBtn() {
+        if (document.getElementById('btn_game_stats')) return;
+        const anchor = document.getElementById('view_electoral_map');
         if (!anchor) return;
-
-        const btn = document.createElement("button");
-        btn.id = "btn_game_stats";
-        btn.textContent = "Campaign Data";
-        btn.addEventListener("click", (e) => {
-            e.preventDefault();
-            toggleGameStatsPopup();
-        });
-        anchor.insertAdjacentElement("afterend", btn);
+        const btn = document.createElement('button');
+        btn.id = 'btn_game_stats';
+        btn.textContent = 'Legal Pad';
+        btn.addEventListener('click', _open);
+        anchor.insertAdjacentElement('afterend', btn);
     }
 
-    createGameStatsPopup();
-
-    const gameWindow = document.getElementById("game_window");
-    if (gameWindow) {
+    const gw = document.getElementById('game_window');
+    if (gw) {
         new MutationObserver(() => {
-            injectGameStatsButton();
-            updateGameStatsPopup();
-        }).observe(gameWindow, { childList: true, subtree: true });
+            _injectBtn();
+            _refresh();
+        }).observe(gw, { childList: true, subtree: true });
     }
 })();
 // [JETS_CYOA_CAMPAIGN_DATA_END]
@@ -12839,7 +13430,7 @@ campaignTrail_temp.jet_data = [{
     "cyoa_campaign_data_stats": {
         "1777240061560": {
             "id": 1777240061560,
-            "variable": "Mental State",
+            "variable": "MentalState",
             "label": "Mental State",
             "lowMax": 2,
             "midMax": 7,
@@ -12849,7 +13440,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1777241148238": {
             "id": 1777241148238,
-            "variable": "Approval Rating",
+            "variable": "ApprovalRating",
             "label": "Approval Rating",
             "lowMax": 40,
             "midMax": 60,
