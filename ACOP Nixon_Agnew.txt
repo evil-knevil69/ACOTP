@@ -12386,16 +12386,16 @@ function openEnemiesPanel(questions) {
             <div id="nw-nixon-row">${_buildOrgNode('Nixon', false)}</div>
             <div id="nw-columns-row">
                 <div class="nw-col">
+                    <div class="nw-col-label">&nbsp;</div>
+                    <ul class="nw-tree"><li>${_buildOrgTree({ id: 'Dean' }, false)}</li></ul>
+                </div>
+                <div class="nw-col">
                     <div class="nw-col-label">White House Staff</div>
                     <ul class="nw-tree"><li>${_buildOrgTree(_whTree1, false)}</li></ul>
                 </div>
                 <div class="nw-col">
                     <div class="nw-col-label">&nbsp;</div>
                     <ul class="nw-tree"><li>${_buildOrgTree(_whTree2, false)}</li></ul>
-                </div>
-                <div class="nw-col">
-                    <div class="nw-col-label">&nbsp;</div>
-                    <ul class="nw-tree"><li>${_buildOrgTree({ id: 'Dean' }, false)}</li></ul>
                 </div>
                 <div class="nw-divider"></div>
                 <div class="nw-col">
@@ -12429,13 +12429,29 @@ function openEnemiesPanel(questions) {
     function _drawOrgArc(svg, cr, elA, elB, color, dashed) {
         const a = elA.getBoundingClientRect();
         const b = elB.getBoundingClientRect();
-        const x1 = a.left + a.width / 2 - cr.left;
-        const y1 = a.bottom - cr.top;
-        const x2 = b.left + b.width / 2 - cr.left;
-        const y2 = b.top - cr.top;
-        const cy = (y1 + y2) / 2;
+        const acx = a.left + a.width  / 2 - cr.left;
+        const bcx = b.left + b.width  / 2 - cr.left;
+        // If source box is clearly above target box, connect bottom-center → top-center.
+        // Otherwise (lateral / cross-link) connect the near side-edges at mid-height
+        // so the arc visually leaves the card border, not the photo area.
+        const isDownward = (a.bottom + 4) < b.top;
+        let d;
+        if (isDownward) {
+            const x1 = acx,           y1 = a.bottom - cr.top;
+            const x2 = bcx,           y2 = b.top    - cr.top;
+            const cy = (y1 + y2) / 2;
+            d = `M ${x1} ${y1} C ${x1} ${cy}, ${x2} ${cy}, ${x2} ${y2}`;
+        } else {
+            const aIsLeft = acx < bcx;
+            const x1 = (aIsLeft ? a.right : a.left) - cr.left;
+            const y1 = a.top + a.height / 2 - cr.top;
+            const x2 = (aIsLeft ? b.left  : b.right) - cr.left;
+            const y2 = b.top + b.height / 2 - cr.top;
+            const cmx = (x1 + x2) / 2;
+            d = `M ${x1} ${y1} C ${cmx} ${y1}, ${cmx} ${y2}, ${x2} ${y2}`;
+        }
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', `M ${x1} ${y1} C ${x1} ${cy}, ${x2} ${cy}, ${x2} ${y2}`);
+        path.setAttribute('d', d);
         path.setAttribute('stroke', color);
         path.setAttribute('stroke-width', '1.5');
         path.setAttribute('fill', 'none');
