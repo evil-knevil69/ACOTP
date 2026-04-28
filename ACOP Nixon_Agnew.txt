@@ -12228,25 +12228,25 @@ function openEnemiesPanel(questions) {
         Nixon: {
             name: 'Richard Nixon',
             title: 'President of the United States',
-            bio: '37th President. Elected 1968. Resigned August 9, 1974 — the only president ever to do so.',
+            bio: '37th President.',
             initials: 'RN', images: {},
         },
         Haldeman: {
             name: 'H.R. Haldeman',
             title: 'White House Chief of Staff',
-            bio: 'Nixon\'s gatekeeper. Controlled all access to the President. Resigned April 30, 1973. Convicted and imprisoned.',
+            bio: 'Nixon\'s gatekeeper. Controlled all access to the President.',
             initials: 'HRH', images: {},
         },
         Erlichman: {
             name: 'John Ehrlichman',
             title: 'Asst. to President, Domestic Affairs',
-            bio: 'Established the Plumbers unit. Resigned alongside Haldeman. Convicted of obstruction of justice and perjury.',
+            bio: 'Established the Plumbers unit. Worked on the cover-up with Dean and knew about the Ellsberg break-in from an early stage.',
             initials: 'JE', images: {},
         },
         Dean: {
             name: 'John Dean',
             title: 'White House Counsel',
-            bio: 'Monitored FBI investigation on Nixon\'s behalf. Turned state\'s evidence. Described the cover-up as "a cancer on the Presidency".',
+            bio: 'Monitored FBI investigation on Nixon\'s behalf. Point man for the cover-up and at the increasingly at the centre of all the WH scandals.',
             initials: 'JD', images: {},
         },
         Kissinger: {
