@@ -742,7 +742,7 @@ ul {
     height: auto !important;
     max-height: none !important;
     overflow: visible !important;
-    width: 100% !important;
+    width: calc(100% + 30px) !important;
 }
 #inner_window_question p {
     padding-top: 70px !important;
@@ -947,8 +947,9 @@ div.center img#header {
     left: 50% !important;
     transform: translateX(-50%) !important;
     margin: 0 !important;
-    max-height: 450px !important;
+    min-height: 625px !important;
     height: auto !important;
+    max-height: none !important;
     width: auto !important;
     overflow-y: auto !important;
 }
@@ -1070,7 +1071,7 @@ background: transparent !important;
     color: rgb(96, 115, 129);
     transform: rotate(-1.5deg) skewX(-3deg);
     display: block;
-    line-height: 1.1;
+    line-height: 1.45;
     letter-spacing: 0.05em;
     text-align: left;
 }

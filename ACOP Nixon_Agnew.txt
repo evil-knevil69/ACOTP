@@ -12060,7 +12060,7 @@ function openEnemiesPanel(questions) {
             flex-direction: row;
             justify-content: center;
             align-items: flex-start;
-            margin-top: 60px;
+            margin-top: -15px;
             gap: 16px;
             flex-wrap: nowrap;
         }
@@ -12201,7 +12201,7 @@ function openEnemiesPanel(questions) {
         }
         .nw-node .nw-bio {
             font-family: 'TypewriterDry', sans-serif;
-            font-size: 7.5px;
+            font-size: 9.5px;
             color: #444;
             text-align: left;
             line-height: 1.4;
@@ -12254,6 +12254,12 @@ function openEnemiesPanel(questions) {
             title: 'National Security Adviser',
             bio: 'Requested FBI wiretaps on staff and journalists. Largely uninvolved in Watergate directly.',
             initials: 'HK', images: {},
+        },
+        Colson: {
+            name: 'Charles Colson',
+            title: 'Special Counsel to the President',
+            bio: 'Nixon\'s political "hatchet man". Recruited Hunt into the White House. Ran dirty-tricks and political intelligence operations.',
+            initials: 'CC', images: {},
         },
         Chapin: {
             name: 'Dwight Chapin',
@@ -12354,7 +12360,7 @@ function openEnemiesPanel(questions) {
 
     const _crossLinks = [
         { from: 'Strachan', to: 'Mitchell', color: '#664422', dashed: true },
-        { from: 'Hunt',     to: 'Magruder', color: '#664422', dashed: true },
+        { from: 'Colson',   to: 'Hunt',     color: '#664422', dashed: true },
         { from: 'Liddy',    to: 'Magruder', color: '#664422', dashed: true },
         { from: 'Klambach', to: 'Larue',    color: '#665522', dashed: true },
     ];
@@ -12397,6 +12403,10 @@ function openEnemiesPanel(questions) {
                     <div class="nw-col-label">&nbsp;</div>
                     <ul class="nw-tree"><li>${_buildOrgTree(_whTree2, false)}</li></ul>
                 </div>
+                <div class="nw-col">
+                    <div class="nw-col-label">&nbsp;</div>
+                    <ul class="nw-tree"><li>${_buildOrgTree({ id: 'Colson' }, false)}</li></ul>
+                </div>
                 <div class="nw-divider"></div>
                 <div class="nw-col">
                     <div class="nw-col-label">C.R.E.E.P.</div>
@@ -12416,7 +12426,7 @@ function openEnemiesPanel(questions) {
 
         const nixonNode = document.querySelector('#nw-nixon-row .nw-node');
         document.querySelectorAll('#nw-columns-row .nw-col .nw-tree > li > .nw-node').forEach(root => {
-            _drawOrgArc(svg, cr, nixonNode, root, '#666', false);
+            _drawOrgArc(svg, cr, nixonNode, root, '#666', false, true);
         });
 
         _crossLinks.forEach(({ from, to, color, dashed }) => {
@@ -12426,7 +12436,7 @@ function openEnemiesPanel(questions) {
         });
     };
 
-    function _drawOrgArc(svg, cr, elA, elB, color, dashed) {
+    function _drawOrgArc(svg, cr, elA, elB, color, dashed, straight = false) {
         const a = elA.getBoundingClientRect();
         const b = elB.getBoundingClientRect();
         const acx = a.left + a.width  / 2 - cr.left;
@@ -12440,7 +12450,9 @@ function openEnemiesPanel(questions) {
             const x1 = acx,           y1 = a.bottom - cr.top;
             const x2 = bcx,           y2 = b.top    - cr.top;
             const cy = (y1 + y2) / 2;
-            d = `M ${x1} ${y1} C ${x1} ${cy}, ${x2} ${cy}, ${x2} ${y2}`;
+            d = straight
+                ? `M ${x1} ${y1} L ${x2} ${y2}`
+                : `M ${x1} ${y1} C ${x1} ${cy}, ${x2} ${cy}, ${x2} ${y2}`;
         } else {
             const aIsLeft = acx < bcx;
             const x1 = (aIsLeft ? a.right : a.left) - cr.left;
@@ -12853,7 +12865,7 @@ function showSectionTransition(t, pk) {
     overlay.id = 'section-transition-' + pk;
     overlay.style.cssText = `
         position: absolute;
-        top: 0; left: 0; width: 989px; height: 625px;
+        top: 0; left: 0; width: 989px; min-height: 625px; height: 100%;
         background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png');
         background-size: cover; background-position: center;
         z-index: 500;
@@ -12917,11 +12929,12 @@ function attachDateToProgressBar(date, qNum, pk) {
 function injectHistoricalButton(noFeedbackBtn, pk) {
     noFeedbackBtn.dataset.historicalHooked = 'true';
     noFeedbackBtn.style.display = 'none';
+    const qd = (pk != null && questionData[pk]) || {};
+    if (!qd.historical) return;
     const histBtn = document.createElement('button');
     histBtn.id = 'historical_button';
     histBtn.textContent = 'Historical';
     histBtn.addEventListener('click', () => {
-        const qd = (pk != null && questionData[pk]) || {};
         showHistoricalPanel(qd.historical);
     });
     noFeedbackBtn.insertAdjacentElement('afterend', histBtn);
