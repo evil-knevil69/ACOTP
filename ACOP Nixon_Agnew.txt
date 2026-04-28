@@ -12258,13 +12258,13 @@ function openEnemiesPanel(questions) {
         Chapin: {
             name: 'Dwight Chapin',
             title: 'Deputy Asst. to the President',
-            bio: 'Coordinated the "dirty tricks" campaign. Hired Segretti to run political sabotage operations against Democrats.',
+            bio: 'Coordinated the "dirty tricks" campaign. Hired his friend, Segretti to run political sabotage operations against the Democrats.',
             initials: 'DC', images: {},
         },
         Krogh: {
             name: 'Egil Krogh',
             title: 'Head of the Plumbers',
-            bio: 'Installed by Ehrlichman to run the Special Investigations Unit. Brought Liddy into the White House.',
+            bio: 'Installed by Ehrlichman to run the Special Investigations Unit. Brought Liddy into the White House. Ran the Ellsberg break-in. Now in the Transportation Dept.',
             initials: 'EK', images: {},
         },
         Strachan: {
@@ -12276,19 +12276,19 @@ function openEnemiesPanel(questions) {
         Segretti: {
             name: 'Donald Segretti',
             title: 'Dirty Tricks Operative',
-            bio: 'Hired by Chapin for "ratfucking" — forged letters, disrupted Democratic rallies. Sentenced to six months.',
+            bio: 'Hired by Chapin for "ratfucking", forged letters, disrupted Democratic rallies.',
             initials: 'DS', images: {},
         },
         Hunt: {
             name: 'Howard Hunt',
             title: 'Former CIA operative',
-            bio: 'Recruited into WH by Colson. Prime mover behind the DNC break-in. Led the Plumbers on covert operations. Convicted.',
+            bio: 'Former CIA, novellist. Maybe inspired the "whole Bay of Pigs thing" remark. Recruited into WH by Colson. Prime mover behind the DNC break-in. Led the Plumbers on covert operations. Currently on trial as part of the Watergate 7.',
             initials: 'HH', images: {},
         },
         Liddy: {
             name: 'Gordon Liddy',
             title: 'Legal Counsel, CREEP',
-            bio: 'Former FBI agent. Devised CREEP\'s intelligence operation (GEMSTONE). Refused to cooperate with prosecutors ever. Sentenced to 20 years.',
+            bio: 'Former FBI agent. Devised CREEP\'s intelligence operation (GEMSTONE). Managed the DNC break-in with Hunt. A "right wing exuberant", or a "bit of a nut". Currently on trial as part of the Watergate 7.',
             initials: 'GL', images: {},
         },
         Mitchell: {
@@ -12300,7 +12300,7 @@ function openEnemiesPanel(questions) {
         Magruder: {
             name: 'Jeb Magruder',
             title: 'Deputy Director, CREEP',
-            bio: 'Approved the Watergate break-in alongside Mitchell. Turned state\'s evidence. Sentenced to ten months.',
+            bio: 'Approved the Watergate break-in and probably gave the direct instruction to Liddy to go into the Watergate. Director of the 1972 inauguration and now in the Dept of Commerce.',
             initials: 'JsM', images: {},
         },
         Larue: {
@@ -12795,18 +12795,14 @@ document.addEventListener('mouseleave', () => {
 }, true);
 
 const questionData = {
-    409: {
-        date: "20 November 1972",
-        signImg: "https://...nixon_sign_v1.png",
-        transition: {
+    401: { date: "8 November 1972", transition: {
             title: "PART I: Remission",
             body: "During the first term we stopped their revolution. Now we can move forward with our own.",
-            img: "https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif"
-        },
-        historical: null
-    },
-    401: { date: "20 November 1973", signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/PK401.jpg", historical: null },
-    402: { date: "August 1976",        historical: null },
+            img: "https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif" },
+            signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk401.jpg", historical: null },
+    402: { date: "11 November 1972",  signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk402.jpg", historical: null },
+    409: { date: "20 November 1972", signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/PK409.jpg",
+            historical: `<p>This interview really happened, and Nixon did debate cutting Henry loose.</p><p>In the end, Kissinger had to make a grovelling apology to Nixon but not before calling her a bitch, a liar and worse. He backed down when she offered to release the tape transcripts from their interview.</p><p>A copy of the interview is available <a href="https://scrapsfromtheloft.com/history/oriana-fallaci-henry-kissinger-interview/" target="_blank">here</a>.</p>` },
     429: { date: "October 1975",       historical: null },
     430: {
         date: "September 1976",
@@ -12831,7 +12827,7 @@ const questionData = {
     434: { date: "September 1976",     historical: null },
     444: { date: "September 1976",     historical: null },
     445: { date: "September 1976",     historical: null },
-    408: { date: "September 1976",     signImg: "https://...nixon_sign_v2.png", historical: null },
+    408: { date: "September 1976",     historical: null },
     404: { date: "August 1976",        historical: null },
     403: { date: "September 1976",     historical: null },
     406: { date: "September 1976",     historical: null },
