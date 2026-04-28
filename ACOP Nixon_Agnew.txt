@@ -11753,9 +11753,50 @@ var Stans = 2;
 var Klambach = 2;
 var Kleindienst = 2;
 
+// ── Nominee ───────────────────────────────────────────────────────────────────
+var Nominee = "Nixon";
+
+// Tier 1: per-question feedback images, one pool per possible nominee.
+// Nixon cycles randomly among the filled slots; others populated later.
+const nomineeImages = {
+    Nixon:       [
+        "https://file.garden/aXPgNT-ZRCxxpy0g/feedback2.jpg",
+        null, // slot 2
+        null, // slot 3
+        null, // slot 4
+        null, // slot 5
+    ],
+    Ford:        [],
+    Agnew:       [],
+    Connally:    [],
+    Reagan:      [],
+    Rockefeller: [],
+};
+
+// Tier 2: answer-specific overrides — keyed by answer PK, populated as needed.
+// Takes precedence over Tier 1 for that answer.
+const advisorOverrides = {
+    // 3548: "https://file.garden/aXPgNT-ZRCxxpy0g/nixon_reaction.gif",
+};
+
+function updateAdvisorImage() {
+    const pool = (nomineeImages[Nominee] || []).filter(Boolean);
+    if (!pool.length) return;
+    const url = pool[Math.floor(Math.random() * pool.length)];
+    campaignTrail_temp.election_json[0].fields.advisor_url = url;
+}
+
 cyoAdventure = function (a) {
     const ans = campaignTrail_temp.player_answers[campaignTrail_temp.player_answers.length - 1];
     e.noCounter = campaignTrail_temp.player_answers.length;
+
+    // Tier 1: random image from nominee pool
+    updateAdvisorImage();
+
+    // Tier 2: event-specific override (takes precedence)
+    if (advisorOverrides[ans]) {
+        campaignTrail_temp.election_json[0].fields.advisor_url = advisorOverrides[ans];
+    }
 }
 
 const style2 = document.createElement('style');
