@@ -665,12 +665,12 @@ div.content_single {
     height: 85px !important;
     padding-bottom: 5px !important;
 }
-/* Early screens (intro, candidate select, difficulty): keep CT's natural fixed height */
+/* Early screens (intro, candidate select, difficulty): expand with content */
 #game_window:not(:has(#question_form)) {
-    height: 515px !important;
-    min-height: 0 !important;
-    max-height: 515px !important;
-    overflow: hidden !important;
+    height: auto !important;
+    min-height: 515px !important;
+    max-height: none !important;
+    overflow: visible !important;
     padding-bottom: 0 !important;
 }
 /* Question gameplay: expand freely, with padding to clear the g overlay */

@@ -12346,9 +12346,9 @@ function openEnemiesPanel(questions) {
         id: 'Mitchell',
         children: [
             { id: 'Magruder' },
+            { id: 'McCord' },
             { id: 'Larue' },
             { id: 'Stans', children: [{ id: 'Klambach' }] },
-            { id: 'McCord' },
         ],
     };
 
@@ -12396,10 +12396,6 @@ function openEnemiesPanel(questions) {
                 <div class="nw-col">
                     <div class="nw-col-label">&nbsp;</div>
                     <ul class="nw-tree"><li>${_buildOrgTree({ id: 'Dean' }, false)}</li></ul>
-                </div>
-                <div class="nw-col">
-                    <div class="nw-col-label">&nbsp;</div>
-                    <ul class="nw-tree"><li>${_buildOrgTree({ id: 'Kissinger' }, false)}</li></ul>
                 </div>
                 <div class="nw-divider"></div>
                 <div class="nw-col">
@@ -12949,12 +12945,11 @@ document.body.appendChild(honk);
         position: fixed;
         inset: 0;
         z-index: 9000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(40,20,0,.6);
+        background: rgba(40,20,0,.4);
+        pointer-events: none; /* backdrop doesn't block; fd-inner handles its own events */
     }
     .fd-inner {
+        position: absolute; /* placed by JS; draggable */
         width: 580px;
         max-height: 88vh;
         display: flex;
@@ -12964,29 +12959,32 @@ document.body.appendChild(honk);
     .fd-tabs-row {
         display: flex;
         align-items: flex-end;
-        gap: 3px;
-        padding-left: 16px;
+        gap: 2px;
+        padding-left: 14px;
+        pointer-events: all;
     }
     .fd-tab {
-        padding: 6px 14px 8px;
-        background: #9c6a1a;
-        border-radius: 6px 6px 0 0;
+        all: unset;
+        box-sizing: border-box;
+        display: inline-block;
+        padding: 5px 15px 7px;
+        background: #a07028;
+        border-radius: 5px 5px 0 0;
         border: 1.5px solid #6b400a;
-        border-bottom: none;
+        border-bottom: 2px solid #a07028; /* inactive: solid bottom seam */
         cursor: pointer;
         font-family: 'TypewriterDry', 'Courier New', monospace;
         font-size: 11px;
         color: #2a1200;
+        letter-spacing: .05em;
         user-select: none;
-        letter-spacing: .04em;
-        transition: background .15s;
     }
-    .fd-tab:hover { background: #b87e22; }
+    .fd-tab:not(.fd-active):hover { background: #b88030; border-bottom-color: #b88030; }
     .fd-tab.fd-active {
         background: #d4a843;
+        border-bottom: 2px solid #d4a843; /* active: blends into body */
         color: #110500;
         font-size: 12px;
-        padding-top: 8px;
         position: relative;
         top: 1px;
     }
@@ -13002,7 +13000,9 @@ document.body.appendChild(honk);
         padding: 10px;
         position: relative;
         overflow: hidden;
+        cursor: grab;
     }
+    .fd-body:active { cursor: grabbing; }
     .fd-close {
         position: absolute;
         top: 7px; right: 10px;
@@ -13036,6 +13036,7 @@ document.body.appendChild(honk);
         overflow-y: auto;
         box-shadow: inset 1px 2px 8px rgba(0,0,0,.10);
         scrollbar-width: thin;
+        cursor: default; /* override grab from fd-body */
     }
     .fd-head {
         font-family: 'TypewriterDry', 'Courier New', monospace !important;
@@ -13159,16 +13160,44 @@ document.body.appendChild(honk);
         else if (which === 'crimes') pad.innerHTML = _buildCrimes();
     }
 
+    /* ── Drag ── */
+    function _makeDraggable(el) {
+        let ox, oy;
+        el.addEventListener('mousedown', ev => {
+            if (ev.target.closest('.fd-pad, .fd-close, .fd-tab')) return;
+            const rect = el.getBoundingClientRect();
+            ox = ev.clientX - rect.left;
+            oy = ev.clientY - rect.top;
+            function onMove(ev) {
+                const maxX = window.innerWidth  - el.offsetWidth;
+                const maxY = window.innerHeight - el.offsetHeight;
+                el.style.left = `${Math.max(0, Math.min(ev.clientX - ox, maxX))}px`;
+                el.style.top  = `${Math.max(0, Math.min(ev.clientY - oy, maxY))}px`;
+            }
+            function onUp() {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup',  onUp);
+            }
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup',  onUp);
+            ev.preventDefault();
+        });
+    }
+
     /* ── Open / close ── */
     function _open() {
         if (document.getElementById('fd-overlay')) return;
 
         const ov = document.createElement('div');
         ov.id = 'fd-overlay';
-        ov.addEventListener('click', ev => { if (ev.target === ov) _close(); });
 
         const inner = document.createElement('div');
         inner.className = 'fd-inner';
+        inner.style.pointerEvents = 'all';
+        /* centre on open */
+        inner.style.left = `${Math.max(0, Math.floor((window.innerWidth - 580) / 2))}px`;
+        inner.style.top  = `${Math.max(0, Math.floor(window.innerHeight * 0.08))}px`;
+        _makeDraggable(inner);
 
         const tabRow = document.createElement('div');
         tabRow.className = 'fd-tabs-row';
