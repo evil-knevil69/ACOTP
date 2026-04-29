@@ -12564,9 +12564,7 @@ const _gameObserver = new MutationObserver((() => {
             const visitImg = document.querySelector('#visit_content img');
             if (visitImg && !visitImg.dataset.visitImgSet) {
                 visitImg.dataset.visitImgSet = '1';
-                const _vurl = _visitAdvisorImages[Math.floor(Math.random() * _visitAdvisorImages.length)];
-                campaignTrail_temp.election_json[0].fields.advisor_url = _vurl;
-                visitImg.src = _vurl;
+                visitImg.src = _visitAdvisorImages[Math.floor(Math.random() * _visitAdvisorImages.length)];
             }
 
             const noFeedbackBtn = document.getElementById('no_feedback_button');
