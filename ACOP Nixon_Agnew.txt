@@ -12528,7 +12528,7 @@ const _visitAdvisorImages = [
     'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback2.jpg',
     'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback3.jpg',
     'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback4.gif',
-    null, // slot 5
+    'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback5.gif',
 ].filter(Boolean);
 
 let _lastQuestionPK = null;
