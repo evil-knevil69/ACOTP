@@ -11765,6 +11765,7 @@ const nomineeImages = {
         null, // slot 3
         null, // slot 4
         null, // slot 5
+        null, // slot 6
     ],
     Ford:        [],
     Agnew:       [],
@@ -12528,7 +12529,8 @@ const _visitAdvisorImages = [
     'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback2.jpg',
     'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback3.jpg',
     'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback4.gif',
-];
+    null, // slot 5
+].filter(Boolean);
 
 let _lastQuestionPK = null;
 const _gameObserver = new MutationObserver((() => {
