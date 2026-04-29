@@ -217,7 +217,9 @@ campaignTrail_temp.opponents_default_json = [
         "election": 10,
         "candidates": [
             92,
-            50000
+            50000,
+            70000,
+            80000
         ]
     }
 ]
@@ -227,7 +229,9 @@ campaignTrail_temp.opponents_weighted_json = [
         "election": 10,
         "candidates": [
             92,
-            50000
+            50000,
+            70000,
+            80000
         ]
     }
 ]
@@ -661,11 +665,21 @@ div.content_single {
     height: 85px !important;
     padding-bottom: 5px !important;
 }
-#game_window {
+/* Early screens (intro, candidate select, difficulty): expand with content */
+#game_window:not(:has(#question_form)) {
     height: auto !important;
-    min-height: 625px !important;
+    min-height: 565px !important;
     max-height: none !important;
     overflow: visible !important;
+    padding-bottom: 0 !important;
+}
+/* Question gameplay: expand freely, with padding to clear the g overlay */
+#game_window:has(#question_form) {
+    height: auto !important;
+    min-height: 450px !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding-bottom: 175px !important;
 }
 
 #game_window, .inner_window, #game_header, .description_window_small, .inner_window_front, .inner_window_w_desc, .inner_window_question, .inner_inner_window, .below_header, .election_description_window, .person_description_window, #candidate_description_window, #question_header, #answers_container, #feedback_container {
@@ -712,7 +726,23 @@ ul {
 }
 #inner_window_3,
 #inner_window_4 {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
     padding-bottom: 50px !important;
+    width: 100% !important;
+}
+.description_window_small {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    width: 100% !important;
+}
+#feedback_container {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    width: 100% !important;
 }
 #inner_window_question p {
     padding-top: 70px !important;
@@ -891,13 +921,17 @@ div.center img#header {
 .overlay_window {
     height: auto !important;
     max-height: none !important;
-    overflow-y: auto !important;
+    overflow: visible !important;
+    width: auto !important;
+    max-width: 920px !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
 }
 .overlay_window_content {
     height: auto !important;
-    max-height: 450px !important;
     max-height: none !important;
-    overflow-y: auto !important;
+    overflow: visible !important;
+    width: auto !important;
 }
 .overlay_window_content img {
     width: auto !important;
@@ -998,8 +1032,10 @@ background: transparent !important;
     position: fixed;
     z-index: 999999;
     width: 270px;
-    background: #fff;
-    padding: 5px 5px 22px 5px;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 2px 2px 14px 2px;
     border-radius: 2px;
     box-shadow: 2px 2px 8px rgba(0,0,0,0.4), 0 0 1px rgba(0,0,0,0.2);
     pointer-events: none;
@@ -1010,7 +1046,7 @@ background: transparent !important;
     max-width: 200px;
     height: auto;
     display: block;
-    margin: 0 auto 4px auto;
+    margin: 0 auto 2px auto;
 }
 .mytooltip .mytooltiptext .tt-label, #tooltip-portal .tt-label {
     display: block;
@@ -1048,6 +1084,14 @@ background: transparent !important;
 .game_answer_row:hover span {
     text-decoration-color: rgba(96, 115, 129, 0.55);
 }
+@keyframes answerFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.game_answer_row {
+    animation: answerFadeIn 0.28s ease-out both;
+    animation-delay: var(--answer-i-delay, 0ms);
+}
 /* ── Inner Circle / Enemies panels ────────────────────────────── */
 #inner_circle_panel, #enemies_panel {
     position: absolute;
@@ -1060,7 +1104,7 @@ background: transparent !important;
     padding: 24px 32px; box-sizing: border-box;
     overflow-y: auto;
     z-index: 400;
-    font-family: 'TypewriterDry', serif;
+    font-family: 'TypewriterDry', sans-serif;
 }
 #inner_circle_panel h2, #enemies_panel h2 {
     font-size: 20px; letter-spacing: 0.18em;
@@ -1097,7 +1141,7 @@ background: transparent !important;
     border: 1px solid #888;
     background: rgba(255,255,255,0.82);
     padding: 6px 12px;
-    font-family: 'TypewriterDry', serif;
+    font-family: 'TypewriterDry', sans-serif;
     font-size: 12px;
     text-align: center;
     min-width: 90px;
@@ -1115,6 +1159,39 @@ background: transparent !important;
     width: 100%; max-width: 600px;
     display: flex; flex-direction: column; gap: 8px;
     margin-top: 8px;
+}
+/* ── Historical panel ──────────────────────────────────────────── */
+#historical-panel {
+    position: absolute;
+    top: 0; left: 0;
+    width: 989px; height: 625px;
+    background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png');
+    background-size: cover; background-position: center;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 32px 48px; box-sizing: border-box;
+    overflow-y: auto;
+    z-index: 450;
+    font-family: 'TypewriterDry', sans-serif;
+}
+#historical-panel h2 {
+    font-size: 20px; letter-spacing: 0.18em;
+    text-transform: uppercase; margin-bottom: 20px;
+}
+#historical-panel-body {
+    font-size: 13px; line-height: 1.6;
+    max-width: 640px; flex: 1; overflow-y: auto;
+    text-align: left;
+}
+.historical-placeholder {
+    color: #888; font-style: italic;
+}
+/* ── Question date (replaces "Question X of Y" h3 in progress bar) ─ */
+#progress_bar h3[data-date-attached] {
+    font-family: 'TypewriterDry', sans-serif;
+    font-size: 16px;
+    cursor: default;
+    pointer-events: auto !important;
 }
   #results_container { color: #fcfcfc; }
   .inner_window_w_desc { background-color: transparent !important; }
@@ -2284,18 +2361,22 @@ setInterval(() => {
                     const mapSvg = mapContainerEl ? mapContainerEl.querySelector('svg:not(#visit-noise-overlay):not(.visit-pin-svg)') : null;
                     if (mapSvg && !mapSvg.dataset.planeHooked) {
                         mapSvg.dataset.planeHooked = 'true';
-                        mapSvg.addEventListener('click', function(e) {
+                        let _flyTimer = null;
+                        function _planeClickHandler(ev) {
                             const now = Date.now();
                             const lastClick = parseInt(plane.dataset.lastClick || '0');
                             if (plane.dataset.flying === 'true') {
                                 if (now - lastClick < 500) {
-                                    plane.remove();
+                                    clearTimeout(_flyTimer);
+                                    mapSvg.removeEventListener('click', _planeClickHandler, true);
                                     delete mapSvg.dataset.planeHooked;
-                                    e.target.dispatchEvent(new MouseEvent('click', {
+                                    plane.remove();
+                                    ev.stopPropagation();
+                                    ev.target.dispatchEvent(new MouseEvent('click', {
                                         bubbles: true,
                                         cancelable: true,
-                                        clientX: e.clientX,
-                                        clientY: e.clientY
+                                        clientX: ev.clientX,
+                                        clientY: ev.clientY
                                     }));
                                 }
                                 return;
@@ -2303,8 +2384,8 @@ setInterval(() => {
                             plane.dataset.lastClick = now;
                             plane.dataset.flying = 'true';
                             const containerRect = mapContainerEl.getBoundingClientRect();
-                            const clickX = e.clientX - containerRect.left;
-                            const clickY = e.clientY - containerRect.top;
+                            const clickX = ev.clientX - containerRect.left;
+                            const clickY = ev.clientY - containerRect.top;
                             const dx = clickX - startPin.x;
                             const dy = clickY - startPin.y;
                             const hitEaster = (clickX >= 680 && clickX <= 925 && clickY >= 335 && clickY <= 502);
@@ -2317,25 +2398,27 @@ setInterval(() => {
                                 plane.style.left = (clickX - 17) + 'px';
                                 plane.style.top = (clickY - 17) + 'px';
                             }, 50);
-                            e.stopPropagation();
-                            const originalTarget = e.target;
+                            ev.stopPropagation();
+                            const originalTarget = ev.target;
                             if (hitEaster) {
-                                            setTimeout(() => {
-                                                const plop = new Audio('https://file.garden/aXPgNT-ZRCxxpy0g/plop2.mp3');
-                                                plop.play();
-                                            }, 3500);
-                                        }
-                                        setTimeout(() => {
-                                            plane.remove();
-                                            originalTarget.dispatchEvent(new MouseEvent('click', {
-                                                bubbles: true,
-                                                cancelable: true,
-                                                clientX: e.clientX,
-                                                clientY: e.clientY
-                                            }));
-                                            delete mapSvg.dataset.planeHooked;
-                                        }, 5000);
-                        }, true);
+                                setTimeout(() => {
+                                    const plop = new Audio('https://file.garden/aXPgNT-ZRCxxpy0g/plop2.mp3');
+                                    plop.play();
+                                }, 3500);
+                            }
+                            _flyTimer = setTimeout(() => {
+                                mapSvg.removeEventListener('click', _planeClickHandler, true);
+                                plane.remove();
+                                originalTarget.dispatchEvent(new MouseEvent('click', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    clientX: ev.clientX,
+                                    clientY: ev.clientY
+                                }));
+                                delete mapSvg.dataset.planeHooked;
+                            }, 5000);
+                        }
+                        mapSvg.addEventListener('click', _planeClickHandler, true);
                  }
                             }
                         } else {

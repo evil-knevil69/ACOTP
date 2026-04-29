@@ -248,7 +248,7 @@ campaignTrail_temp.answers_json = [
         "pk": 3547,
         "fields": {
             "question": 401,
-            "description": "I said some intemperate things earlier in the year but Kathy Graham needs to wind her turkey neck in. Get the director of the IRS on the phone and leave a memo for Chuck to continue the letter writing campaign about their broadcast licenses. I need leverage, not headlines."
+            "description": "I said some intemperate things earlier in the year but Kay Graham needs to wind her turkey neck in. Get the director of the IRS on the phone and leave a memo for Chuck to continue the letter writing campaign about their broadcast licenses. I need leverage, not headlines."
         }
     },
     {
@@ -12240,13 +12240,13 @@ function openEnemiesPanel(questions) {
         Erlichman: {
             name: 'John Ehrlichman',
             title: 'Asst. to President, Domestic Affairs',
-            bio: 'Established the Plumbers unit. Knew about the Ellsberg break in from an early stage',
+            bio: 'Established the Plumbers unit. Worked on the cover-up with Dean and knew about the Ellsberg break-in from an early stage.',
             initials: 'JE', images: {},
         },
         Dean: {
             name: 'John Dean',
             title: 'White House Counsel',
-            bio: 'Monitored FBI investigation on Nixon\'s behalf. Participated in the cover-up since its inception and increasingly at its center',
+            bio: 'Monitored FBI investigation on Nixon\'s behalf. Point man for the cover-up and at the increasingly at the centre of all the WH scandals.',
             initials: 'JD', images: {},
         },
         Kissinger: {
@@ -12270,7 +12270,7 @@ function openEnemiesPanel(questions) {
         Strachan: {
             name: 'Gordon Strachan',
             title: 'Liaison, Haldeman–CREEP',
-            bio: 'Kept Haldeman updated on CREEP\'s surveillance operations.',
+            bio: 'Kept Haldeman updated on CREEP\'s surveillance operations. Indicted for obstruction, but charges eventually dropped.',
             initials: 'GS', images: {},
         },
         Segretti: {
@@ -12282,25 +12282,25 @@ function openEnemiesPanel(questions) {
         Hunt: {
             name: 'Howard Hunt',
             title: 'Former CIA operative',
-            bio: 'Former CIA, novellist. Maybe inspired the 'whole Bay of Pigs thing' remark. Recruited into WH by Colson. Prime mover behind the DNC break-in. Led the Plumbers on covert operations. Currently on trial as part of the Watergate 7.',
+            bio: 'Former CIA, novellist. Maybe inspired the "whole Bay of Pigs thing" remark. Recruited into WH by Colson. Prime mover behind the DNC break-in. Led the Plumbers on covert operations. Currently on trial as part of the Watergate 7.',
             initials: 'HH', images: {},
         },
         Liddy: {
             name: 'Gordon Liddy',
             title: 'Legal Counsel, CREEP',
-            bio: 'Former FBI agent. Devised CREEP\'s intelligence operation (GEMSTONE). Managed the DNC break-in with Hunt. A 'right wing exuberant', or a 'bit of a nut'. Currently on trial as part of the Watergate 7.',
+            bio: 'Former FBI agent. Devised CREEP\'s intelligence operation (GEMSTONE). Managed the DNC break-in with Hunt. A "right wing exuberant", or a "bit of a nut". Currently on trial as part of the Watergate 7.',
             initials: 'GL', images: {},
         },
         Mitchell: {
             name: 'John Mitchell',
             title: 'Director, CREEP',
-            bio: 'Former Attorney General. Personal friend of the President. Approved CREEP\'s intelligence operations if not the DNC break in specifically.',
+            bio: 'Former Attorney General. Approved CREEP\'s intelligence operations. Convicted of obstruction, perjury, and conspiracy.',
             initials: 'JM', images: {},
         },
         Magruder: {
             name: 'Jeb Magruder',
             title: 'Deputy Director, CREEP',
-            bio: 'Approved the Watergate break-in and probably gave the direct instruction to Liddy to go into the Watergate. Director of the 1972 inauguration and now in the Dept of Commerce',
+            bio: 'Approved the Watergate break-in and probably gave the direct instruction to Liddy to go into the Watergate. Director of the 1972 inauguration and now in the Dept of Commerce.',
             initials: 'JsM', images: {},
         },
         Larue: {
@@ -12312,19 +12312,19 @@ function openEnemiesPanel(questions) {
         Stans: {
             name: 'Maurice Stans',
             title: 'Finance Chairman, CREEP',
-            bio: 'Former Secretary of Commerce. Raised millions in illegal campaign contributions.',
+            bio: 'Former Secretary of Commerce. Raised millions in illegal campaign contributions. Pleaded guilty to campaign violations.',
             initials: 'MS', images: {},
         },
         Klambach: {
             name: 'Herbert Kalmbach',
             title: 'Assoc. Finance Chairman, CREEP',
-            bio: 'Nixon\'s personal attorney. Raised and delivered hush money to the seven Watergate defendants.',
+            bio: 'Nixon\'s personal attorney. Raised and delivered hush money to the seven Watergate defendants. Pleaded guilty.',
             initials: 'HKb', images: {},
         },
         McCord: {
             name: 'James McCord',
             title: 'Security Director, CREEP',
-            bio: 'Former CIA officer. One of the five Watergate burglars. Formerly on the WH payroll and bodyguard for Martha Mitchell. Currently on trial as part of the Watergate 7.',
+            bio: 'Former CIA officer. One of the five Watergate burglars. Wrote a letter to Judge Sirica exposing the cover-up.',
             initials: 'JMc', images: {},
         },
     };
@@ -12588,6 +12588,114 @@ const tooltipList = [
         label: "Melvin Laird",
         body: "Outgoing Defense Secretary. Architect of the volunteer army and Vietnamization. Leaving for personal reasons."
     },
+    {
+        searchString: "Ike",
+        img: null,
+        label: "Dwight Eisenhower (R)",
+        body: "34th President. You were his VP for two terms. Your relationship was one of formality and distrust, marred by your tireless search for affirmation, and a father figure, from behind that famously blank visage."
+    },
+    {
+        searchString: "Eisenhower",
+        img: null,
+        label: "Dwight Eisenhower (R)",
+        body: "34th President. You were his VP for two terms. Your relationship was one of formality and distrust, marred by your tireless search for affirmation, and a father figure, from behind that famously blank visage."
+    },
+    {
+        searchString: "Weather people",
+        img: null,
+        label: "The Weathermen",
+        body: "Overprivileged berserk terrorists or.. a prairie fire waiting to be sparked?"
+    },
+    {
+        searchString: "Pat Gray",
+        img: null,
+        label: "L. Patrick Gray",
+        body: "Acting director of the FBI since Hoover's death. Loyal but of limited perspicacity."
+    },
+    {
+        searchString: "your crown still aches",
+        img: null,
+        label: null,
+        body: "Nixon broke a crown during an election eve dinner with his family and had to receive emergency dentistry. Good omen."
+    },
+    {
+        searchString: "Moynihan",
+        img: null,
+        label: "Daniel Patrick Moynihan",
+        body: "Chief domestic policy advisor to the president before Erlichman. Current academic and insightful if liberal critic of the current welfare apparatus. Best speaking to him before the Harvard faculty bar opens."
+    },
+    {
+        searchString: "Pat Moynihan",
+        img: null,
+        label: "Daniel Patrick Moynihan",
+        body: "Chief domestic policy advisor to the president before Erlichman. Current academic and insightful if liberal critic of the current welfare apparatus. Best speaking to him before the Harvard faculty bar opens."
+    },
+    {
+        searchString: "Thieu",
+        img: null,
+        label: "Thieu",
+        body: "President of South Vietnam. Wily, subtle. Standing on a base as fragile as rice paper."
+    },
+    {
+        searchString: "Tho",
+        img: null,
+        label: "Le Duc Tho",
+        body: "Chief negotiator for the North Vietnamese. Implacable, resolute and trenchant. Kissinger calls him Ducky."
+    },
+    {
+        searchString: "Felt",
+        img: null,
+        label: "Mark Felt",
+        body: "Deputy FBI director under Hoover and now Gray. You smell his greed and entitlement but know he's playing a dangerous game."
+    },
+    {
+        searchString: "Mark Felt",
+        img: null,
+        label: "Mark Felt",
+        body: "Deputy FBI director under Hoover and now Gray. You smell his greed and entitlement but know he's playing a dangerous game."
+    },
+    {
+        searchString: "Shultz",
+        img: null,
+        label: "George Shultz",
+        body: "Treasury Secretary. More laissez-faire and market oriented than his predecessor. Much, much later was on the board of Theranos."
+    },
+    {
+        searchString: "Burns",
+        img: null,
+        label: "Arthur Burns",
+        body: "Federal Reserve Chairman. Believed in prioritising employment through a loose monetary policy backed by price controls."
+    },
+    {
+        searchString: "Duong Van Minh",
+        img: null,
+        label: "Duong Van Minh",
+        body: "Former general and briefly head of state after the fall of Diem. Charismatic, popular and believed in compromise with the Vietcong. Nicknamed 'Big Minh' because he was over 6ft tall and shaped like a wardrobe. Loved his tennis and orchids far more than governing."
+    },
+    {
+        searchString: "Diem",
+        img: null,
+        label: "Ngo Dinh Diem",
+        body: "One of the reasons for all this mess. You've tried for years to tie John Kennedy to his assassination in 1963."
+    },
+    {
+        searchString: "Voorhis",
+        img: null,
+        label: "Jerry Voorhis",
+        body: "Ex-Congressman. Your first political opponent back in 1946. You fought a tough, unrelenting and dirty campaign to unseat him, smearing him as a fellow-traveller. You consider this the seed that flourished into the media's hatred of you."
+    },
+    {
+        searchString: "Henry Peterson",
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/JFKpetersenH.jpg",
+        label: "Henry Peterson",
+        body: "Assistant Attorney General (Criminal Division). Straight-shooting, smart. Unfortunately he trusts you, shares case files with you and is unable to believe there would ever be a direct connection between Watergate and the White House."
+    },
+    {
+        searchString: "Peterson",
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/JFKpetersenH.jpg",
+        label: "Henry Peterson",
+        body: "Assistant Attorney General (Criminal Division). Straight-shooting, smart. Unfortunately he trusts you, shares case files with you and is unable to believe there would ever be a direct connection between Watergate and the White House."
+    },
 ];
 
 function generatePenStroke() {
@@ -12687,15 +12795,14 @@ document.addEventListener('mouseleave', () => {
 }, true);
 
 const questionData = {
-
     401: { date: "8 November 1972", transition: {
             title: "PART I: Remission",
             body: "During the first term we stopped their revolution. Now we can move forward with our own.",
             img: "https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif" },
             signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk401.jpg", historical: null },
-    402: { date: "11 November 1972",  signImg: " https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk402.jpg",     historical: null },
-    409: { date: "20 November 1972", signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/PK409.jpg", 
-            historical: '<p>This interview really happened, and Nixon did debate cutting Henry loose.</p><p>In the end, Kissinger had to make a grovelling apology to Nixon but not before calling her a bitch, a liar and worse. He backed down when she offered to release the tape transcripts from their interview.</p>.<p> A copy of the interview is avaliable <a href="https://scrapsfromtheloft.com/history/oriana-fallaci-henry-kissinger-interview/" target="_blank">here</a>.</p>` },
+    402: { date: "11 November 1972",  signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk402.jpg", historical: null },
+    409: { date: "20 November 1972", signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/PK409.jpg",
+            historical: `<p>This interview really happened, and Nixon did debate cutting Henry loose.</p><p>In the end, Kissinger had to make a grovelling apology to Nixon but not before calling her a bitch, a liar and worse. He backed down when she offered to release the tape transcripts from their interview.</p><p>A copy of the interview is available <a href="https://scrapsfromtheloft.com/history/oriana-fallaci-henry-kissinger-interview/" target="_blank">here</a>.</p>` },
     429: { date: "October 1975",       historical: null },
     430: {
         date: "September 1976",
@@ -12720,7 +12827,7 @@ const questionData = {
     434: { date: "September 1976",     historical: null },
     444: { date: "September 1976",     historical: null },
     445: { date: "September 1976",     historical: null },
-    408: { date: "September 1976",     signImg: "https://...nixon_sign_v2.png", historical: null },
+    408: { date: "September 1976",     historical: null },
     404: { date: "August 1976",        historical: null },
     403: { date: "September 1976",     historical: null },
     406: { date: "September 1976",     historical: null },
@@ -13217,7 +13324,7 @@ document.body.appendChild(honk);
 
         [
             { label: 'State of the Nation',         key: 'nation' },
-            { label: 'High Crimes & Misdemeanours', key: 'crimes' },
+            { label: 'High Crimes & Misdemeanors', key: 'crimes' },
         ].forEach(({ label, key }, i) => {
             const t = document.createElement('button');
             t.className = 'fd-tab' + (i === 0 ? ' fd-active' : '');
@@ -13445,7 +13552,7 @@ campaignTrail_temp.jet_data = [{
             "lowMax": 40,
             "midMax": 60,
             "lowText": "Approval Rating is struggling.",
-            "midText": "Approval Rating is steady.",
+            "midText": "Mediocre approval ratings",
             "highText": "Historic approval levels"
         }
     }
