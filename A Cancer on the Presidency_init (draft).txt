@@ -673,14 +673,21 @@ div.content_single {
     overflow: visible !important;
     padding-bottom: 0 !important;
 }
-/* Question gameplay + feedback: expand freely, with padding to clear the g overlay */
-#game_window:has(#question_form),
-#game_window:has(#feedback_container) {
+/* Question gameplay: expand freely, with padding to clear the g overlay */
+#game_window:has(#question_form) {
     height: auto !important;
     min-height: 450px !important;
     max-height: none !important;
     overflow: visible !important;
     padding-bottom: 175px !important;
+}
+/* Feedback: fit contents only */
+#game_window:has(#feedback_container) {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding-bottom: 0 !important;
 }
 
 #game_window, .inner_window, #game_header, .description_window_small, .inner_window_front, .inner_window_w_desc, .inner_window_question, .inner_inner_window, .below_header, .election_description_window, .person_description_window, #candidate_description_window, #question_header, #answers_container, #feedback_container {
