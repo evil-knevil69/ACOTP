@@ -668,7 +668,7 @@ div.content_single {
 /* Early screens (intro, candidate select, difficulty): expand with content */
 #game_window:not(:has(#question_form)) {
     height: auto !important;
-    min-height: 535px !important;
+    min-height: 625px !important;
     max-height: none !important;
     overflow: visible !important;
     padding-bottom: 0 !important;

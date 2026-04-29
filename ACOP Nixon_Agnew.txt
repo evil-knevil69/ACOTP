@@ -12281,13 +12281,13 @@ function openEnemiesPanel(questions) {
         Erlichman: {
             name: 'John Ehrlichman',
             title: 'Asst. to President, Domestic Affairs',
-            bio: 'Established the Plumbers unit. Worked on the cover-up with Dean and knew about the Ellsberg break-in from an early stage.',
+            bio: 'Established the Plumbers unit. Knew about the Ellsberg break-in from an early stage.',
             initials: 'JE', images: {},
         },
         Dean: {
             name: 'John Dean',
             title: 'White House Counsel',
-            bio: 'Monitored FBI investigation on Nixon\'s behalf. Point man for the cover-up and at the increasingly at the centre of all the WH scandals.',
+            bio: 'Monitored FBI investigation on Nixon\'s behalf. Participated in the cover-up since its inception and increasingly at its center.',
             initials: 'JD', images: {},
         },
         Kissinger: {
@@ -12317,7 +12317,7 @@ function openEnemiesPanel(questions) {
         Strachan: {
             name: 'Gordon Strachan',
             title: 'Liaison, Haldeman–CREEP',
-            bio: 'Kept Haldeman updated on CREEP\'s surveillance operations. Indicted for obstruction, but charges eventually dropped.',
+            bio: 'Kept Haldeman updated on CREEP\'s surveillance operations.',
             initials: 'GS', images: {},
         },
         Segretti: {
@@ -12341,7 +12341,7 @@ function openEnemiesPanel(questions) {
         Mitchell: {
             name: 'John Mitchell',
             title: 'Director, CREEP',
-            bio: 'Former Attorney General. Approved CREEP\'s intelligence operations. Convicted of obstruction, perjury, and conspiracy.',
+            bio: 'Former Attorney General. Personal friend of the President. Approved CREEP\'s intelligence operations if not the DNC break-in specifically.',
             initials: 'JM', images: {},
         },
         Magruder: {
@@ -12359,19 +12359,19 @@ function openEnemiesPanel(questions) {
         Stans: {
             name: 'Maurice Stans',
             title: 'Finance Chairman, CREEP',
-            bio: 'Former Secretary of Commerce. Raised millions in illegal campaign contributions. Pleaded guilty to campaign violations.',
+            bio: 'Former Secretary of Commerce. Raised millions in illegal campaign contributions.',
             initials: 'MS', images: {},
         },
         Klambach: {
             name: 'Herbert Kalmbach',
             title: 'Assoc. Finance Chairman, CREEP',
-            bio: 'Nixon\'s personal attorney. Raised and delivered hush money to the seven Watergate defendants. Pleaded guilty.',
+            bio: 'Nixon\'s personal attorney. Raised and delivered hush money to the seven Watergate defendants.',
             initials: 'HKb', images: {},
         },
         McCord: {
             name: 'James McCord',
             title: 'Security Director, CREEP',
-            bio: 'Former CIA officer. One of the five Watergate burglars. Wrote a letter to Judge Sirica exposing the cover-up.',
+            bio: 'Former CIA officer. One of the five Watergate burglars. Formerly on the WH payroll and bodyguard for Martha Mitchell. Currently on trial as part of the Watergate 7.',
             initials: 'JMc', images: {},
         },
     };
