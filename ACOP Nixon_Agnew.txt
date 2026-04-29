@@ -11757,15 +11757,14 @@ var Kleindienst = 2;
 var Nominee = "Nixon";
 
 // Tier 1: per-question feedback images, one pool per possible nominee.
-// Nixon cycles randomly among the filled slots; others populated later.
 const nomineeImages = {
     Nixon:       [
         "https://file.garden/aXPgNT-ZRCxxpy0g/feedback2.jpg",
-        null, // slot 2
-        null, // slot 3
-        null, // slot 4
-        null, // slot 5
-        null, // slot 6
+        "https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback2.JPG",
+        "https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback3.PNG",
+        "https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback4.gif",
+        "https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback5.gif:,
+        "https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback6.JPG",
     ],
     Ford:        [],
     Agnew:       [],
