@@ -12465,11 +12465,6 @@ function openEnemiesPanel(questions) {
         svg.innerHTML = '';
         const cr = inner.getBoundingClientRect();
 
-        const nixonNode = document.querySelector('#nw-nixon-row .nw-node');
-        document.querySelectorAll('#nw-columns-row .nw-col .nw-tree > li > .nw-node').forEach(root => {
-            _drawOrgArc(svg, cr, nixonNode, root, '#666', false, true);
-        });
-
         _crossLinks.forEach(({ from, to, color, dashed }) => {
             const a = document.querySelector(`.nw-node[data-person="${from}"]`);
             const b = document.querySelector(`.nw-node[data-person="${to}"]`);
@@ -12567,9 +12562,11 @@ const _gameObserver = new MutationObserver((() => {
             }
 
             const visitImg = document.querySelector('#visit_content img');
-            if (visitImg && !visitImg.dataset.visitImgSet && document.querySelector('#confirm_visit_button')) {
+            if (visitImg && !visitImg.dataset.visitImgSet) {
                 visitImg.dataset.visitImgSet = '1';
-                visitImg.src = _visitAdvisorImages[Math.floor(Math.random() * _visitAdvisorImages.length)];
+                const _vurl = _visitAdvisorImages[Math.floor(Math.random() * _visitAdvisorImages.length)];
+                campaignTrail_temp.election_json[0].fields.advisor_url = _vurl;
+                visitImg.src = _vurl;
             }
 
             const noFeedbackBtn = document.getElementById('no_feedback_button');

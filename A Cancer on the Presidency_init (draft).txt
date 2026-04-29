@@ -673,8 +673,9 @@ div.content_single {
     overflow: visible !important;
     padding-bottom: 0 !important;
 }
-/* Question gameplay: expand freely, with padding to clear the g overlay */
-#game_window:has(#question_form) {
+/* Question gameplay + feedback: expand freely, with padding to clear the g overlay */
+#game_window:has(#question_form),
+#game_window:has(#feedback_container) {
     height: auto !important;
     min-height: 450px !important;
     max-height: none !important;
