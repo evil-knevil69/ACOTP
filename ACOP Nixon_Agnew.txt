@@ -11763,7 +11763,7 @@ const nomineeImages = {
         "https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback2.JPG",
         "https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback3.PNG",
         "https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback4.gif",
-        "https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback5.gif:,
+        "https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback5.gif",
         "https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback6.JPG",
     ],
     Ford:        [],
