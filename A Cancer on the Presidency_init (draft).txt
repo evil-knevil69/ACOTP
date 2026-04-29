@@ -681,14 +681,6 @@ div.content_single {
     overflow: visible !important;
     padding-bottom: 175px !important;
 }
-/* Feedback: fit contents only */
-#game_window:has(#feedback_container) {
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    overflow: visible !important;
-    padding-bottom: 0 !important;
-}
 
 #game_window, .inner_window, #game_header, .description_window_small, .inner_window_front, .inner_window_w_desc, .inner_window_question, .inner_inner_window, .below_header, .election_description_window, .person_description_window, #candidate_description_window, #question_header, #answers_container, #feedback_container {
     background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png') !important;
@@ -955,11 +947,19 @@ div.center img#header {
     left: 50% !important;
     transform: translateX(-50%) !important;
     margin: 0 !important;
-    min-height: 625px !important;
     height: auto !important;
     max-height: none !important;
     width: auto !important;
     overflow-y: auto !important;
+}
+/* Map "Visit State" overlay needs full game-window height */
+#visit_window:has(#confirm_visit_button) {
+    min-height: 625px !important;
+}
+/* Question-answer feedback overlay fits its contents */
+#visit_window:has(#no_feedback_button),
+#visit_window:has(#ok_button):not(:has(#confirm_visit_button)) {
+    min-height: 0 !important;
 }
 #visit_buttons {
     display: flex !important;

@@ -12562,7 +12562,7 @@ const _gameObserver = new MutationObserver((() => {
             }
 
             const visitImg = document.querySelector('#visit_content img');
-            if (visitImg && !visitImg.dataset.visitImgSet) {
+            if (visitImg && !visitImg.dataset.visitImgSet && document.querySelector('#confirm_visit_button')) {
                 visitImg.dataset.visitImgSet = '1';
                 visitImg.src = _visitAdvisorImages[Math.floor(Math.random() * _visitAdvisorImages.length)];
             }
