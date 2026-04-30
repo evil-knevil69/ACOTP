@@ -740,7 +740,6 @@ ul {
 }
 #opponent_selection_description_window {
     width: 154px !important;
-    padding-bottom: 10px !important;
     margin-bottom: 90px !important;
 }
 #feedback_container {
