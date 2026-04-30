@@ -738,6 +738,11 @@ ul {
     overflow: visible !important;
     width: 100% !important;
 }
+#opponent_selection_description_window {
+    width: 154px !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 90px !important;
+}
 #feedback_container {
     height: auto !important;
     max-height: none !important;
