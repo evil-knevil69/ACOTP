@@ -12388,13 +12388,13 @@ function openEnemiesPanel(questions) {
     const _whTree2 = {
         id: 'Erlichman',
         children: [
-            { id: 'Krogh', children: [{ id: 'Hunt' }, { id: 'Liddy' }] },
+            { id: 'Krogh', children: [{ id: 'Hunt' }] },
         ],
     };
     const _creepTree = {
         id: 'Mitchell',
         children: [
-            { id: 'Magruder' },
+            { id: 'Magruder', children: [{ id: 'Liddy' }] },
             { id: 'McCord' },
             { id: 'Larue' },
             { id: 'Stans', children: [{ id: 'Klambach' }] },
@@ -12404,7 +12404,7 @@ function openEnemiesPanel(questions) {
     const _crossLinks = [
         { from: 'Strachan', to: 'Mitchell', color: '#664422', dashed: true },
         { from: 'Colson',   to: 'Hunt',     color: '#664422', dashed: true },
-        { from: 'Liddy',    to: 'Magruder', color: '#664422', dashed: true },
+        { from: 'Hunt',     to: 'Liddy',    color: '#664422', dashed: true },
         { from: 'Klambach', to: 'Larue',    color: '#665522', dashed: true },
     ];
 
