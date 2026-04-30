@@ -739,7 +739,6 @@ ul {
     width: 100% !important;
 }
 #opponent_selection_description_window {
-    width: 154px !important;
     margin-bottom: 90px !important;
 }
 #feedback_container {
