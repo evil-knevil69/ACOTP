@@ -12660,13 +12660,13 @@ const tooltipList = [
     },
     {
         searchString: "Ike",
-        img: null,
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/Eisenhower.jpeg",
         label: "Dwight Eisenhower (R)",
         body: "34th President. You were his VP for two terms. Your relationship was one of formality and distrust, marred by your tireless search for affirmation, and a father figure, from behind that famously blank visage."
     },
     {
         searchString: "Eisenhower",
-        img: null,
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/Eisenhower.jpeg",
         label: "Dwight Eisenhower (R)",
         body: "34th President. You were his VP for two terms. Your relationship was one of formality and distrust, marred by your tireless search for affirmation, and a father figure, from behind that famously blank visage."
     },
@@ -12685,7 +12685,7 @@ const tooltipList = [
     {
         searchString: "your crown still aches",
         img: null,
-        label: "your crown still aches",
+        label: "",
         body: "Nixon broke a crown during an election eve dinner with his family and had to receive emergency dentistry. Good omen."
     },
     {
@@ -12756,13 +12756,13 @@ const tooltipList = [
     },
     {
         searchString: "Henry Peterson",
-        img: null,
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/JFKpetersenH.jpg",
         label: "Henry Peterson",
         body: "Assistant Attorney General (Criminal Division). Straight-shooting, smart. Unfortunately he trusts you, shares case files with you and is unable to believe there would ever be a direct connection between Watergate and the White House."
     },
     {
         searchString: "Peterson",
-        img: null,
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/JFKpetersenH.jpg",
         label: "Henry Peterson",
         body: "Assistant Attorney General (Criminal Division). Straight-shooting, smart. Unfortunately he trusts you, shares case files with you and is unable to believe there would ever be a direct connection between Watergate and the White House."
     },
