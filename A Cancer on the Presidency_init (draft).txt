@@ -445,10 +445,10 @@ style.innerHTML = `
   display: none;
 }
 #candidate_summary {
-    height: 325px !important;
+    height: 350px !important;
 }
 #running_mate_summary {
-    height: 325px !important;
+    height: 350px !important;
 }
 #running_mate_summary > ul > li:nth-child(3) {
   display: none;
@@ -462,7 +462,7 @@ style.innerHTML = `
     text-align: center !important;
 }
 .person_summary {
-    height: 325px !important;
+    height: 350px !important;
     overflow: hidden !important;
 }
 .person_summary ul {
