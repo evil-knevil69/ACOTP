@@ -952,15 +952,6 @@ div.center img#header {
     width: auto !important;
     overflow-y: auto !important;
 }
-/* Map "Visit State" overlay needs full game-window height */
-#visit_window:has(#confirm_visit_button) {
-    min-height: 625px !important;
-}
-/* Question-answer feedback overlay fits its contents */
-#visit_window:has(#no_feedback_button),
-#visit_window:has(#ok_button):not(:has(#confirm_visit_button)) {
-    min-height: 0 !important;
-}
 #visit_buttons {
     display: flex !important;
     justify-content: center !important;
