@@ -12631,6 +12631,12 @@ const tooltipList = [
         body: "Secretary of Agriculture. Known for crude humour and blind support for agribusiness."
     },
     {
+        searchString: "Butz",
+        img: null,
+        label: "Earl Butz",
+        body: "Secretary of Agriculture. Known for crude humour and blind support for agribusiness."
+    },
+    {
         searchString: "Oriana Fallaci",
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/oriana_fallaci.jpg",
         label: "Oriana Fallaci",
@@ -12704,13 +12710,13 @@ const tooltipList = [
     },
     {
         searchString: "Moynihan",
-        img: null,
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/moynihan_slideshow.jpg",
         label: "Daniel Patrick Moynihan",
         body: "Chief domestic policy advisor to the president before Erlichman. Current academic and insightful if liberal critic of the current welfare apparatus. Best speaking to him before the Harvard faculty bar opens."
     },
     {
         searchString: "Pat Moynihan",
-        img: null,
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/moynihan_slideshow.jpg",
         label: "Daniel Patrick Moynihan",
         body: "Chief domestic policy advisor to the president before Erlichman. Current academic and insightful if liberal critic of the current welfare apparatus. Best speaking to him before the Harvard faculty bar opens."
     },
@@ -12746,7 +12752,7 @@ const tooltipList = [
     },
     {
         searchString: "Burns",
-        img: null,
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/arthur-burnscrop.jpg",
         label: "Arthur Burns",
         body: "Federal Reserve Chairman. Believed in prioritising employment through a loose monetary policy backed by price controls."
     },
@@ -12764,7 +12770,7 @@ const tooltipList = [
     },
     {
         searchString: "Voorhis",
-        img: null,
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/voorhis.jpg",
         label: "Jerry Voorhis",
         body: "Ex-Congressman. Your first political opponent back in 1946. You fought a tough, unrelenting and dirty campaign to unseat him, smearing him as a fellow-traveller. You consider this the seed that flourished into the media's hatred of you."
     },
