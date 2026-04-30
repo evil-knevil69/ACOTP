@@ -941,6 +941,9 @@ div.center img#header {
     font-weight: normal !important;
     text-wrap: balance;
 }
+#visit_overlay {
+    min-height: 725px !important;
+}
 #visit_window {
     position: absolute !important;
     top: 0 !important;
