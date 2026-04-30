@@ -12626,13 +12626,13 @@ const tooltipList = [
     },
     {
         searchString: "Earl Butz",
-        img: null,
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/butz.jpg",
         label: "Earl Butz",
         body: "Secretary of Agriculture. Known for crude humour and blind support for agribusiness."
     },
     {
         searchString: "Butz",
-        img: null,
+        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/butz.jpg",
         label: "Earl Butz",
         body: "Secretary of Agriculture. Known for crude humour and blind support for agribusiness."
     },
