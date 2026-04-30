@@ -12467,6 +12467,25 @@ function openEnemiesPanel(questions) {
         svg.innerHTML = '';
         const cr = inner.getBoundingClientRect();
 
+        const nixonNode = document.querySelector('#nw-nixon-row .nw-node');
+        if (nixonNode) {
+            document.querySelectorAll('#nw-columns-row .nw-col .nw-tree > li > .nw-node').forEach(root => {
+                const a = nixonNode.getBoundingClientRect();
+                const b = root.getBoundingClientRect();
+                const x1 = a.left + a.width  / 2 - cr.left;
+                const y1 = a.bottom - cr.top;
+                const x2 = b.left  + b.width  / 2 - cr.left;
+                const y2 = b.top   - cr.top;
+                const ymid = (y1 + y2) / 2;
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', `M ${x1} ${y1} L ${x1} ${ymid} L ${x2} ${ymid} L ${x2} ${y2}`);
+                path.setAttribute('stroke', '#666');
+                path.setAttribute('stroke-width', '1.5');
+                path.setAttribute('fill', 'none');
+                svg.appendChild(path);
+            });
+        }
+
         _crossLinks.forEach(({ from, to, color, dashed }) => {
             const a = document.querySelector(`.nw-node[data-person="${from}"]`);
             const b = document.querySelector(`.nw-node[data-person="${to}"]`);
