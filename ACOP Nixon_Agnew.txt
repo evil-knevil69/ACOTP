@@ -248,7 +248,7 @@ campaignTrail_temp.answers_json = [
         "pk": 3547,
         "fields": {
             "question": 401,
-            "description": "I said some intemperate things earlier in the year but Kathy Graham needs to wind her turkey neck in. Get the director of the IRS on the phone and leave a memo for Chuck to continue the letter writing campaign about their broadcast licenses. I need leverage, not headlines."
+            "description": "I said some intemperate things earlier in the year but Kay Graham needs to wind her turkey neck in. Get the director of the IRS on the phone and leave a memo for Chuck to continue the letter writing campaign about their broadcast licenses. I need leverage, not headlines."
         }
     },
     {
@@ -928,7 +928,7 @@ campaignTrail_temp.answers_json = [
         "pk": 12761,
         "fields": {
             "question": 409,
-            "description": "He’s losing his head, Tho must be getting in his head. I had this problem when I was on HUAC and that pipe-smoking fool Mundt kept trying to take the limelight. Everyone has to know who the sheriff in town is. Al, tell Henry he can mosey along. "
+            "description": "He’s losing his head, Tho must be getting to him. I had this problem when I was on HUAC and that pipe-smoking fool Mundt kept trying to take the limelight. Everyone has to know who the sheriff in town is. Al, tell Henry he can mosey along. "
         }
     }
 ];
@@ -10924,7 +10924,7 @@ campaignTrail_temp.answer_feedback_json = [
         "fields": {
             "answer": 3545,
             "candidate": 10701,
-            "answer_feedback": "Of course you don’t deliver the message yourself. You deliver a nice homily to the staff, disappear and Haldeman gets up on the dais to deliver the order. The instruction passes down the ranks via your lieutenants. You screen calls from Romney, Butz and others. Oddly, one person who gets skipped over is Henry Peterson. Someone within your inner circle realises he’s too important to play with. This was intended as a dramatic gesture, but the change in atmosphere is immediate and striking, triumph turns sour and Haldeman later records that this decision was one of your most “alienating” and “bizarre”. Yet, if the plan is to strengthen the executive, this ensures that it's kept under tight reins."
+            "answer_feedback": "Of course you don’t deliver the message yourself. You deliver a nice homily to the staff, disappear and Haldeman gets up on the dais to deliver the order. The instruction passes down the ranks via your lieutenants. You screen calls from Romney, Butz and others. Oddly, one person who gets skipped over is Henry Peterson. Someone within your inner circle realises he’s too important to play with. <br><br> This was intended as a dramatic gesture, but the change in atmosphere is immediate and striking, triumph turns sour."
         }
     },
     {
@@ -10942,7 +10942,7 @@ campaignTrail_temp.answer_feedback_json = [
         "fields": {
             "answer": 3547,
             "candidate": 10701,
-            "answer_feedback": "You promised your inner circle that “ there ain’t going to be no forgetting and there’ll be Goddamn little forgiving”  in your second term. Time to build on that chickenshit stuff that the Democrats have been doing for years. \nThe message moves through the sinews of power, notes scribbled, favors called. The Washington Post’s share price dips. But for now, both the Post and now the LA Times continue their slow drip of poison. \n"
+            "answer_feedback": "You promised your inner circle that “ there ain’t going to be no forgetting and there’ll be Goddamn little forgiving”  in your second term. Time to build on that chickenshit stuff that the Democrats have been doing for years. <br><br>The message moves through the sinews of power, notes scribbled, favors called. The Washington Post’s share price dips. But for now, both the Post and now the LA Times continue their slow drip of poison."
         }
     },
     {
@@ -10969,7 +10969,7 @@ campaignTrail_temp.answer_feedback_json = [
         "fields": {
             "answer": 3550,
             "candidate": 10701,
-            "answer_feedback": "This had been on your mind for some time and is not merely about being a “good-government conservative”, as much as you try to claim otherwise. The idea is to keep Defense and State but fold everything else into Departments of Human Resources, Natural Resources, Community Development, and Economic Development, all under cabinet heads reporting directly to you. Policy making and the power to control funding would be removed from the Federal bureaucracy and held close to your inner circle. Best of all you don’t have to spend so much time making small talk with the penny-ante people from places like the NRCS and the REA. Expect a fight from Congress."
+            "answer_feedback": "This had been on your mind for some time and is not merely about being a “good-government conservative”, as much as you try to claim otherwise. The idea is to keep Defense and State but fold everything else into Departments of Human Resources, Natural Resources, Community Development, and Economic Development, all under cabinet heads reporting directly to you. Policy making and the power to control funding would be removed from the Federal bureaucracy and held close to your inner circle. <br><br>Best of all you don’t have to spend so much time making small talk with the penny-ante people from places like the NRCS and the REA. Expect a fight from Congress."
         }
     },
     {
@@ -11122,7 +11122,7 @@ campaignTrail_temp.answer_feedback_json = [
         "fields": {
             "answer": 3572,
             "candidate": 10701,
-            "answer_feedback": "Hammering the desk as you speak, you remind Kissinger again about your battles with the media since before Voorhis while he murmurs along in his Bavarian monotone. The pauses on his side get longer and longer. A low rumbling noise. Is he bored… has he fallen asleep?"
+            "answer_feedback": "Hammering the desk as you speak, you remind Kissinger again about your battles with the media since before Voorhis while he murmurs along in his Bavarian monotone. <br><br>The pauses on his side get longer and longer. A low rumbling noise. Is he bored… has he fallen asleep?"
         }
     },
     {
@@ -11617,7 +11617,7 @@ campaignTrail_temp.answer_feedback_json = [
         "fields": {
             "answer": 12761,
             "candidate": 10701,
-            "answer_feedback": "A brief post-election announcement is made that Kissinger will not be rejoining your cabinet. The news is taken in context with the departure of Laird, Romney and others. Henry lumbers off back to a berth at Harvard and to his think tanks carrying with him a Rolodex of press and establishment contacts."
+            "answer_feedback": "A brief post-election announcement is made that Kissinger will not be rejoining your cabinet. The news is taken in context with the departure of Laird, Romney and others. <br><br>Henry lumbers off back to a berth at Harvard and to his think tanks carrying with him a Rolodex of press and establishment contacts."
         }
     }
 ];
