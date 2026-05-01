@@ -945,6 +945,9 @@ div.center img#header {
     font-weight: normal !important;
     text-wrap: balance;
 }
+#visit_window:has(#no_feedback_button) p {
+    text-align: left !important;
+}
 #visit_overlay {
     min-height: 725px !important;
 }
