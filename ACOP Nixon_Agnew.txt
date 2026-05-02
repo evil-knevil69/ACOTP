@@ -11921,6 +11921,9 @@ let signDragStartY = 0;
 let signStartLeft = 0;
 let signStartTop = 0;
 
+let savedSignLeft = '';
+let savedSignTop = '';
+
 document.addEventListener('mousemove', (e) => {
     if (!isDraggingSign || !activeSign) return;
     const dx = e.clientX - signDragStartX;
@@ -11937,9 +11940,6 @@ document.addEventListener('mouseup', () => {
         savedSignTop = activeSign.style.top;
     }
 });
-
-let savedSignLeft = '';
-let savedSignTop = '';
 
 function updateCampaignSign() {
     const sign = document.querySelector('#campaign_sign');
@@ -12402,10 +12402,10 @@ function openEnemiesPanel(questions) {
     };
 
     const _crossLinks = [
-        { from: 'Strachan', to: 'Mitchell', color: '#664422', dashed: true },
-        { from: 'Colson',   to: 'Hunt',     color: '#664422', dashed: true },
-        { from: 'Hunt',     to: 'Liddy',    color: '#664422', dashed: true },
-        { from: 'Klambach', to: 'Larue',    color: '#665522', dashed: true },
+        { from: 'Strachan', to: 'Mitchell' },
+        { from: 'Colson',   to: 'Hunt'     },
+        { from: 'Hunt',     to: 'Liddy'    },
+        { from: 'Klambach', to: 'Larue'    },
     ];
 
     function _buildOrgNode(id, isCREEP) {
@@ -13111,10 +13111,10 @@ document.body.addEventListener('click', (e) => {
         honkClickCount = 0;
         clearTimeout(honkClickTimer);
         const audio = document.getElementById('audio');
-        const honk = new Audio('https://file.garden/aXPgNT-ZRCxxpy0g/Classic%20Car%20Horn%20Sound%20Effect%20Best%20Audio%20Quality.mp3');
+        const honkAudio = new Audio('https://file.garden/aXPgNT-ZRCxxpy0g/Classic%20Car%20Horn%20Sound%20Effect%20Best%20Audio%20Quality.mp3');
         if (audio) audio.muted = true;
-        honk.play();
-        honk.addEventListener('ended', () => {
+        honkAudio.play();
+        honkAudio.addEventListener('ended', () => {
             if (audio) audio.muted = false;
         }, { once: true });
     }

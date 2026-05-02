@@ -764,6 +764,8 @@ ul {
 }
 #menu_container {
     flex-shrink: 0 !important;
+    position: relative !important;
+    background: transparent !important;
 }
 #map_container {
     width: 721px !important;
@@ -975,9 +977,11 @@ div.center img#header {
     position: absolute !important;
     cursor: grab;
     z-index: 999;
-}
-#menu_container {
-    position: relative !important;
+    background-color: #FFFF99 !important;
+    width: 210px !important;
+    font-family: Georgia, serif !important;
+    height: auto !important;
+    pointer-events: auto !important;
 }
 .map-pin {
     position: absolute;
@@ -989,20 +993,10 @@ div.center img#header {
     transform: rotateZ(-1deg) !important;
     min-height: 160px !important;
 }
-
 #state_result_container {
     transform: rotateZ(1deg) rotateX(2deg) !important;
     min-height: 225.68px !important;
 }
-#overall_result_container,
-#state_result_container {
-    background-color: #FFFF99 !important;
-    width: 210px !important;
-    font-family: Georgia, serif !important;
-    height: auto !important;
-    pointer-events: auto !important;
-}
-
 #overall_result_container *,
 #state_result_container * {
     font-family: Georgia, serif !important;
@@ -1012,9 +1006,6 @@ div.center img#header {
 #overall_result,
 #state_info {
     background-color: #FFFF99 !important;
-}
-#menu_container {
-background: transparent !important;
 }
 #map_footer {
     position: absolute !important;
@@ -1123,53 +1114,6 @@ background: transparent !important;
 .ic-panel-buttons {
     display: flex; gap: 12px; margin-top: auto; padding-top: 16px;
 }
-/* Organogram */
-.org-tree {
-    display: flex; flex-direction: column;
-    align-items: center; gap: 0; width: 100%;
-}
-.org-level {
-    display: flex; justify-content: center;
-    gap: 16px; position: relative;
-}
-.org-level + .org-level {
-    margin-top: 0;
-}
-.org-node {
-    display: flex; flex-direction: column;
-    align-items: center; position: relative;
-}
-.org-node::before {
-    content: '';
-    display: block;
-    width: 1px; height: 16px;
-    background: #555;
-    margin: 0 auto;
-}
-.org-level:first-child .org-node::before { display: none; }
-.org-card {
-    border: 1px solid #888;
-    background: rgba(255,255,255,0.82);
-    padding: 6px 12px;
-    font-family: 'TypewriterDry', sans-serif;
-    font-size: 12px;
-    text-align: center;
-    min-width: 90px;
-    box-shadow: 1px 1px 4px rgba(0,0,0,0.15);
-}
-.org-card .org-role {
-    font-size: 10px;
-    color: #666;
-    display: block;
-    margin-top: 2px;
-    letter-spacing: 0.05em;
-}
-/* Enemies panel */
-.enemies-list {
-    width: 100%; max-width: 600px;
-    display: flex; flex-direction: column; gap: 8px;
-    margin-top: 8px;
-}
 /* ── Historical panel ──────────────────────────────────────────── */
 #historical-panel {
     position: absolute;
@@ -1245,7 +1189,6 @@ e.creditsPage = () => {
   document
     .getElementsByClassName("inner_window_w_desc")[0]
     .children[1].appendChild(spacer);
-    changeGameDisp(true);
     var menuHeader = document.createElement("div");
     menuHeader.classList.add("inner_window_front");
     menuHeader.innerHTML = `<h1 style='font-family: "monospace";'><font color='#010101'>Credits</font></h1>`;
