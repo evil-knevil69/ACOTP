@@ -12524,8 +12524,19 @@ function openEnemiesPanel(questions) {
             const y1 = a.top + a.height / 2 - cr.top;
             const x2 = (aIsLeft ? b.left  : b.right) - cr.left;
             const y2 = b.top + b.height / 2 - cr.top;
-            const ymid = (y1 + y2) / 2;
-            d = `M ${x1} ${ymid} L ${x2} ${ymid}`;
+            const xMin = Math.min(x1, x2);
+            const xMax = Math.max(x1, x2);
+            // Start the routing channel below both endpoints, then push it down further
+            // past the bottom of any node whose X range overlaps the horizontal span.
+            let yRoute = Math.max(y1, y2) + 15;
+            document.querySelectorAll('#nw-chart-inner .nw-node').forEach(n => {
+                if (n === elA || n === elB) return;
+                const nb = n.getBoundingClientRect();
+                if (nb.left - cr.left < xMax && nb.right - cr.left > xMin) {
+                    yRoute = Math.max(yRoute, nb.bottom - cr.top + 15);
+                }
+            });
+            d = `M ${x1} ${y1} L ${x1} ${yRoute} L ${x2} ${yRoute} L ${x2} ${y2}`;
         }
         if (marker) {
             // bleed layer — wider, transparent, simulates ink spread at edges
