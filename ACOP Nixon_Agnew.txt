@@ -12257,6 +12257,11 @@ function openEnemiesPanel(questions) {
         .nw-node[data-state="indicted"]  .nw-photo-wrap { filter: grayscale(40%); }
         .nw-node[data-state="imprisoned"]         { border-color: #661010; border-width: 2px; opacity: 0.8; }
         .nw-node[data-state="imprisoned"] .nw-photo-wrap { filter: grayscale(100%) brightness(0.65); }
+        .nw-node.nw-burglars .nw-photo-wrap {
+            width: 100%;
+            height: 64px;
+            border-radius: 2px;
+        }
         #nw-svg-overlay {
             position: absolute;
             top: 0;
@@ -12390,14 +12395,13 @@ function openEnemiesPanel(questions) {
     const _whTree2 = {
         id: 'Erlichman',
         children: [
-            { id: 'Krogh', children: [{ id: 'Hunt' }] },
+            { id: 'Krogh' },
         ],
     };
     const _creepTree = {
         id: 'Mitchell',
         children: [
             { id: 'Magruder', children: [{ id: 'Liddy' }] },
-            { id: 'McCord' },
             { id: 'Larue' },
             { id: 'Stans', children: [{ id: 'Klambach' }] },
         ],
@@ -12460,6 +12464,29 @@ function openEnemiesPanel(questions) {
             </div>
             </div>
         `;
+
+        const inner = wrapper.querySelector('#nw-chart-inner');
+
+        const huntFloat = document.createElement('div');
+        huntFloat.id = 'nw-hunt-float';
+        huntFloat.style.position = 'absolute';
+        huntFloat.innerHTML = _buildOrgNode('Hunt', false);
+        inner.appendChild(huntFloat);
+
+        const mccordFloat = document.createElement('div');
+        mccordFloat.id = 'nw-mccord-float';
+        mccordFloat.style.position = 'absolute';
+        mccordFloat.innerHTML = _buildOrgNode('McCord', true);
+        inner.appendChild(mccordFloat);
+
+        const wgFloat = document.createElement('div');
+        wgFloat.id = 'nw-wg-float';
+        wgFloat.style.position = 'absolute';
+        wgFloat.innerHTML = `<div class="nw-node nw-creep nw-burglars" data-person="WatergateBurglars" data-state="active">
+            <div class="nw-photo-wrap"></div>
+            <div class="nw-name">Watergate Burglars</div>
+        </div>`;
+        inner.appendChild(wgFloat);
     };
 
     window._drawOrgLinks = function() {
@@ -12474,6 +12501,77 @@ function openEnemiesPanel(questions) {
             </filter>
         </defs>`;
         const cr = inner.getBoundingClientRect();
+
+        // ── Position floated nodes + draw their connectors ────────────────────────
+        (function() {
+            const kroghEl     = document.querySelector('.nw-node[data-person="Krogh"]');
+            const liddyEl     = document.querySelector('.nw-node[data-person="Liddy"]');
+            const mitchellEl  = document.querySelector('.nw-node[data-person="Mitchell"]');
+            const huntFloat   = document.getElementById('nw-hunt-float');
+            const mccordFloat = document.getElementById('nw-mccord-float');
+            const wgFloat     = document.getElementById('nw-wg-float');
+            if (!kroghEl || !liddyEl || !huntFloat) return;
+
+            const kroghR  = kroghEl.getBoundingClientRect();
+            const liddyR  = liddyEl.getBoundingClientRect();
+            const nodeW   = 110;
+            const gap     = 20;
+
+            // Hunt: center 110px right of Krogh center; top aligned with Liddy top
+            const huntLeft = kroghR.left - cr.left + kroghR.width / 2 + 110 - nodeW / 2;
+            const huntTop  = liddyR.top - cr.top;
+            huntFloat.style.left = huntLeft + 'px';
+            huntFloat.style.top  = huntTop  + 'px';
+
+            // WG card: spans Hunt.left → Liddy.right, one gap below both nodes
+            const liddyBY  = liddyR.bottom - cr.top;
+            const wgTop    = liddyBY + gap;
+            const wgLeft   = huntLeft;
+            const wgWidth  = liddyR.right - cr.left - huntLeft;
+            if (wgFloat) {
+                wgFloat.style.left  = wgLeft  + 'px';
+                wgFloat.style.top   = wgTop   + 'px';
+                wgFloat.style.width = wgWidth + 'px';
+                const wgNode = wgFloat.querySelector('.nw-node');
+                if (wgNode) wgNode.style.width = wgWidth + 'px';
+            }
+
+            // McCord: same row as WG card, one gap to the right of Liddy
+            if (mccordFloat) {
+                mccordFloat.style.left = (liddyR.right - cr.left + gap) + 'px';
+                mccordFloat.style.top  = wgTop + 'px';
+            }
+
+            inner.style.minHeight = (wgTop + 180) + 'px';
+
+            const makeLine = (d) => {
+                const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                p.setAttribute('d', d);
+                p.setAttribute('stroke', '#666');
+                p.setAttribute('stroke-width', '1.5');
+                p.setAttribute('fill', 'none');
+                svg.appendChild(p);
+            };
+
+            // Krogh → Hunt diagonal
+            const kroghCX = kroghR.left + kroghR.width / 2 - cr.left;
+            const huntCX  = huntLeft + nodeW / 2;
+            makeLine(`M ${kroghCX} ${kroghR.bottom - cr.top} L ${huntCX} ${huntTop}`);
+
+            // Hunt → WG and Liddy → WG vertical drops
+            const liddyCX = liddyR.left + liddyR.width / 2 - cr.left;
+            makeLine(`M ${huntCX}  ${liddyBY} L ${huntCX}  ${wgTop}`);
+            makeLine(`M ${liddyCX} ${liddyBY} L ${liddyCX} ${wgTop}`);
+
+            // Mitchell → McCord: down from Mitchell, across, drop to McCord
+            if (mitchellEl && mccordFloat) {
+                const mitchR   = mitchellEl.getBoundingClientRect();
+                const mccordCX = parseFloat(mccordFloat.style.left) + nodeW / 2;
+                const midY     = wgTop - gap / 2;
+                const mitchCX  = mitchR.left + mitchR.width / 2 - cr.left;
+                makeLine(`M ${mitchCX} ${mitchR.bottom - cr.top} L ${mitchCX} ${midY} L ${mccordCX} ${midY} L ${mccordCX} ${wgTop}`);
+            }
+        })();
 
         const nixonNode = document.querySelector('#nw-nixon-row .nw-node');
         if (nixonNode) {
@@ -12528,7 +12626,7 @@ function openEnemiesPanel(questions) {
             const xMax = Math.max(x1, x2);
             // Start the routing channel below both endpoints, then push it down further
             // past the bottom of any node whose X range overlaps the horizontal span.
-            let yRoute = Math.max(y1, y2) + 15;
+            let yRoute = (y1 + y2) / 2;
             document.querySelectorAll('#nw-chart-inner .nw-node').forEach(n => {
                 if (n === elA || n === elB) return;
                 const nb = n.getBoundingClientRect();
