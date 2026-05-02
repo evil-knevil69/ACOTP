@@ -12412,7 +12412,6 @@ function openEnemiesPanel(questions) {
     };
 
     const _crossLinks = [
-        { from: 'Strachan', to: 'Mitchell' },
         { from: 'Hunt',     to: 'Krogh'    },
         { from: 'Hunt',     to: 'Liddy'    },
         { from: 'Klambach', to: 'Larue'    },
@@ -12462,7 +12461,7 @@ function openEnemiesPanel(questions) {
                 </div>
                 <div class="nw-col">
                     <div class="nw-col-label">&nbsp;</div>
-                    <ul class="nw-tree"><li>${_buildOrgTree({ id: 'Colson', children: [{ id: 'Hunt' }] }, false)}</li></ul>
+                    <ul class="nw-tree"><li>${_buildOrgTree({ id: 'Colson' }, false)}</li></ul>
                 </div>
                 <div class="nw-divider"></div>
                 <div class="nw-col">
@@ -12474,6 +12473,12 @@ function openEnemiesPanel(questions) {
         `;
 
         const inner = wrapper.querySelector('#nw-chart-inner');
+
+        const huntFloat = document.createElement('div');
+        huntFloat.id = 'nw-hunt-float';
+        huntFloat.style.position = 'absolute';
+        huntFloat.innerHTML = _buildOrgNode('Hunt', false);
+        inner.appendChild(huntFloat);
 
         const mccordFloat = document.createElement('div');
         mccordFloat.id = 'nw-mccord-float';
@@ -12507,27 +12512,34 @@ function openEnemiesPanel(questions) {
         // ── Position floated nodes + draw their connectors ────────────────────────
         (function() {
             const liddyEl     = document.querySelector('.nw-node[data-person="Liddy"]');
-            const huntEl      = document.querySelector('.nw-node[data-person="Hunt"]');
+            const colsonEl    = document.querySelector('.nw-node[data-person="Colson"]');
             const mitchellEl  = document.querySelector('.nw-node[data-person="Mitchell"]');
+            const huntFloat   = document.getElementById('nw-hunt-float');
             const mccordFloat = document.getElementById('nw-mccord-float');
             const wgFloat     = document.getElementById('nw-wg-float');
-            if (!liddyEl || !huntEl) return;
+            if (!liddyEl || !colsonEl) return;
 
             const liddyR  = liddyEl.getBoundingClientRect();
-            const huntR   = huntEl.getBoundingClientRect();
+            const colsonR = colsonEl.getBoundingClientRect();
             const nodeW   = 110;
             const gap     = 20;
 
-            // WG card: spans Hunt.left → Liddy.right, one gap below the lower of the two
-            const huntBY   = huntR.bottom  - cr.top;
-            const liddyBY  = liddyR.bottom - cr.top;
-            const wgTop    = Math.max(huntBY, liddyBY) + gap;
-            const wgLeft   = huntR.left - cr.left;
-            const wgWidth  = liddyR.right - huntR.left;
+            // Hunt float: same row as Liddy, left-aligned with Colson
+            const huntLeft = colsonR.left - cr.left;
+            const huntTop  = liddyR.top   - cr.top;
+            if (huntFloat) {
+                huntFloat.style.left = huntLeft + 'px';
+                huntFloat.style.top  = huntTop  + 'px';
+            }
+
+            // WG card: spans Hunt.left → Liddy.right, one gap below (Hunt and Liddy share the same row)
+            const nodeBottomY = liddyR.bottom - cr.top;
+            const wgTop   = nodeBottomY + gap;
+            const wgWidth = liddyR.right - colsonR.left;
             if (wgFloat) {
-                wgFloat.style.left  = wgLeft  + 'px';
-                wgFloat.style.top   = wgTop   + 'px';
-                wgFloat.style.width = wgWidth + 'px';
+                wgFloat.style.left  = huntLeft + 'px';
+                wgFloat.style.top   = wgTop    + 'px';
+                wgFloat.style.width = wgWidth  + 'px';
                 const wgNode = wgFloat.querySelector('.nw-node');
                 if (wgNode) wgNode.style.width = wgWidth + 'px';
             }
@@ -12549,15 +12561,38 @@ function openEnemiesPanel(questions) {
                 svg.appendChild(p);
             };
 
+            const makeMarkerLine = (d) => {
+                const bleed = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                bleed.setAttribute('d', d);
+                bleed.setAttribute('fill', 'none');
+                bleed.setAttribute('stroke', '#d42020');
+                bleed.setAttribute('stroke-width', '7');
+                bleed.setAttribute('stroke-linecap', 'round');
+                bleed.setAttribute('stroke-linejoin', 'round');
+                bleed.setAttribute('opacity', '0.18');
+                bleed.setAttribute('filter', 'url(#nw-marker)');
+                svg.appendChild(bleed);
+                const core = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                core.setAttribute('d', d);
+                core.setAttribute('fill', 'none');
+                core.setAttribute('stroke', '#c41a1a');
+                core.setAttribute('stroke-width', '3.75');
+                core.setAttribute('stroke-linecap', 'round');
+                core.setAttribute('stroke-linejoin', 'round');
+                core.setAttribute('opacity', '0.88');
+                core.setAttribute('filter', 'url(#nw-marker)');
+                svg.appendChild(core);
+            };
+
             // Hunt + Liddy → WG: two-parent join (drops → horizontal bar → single drop)
-            const huntCX  = huntR.left  + huntR.width  / 2 - cr.left;
+            const huntCX  = huntLeft + nodeW / 2;
             const liddyCX = liddyR.left + liddyR.width / 2 - cr.left;
             const barY    = wgTop - gap / 2;
             const barCX   = (huntCX + liddyCX) / 2;
-            makeLine(`M ${huntCX}  ${huntBY}  L ${huntCX}  ${barY}`);
-            makeLine(`M ${liddyCX} ${liddyBY} L ${liddyCX} ${barY}`);
-            makeLine(`M ${huntCX}  ${barY}    L ${liddyCX} ${barY}`);
-            makeLine(`M ${barCX}   ${barY}    L ${barCX}   ${wgTop}`);
+            makeLine(`M ${huntCX}  ${nodeBottomY} L ${huntCX}  ${barY}`);
+            makeLine(`M ${liddyCX} ${nodeBottomY} L ${liddyCX} ${barY}`);
+            makeLine(`M ${huntCX}  ${barY}        L ${liddyCX} ${barY}`);
+            makeLine(`M ${barCX}   ${barY}        L ${barCX}   ${wgTop}`);
 
             // Mitchell → McCord: down from Mitchell, across, drop to McCord
             if (mitchellEl && mccordFloat) {
@@ -12566,6 +12601,25 @@ function openEnemiesPanel(questions) {
                 const midY     = wgTop - gap / 2;
                 const mitchCX  = mitchR.left + mitchR.width / 2 - cr.left;
                 makeLine(`M ${mitchCX} ${mitchR.bottom - cr.top} L ${mitchCX} ${midY} L ${mccordCX} ${midY} L ${mccordCX} ${wgTop}`);
+            }
+
+            // Strachan → Mitchell: route through corridor between Erlichman/Colson bottom and Krogh top
+            const strachanEl  = document.querySelector('.nw-node[data-person="Strachan"]');
+            const erlichmanEl = document.querySelector('.nw-node[data-person="Erlichman"]');
+            const kroghEl     = document.querySelector('.nw-node[data-person="Krogh"]');
+            if (strachanEl && mitchellEl && erlichmanEl && kroghEl) {
+                const strachanR  = strachanEl.getBoundingClientRect();
+                const mitchR     = mitchellEl.getBoundingClientRect();
+                const erlichmanR = erlichmanEl.getBoundingClientRect();
+                const kroghR     = kroghEl.getBoundingClientRect();
+                const upperBound = Math.max(erlichmanR.bottom, colsonR.bottom) - cr.top;
+                const lowerBound = kroghR.top - cr.top;
+                const corridorY  = (upperBound + lowerBound) / 2;
+                const sx = strachanR.right - cr.left;
+                const sy = strachanR.top + strachanR.height / 2 - cr.top;
+                const mx = mitchR.left - cr.left;
+                const my = mitchR.top + mitchR.height / 2 - cr.top;
+                makeMarkerLine(`M ${sx} ${sy} L ${sx} ${corridorY} L ${mx} ${corridorY} L ${mx} ${my}`);
             }
         })();
 
