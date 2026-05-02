@@ -1159,7 +1159,7 @@ document.head.appendChild(style);
 e=campaignTrail_temp
 
 var changeGameDisp = (hide) => {
-  disp = "";
+  let disp = "";
   if (hide) {
     disp = "none";
   }
@@ -1167,7 +1167,7 @@ var changeGameDisp = (hide) => {
 };
 
 e.creditsPage = () => {
-  credits_html = `
+  let credits_html = `
     <h3>Coding</h3>
     <p><font color='#010101'>Evil_Knevil69</font></p>
     <p><font color='#010101'>Philip (aged 9)</font></p>
@@ -1219,7 +1219,7 @@ e.creditsPage = () => {
 }
 
 e.watergatePage = () => {
-  watergate_html = `
+  let watergate_html = `
     <img src='https://file.garden/aXPgNT-ZRCxxpy0g/wwwatergate.jpeg' style='float: left; margin-right: 12px; width: 450px;'>
     <h3>Watergate in the 21st Century</h3>
     <p><font color='#010101'>Evil_Knevil69</font></p>

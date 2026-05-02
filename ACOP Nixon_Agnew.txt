@@ -11752,6 +11752,7 @@ var Larue = 2;
 var Stans = 2;
 var Klambach = 2;
 var Kleindienst = 2;
+var Colson = 2;
 
 // ── Nominee ───────────────────────────────────────────────────────────────────
 var Nominee = "Nixon";
@@ -12031,7 +12032,8 @@ function openInnerCircle() {
     panel.appendChild(btnRow);
     document.getElementById('game_window').appendChild(panel);
     requestAnimationFrame(() => requestAnimationFrame(() => {
-        if (typeof window._drawOrgLinks === 'function') window._drawOrgLinks();
+        if (typeof window._drawOrgLinks  === 'function') window._drawOrgLinks();
+        if (typeof window._syncOrgStates === 'function') window._syncOrgStates();
     }));
 }
 
@@ -12567,6 +12569,18 @@ function openEnemiesPanel(questions) {
         if (!p) return;
         const img = node.querySelector('img');
         if (img && p.images[state]) img.src = p.images[state];
+    };
+
+    window._syncOrgStates = function() {
+        const toState = (v) => v >= 2 ? 'active' : v === 1 ? 'resigned' : v === 0 ? 'indicted' : 'imprisoned';
+        [
+            ['Haldeman',  Haldeman],  ['Erlichman', Erlichman], ['Mitchell', Mitchell],
+            ['Magruder',  Magruder],  ['Krogh',     Krogh],     ['Chapin',   Chapin],
+            ['Segretti',  Segretti],  ['Strachan',  Strachan],  ['Hunt',     Hunt],
+            ['McCord',    McCord],    ['Liddy',     Liddy],     ['Larue',    Larue],
+            ['Stans',     Stans],     ['Klambach',  Klambach],  ['Dean',     Dean],
+            ['Colson',    Colson],
+        ].forEach(([id, val]) => window._setOrgState(id, toState(val)));
     };
 })();
 
