@@ -12399,7 +12399,7 @@ function openEnemiesPanel(questions) {
     const _whTree2 = {
         id: 'Erlichman',
         children: [
-            { id: 'Krogh', children: [{ id: 'Hunt', diagonalChild: true }] },
+            { id: 'Krogh' },
         ],
     };
     const _creepTree = {
@@ -12413,7 +12413,7 @@ function openEnemiesPanel(questions) {
 
     const _crossLinks = [
         { from: 'Strachan', to: 'Mitchell' },
-        { from: 'Colson',   to: 'Hunt'     },
+        { from: 'Hunt',     to: 'Krogh'    },
         { from: 'Hunt',     to: 'Liddy'    },
         { from: 'Klambach', to: 'Larue'    },
     ];
@@ -12462,7 +12462,7 @@ function openEnemiesPanel(questions) {
                 </div>
                 <div class="nw-col">
                     <div class="nw-col-label">&nbsp;</div>
-                    <ul class="nw-tree"><li>${_buildOrgTree({ id: 'Colson' }, false)}</li></ul>
+                    <ul class="nw-tree"><li>${_buildOrgTree({ id: 'Colson', children: [{ id: 'Hunt' }] }, false)}</li></ul>
                 </div>
                 <div class="nw-divider"></div>
                 <div class="nw-col">
@@ -12506,15 +12506,13 @@ function openEnemiesPanel(questions) {
 
         // ── Position floated nodes + draw their connectors ────────────────────────
         (function() {
-            const kroghEl     = document.querySelector('.nw-node[data-person="Krogh"]');
             const liddyEl     = document.querySelector('.nw-node[data-person="Liddy"]');
             const huntEl      = document.querySelector('.nw-node[data-person="Hunt"]');
             const mitchellEl  = document.querySelector('.nw-node[data-person="Mitchell"]');
             const mccordFloat = document.getElementById('nw-mccord-float');
             const wgFloat     = document.getElementById('nw-wg-float');
-            if (!kroghEl || !liddyEl || !huntEl) return;
+            if (!liddyEl || !huntEl) return;
 
-            const kroghR  = kroghEl.getBoundingClientRect();
             const liddyR  = liddyEl.getBoundingClientRect();
             const huntR   = huntEl.getBoundingClientRect();
             const nodeW   = 110;
@@ -12551,12 +12549,8 @@ function openEnemiesPanel(questions) {
                 svg.appendChild(p);
             };
 
-            // Krogh → Hunt diagonal
-            const kroghCX = kroghR.left + kroghR.width / 2 - cr.left;
-            const huntCX  = huntR.left  + huntR.width  / 2 - cr.left;
-            makeLine(`M ${kroghCX} ${kroghR.bottom - cr.top} L ${huntCX} ${huntR.top - cr.top}`);
-
             // Hunt + Liddy → WG: two-parent join (drops → horizontal bar → single drop)
+            const huntCX  = huntR.left  + huntR.width  / 2 - cr.left;
             const liddyCX = liddyR.left + liddyR.width / 2 - cr.left;
             const barY    = wgTop - gap / 2;
             const barCX   = (huntCX + liddyCX) / 2;
