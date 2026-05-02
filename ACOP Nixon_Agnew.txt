@@ -12262,6 +12262,10 @@ function openEnemiesPanel(questions) {
             height: 64px;
             border-radius: 2px;
         }
+        .nw-tree ul.nw-has-diagonal::before { display: none; }
+        .nw-tree li.nw-diagonal-child::before,
+        .nw-tree li.nw-diagonal-child::after { display: none; }
+        .nw-tree li.nw-diagonal-child { margin-left: 110px; }
         #nw-svg-overlay {
             position: absolute;
             top: 0;
@@ -12395,7 +12399,7 @@ function openEnemiesPanel(questions) {
     const _whTree2 = {
         id: 'Erlichman',
         children: [
-            { id: 'Krogh' },
+            { id: 'Krogh', children: [{ id: 'Hunt', diagonalChild: true }] },
         ],
     };
     const _creepTree = {
@@ -12428,8 +12432,12 @@ function openEnemiesPanel(questions) {
     }
 
     function _buildOrgTree(node, isCREEP) {
-        const kids = (node.children || []).map(c => `<li>${_buildOrgTree(c, isCREEP)}</li>`).join('');
-        return _buildOrgNode(node.id, isCREEP) + (kids ? `<ul>${kids}</ul>` : '');
+        const children = node.children || [];
+        const kids = children.map(c =>
+            `<li${c.diagonalChild ? ' class="nw-diagonal-child"' : ''}>${_buildOrgTree(c, isCREEP)}</li>`
+        ).join('');
+        const hasDiag = children.some(c => c.diagonalChild);
+        return _buildOrgNode(node.id, isCREEP) + (kids ? `<ul${hasDiag ? ' class="nw-has-diagonal"' : ''}>${kids}</ul>` : '');
     }
 
     // Called by openInnerCircle — renders the chart into the supplied wrapper element
@@ -12467,12 +12475,6 @@ function openEnemiesPanel(questions) {
 
         const inner = wrapper.querySelector('#nw-chart-inner');
 
-        const huntFloat = document.createElement('div');
-        huntFloat.id = 'nw-hunt-float';
-        huntFloat.style.position = 'absolute';
-        huntFloat.innerHTML = _buildOrgNode('Hunt', false);
-        inner.appendChild(huntFloat);
-
         const mccordFloat = document.createElement('div');
         mccordFloat.id = 'nw-mccord-float';
         mccordFloat.style.position = 'absolute';
@@ -12506,28 +12508,24 @@ function openEnemiesPanel(questions) {
         (function() {
             const kroghEl     = document.querySelector('.nw-node[data-person="Krogh"]');
             const liddyEl     = document.querySelector('.nw-node[data-person="Liddy"]');
+            const huntEl      = document.querySelector('.nw-node[data-person="Hunt"]');
             const mitchellEl  = document.querySelector('.nw-node[data-person="Mitchell"]');
-            const huntFloat   = document.getElementById('nw-hunt-float');
             const mccordFloat = document.getElementById('nw-mccord-float');
             const wgFloat     = document.getElementById('nw-wg-float');
-            if (!kroghEl || !liddyEl || !huntFloat) return;
+            if (!kroghEl || !liddyEl || !huntEl) return;
 
             const kroghR  = kroghEl.getBoundingClientRect();
             const liddyR  = liddyEl.getBoundingClientRect();
+            const huntR   = huntEl.getBoundingClientRect();
             const nodeW   = 110;
             const gap     = 20;
 
-            // Hunt: center 110px right of Krogh center; top aligned with Liddy top
-            const huntLeft = kroghR.left - cr.left + kroghR.width / 2 + 110 - nodeW / 2;
-            const huntTop  = liddyR.top - cr.top;
-            huntFloat.style.left = huntLeft + 'px';
-            huntFloat.style.top  = huntTop  + 'px';
-
-            // WG card: spans Hunt.left → Liddy.right, one gap below both nodes
+            // WG card: spans Hunt.left → Liddy.right, one gap below the lower of the two
+            const huntBY   = huntR.bottom  - cr.top;
             const liddyBY  = liddyR.bottom - cr.top;
-            const wgTop    = liddyBY + gap;
-            const wgLeft   = huntLeft;
-            const wgWidth  = liddyR.right - cr.left - huntLeft;
+            const wgTop    = Math.max(huntBY, liddyBY) + gap;
+            const wgLeft   = huntR.left - cr.left;
+            const wgWidth  = liddyR.right - huntR.left;
             if (wgFloat) {
                 wgFloat.style.left  = wgLeft  + 'px';
                 wgFloat.style.top   = wgTop   + 'px';
@@ -12555,13 +12553,17 @@ function openEnemiesPanel(questions) {
 
             // Krogh → Hunt diagonal
             const kroghCX = kroghR.left + kroghR.width / 2 - cr.left;
-            const huntCX  = huntLeft + nodeW / 2;
-            makeLine(`M ${kroghCX} ${kroghR.bottom - cr.top} L ${huntCX} ${huntTop}`);
+            const huntCX  = huntR.left  + huntR.width  / 2 - cr.left;
+            makeLine(`M ${kroghCX} ${kroghR.bottom - cr.top} L ${huntCX} ${huntR.top - cr.top}`);
 
-            // Hunt → WG and Liddy → WG vertical drops
+            // Hunt + Liddy → WG: two-parent join (drops → horizontal bar → single drop)
             const liddyCX = liddyR.left + liddyR.width / 2 - cr.left;
-            makeLine(`M ${huntCX}  ${liddyBY} L ${huntCX}  ${wgTop}`);
-            makeLine(`M ${liddyCX} ${liddyBY} L ${liddyCX} ${wgTop}`);
+            const barY    = wgTop - gap / 2;
+            const barCX   = (huntCX + liddyCX) / 2;
+            makeLine(`M ${huntCX}  ${huntBY}  L ${huntCX}  ${barY}`);
+            makeLine(`M ${liddyCX} ${liddyBY} L ${liddyCX} ${barY}`);
+            makeLine(`M ${huntCX}  ${barY}    L ${liddyCX} ${barY}`);
+            makeLine(`M ${barCX}   ${barY}    L ${barCX}   ${wgTop}`);
 
             // Mitchell → McCord: down from Mitchell, across, drop to McCord
             if (mitchellEl && mccordFloat) {
