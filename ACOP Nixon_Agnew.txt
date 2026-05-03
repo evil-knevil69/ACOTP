@@ -12521,7 +12521,8 @@ function openEnemiesPanel(questions) {
             const liddyEl     = document.querySelector('.nw-node[data-person="Liddy"]');
             const mitchellEl  = document.querySelector('.nw-node[data-person="Mitchell"]');
             const magruderEl  = document.querySelector('.nw-node[data-person="Magruder"]');
-            const klamEl      = document.querySelector('.nw-node[data-person="Klambach"]');
+            const larueEl     = document.querySelector('.nw-node[data-person="Larue"]');
+            const stansEl     = document.querySelector('.nw-node[data-person="Stans"]');
             const huntFloat   = document.getElementById('nw-hunt-float');
             const mccordFloat = document.getElementById('nw-mccord-float');
             const wgFloat     = document.getElementById('nw-wg-float');
@@ -12552,10 +12553,14 @@ function openEnemiesPanel(questions) {
                 if (wgNode) wgNode.style.width = wgWidth + 'px';
             }
 
-            // McCord: same row as WG card, right of Klambach (rightmost CREEP node)
+            // McCord: same row as WG card, centred between LaRue and Stans
             if (mccordFloat) {
-                const anchorR = (klamEl || liddyEl).getBoundingClientRect();
-                mccordFloat.style.left = (anchorR.right - cr.left + gap) + 'px';
+                const laR = larueEl ? larueEl.getBoundingClientRect() : null;
+                const stR = stansEl ? stansEl.getBoundingClientRect() : null;
+                const mccordLeft = (laR && stR)
+                    ? (laR.right + stR.left) / 2 - nodeW / 2 - cr.left
+                    : (liddyR.right - cr.left + gap);
+                mccordFloat.style.left = mccordLeft + 'px';
                 mccordFloat.style.top  = wgTop + 'px';
             }
 
