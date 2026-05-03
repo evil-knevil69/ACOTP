@@ -12284,25 +12284,25 @@ function openEnemiesPanel(questions) {
             name: 'Richard Nixon',
             title: 'President of the United States',
             bio: '37th President.',
-            initials: 'RN', images: {},
+            initials: 'RN', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/nixon.JPG' },
         },
         Haldeman: {
             name: 'H.R. Haldeman',
             title: 'White House Chief of Staff',
             bio: 'Nixon\'s gatekeeper. Controlled all access to the President.',
-            initials: 'HRH', images: {},
+            initials: 'HRH', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Haldeman.jpg' },
         },
         Erlichman: {
             name: 'John Ehrlichman',
             title: 'Asst. to President, Domestic Affairs',
             bio: 'Established the Plumbers unit. Knew about the Ellsberg break-in from an early stage.',
-            initials: 'JE', images: {},
+            initials: 'JE', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/erlichman.jpg' },
         },
         Dean: {
             name: 'John Dean',
             title: 'White House Counsel',
             bio: 'Monitored FBI investigation on Nixon\'s behalf. Participated in the cover-up since its inception and increasingly at its center.',
-            initials: 'JD', images: {},
+            initials: 'JD', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/dean.JPG' },
         },
         Kissinger: {
             name: 'Henry Kissinger',
@@ -12314,79 +12314,79 @@ function openEnemiesPanel(questions) {
             name: 'Charles Colson',
             title: 'Special Counsel to the President',
             bio: 'Nixon\'s political "hatchet man". Recruited Hunt into the White House. Ran dirty-tricks and political intelligence operations.',
-            initials: 'CC', images: {},
+            initials: 'CC', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/colson.jpg' },
         },
         Chapin: {
             name: 'Dwight Chapin',
             title: 'Deputy Asst. to the President',
             bio: 'Coordinated the "dirty tricks" campaign. Hired his friend, Segretti to run political sabotage operations against the Democrats.',
-            initials: 'DC', images: {},
+            initials: 'DC', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Chapin.png' },
         },
         Krogh: {
             name: 'Egil Krogh',
             title: 'Head of the Plumbers',
             bio: 'Installed by Ehrlichman to run the Special Investigations Unit. Brought Liddy into the White House. Ran the Ellsberg break-in. Now in the Transportation Dept.',
-            initials: 'EK', images: {},
+            initials: 'EK', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/krogh.png' },
         },
         Strachan: {
             name: 'Gordon Strachan',
             title: 'Liaison, Haldeman–CREEP',
             bio: 'Kept Haldeman updated on CREEP\'s surveillance operations.',
-            initials: 'GS', images: {},
+            initials: 'GS', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Strachan.jpg' },
         },
         Segretti: {
             name: 'Donald Segretti',
             title: 'Dirty Tricks Operative',
             bio: 'Hired by Chapin for "ratfucking", forged letters, disrupted Democratic rallies.',
-            initials: 'DS', images: {},
+            initials: 'DS', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Segretti.png' },
         },
         Hunt: {
             name: 'Howard Hunt',
             title: 'Former CIA operative',
             bio: 'Former CIA, novellist. Maybe inspired the "whole Bay of Pigs thing" remark. Recruited into WH by Colson. Prime mover behind the DNC break-in. Led the Plumbers on covert operations. Currently on trial as part of the Watergate 7.',
-            initials: 'HH', images: {},
+            initials: 'HH', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/hunt.JPG' },
         },
         Liddy: {
             name: 'Gordon Liddy',
             title: 'Legal Counsel, CREEP',
             bio: 'Former FBI agent. Devised CREEP\'s intelligence operation (GEMSTONE). Managed the DNC break-in with Hunt. A "right wing exuberant", or a "bit of a nut". Currently on trial as part of the Watergate 7.',
-            initials: 'GL', images: {},
+            initials: 'GL', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/liddy2.png' },
         },
         Mitchell: {
             name: 'John Mitchell',
             title: 'Director, CREEP',
             bio: 'Former Attorney General. Personal friend of the President. Approved CREEP\'s intelligence operations if not the DNC break-in specifically.',
-            initials: 'JM', images: {},
+            initials: 'JM', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/mitchell.png' },
         },
         Magruder: {
             name: 'Jeb Magruder',
             title: 'Deputy Director, CREEP',
             bio: 'Approved the Watergate break-in and probably gave the direct instruction to Liddy to go into the Watergate. Director of the 1972 inauguration and now in the Dept of Commerce.',
-            initials: 'JsM', images: {},
+            initials: 'JsM', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/macgruder.png' },
         },
         Larue: {
             name: 'Frederick LaRue',
             title: 'Asst. to Mitchell, CREEP',
             bio: 'Close Mitchell aide. Helped coordinate and deliver hush money payments to the seven Watergate defendants.',
-            initials: 'FL', images: {},
+            initials: 'FL', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/LARUE.png' },
         },
         Stans: {
             name: 'Maurice Stans',
             title: 'Finance Chairman, CREEP',
             bio: 'Former Secretary of Commerce. Raised millions in illegal campaign contributions.',
-            initials: 'MS', images: {},
+            initials: 'MS', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Maurice-Stans.jpg' },
         },
         Klambach: {
             name: 'Herbert Kalmbach',
             title: 'Assoc. Finance Chairman, CREEP',
             bio: 'Nixon\'s personal attorney. Raised and delivered hush money to the seven Watergate defendants.',
-            initials: 'HKb', images: {},
+            initials: 'HKb', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/klambach.JPG' },
         },
         McCord: {
             name: 'James McCord',
             title: 'Security Director, CREEP',
             bio: 'Former CIA officer. One of the five Watergate burglars. Formerly on the WH payroll and bodyguard for Martha Mitchell. Currently on trial as part of the Watergate 7.',
-            initials: 'JMc', images: {},
+            initials: 'JMc', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/mccord.jpg' },
         },
     };
 
@@ -12487,7 +12487,7 @@ function openEnemiesPanel(questions) {
         wgFloat.id = 'nw-wg-float';
         wgFloat.style.position = 'absolute';
         wgFloat.innerHTML = `<div class="nw-node nw-creep nw-burglars" data-person="WatergateBurglars" data-state="active">
-            <div class="nw-photo-wrap"></div>
+            <div class="nw-photo-wrap"><img src="https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/watergateburglars.JPG" alt="Watergate Burglars"></div>
             <div class="nw-name">Watergate Burglars</div>
         </div>`;
         inner.appendChild(wgFloat);
