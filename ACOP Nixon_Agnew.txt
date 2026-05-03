@@ -12115,10 +12115,10 @@ function openEnemiesPanel(questions) {
         }
         .nw-col-label {
             font-family: 'TypewriterDry', sans-serif;
-            font-size: 9px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 1.2px;
-            color: #888;
+            color: #000;
             margin-bottom: 5px;
             text-align: center;
             position: relative;
