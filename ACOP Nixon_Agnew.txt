@@ -12259,8 +12259,11 @@ function openEnemiesPanel(questions) {
         .nw-node[data-state="imprisoned"] .nw-photo-wrap { filter: grayscale(100%) brightness(0.65); }
         .nw-node.nw-burglars .nw-photo-wrap {
             width: 100%;
-            height: 64px;
+            height: 70px;
             border-radius: 2px;
+        }
+        .nw-node.nw-burglars .nw-photo-wrap img {
+            object-fit: contain;
         }
         .nw-tree ul.nw-has-diagonal::before { display: none; }
         .nw-tree li.nw-diagonal-child::before,
@@ -12417,7 +12420,7 @@ function openEnemiesPanel(questions) {
         { from: 'Strachan', to: 'Mitchell' },
         { from: 'Hunt',     to: 'Krogh'    },
         { from: 'Hunt',     to: 'Liddy'    },
-        { from: 'Klambach', to: 'Larue'    },
+        { from: 'Larue', to: 'Klambach', fromEdge: 'bottom', toEdge: 'top' },
     ];
 
     function _buildOrgNode(id, isCREEP) {
@@ -12464,7 +12467,7 @@ function openEnemiesPanel(questions) {
                 </div>
                 <div class="nw-col">
                     <div class="nw-col-label">&nbsp;</div>
-                    <ul class="nw-tree"><li>${_buildOrgTree({ id: 'Colson', children: [{ id: 'Hunt' }] }, false)}</li></ul>
+                    <ul class="nw-tree"><li>${_buildOrgTree({ id: 'Colson', children: [{ id: 'Hunt', floatChild: true }] }, false)}</li></ul>
                 </div>
                 <div class="nw-divider"></div>
                 <div class="nw-col">
@@ -12476,6 +12479,12 @@ function openEnemiesPanel(questions) {
         `;
 
         const inner = wrapper.querySelector('#nw-chart-inner');
+
+        const huntFloat = document.createElement('div');
+        huntFloat.id = 'nw-hunt-float';
+        huntFloat.style.position = 'absolute';
+        huntFloat.innerHTML = _buildOrgNode('Hunt', false);
+        inner.appendChild(huntFloat);
 
         const mccordFloat = document.createElement('div');
         mccordFloat.id = 'nw-mccord-float';
@@ -12508,35 +12517,45 @@ function openEnemiesPanel(questions) {
 
         // ── Position floated nodes + draw their connectors ────────────────────────
         (function() {
-            const huntEl      = document.querySelector('.nw-node[data-person="Hunt"]');
+            const colsonEl    = document.querySelector('.nw-node[data-person="Colson"]');
             const liddyEl     = document.querySelector('.nw-node[data-person="Liddy"]');
             const mitchellEl  = document.querySelector('.nw-node[data-person="Mitchell"]');
+            const magruderEl  = document.querySelector('.nw-node[data-person="Magruder"]');
+            const klamEl      = document.querySelector('.nw-node[data-person="Klambach"]');
+            const huntFloat   = document.getElementById('nw-hunt-float');
             const mccordFloat = document.getElementById('nw-mccord-float');
             const wgFloat     = document.getElementById('nw-wg-float');
-            if (!huntEl || !liddyEl) return;
+            if (!colsonEl || !liddyEl) return;
 
-            const huntR  = huntEl.getBoundingClientRect();
-            const liddyR = liddyEl.getBoundingClientRect();
-            const nodeW  = 110;
-            const gap    = 20;
+            const colsonR = colsonEl.getBoundingClientRect();
+            const liddyR  = liddyEl.getBoundingClientRect();
+            const nodeW   = 110;
+            const gap     = 20;
 
-            // WG card: spans Hunt.left → Liddy.right, gap below the lower of the two
-            const huntBY  = huntR.bottom  - cr.top;
+            // Hunt float: same row as Liddy, left-aligned with Colson
+            const huntLeft = colsonR.left - cr.left;
+            const huntTop  = liddyR.top   - cr.top;
+            if (huntFloat) {
+                huntFloat.style.left = huntLeft + 'px';
+                huntFloat.style.top  = huntTop  + 'px';
+            }
+
+            // WG card: spans Hunt.left → Liddy.right, one gap below
             const liddyBY = liddyR.bottom - cr.top;
-            const wgTop   = Math.max(huntBY, liddyBY) + gap;
-            const wgLeft  = huntR.left - cr.left;
-            const wgWidth = liddyR.right - huntR.left;
+            const wgTop   = liddyBY + gap;
+            const wgWidth = liddyR.right - colsonR.left;
             if (wgFloat) {
-                wgFloat.style.left  = wgLeft  + 'px';
-                wgFloat.style.top   = wgTop   + 'px';
-                wgFloat.style.width = wgWidth + 'px';
+                wgFloat.style.left  = huntLeft + 'px';
+                wgFloat.style.top   = wgTop    + 'px';
+                wgFloat.style.width = wgWidth  + 'px';
                 const wgNode = wgFloat.querySelector('.nw-node');
                 if (wgNode) wgNode.style.width = wgWidth + 'px';
             }
 
-            // McCord: same row as WG card, one gap to the right of Liddy
+            // McCord: same row as WG card, right of Klambach (rightmost CREEP node)
             if (mccordFloat) {
-                mccordFloat.style.left = (liddyR.right - cr.left + gap) + 'px';
+                const anchorR = (klamEl || liddyEl).getBoundingClientRect();
+                mccordFloat.style.left = (anchorR.right - cr.left + gap) + 'px';
                 mccordFloat.style.top  = wgTop + 'px';
             }
 
@@ -12551,23 +12570,29 @@ function openEnemiesPanel(questions) {
                 svg.appendChild(p);
             };
 
+            // Colson → Hunt: straight vertical line from Colson bottom-center to Hunt top-center
+            const colsonCX = colsonR.left + colsonR.width / 2 - cr.left;
+            const huntCX   = huntLeft + nodeW / 2;
+            makeLine(`M ${colsonCX} ${colsonR.bottom - cr.top} L ${huntCX} ${huntTop}`);
+
             // Hunt + Liddy → WG: two-parent join from bottom-center of each card
-            const huntCX  = huntR.left  + huntR.width  / 2 - cr.left;
-            const liddyCX = liddyR.left + liddyR.width / 2 - cr.left;
-            const barY    = wgTop - gap / 2;
-            const barCX   = (huntCX + liddyCX) / 2;
+            const liddyCX  = liddyR.left + liddyR.width / 2 - cr.left;
+            const huntBY   = huntTop + liddyR.height;  // same card height as Liddy
+            const barY     = wgTop - gap / 2;
+            const barCX    = (huntCX + liddyCX) / 2;
             makeLine(`M ${huntCX}  ${huntBY}  L ${huntCX}  ${barY}`);
             makeLine(`M ${liddyCX} ${liddyBY} L ${liddyCX} ${barY}`);
             makeLine(`M ${huntCX}  ${barY}    L ${liddyCX} ${barY}`);
             makeLine(`M ${barCX}   ${barY}    L ${barCX}   ${wgTop}`);
 
-            // Mitchell → McCord: down from Mitchell, across, drop to McCord
-            if (mitchellEl && mccordFloat) {
+            // Mitchell → McCord: branch off at the same level as Mitchell's other children
+            if (mitchellEl && magruderEl && mccordFloat) {
                 const mitchR   = mitchellEl.getBoundingClientRect();
+                const childTopY = magruderEl.getBoundingClientRect().top - cr.top;
+                const branchY  = (mitchR.bottom - cr.top + childTopY) / 2;
                 const mccordCX = parseFloat(mccordFloat.style.left) + nodeW / 2;
-                const midY     = wgTop - gap / 2;
                 const mitchCX  = mitchR.left + mitchR.width / 2 - cr.left;
-                makeLine(`M ${mitchCX} ${mitchR.bottom - cr.top} L ${mitchCX} ${midY} L ${mccordCX} ${midY} L ${mccordCX} ${wgTop}`);
+                makeLine(`M ${mitchCX} ${mitchR.bottom - cr.top} L ${mitchCX} ${branchY} L ${mccordCX} ${branchY} L ${mccordCX} ${wgTop}`);
             }
 
         })();
@@ -12591,20 +12616,20 @@ function openEnemiesPanel(questions) {
             });
         }
 
-        _crossLinks.forEach(({ from, to }) => {
+        _crossLinks.forEach(({ from, to, fromEdge = 'top', toEdge = 'top' }) => {
             const a = document.querySelector(`.nw-node[data-person="${from}"]`);
             const b = document.querySelector(`.nw-node[data-person="${to}"]`);
-            if (a && b) _drawOrgArc(svg, cr, a, b, null, false, false, true);
+            if (a && b) _drawOrgArc(svg, cr, a, b, null, false, false, true, fromEdge, toEdge);
         });
     };
 
-    function _drawOrgArc(svg, cr, elA, elB, color, dashed, straight = false, marker = false) {
+    function _drawOrgArc(svg, cr, elA, elB, color, dashed, straight = false, marker = false, fromEdge = 'top', toEdge = 'top') {
         const a  = elA.getBoundingClientRect();
         const b  = elB.getBoundingClientRect();
         const x1 = a.left + a.width  / 2 - cr.left;
-        const y1 = a.top  - cr.top;
+        const y1 = fromEdge === 'bottom' ? a.bottom - cr.top : a.top - cr.top;
         const x2 = b.left + b.width  / 2 - cr.left;
-        const y2 = b.top  - cr.top;
+        const y2 = toEdge  === 'bottom' ? b.bottom - cr.top : b.top  - cr.top;
         // Quadratic bezier with downward sag (catenary approximation)
         const mx  = (x1 + x2) / 2;
         const my  = (y1 + y2) / 2;
