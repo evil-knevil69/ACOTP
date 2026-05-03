@@ -12413,6 +12413,7 @@ function openEnemiesPanel(questions) {
     };
 
     const _crossLinks = [
+        { from: 'Strachan', to: 'Mitchell' },
         { from: 'Hunt',     to: 'Krogh'    },
         { from: 'Hunt',     to: 'Liddy'    },
         { from: 'Klambach', to: 'Larue'    },
@@ -12503,10 +12504,10 @@ function openEnemiesPanel(questions) {
         const inner = document.getElementById('nw-chart-inner');
         if (!svg || !inner) return;
         svg.innerHTML = `<defs>
-            <filter id="nw-marker" x="-8%" y="-30%" width="116%" height="160%" color-interpolation-filters="sRGB">
-                <feTurbulence type="fractalNoise" baseFrequency="0.035 0.06" numOctaves="3" seed="7" result="noise"/>
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.5" xChannelSelector="R" yChannelSelector="G" result="warped"/>
-                <feGaussianBlur in="warped" stdDeviation="0.45"/>
+            <filter id="nw-string" x="-5%" y="-40%" width="110%" height="180%" color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.85 0.025" numOctaves="4" seed="5" result="fiber"/>
+                <feDisplacementMap in="SourceGraphic" in2="fiber" scale="1.3" xChannelSelector="R" yChannelSelector="G" result="textured"/>
+                <feGaussianBlur in="textured" stdDeviation="0.25"/>
             </filter>
         </defs>`;
         const cr = inner.getBoundingClientRect();
@@ -12563,29 +12564,6 @@ function openEnemiesPanel(questions) {
                 svg.appendChild(p);
             };
 
-            const makeMarkerLine = (d) => {
-                const bleed = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                bleed.setAttribute('d', d);
-                bleed.setAttribute('fill', 'none');
-                bleed.setAttribute('stroke', '#d42020');
-                bleed.setAttribute('stroke-width', '7');
-                bleed.setAttribute('stroke-linecap', 'round');
-                bleed.setAttribute('stroke-linejoin', 'round');
-                bleed.setAttribute('opacity', '0.18');
-                bleed.setAttribute('filter', 'url(#nw-marker)');
-                svg.appendChild(bleed);
-                const core = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                core.setAttribute('d', d);
-                core.setAttribute('fill', 'none');
-                core.setAttribute('stroke', '#c41a1a');
-                core.setAttribute('stroke-width', '3.75');
-                core.setAttribute('stroke-linecap', 'round');
-                core.setAttribute('stroke-linejoin', 'round');
-                core.setAttribute('opacity', '0.88');
-                core.setAttribute('filter', 'url(#nw-marker)');
-                svg.appendChild(core);
-            };
-
             // Hunt + Liddy → WG: two-parent join (drops → horizontal bar → single drop)
             const huntCX  = huntLeft + nodeW / 2;
             const liddyCX = liddyR.left + liddyR.width / 2 - cr.left;
@@ -12605,24 +12583,6 @@ function openEnemiesPanel(questions) {
                 makeLine(`M ${mitchCX} ${mitchR.bottom - cr.top} L ${mitchCX} ${midY} L ${mccordCX} ${midY} L ${mccordCX} ${wgTop}`);
             }
 
-            // Strachan → Mitchell: route through corridor between Erlichman/Colson bottom and Krogh top
-            const strachanEl  = document.querySelector('.nw-node[data-person="Strachan"]');
-            const erlichmanEl = document.querySelector('.nw-node[data-person="Erlichman"]');
-            const kroghEl     = document.querySelector('.nw-node[data-person="Krogh"]');
-            if (strachanEl && mitchellEl && erlichmanEl && kroghEl) {
-                const strachanR  = strachanEl.getBoundingClientRect();
-                const mitchR     = mitchellEl.getBoundingClientRect();
-                const erlichmanR = erlichmanEl.getBoundingClientRect();
-                const kroghR     = kroghEl.getBoundingClientRect();
-                const upperBound = Math.max(erlichmanR.bottom, colsonR.bottom) - cr.top;
-                const lowerBound = kroghR.top - cr.top;
-                const corridorY  = (upperBound + lowerBound) / 2;
-                const sx = strachanR.right - cr.left;
-                const sy = strachanR.top + strachanR.height / 2 - cr.top;
-                const mx = mitchR.left - cr.left;
-                const my = mitchR.top + mitchR.height / 2 - cr.top;
-                makeMarkerLine(`M ${sx} ${sy} L ${sx} ${corridorY} L ${mx} ${corridorY} L ${mx} ${my}`);
-            }
         })();
 
         const nixonNode = document.querySelector('#nw-nixon-row .nw-node');
@@ -12652,89 +12612,46 @@ function openEnemiesPanel(questions) {
     };
 
     function _drawOrgArc(svg, cr, elA, elB, color, dashed, straight = false, marker = false) {
-        const a = elA.getBoundingClientRect();
-        const b = elB.getBoundingClientRect();
-        const acx = a.left + a.width  / 2 - cr.left;
-        const bcx = b.left + b.width  / 2 - cr.left;
-        // If source box is clearly above target box, connect bottom-center → top-center.
-        // Otherwise (lateral / cross-link) connect the near side-edges at mid-height
-        // so the arc visually leaves the card border, not the photo area.
-        const isDownward = (a.bottom + 4) < b.top;
-        let d;
-        if (isDownward) {
-            const x1 = acx,           y1 = a.bottom - cr.top;
-            const x2 = bcx,           y2 = b.top    - cr.top;
-            const cy = (y1 + y2) / 2;
-            d = straight
-                ? `M ${x1} ${y1} L ${x2} ${y2}`
-                : `M ${x1} ${y1} C ${x1} ${cy}, ${x2} ${cy}, ${x2} ${y2}`;
-        } else {
-            const aIsLeft = acx < bcx;
-            const x1 = (aIsLeft ? a.right : a.left) - cr.left;
-            const y1 = a.top + a.height / 2 - cr.top;
-            const x2 = (aIsLeft ? b.left  : b.right) - cr.left;
-            const y2 = b.top + b.height / 2 - cr.top;
-            const xMin = Math.min(x1, x2);
-            const xMax = Math.max(x1, x2);
-            const margin = 8;
-            const midY = (y1 + y2) / 2;
+        const a  = elA.getBoundingClientRect();
+        const b  = elB.getBoundingClientRect();
+        const x1 = a.left + a.width  / 2 - cr.left;
+        const y1 = a.top  + a.height / 2 - cr.top;
+        const x2 = b.left + b.width  / 2 - cr.left;
+        const y2 = b.top  + b.height / 2 - cr.top;
+        // Quadratic bezier with downward sag (catenary approximation)
+        const mx  = (x1 + x2) / 2;
+        const my  = (y1 + y2) / 2;
+        const sag = Math.abs(x2 - x1) * 0.09 + 4;
+        const d   = `M ${x1} ${y1} Q ${mx} ${my + sag} ${x2} ${y2}`;
 
-            // Collect blocked Y intervals from nodes whose X range overlaps the link's span
-            const intervals = [];
-            document.querySelectorAll('#nw-chart-inner .nw-node').forEach(n => {
-                if (n === elA || n === elB) return;
-                const nb = n.getBoundingClientRect();
-                if (nb.left - cr.left < xMax && nb.right - cr.left > xMin) {
-                    intervals.push([nb.top - cr.top, nb.bottom - cr.top]);
-                }
-            });
-            intervals.sort((a, b) => a[0] - b[0]);
-
-            // Merge overlapping intervals
-            const merged = [];
-            for (const iv of intervals) {
-                if (merged.length && iv[0] < merged[merged.length - 1][1]) {
-                    merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], iv[1]);
-                } else {
-                    merged.push([...iv]);
-                }
-            }
-
-            // Find the clear Y closest to midY: try the gap above/below each merged interval
-            const isBlocked = (y) => merged.some(([lo, hi]) => y > lo - margin && y < hi + margin);
-            let yRoute = midY;
-            if (isBlocked(midY)) {
-                const candidates = merged.flatMap(([lo, hi]) => [lo - margin, hi + margin]);
-                const clear = candidates.filter(c => !isBlocked(c));
-                yRoute = clear.length
-                    ? clear.reduce((best, c) => Math.abs(c - midY) < Math.abs(best - midY) ? c : best)
-                    : merged[merged.length - 1][1] + margin;
-            }
-            d = `M ${x1} ${y1} L ${x1} ${yRoute} L ${x2} ${yRoute} L ${x2} ${y2}`;
-        }
         if (marker) {
-            // bleed layer — wider, transparent, simulates ink spread at edges
-            const bleed = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            bleed.setAttribute('d', d);
-            bleed.setAttribute('fill', 'none');
-            bleed.setAttribute('stroke', '#d42020');
-            bleed.setAttribute('stroke-width', '7');
-            bleed.setAttribute('stroke-linecap', 'round');
-            bleed.setAttribute('stroke-linejoin', 'round');
-            bleed.setAttribute('opacity', '0.18');
-            bleed.setAttribute('filter', 'url(#nw-marker)');
-            svg.appendChild(bleed);
-            // core layer
-            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            path.setAttribute('d', d);
-            path.setAttribute('fill', 'none');
-            path.setAttribute('stroke', '#c41a1a');
-            path.setAttribute('stroke-width', '3.75');
-            path.setAttribute('stroke-linecap', 'round');
-            path.setAttribute('stroke-linejoin', 'round');
-            path.setAttribute('opacity', '0.88');
-            path.setAttribute('filter', 'url(#nw-marker)');
-            svg.appendChild(path);
+            // String line
+            const str = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            str.setAttribute('d', d);
+            str.setAttribute('fill', 'none');
+            str.setAttribute('stroke', '#b82020');
+            str.setAttribute('stroke-width', '1.8');
+            str.setAttribute('stroke-linecap', 'round');
+            str.setAttribute('filter', 'url(#nw-string)');
+            svg.appendChild(str);
+            // Pushpins at each endpoint
+            const drawPin = (px, py) => {
+                const sh = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                sh.setAttribute('cx', px + 1);  sh.setAttribute('cy', py + 1);
+                sh.setAttribute('r', '5');       sh.setAttribute('fill', 'rgba(0,0,0,0.22)');
+                svg.appendChild(sh);
+                const hd = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                hd.setAttribute('cx', px);  hd.setAttribute('cy', py);
+                hd.setAttribute('r', '5');  hd.setAttribute('fill', '#cc2020');
+                hd.setAttribute('stroke', '#881010');  hd.setAttribute('stroke-width', '0.8');
+                svg.appendChild(hd);
+                const hl = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                hl.setAttribute('cx', px - 1.5);  hl.setAttribute('cy', py - 1.5);
+                hl.setAttribute('r', '2');         hl.setAttribute('fill', 'rgba(255,255,255,0.42)');
+                svg.appendChild(hl);
+            };
+            drawPin(x1, y1);
+            drawPin(x2, y2);
         } else {
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('d', d);
