@@ -12408,6 +12408,7 @@ function openEnemiesPanel(questions) {
             { id: 'Magruder', children: [{ id: 'Liddy' }] },
             { id: 'Larue' },
             { id: 'Stans', children: [{ id: 'Klambach' }] },
+            { id: 'McCord', floatChild: true },
         ],
     };
 
@@ -12432,9 +12433,10 @@ function openEnemiesPanel(questions) {
 
     function _buildOrgTree(node, isCREEP) {
         const children = node.children || [];
-        const kids = children.map(c =>
-            `<li${c.diagonalChild ? ' class="nw-diagonal-child"' : ''}>${_buildOrgTree(c, isCREEP)}</li>`
-        ).join('');
+        const kids = children.map(c => {
+            if (c.floatChild) return `<li style="display:none">${_buildOrgTree(c, isCREEP)}</li>`;
+            return `<li${c.diagonalChild ? ' class="nw-diagonal-child"' : ''}>${_buildOrgTree(c, isCREEP)}</li>`;
+        }).join('');
         const hasDiag = children.some(c => c.diagonalChild);
         return _buildOrgNode(node.id, isCREEP) + (kids ? `<ul${hasDiag ? ' class="nw-has-diagonal"' : ''}>${kids}</ul>` : '');
     }
@@ -12674,16 +12676,40 @@ function openEnemiesPanel(questions) {
             const y2 = b.top + b.height / 2 - cr.top;
             const xMin = Math.min(x1, x2);
             const xMax = Math.max(x1, x2);
-            // Start the routing channel below both endpoints, then push it down further
-            // past the bottom of any node whose X range overlaps the horizontal span.
-            let yRoute = (y1 + y2) / 2;
+            const margin = 8;
+            const midY = (y1 + y2) / 2;
+
+            // Collect blocked Y intervals from nodes whose X range overlaps the link's span
+            const intervals = [];
             document.querySelectorAll('#nw-chart-inner .nw-node').forEach(n => {
                 if (n === elA || n === elB) return;
                 const nb = n.getBoundingClientRect();
                 if (nb.left - cr.left < xMax && nb.right - cr.left > xMin) {
-                    yRoute = Math.max(yRoute, nb.bottom - cr.top + 15);
+                    intervals.push([nb.top - cr.top, nb.bottom - cr.top]);
                 }
             });
+            intervals.sort((a, b) => a[0] - b[0]);
+
+            // Merge overlapping intervals
+            const merged = [];
+            for (const iv of intervals) {
+                if (merged.length && iv[0] < merged[merged.length - 1][1]) {
+                    merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], iv[1]);
+                } else {
+                    merged.push([...iv]);
+                }
+            }
+
+            // Find the clear Y closest to midY: try the gap above/below each merged interval
+            const isBlocked = (y) => merged.some(([lo, hi]) => y > lo - margin && y < hi + margin);
+            let yRoute = midY;
+            if (isBlocked(midY)) {
+                const candidates = merged.flatMap(([lo, hi]) => [lo - margin, hi + margin]);
+                const clear = candidates.filter(c => !isBlocked(c));
+                yRoute = clear.length
+                    ? clear.reduce((best, c) => Math.abs(c - midY) < Math.abs(best - midY) ? c : best)
+                    : merged[merged.length - 1][1] + margin;
+            }
             d = `M ${x1} ${y1} L ${x1} ${yRoute} L ${x2} ${yRoute} L ${x2} ${y2}`;
         }
         if (marker) {
