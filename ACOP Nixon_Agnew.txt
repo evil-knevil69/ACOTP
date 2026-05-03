@@ -11754,6 +11754,10 @@ var Klambach = 2;
 var Kleindienst = 2;
 var Colson = 2;
 
+// ── World Events (state stance triggers) ──────────────────────────────────────
+var OilEmbargo = 0;            // 1 = OPEC embargo triggered by Reforger
+var SaturdayNightMassacre = 0; // 1 = Cox fired, public trust collapses
+
 // ── Nominee ───────────────────────────────────────────────────────────────────
 var Nominee = "Nixon";
 
@@ -11787,6 +11791,17 @@ function updateAdvisorImage() {
     campaignTrail_temp.election_json[0].fields.advisor_url = url;
 }
 
+// Shifts every state's score for a given issue by `delta`, clamped to [-1, 1].
+// Call once per event — the variable guard in cyoAdventure prevents double-firing.
+function _shiftStateIssue(issueId, delta) {
+    campaignTrail_temp.state_issue_score_json.forEach(entry => {
+        if (entry.fields.issue === issueId) {
+            const cur = entry.fields.state_issue_score;
+            entry.fields.state_issue_score = Math.max(-1, Math.min(1, cur + delta));
+        }
+    });
+}
+
 cyoAdventure = function (a) {
     const ans = campaignTrail_temp.player_answers[campaignTrail_temp.player_answers.length - 1];
     e.noCounter = campaignTrail_temp.player_answers.length;
@@ -11798,6 +11813,31 @@ cyoAdventure = function (a) {
     if (advisorOverrides[ans]) {
         campaignTrail_temp.election_json[0].fields.advisor_url = advisorOverrides[ans];
     }
+
+    // ── World Event: Oil Embargo ───────────────────────────────────────────────
+    // Fires when the player chooses to carry out Operation Reforger and the OPEC
+    // embargo follows. Replace the answer ID below once that question is written.
+    // Effect: all states shift +0.3 on Energy (issue 35) — voters demand government
+    // action on energy independence. Shift is applied once only (OilEmbargo guard).
+    //
+    // const REFORGER_ANSWER_ID = 9999; // TODO: replace with the actual answer PK
+    // if (ans === REFORGER_ANSWER_ID && OilEmbargo === 0) {
+    //     OilEmbargo = 1;
+    //     _shiftStateIssue(35, 0.3);
+    // }
+
+    // ── World Event: Saturday Night Massacre ──────────────────────────────────
+    // Fires when the player fires Special Prosecutor Archibald Cox.
+    // Replace the answer ID below once that question is written.
+    // Effect: all states shift +0.25 on Trust in Government (issue 32) — voters
+    // move further from Nixon's position (0.5), widening the gap and hurting his score.
+    // Shift is applied once only (SaturdayNightMassacre guard).
+    //
+    // const SNM_ANSWER_ID = 9998; // TODO: replace with the actual answer PK
+    // if (ans === SNM_ANSWER_ID && SaturdayNightMassacre === 0) {
+    //     SaturdayNightMassacre = 1;
+    //     _shiftStateIssue(32, 0.25);
+    // }
 }
 
 const style2 = document.createElement('style');
