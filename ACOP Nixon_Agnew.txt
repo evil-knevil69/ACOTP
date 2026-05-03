@@ -12207,8 +12207,8 @@ function openEnemiesPanel(questions) {
             border-color: #a07060;
         }
         .nw-node .nw-photo-wrap {
-            width: 48px;
-            height: 48px;
+            width: 70px;
+            height: 70px;
             border-radius: 3px;
             margin: 0 auto 4px;
             overflow: hidden;
