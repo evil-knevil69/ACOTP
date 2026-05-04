@@ -11893,6 +11893,19 @@ style2.innerHTML = `
         z-index: 15 !important;
         font-size: 16px !important;
     }
+    #switchingEst li > span:first-child {
+        font-weight: bold;
+    }
+    p.visit_text {
+        position: absolute;
+        bottom: 185px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        z-index: 6;
+        margin: 0;
+        pointer-events: none;
+    }
 `;
 document.head.appendChild(style2);
 
@@ -12413,13 +12426,13 @@ function openEnemiesPanel(questions) {
         Hunt: {
             name: 'Howard Hunt',
             title: 'Former CIA operative',
-            bio: 'Former CIA, novellist. Maybe inspired the "whole Bay of Pigs thing" remark. Recruited into WH by Colson. Prime mover behind the DNC break-in. Led the Plumbers on covert operations. Currently on trial as part of the Watergate 7.',
+            bio: 'Former CIA, novellist. Maybe inspired the "whole Bay of Pigs thing" remark. Recruited into WH by Colson. Prime mover behind the DNC break-in. Led the Plumbers on covert operations.',
             initials: 'HH', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/hunt.JPG' },
         },
         Liddy: {
             name: 'Gordon Liddy',
             title: 'Legal Counsel, CREEP',
-            bio: 'Former FBI agent. Devised CREEP\'s intelligence operation (GEMSTONE). Managed the DNC break-in with Hunt. A "right wing exuberant", or a "bit of a nut". Currently on trial as part of the Watergate 7.',
+            bio: 'Former FBI agent. Devised CREEP\'s intelligence operation (GEMSTONE). Managed the DNC break-in with Hunt. A "right wing exuberant", or a "bit of a nut".',
             initials: 'GL', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/liddy2.png' },
         },
         Mitchell: {
@@ -12455,7 +12468,7 @@ function openEnemiesPanel(questions) {
         McCord: {
             name: 'James McCord',
             title: 'Security Director, CREEP',
-            bio: 'Former CIA officer. One of the five Watergate burglars. Formerly on the WH payroll and bodyguard for Martha Mitchell. Currently on trial as part of the Watergate 7.',
+            bio: 'Former CIA officer. One of the five Watergate burglars. Formerly on the WH payroll and bodyguard for Martha Mitchell.',
             initials: 'JMc', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/mccord.jpg' },
         },
     };
