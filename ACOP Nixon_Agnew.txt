@@ -12582,6 +12582,15 @@ function openEnemiesPanel(questions) {
         </defs>`;
         const cr = inner.getBoundingClientRect();
 
+        const makeLine = (d) => {
+            const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            p.setAttribute('d', d);
+            p.setAttribute('stroke', '#666');
+            p.setAttribute('stroke-width', '1.5');
+            p.setAttribute('fill', 'none');
+            svg.appendChild(p);
+        };
+
         // ── Position floated nodes + draw their connectors ────────────────────────
         (function() {
             const colsonEl    = document.querySelector('.nw-node[data-person="Colson"]');
@@ -12633,15 +12642,6 @@ function openEnemiesPanel(questions) {
 
             inner.style.minHeight = (wgTop + 180) + 'px';
 
-            const makeLine = (d) => {
-                const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                p.setAttribute('d', d);
-                p.setAttribute('stroke', '#666');
-                p.setAttribute('stroke-width', '1.5');
-                p.setAttribute('fill', 'none');
-                svg.appendChild(p);
-            };
-
             // Colson → Hunt: straight vertical line from Colson bottom-center to Hunt top-center
             const colsonCX = colsonR.left + colsonR.width / 2 - cr.left;
             const huntCX   = huntLeft + nodeW / 2;
@@ -12649,7 +12649,7 @@ function openEnemiesPanel(questions) {
 
             // Hunt + Liddy → WG: two-parent join from bottom-center of each card
             const liddyCX  = liddyR.left + liddyR.width / 2 - cr.left;
-            const huntBY   = huntTop + liddyR.height;  // same card height as Liddy
+            const huntBY   = huntFloat.getBoundingClientRect().bottom - cr.top;
             const barY     = wgTop - gap / 2;
             const barCX    = (huntCX + liddyCX) / 2;
             makeLine(`M ${huntCX}  ${huntBY}  L ${huntCX}  ${barY}`);
@@ -12671,21 +12671,23 @@ function openEnemiesPanel(questions) {
 
         const nixonNode = document.querySelector('#nw-nixon-row .nw-node');
         if (nixonNode) {
-            document.querySelectorAll('#nw-columns-row .nw-col .nw-tree > li > .nw-node').forEach(root => {
-                const a = nixonNode.getBoundingClientRect();
-                const b = root.getBoundingClientRect();
-                const x1 = a.left + a.width  / 2 - cr.left;
-                const y1 = a.bottom - cr.top;
-                const x2 = b.left  + b.width  / 2 - cr.left;
-                const y2 = b.top   - cr.top;
-                const ymid = (y1 + y2) / 2;
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', `M ${x1} ${y1} L ${x1} ${ymid} L ${x2} ${ymid} L ${x2} ${y2}`);
-                path.setAttribute('stroke', '#666');
-                path.setAttribute('stroke-width', '1.5');
-                path.setAttribute('fill', 'none');
-                svg.appendChild(path);
-            });
+            const roots = Array.from(document.querySelectorAll('#nw-columns-row .nw-col .nw-tree > li > .nw-node'));
+            if (roots.length) {
+                const a    = nixonNode.getBoundingClientRect();
+                const x1   = a.left + a.width / 2 - cr.left;
+                const y1   = a.bottom - cr.top;
+                const cols = roots.map(r => {
+                    const b = r.getBoundingClientRect();
+                    return { x: b.left + b.width / 2 - cr.left, y: b.top - cr.top };
+                });
+                const ymid = (y1 + Math.min(...cols.map(c => c.y))) / 2;
+                const minX = Math.min(...cols.map(c => c.x));
+                const maxX = Math.max(...cols.map(c => c.x));
+                // Single stem down from Nixon, shared horizontal bar, individual drops
+                makeLine(`M ${x1} ${y1} L ${x1} ${ymid}`);
+                makeLine(`M ${minX} ${ymid} L ${maxX} ${ymid}`);
+                cols.forEach(({ x, y }) => makeLine(`M ${x} ${ymid} L ${x} ${y}`));
+            }
         }
 
         _crossLinks.forEach(({ from, to, fromEdge = 'top', toEdge = 'top' }) => {
