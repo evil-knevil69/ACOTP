@@ -13011,6 +13011,8 @@ function generatePenStroke() {
     return `<svg style="position:absolute;bottom:-1px;left:0;width:100%;height:${height}px;overflow:visible;pointer-events:none" preserveAspectRatio="none" viewBox="0 0 100 ${height}"><path d="${d}" fill="none" stroke="rgb(96, 115, 129)" stroke-width="2.1" vector-effect="non-scaling-stroke"/></svg>`;
 }
 
+tooltipList.sort((a, b) => b.searchString.length - a.searchString.length);
+
 function getTooltips(str) {
     let matches = [];
     tooltipList.forEach((tooltip, index) => {
