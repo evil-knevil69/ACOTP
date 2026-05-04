@@ -11754,6 +11754,12 @@ var Klambach = 2;
 var Kleindienst = 2;
 var Colson = 2;
 
+// ── World Event flags (state stance triggers) ─────────────────────────────────
+// These track whether each one-shot event has already fired.
+// Set to 1 inside cyoAdventure when the triggering answer is given.
+var OilEmbargo = 0;            // 1 once OPEC embargo is triggered
+var SaturdayNightMassacre = 0; // 1 once Cox is fired
+
 // ── Nominee ───────────────────────────────────────────────────────────────────
 var Nominee = "Nixon";
 
@@ -11787,6 +11793,22 @@ function updateAdvisorImage() {
     campaignTrail_temp.election_json[0].fields.advisor_url = url;
 }
 
+// ── _shiftStateIssue ──────────────────────────────────────────────────────────
+// Shifts every state's score for a given issue by `delta`, clamped to [-1, 1].
+// issue 32 = Trust in Government  |  issue 35 = Energy
+// Scoring formula: penalty = |candidate_score² − state_score²| × weight
+// Nixon's baseline scores: Trust=0.5, Energy=0.333
+// All states start at Trust=0.8 (stance 7). Energy varies ~−0.5 to +0.5.
+// Stance boundaries: ≤−0.71 / ≤−0.3 / ≤−0.125 / ≤0.125 / ≤0.3 / ≤0.71 / >0.71
+function _shiftStateIssue(issueId, delta) {
+    campaignTrail_temp.state_issue_score_json.forEach(entry => {
+        if (entry.fields.issue === issueId) {
+            const cur = entry.fields.state_issue_score;
+            entry.fields.state_issue_score = Math.max(-1, Math.min(1, cur + delta));
+        }
+    });
+}
+
 cyoAdventure = function (a) {
     const ans = campaignTrail_temp.player_answers[campaignTrail_temp.player_answers.length - 1];
     e.noCounter = campaignTrail_temp.player_answers.length;
@@ -11798,6 +11820,51 @@ cyoAdventure = function (a) {
     if (advisorOverrides[ans]) {
         campaignTrail_temp.election_json[0].fields.advisor_url = advisorOverrides[ans];
     }
+
+    // =========================================================================
+    // SANDBOX — World Event: Oil Embargo (Yom Kippur War / Operation Reforger)
+    // =========================================================================
+    // TO ACTIVATE:
+    //   1. Write the Reforger question and note the answer PK for "carry out
+    //      Reforger" (the choice that triggers the OPEC embargo).
+    //   2. Replace REFORGER_ANSWER_PK below with that number.
+    //   3. Remove the surrounding /* ... */ block.
+    //
+    // WHAT IT DOES:
+    //   Shifts all states +0.3 on Energy (issue 35). Most states move from
+    //   their starting position toward or past Nixon's Energy score (0.333),
+    //   reflecting voters demanding government action on energy independence.
+    //   A state at −0.333 (stance 2, Conservative) moves to −0.033 (stance 4,
+    //   Moderate). A state at 0.5 moves to 0.8 (stance 7, Very Liberal).
+    //   Fires once only — OilEmbargo flag prevents double-triggering.
+    /*
+    if (ans === REFORGER_ANSWER_PK && OilEmbargo === 0) {
+        OilEmbargo = 1;
+        _shiftStateIssue(35, 0.3);
+    }
+    */
+
+    // =========================================================================
+    // SANDBOX — World Event: Saturday Night Massacre (firing of Archibald Cox)
+    // =========================================================================
+    // TO ACTIVATE:
+    //   1. Write the Cox/special prosecutor question and note the answer PK
+    //      for the choice where Nixon orders Cox dismissed.
+    //   2. Replace SNM_ANSWER_PK below with that number.
+    //   3. Remove the surrounding /* ... */ block.
+    //
+    // WHAT IT DOES:
+    //   Shifts all states +0.25 on Trust in Government (issue 32). States
+    //   are already at 0.8 (max cynicism, stance 7); shifting to 1.0 widens
+    //   the gap from Nixon's score (0.5), roughly doubling the issue penalty
+    //   against him in every state. Fires once only — SaturdayNightMassacre
+    //   flag prevents double-triggering.
+    /*
+    if (ans === SNM_ANSWER_PK && SaturdayNightMassacre === 0) {
+        SaturdayNightMassacre = 1;
+        _shiftStateIssue(32, 0.25);
+    }
+    */
 }
 
 const style2 = document.createElement('style');
