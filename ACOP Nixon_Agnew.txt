@@ -11893,18 +11893,8 @@ style2.innerHTML = `
         z-index: 15 !important;
         font-size: 16px !important;
     }
-    #switchingEst li > span:first-child {
+    #state_info ul li > span:first-child {
         font-weight: bold;
-    }
-    p.visit_text {
-        position: absolute;
-        bottom: 185px;
-        left: 0;
-        right: 0;
-        text-align: center;
-        z-index: 6;
-        margin: 0;
-        pointer-events: none;
     }
 `;
 document.head.appendChild(style2);
@@ -11913,6 +11903,14 @@ function updateTypewriterVisibility() {
     const mapVisible = !!document.getElementById('resume_questions_button');
     const visitVisible = !!document.querySelector('.visit_text');
     let tw = document.getElementById('typewriter-overlay');
+    if (visitVisible) {
+        const vt = document.querySelector('p.visit_text');
+        if (vt && !vt.dataset.repositioned) {
+            vt.dataset.repositioned = '1';
+            vt.style.cssText = 'position:fixed;bottom:185px;left:0;right:0;text-align:center;z-index:6;margin:0;pointer-events:none;';
+        }
+    }
+
     if (mapVisible || visitVisible) {
         if (tw) tw.style.display = 'none';
         const sign = document.querySelector('#campaign_sign');
