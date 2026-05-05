@@ -12628,9 +12628,9 @@ function openEnemiesPanel(questions) {
                 huntFloat.style.top  = huntTop  + 'px';
             }
 
-            // WG card: spans Hunt.left → Liddy.right, one gap below
+            // WG card: spans Hunt.left → Liddy.right, one gap below (+20px extra offset)
             const liddyBY = liddyR.bottom - cr.top;
-            const wgTop   = liddyBY + gap;
+            const wgTop   = liddyBY + gap + 20;
             const wgWidth = liddyR.right - colsonR.left;
             if (wgFloat) {
                 wgFloat.style.left  = huntLeft + 'px';
