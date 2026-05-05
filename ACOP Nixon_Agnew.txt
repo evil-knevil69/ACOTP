@@ -12341,7 +12341,9 @@ function openEnemiesPanel(questions) {
             border-radius: 2px;
         }
         .nw-node.nw-burglars .nw-photo-wrap img {
-            object-fit: contain;
+            object-fit: fill;
+            width: 100%;
+            height: 100%;
         }
         .nw-tree ul.nw-has-diagonal::before { display: none; }
         .nw-tree li.nw-diagonal-child::before,
@@ -12637,7 +12639,7 @@ function openEnemiesPanel(questions) {
                 wgFloat.style.top   = wgTop    + 'px';
                 wgFloat.style.width = wgWidth  + 'px';
                 const wgNode = wgFloat.querySelector('.nw-node');
-                if (wgNode) wgNode.style.width = wgWidth + 'px';
+                if (wgNode) wgNode.style.width = (wgWidth - 10) + 'px';
             }
 
             // McCord: same row as WG card, centred between LaRue and Stans
