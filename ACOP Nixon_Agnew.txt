@@ -12398,7 +12398,7 @@ function openEnemiesPanel(questions) {
         .nw-status-pill.nw-s-active     { background: transparent; color: #444; border-color: #aaa; }
         .nw-status-pill.nw-s-cutloose   { background: #2e7d32; color: #fff; border-color: #1b5e20; }
         .nw-status-pill.nw-s-indicted   { background: #f9a825; color: #333; border-color: #f57f17; }
-        .nw-status-pill.nw-s-imprisoned { background: #f9a825; color: #333; border-color: #f57f17; }
+        .nw-status-pill.nw-s-imprisoned { background: #e65100; color: #fff; border-color: #bf360c; }
         .nw-status-pill.nw-s-witness    { background: #b71c1c; color: #fff; border-color: #7f0000; }
         .nw-node.nw-burglars .nw-photo-wrap {
             width: 100%;
