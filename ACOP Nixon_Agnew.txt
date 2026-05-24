@@ -11783,6 +11783,29 @@ var McCordloyalty = 5;
 var Huntloyalty = 4;
 var Kroghloyalty = 7;
 var Kleindienstloyalty = 6;
+window._getOrgStat = function(id, stat) {
+    const map = {
+        Haldeman:          { loyalty: Haldemanloyalty,          exposure: Haldemanexposure },
+        Erlichman:         { loyalty: Erlichmanloyalty,         exposure: Erlichmanexposure },
+        Dean:              { loyalty: Deanloyalty,              exposure: Deanexposure },
+        Colson:            { loyalty: Colsonloyalty,            exposure: Colsonexposure },
+        Chapin:            { loyalty: Chapinloyalty,            exposure: Chapinexposure },
+        Krogh:             { loyalty: Kroghloyalty,             exposure: Kroghexposure },
+        Strachan:          { loyalty: Strachanloyalty,          exposure: Strachanexposure },
+        Segretti:          { loyalty: Segrettiloyalty,          exposure: Segrettiexposure },
+        Hunt:              { loyalty: Huntloyalty,              exposure: Huntexposure },
+        Liddy:             { loyalty: Liddyloyalty,             exposure: Liddyexposure },
+        Mitchell:          { loyalty: Mitchellloyalty,          exposure: Mitchellexposure },
+        Magruder:          { loyalty: Magruderloyalty,          exposure: Magruderexposure },
+        Larue:             { loyalty: Larueloyalty,             exposure: Larueexposure },
+        Stans:             { loyalty: Stansloyalty,             exposure: Stansexposure },
+        Klambach:          { loyalty: Klambachloyalty,          exposure: Klambachexposure },
+        McCord:            { loyalty: McCordloyalty,            exposure: McCordexposure },
+        Kleindienst:       { loyalty: Kleindienstloyalty,       exposure: Kleindienstexposure },
+        WatergateBurglars: { loyalty: Watergateburglarsloyalty, exposure: Watergateburglarsexposure },
+    };
+    return (map[id] || {})[stat];
+};
 var RelationswiththeSoviets = 5;
 var Economy = 7;
 var MentalState = 0;
@@ -12728,9 +12751,8 @@ function openEnemiesPanel(questions) {
 
         function _updateOrgBack(node) {
             const id = node.dataset.person;
-            const base = id.charAt(0).toUpperCase() + id.slice(1).toLowerCase();
-            const loyalty  = window[base + 'loyalty'];
-            const exposure = window[base + 'exposure'];
+            const loyalty  = window._getOrgStat(id, 'loyalty');
+            const exposure = window._getOrgStat(id, 'exposure');
             const back = node.querySelector('.nw-card-back');
             if (!back) return;
             if (loyalty == null && exposure == null) {
