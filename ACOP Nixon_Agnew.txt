@@ -11741,9 +11741,12 @@ var Larueexposure = 1;
 var Stansexposure = 2;
 var Klambachexposure = 1;
 var McCordexposure = 9;
+var Huntexposure = 8;
+var Kroghexposure = 5;
+var Kleindienstexposure = 2;
+var Watergateburglarsexposure = 9;
 var Watergateburglarsstatus = 3;
 var Watergateburglarsloyalty = 8;
-var watergateburglarsexposure = 9;
 var HaldemanSTATUS = 2;
 var ErlichmanSTATUS = 2;
 var MitchellSTATUS = 1;
@@ -11760,6 +11763,7 @@ var LarueSTATUS = 2;
 var StansSTATUS = 2;
 var KlambachSTATUS = 2;
 var KleindienstSTATUS = 2;
+var ColsonSTATUS = 2;
 var Command = 0;
 var LawandOrder = 1;
 var Haldemanloyalty = 10;
@@ -11776,7 +11780,9 @@ var Larueloyalty = 7;
 var Stansloyalty = 6;
 var Klambachloyalty = 7;
 var McCordloyalty = 5;
-var huntloyalty = 4;
+var Huntloyalty = 4;
+var Kroghloyalty = 7;
+var Kleindienstloyalty = 6;
 var RelationswiththeSoviets = 5;
 var Economy = 7;
 var MentalState = 0;
@@ -13869,7 +13875,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1778188330113": {
             "id": 1778188330113,
-            "name": "huntloyalty",
+            "name": "Huntloyalty",
             "defaultValue": 4
         },
         "1779575604702": {
