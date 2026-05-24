@@ -12333,7 +12333,7 @@ function openEnemiesPanel(questions) {
             padding: 7px 6px;
             background: rgba(255,255,255,0.84);
             text-align: center;
-            cursor: default;
+            cursor: pointer;
             transition: border-color 0.4s, opacity 0.4s;
             box-shadow: 1px 1px 4px rgba(0,0,0,0.18);
         }
@@ -12415,6 +12415,68 @@ function openEnemiesPanel(questions) {
             object-fit: fill;
             width: 100%;
             height: 100%;
+        }
+        .nw-flip-area { perspective: 600px; }
+        .nw-card-inner {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.45s ease;
+        }
+        .nw-node.nw-flipped .nw-card-inner { transform: rotateY(180deg); }
+        .nw-card-front, .nw-card-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .nw-card-back {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.96);
+            border-radius: 2px;
+            padding: 4px 5px;
+            box-sizing: border-box;
+        }
+        .nw-node.nw-creep .nw-card-back { background: rgba(255,245,235,0.97); }
+        .nw-back-content { width: 100%; }
+        .nw-back-stat { margin-bottom: 6px; }
+        .nw-back-stat:last-child { margin-bottom: 0; }
+        .nw-back-label {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 8px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 1px;
+        }
+        .nw-back-value {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 11px;
+            font-weight: bold;
+            color: #222;
+            margin-bottom: 2px;
+        }
+        .nw-back-bar {
+            width: 100%;
+            height: 5px;
+            background: #ddd;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .nw-back-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+        .nw-fill-loyalty  { background: #2e7d32; }
+        .nw-fill-exposure { background: #b71c1c; }
+        .nw-back-na {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 9px;
+            color: #aaa;
+            text-align: center;
         }
         .nw-tree ul.nw-has-diagonal::before { display: none; }
         .nw-tree li.nw-diagonal-child::before,
@@ -12580,11 +12642,16 @@ function openEnemiesPanel(questions) {
             ? `<img src="${p.images.active}" alt="${p.name}">`
             : `<span class="nw-initials">${p.initials}</span>`;
         return `<div class="nw-node${isCREEP ? ' nw-creep' : ''}" data-person="${id}" data-state="active">
-            <div class="nw-photo-wrap">${photo}</div>
             <div class="nw-name">${p.name}</div>
-            <div class="nw-title">${p.title}</div>
-            <div class="nw-bio">${p.bio}</div>
-            <div class="nw-status-pill nw-s-active">Active</div>
+            <div class="nw-flip-area"><div class="nw-card-inner">
+                <div class="nw-card-front">
+                    <div class="nw-photo-wrap">${photo}</div>
+                    <div class="nw-title">${p.title}</div>
+                    <div class="nw-bio">${p.bio}</div>
+                    <div class="nw-status-pill nw-s-active">Active</div>
+                </div>
+                <div class="nw-card-back"></div>
+            </div></div>
         </div>`;
     }
 
@@ -12648,10 +12715,43 @@ function openEnemiesPanel(questions) {
         wgFloat.id = 'nw-wg-float';
         wgFloat.style.position = 'absolute';
         wgFloat.innerHTML = `<div class="nw-node nw-creep nw-burglars" data-person="WatergateBurglars" data-state="active">
-            <div class="nw-photo-wrap"><img src="https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/watergateburglars.JPG" alt="Watergate Burglars"></div>
             <div class="nw-name">Watergate Burglars</div>
+            <div class="nw-flip-area"><div class="nw-card-inner">
+                <div class="nw-card-front">
+                    <div class="nw-photo-wrap"><img src="https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/watergateburglars.JPG" alt="Watergate Burglars"></div>
+                    <div class="nw-status-pill nw-s-active">Active</div>
+                </div>
+                <div class="nw-card-back"></div>
+            </div></div>
         </div>`;
         inner.appendChild(wgFloat);
+
+        function _updateOrgBack(node) {
+            const id = node.dataset.person;
+            const base = id.charAt(0).toUpperCase() + id.slice(1).toLowerCase();
+            const loyalty  = window[base + 'loyalty'];
+            const exposure = window[base + 'exposure'];
+            const back = node.querySelector('.nw-card-back');
+            if (!back) return;
+            if (loyalty == null && exposure == null) {
+                back.innerHTML = '<div class="nw-back-content nw-back-na"><em>No data</em></div>';
+                return;
+            }
+            const lPct = loyalty  != null ? Math.round(loyalty  / 10 * 100) : 0;
+            const ePct = exposure != null ? Math.round(exposure / 9  * 100) : 0;
+            let html = '<div class="nw-back-content">';
+            if (loyalty  != null) html += `<div class="nw-back-stat"><div class="nw-back-label">Loyalty</div><div class="nw-back-value">${loyalty} / 10</div><div class="nw-back-bar"><div class="nw-back-fill nw-fill-loyalty" style="width:${lPct}%"></div></div></div>`;
+            if (exposure != null) html += `<div class="nw-back-stat"><div class="nw-back-label">Exposure</div><div class="nw-back-value">${exposure} / 9</div><div class="nw-back-bar"><div class="nw-back-fill nw-fill-exposure" style="width:${ePct}%"></div></div></div>`;
+            html += '</div>';
+            back.innerHTML = html;
+        }
+
+        wrapper.addEventListener('click', function(e) {
+            const node = e.target.closest('.nw-node');
+            if (!node) return;
+            if (!node.classList.contains('nw-flipped')) _updateOrgBack(node);
+            node.classList.toggle('nw-flipped');
+        });
     };
 
     window._drawOrgLinks = function() {
