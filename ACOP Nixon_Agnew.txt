@@ -12381,11 +12381,25 @@ function openEnemiesPanel(questions) {
             line-height: 1.4;
         }
         .nw-node[data-state="resigned"]           { border-color: #c8960a; border-width: 2px; }
-        .nw-node[data-state="resigned"]  .nw-photo-wrap { filter: sepia(70%); }
         .nw-node[data-state="indicted"]           { border-color: #aa2020; border-width: 2px; }
-        .nw-node[data-state="indicted"]  .nw-photo-wrap { filter: grayscale(40%); }
-        .nw-node[data-state="imprisoned"]         { border-color: #661010; border-width: 2px; opacity: 0.8; }
-        .nw-node[data-state="imprisoned"] .nw-photo-wrap { filter: grayscale(100%) brightness(0.65); }
+        .nw-node[data-state="imprisoned"]         { border-color: #661010; border-width: 2px; }
+        .nw-status-pill {
+            display: inline-block;
+            margin: 4px auto 2px;
+            padding: 1px 7px;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 0.03em;
+            text-align: center;
+            text-transform: uppercase;
+            border: 1px solid rgba(0,0,0,0.15);
+        }
+        .nw-status-pill.nw-s-active     { background: transparent; color: #444; border-color: #aaa; }
+        .nw-status-pill.nw-s-cutloose   { background: #2e7d32; color: #fff; border-color: #1b5e20; }
+        .nw-status-pill.nw-s-indicted   { background: #f9a825; color: #333; border-color: #f57f17; }
+        .nw-status-pill.nw-s-imprisoned { background: #f9a825; color: #333; border-color: #f57f17; }
+        .nw-status-pill.nw-s-witness    { background: #b71c1c; color: #fff; border-color: #7f0000; }
         .nw-node.nw-burglars .nw-photo-wrap {
             width: 100%;
             height: 70px;
@@ -12564,6 +12578,7 @@ function openEnemiesPanel(questions) {
             <div class="nw-name">${p.name}</div>
             <div class="nw-title">${p.title}</div>
             <div class="nw-bio">${p.bio}</div>
+            <div class="nw-status-pill nw-s-active">Active</div>
         </div>`;
     }
 
@@ -12817,6 +12832,19 @@ function openEnemiesPanel(questions) {
         const node = document.querySelector(`.nw-node[data-person="${personId}"]`);
         if (!node) return;
         node.dataset.state = state;
+        const pill = node.querySelector('.nw-status-pill');
+        if (pill) {
+            const map = {
+                active:     { cls: 'nw-s-active',     text: 'Active' },
+                cutloose:   { cls: 'nw-s-cutloose',   text: 'Cut Loose' },
+                indicted:   { cls: 'nw-s-indicted',   text: 'Indicted' },
+                imprisoned: { cls: 'nw-s-imprisoned', text: 'Imprisoned' },
+                witness:    { cls: 'nw-s-witness',    text: "State's Witness" },
+            };
+            const entry = map[state] || map.active;
+            pill.className = `nw-status-pill ${entry.cls}`;
+            pill.textContent = entry.text;
+        }
         const p = _orgPeople[personId];
         if (!p) return;
         const img = node.querySelector('img');
@@ -12824,7 +12852,7 @@ function openEnemiesPanel(questions) {
     };
 
     window._syncOrgStates = function() {
-        const toState = (v) => v >= 2 ? 'active' : v === 1 ? 'resigned' : v === 0 ? 'indicted' : 'imprisoned';
+        const toState = (v) => v >= 5 ? 'active' : v === 4 ? 'cutloose' : v === 3 ? 'indicted' : v === 2 ? 'imprisoned' : 'witness';
         [
             ['Haldeman',  HaldemanSTATUS],  ['Erlichman', ErlichmanSTATUS], ['Mitchell', MitchellSTATUS],
             ['Magruder',  MagruderSTATUS],  ['Krogh',     KroghSTATUS],     ['Chapin',   ChapinSTATUS],
