@@ -12353,12 +12353,14 @@ function openEnemiesPanel(questions) {
             width: 110px;
             border: 1px solid #888;
             border-radius: 3px;
-            padding: 7px 6px;
+            padding: 7px 6px 0;
             background: rgba(255,255,255,0.84);
             text-align: center;
             cursor: pointer;
             transition: border-color 0.4s, opacity 0.4s;
             box-shadow: 1px 1px 4px rgba(0,0,0,0.18);
+            display: flex;
+            flex-direction: column;
         }
         .nw-node.nw-creep {
             background: rgba(255,245,235,0.86);
@@ -12413,22 +12415,23 @@ function openEnemiesPanel(questions) {
         .nw-node[data-state="indicted"]           { border-color: #aa2020; border-width: 2px; }
         .nw-node[data-state="imprisoned"]         { border-color: #661010; border-width: 2px; }
         .nw-status-pill {
-            display: inline-block;
-            margin: 4px auto 2px;
-            padding: 1px 7px;
-            border-radius: 8px;
+            display: block;
+            margin: 2px -6px 0;
+            padding: 3px 0;
+            border-radius: 0 0 2px 2px;
             font-size: 9px;
             font-weight: bold;
             letter-spacing: 0.03em;
             text-align: center;
             text-transform: uppercase;
-            border: 1px solid rgba(0,0,0,0.15);
+            border: none;
+            border-top: 1px solid rgba(0,0,0,0.12);
         }
-        .nw-status-pill.nw-s-active     { background: transparent; color: #444; border-color: #aaa; }
-        .nw-status-pill.nw-s-cutloose   { background: #2e7d32; color: #fff; border-color: #1b5e20; }
-        .nw-status-pill.nw-s-indicted   { background: #f9a825; color: #333; border-color: #f57f17; }
-        .nw-status-pill.nw-s-imprisoned { background: #e65100; color: #fff; border-color: #bf360c; }
-        .nw-status-pill.nw-s-witness    { background: #b71c1c; color: #fff; border-color: #7f0000; }
+        .nw-status-pill.nw-s-active     { background: #f5f5f5; color: #666; }
+        .nw-status-pill.nw-s-cutloose   { background: #2e7d32; color: #fff; }
+        .nw-status-pill.nw-s-indicted   { background: #f9a825; color: #333; }
+        .nw-status-pill.nw-s-imprisoned { background: #e65100; color: #fff; }
+        .nw-status-pill.nw-s-witness    { background: #b71c1c; color: #fff; }
         .nw-node.nw-burglars .nw-photo-wrap {
             width: 100%;
             height: 70px;
@@ -12671,10 +12674,10 @@ function openEnemiesPanel(questions) {
                     <div class="nw-photo-wrap">${photo}</div>
                     <div class="nw-title">${p.title}</div>
                     <div class="nw-bio">${p.bio}</div>
-                    <div class="nw-status-pill nw-s-active">Active</div>
                 </div>
                 <div class="nw-card-back"></div>
             </div></div>
+            <div class="nw-status-pill nw-s-active">Active</div>
         </div>`;
     }
 
@@ -12742,10 +12745,10 @@ function openEnemiesPanel(questions) {
             <div class="nw-flip-area"><div class="nw-card-inner">
                 <div class="nw-card-front">
                     <div class="nw-photo-wrap"><img src="https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/watergateburglars.JPG" alt="Watergate Burglars"></div>
-                    <div class="nw-status-pill nw-s-active">Active</div>
                 </div>
                 <div class="nw-card-back"></div>
             </div></div>
+            <div class="nw-status-pill nw-s-active">Active</div>
         </div>`;
         inner.appendChild(wgFloat);
 
