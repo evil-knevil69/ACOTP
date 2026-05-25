@@ -11972,10 +11972,17 @@ style2.innerHTML = `
         font-weight: bold;
     }
     #map_container svg path {
-        stroke: #333 !important;
-        stroke-width: 0.8px !important;
-        stroke-linejoin: miter !important;
+        stroke: #111 !important;
+        stroke-width: 2px !important;
+        stroke-linejoin: round;
         shape-rendering: crispEdges !important;
+    }
+    #map_container svg text {
+        fill: #1a1a1a !important;
+        font-size: 8px !important;
+        font-weight: bold;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
     }
 `;
 document.head.appendChild(style2);
