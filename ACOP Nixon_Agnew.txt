@@ -11747,23 +11747,23 @@ var Kleindienstexposure = 2;
 var Watergateburglarsexposure = 9;
 var Watergateburglarsstatus = 3;
 var Watergateburglarsloyalty = 8;
-var HaldemanSTATUS = 2;
-var ErlichmanSTATUS = 2;
-var MitchellSTATUS = 1;
-var DeanSTATUS = 2;
-var MagruderSTATUS = 1;
-var KroghSTATUS = 1;
-var ChapinSTATUS = 2;
-var SegrettiSTATUS = 1;
-var StrachanSTATUS = 2;
-var HuntSTATUS = 0;
-var McCordSTATUS = 0;
-var LiddySTATUS = 0;
-var LarueSTATUS = 2;
-var StansSTATUS = 2;
-var KlambachSTATUS = 2;
-var KleindienstSTATUS = 2;
-var ColsonSTATUS = 2;
+var HaldemanSTATUS = 5;
+var ErlichmanSTATUS = 5;
+var MitchellSTATUS = 4;
+var DeanSTATUS = 5;
+var MagruderSTATUS = 5;
+var KroghSTATUS = 5;
+var ChapinSTATUS = 5;
+var SegrettiSTATUS = 4;
+var StrachanSTATUS = 5;
+var HuntSTATUS = 3;
+var McCordSTATUS = 3;
+var LiddySTATUS = 3;
+var LarueSTATUS = 5;
+var StansSTATUS = 5;
+var KlambachSTATUS = 5;
+var KleindienstSTATUS = 5;
+var ColsonSTATUS = 4;
 var Command = 0;
 var LawandOrder = 1;
 var Haldemanloyalty = 10;
@@ -11876,10 +11876,7 @@ function updateAdvisorImage() {
 // ── _shiftStateIssue ──────────────────────────────────────────────────────────
 // Shifts every state's score for a given issue by `delta`, clamped to [-1, 1].
 // issue 32 = Trust in Government  |  issue 35 = Energy
-// Scoring formula: penalty = |candidate_score² − state_score²| × weight
-// Nixon's baseline scores: Trust=0.5, Energy=0.333
-// All states start at Trust=0.8 (stance 7). Energy varies ~−0.5 to +0.5.
-// Stance boundaries: ≤−0.71 / ≤−0.3 / ≤−0.125 / ≤0.125 / ≤0.3 / ≤0.71 / >0.71
+
 function _shiftStateIssue(issueId, delta) {
     campaignTrail_temp.state_issue_score_json.forEach(entry => {
         if (entry.fields.issue === issueId) {
