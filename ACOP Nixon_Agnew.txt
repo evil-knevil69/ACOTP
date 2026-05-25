@@ -12350,7 +12350,7 @@ function openEnemiesPanel(questions) {
             background: #666;
         }
         .nw-node {
-            width: 110px;
+            width: 125px;
             border: 1px solid #888;
             border-radius: 3px;
             padding: 7px 6px 0;
@@ -12816,7 +12816,7 @@ function openEnemiesPanel(questions) {
 
             const colsonR = colsonEl.getBoundingClientRect();
             const liddyR  = liddyEl.getBoundingClientRect();
-            const nodeW   = 110;
+            const nodeW   = 125;
             const gap     = 20;
 
             // Hunt float: same row as Liddy, left-aligned with Colson
