@@ -13689,13 +13689,12 @@ document.body.appendChild(honk);
     }
     .fd-head {
         font-family: 'TypewriterDry', 'Courier New', monospace !important;
-        font-size: 19px !important;
+        font-size: 13px !important;
+        font-weight: bold !important;
         color: #1a0800 !important;
-        margin: 4px 0 20px !important;
-        letter-spacing: .04em;
-        text-decoration: underline;
-        text-underline-offset: 4px;
+        margin: 4px 0 10px !important;
         line-height: 28px;
+        text-decoration: none !important;
     }
     .fd-entry { margin-bottom: 6px; line-height: 28px; }
     .fd-entry-label {
