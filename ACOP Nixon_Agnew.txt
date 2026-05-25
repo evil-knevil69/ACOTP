@@ -13697,23 +13697,21 @@ document.body.appendChild(honk);
         text-underline-offset: 4px;
         line-height: 28px;
     }
-    .fd-entry { margin-bottom: 22px; }
+    .fd-entry { margin-bottom: 6px; line-height: 28px; }
     .fd-entry-label {
         font-family: 'TypewriterDry', 'Courier New', monospace;
         font-size: 11px;
         font-weight: bold;
         color: #5a3300;
-        display: block;
+        display: inline;
         text-transform: uppercase;
         letter-spacing: .1em;
-        line-height: 28px;
     }
     .fd-entry-body {
         font-family: 'Permanent Marker', cursive;
         font-size: 15px;
         color: #110500;
-        display: block;
-        line-height: 1.65;
+        display: inline;
     }
     .fd-crime-entry { margin-bottom: 18px; }
     .fd-crime-date {
@@ -13819,7 +13817,7 @@ document.body.appendChild(honk);
         for (const { getValue, label, tiers } of _STATS) {
             const v = Number(getValue?.()) || 0;
             const [text, color] = _matchTier(v, tiers);
-            h += `<div class="fd-entry"><span class="fd-entry-label">${label}</span>`;
+            h += `<div class="fd-entry"><span class="fd-entry-label">${label}: </span>`;
             h += `<span class="fd-entry-body">${_bold(text, color)} (${v})</span></div>`;
         }
         return h;
