@@ -13594,7 +13594,6 @@ document.body.appendChild(honk);
         position: fixed;
         inset: 0;
         z-index: 9000;
-        background: rgba(40,20,0,.4);
         pointer-events: none; /* backdrop doesn't block; fd-inner handles its own events */
     }
     .fd-inner {
