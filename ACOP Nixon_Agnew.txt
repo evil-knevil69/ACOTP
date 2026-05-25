@@ -12740,6 +12740,7 @@ function openEnemiesPanel(questions) {
             <div class="nw-flip-area"><div class="nw-card-inner">
                 <div class="nw-card-front">
                     <div class="nw-photo-wrap"><img src="https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/watergateburglars.JPG" alt="Watergate Burglars"></div>
+                    <div class="nw-bio">Bernard Barker, Virgilio Gonz&#225;lez, Eugenio Mart&#237;nez and Frank Sturgis. Arrested wearing full suits and ties. All with Cuban heritage or ties, and all at sometime on the CIA payroll.</div>
                 </div>
                 <div class="nw-card-back"></div>
             </div></div>
@@ -12829,7 +12830,7 @@ function openEnemiesPanel(questions) {
                 wgFloat.style.top   = wgTop    + 'px';
                 wgFloat.style.width = wgWidth  + 'px';
                 const wgNode = wgFloat.querySelector('.nw-node');
-                if (wgNode) wgNode.style.width = (wgWidth - 60) + 'px';
+                if (wgNode) wgNode.style.width = (wgWidth - 110) + 'px';
             }
 
             // McCord: same row as WG card, centred between LaRue and Stans
