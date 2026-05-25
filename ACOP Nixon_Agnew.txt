@@ -14012,7 +14012,7 @@ document.body.appendChild(honk);
         const btn = document.createElement('button');
         btn.id = 'btn_game_stats';
         btn.textContent = 'Legal Pad';
-        btn.addEventListener('click', _open);
+        btn.addEventListener('click', () => document.getElementById('fd-overlay') ? _close() : _open());
         anchor.insertAdjacentElement('afterend', btn);
     }
 
