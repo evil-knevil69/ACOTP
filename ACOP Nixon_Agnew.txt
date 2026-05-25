@@ -12763,10 +12763,10 @@ function openEnemiesPanel(questions) {
                 return;
             }
             const lPct = loyalty  != null ? Math.round(loyalty  / 10 * 100) : 0;
-            const ePct = exposure != null ? Math.round(exposure / 9  * 100) : 0;
+            const ePct = exposure != null ? Math.round(exposure / 10 * 100) : 0;
             let html = '<div class="nw-back-content">';
             if (loyalty  != null) html += `<div class="nw-back-stat"><div class="nw-back-label">Loyalty</div><div class="nw-back-value">${loyalty} / 10</div><div class="nw-back-bar"><div class="nw-back-fill nw-fill-loyalty" style="width:${lPct}%"></div></div></div>`;
-            if (exposure != null) html += `<div class="nw-back-stat"><div class="nw-back-label">Exposure</div><div class="nw-back-value">${exposure} / 9</div><div class="nw-back-bar"><div class="nw-back-fill nw-fill-exposure" style="width:${ePct}%"></div></div></div>`;
+            if (exposure != null) html += `<div class="nw-back-stat"><div class="nw-back-label">Exposure</div><div class="nw-back-value">${exposure} / 10</div><div class="nw-back-bar"><div class="nw-back-fill nw-fill-exposure" style="width:${ePct}%"></div></div></div>`;
             html += '</div>';
             back.innerHTML = html;
         }
