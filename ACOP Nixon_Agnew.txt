@@ -11973,7 +11973,9 @@ style2.innerHTML = `
     }
     #map_container svg path {
         stroke: #333 !important;
-        stroke-width: 0.5px !important;
+        stroke-width: 0.8px !important;
+        stroke-linejoin: miter !important;
+        shape-rendering: crispEdges !important;
     }
 `;
 document.head.appendChild(style2);
