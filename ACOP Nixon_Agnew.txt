@@ -12438,7 +12438,7 @@ function openEnemiesPanel(questions) {
             border-radius: 2px;
         }
         .nw-node.nw-burglars .nw-photo-wrap img {
-            object-fit: fill;
+            object-fit: contain;
             width: 100%;
             height: 100%;
         }
