@@ -12853,16 +12853,22 @@ function openEnemiesPanel(questions) {
                 huntFloat.style.top  = huntTop  + 'px';
             }
 
-            // WG card: spans Hunt.left → Liddy.right, one gap below (+20px extra offset)
+            // Compute join bar centre early so WG card can be centred on it
+            const huntCX  = huntLeft + nodeW / 2;
+            const liddyCX = liddyR.left + liddyR.width / 2 - cr.left;
+            const barCX   = (huntCX + liddyCX) / 2;
+
+            // WG card: centred on the Hunt+Liddy join bar, one gap below (+20px extra offset)
             const liddyBY = liddyR.bottom - cr.top;
             const wgTop   = liddyBY + gap + 20;
             const wgWidth = liddyR.right - colsonR.left;
+            const wgNodeW = wgWidth - 110;
             if (wgFloat) {
-                wgFloat.style.left  = huntLeft + 'px';
-                wgFloat.style.top   = wgTop    + 'px';
-                wgFloat.style.width = wgWidth  + 'px';
+                wgFloat.style.left  = (barCX - wgNodeW / 2) + 'px';
+                wgFloat.style.top   = wgTop + 'px';
+                wgFloat.style.width = wgNodeW + 'px';
                 const wgNode = wgFloat.querySelector('.nw-node');
-                if (wgNode) wgNode.style.width = (wgWidth - 110) + 'px';
+                if (wgNode) wgNode.style.width = wgNodeW + 'px';
             }
 
             // McCord: same row as WG card, centred between LaRue and Stans
@@ -12897,7 +12903,7 @@ function openEnemiesPanel(questions) {
                 const strEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 strEl.setAttribute('d', `M ${x1} ${y1} L ${x2} ${y2}`);
                 strEl.setAttribute('fill', 'none');
-                strEl.setAttribute('stroke', '#b82020');
+                strEl.setAttribute('stroke', '#2e7d32');
                 strEl.setAttribute('stroke-width', '1.8');
                 strEl.setAttribute('stroke-linecap', 'round');
                 strEl.setAttribute('filter', 'url(#nw-string)');
@@ -12910,8 +12916,8 @@ function openEnemiesPanel(questions) {
                     svg.appendChild(sh);
                     const hd = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     hd.setAttribute('cx', px); hd.setAttribute('cy', py);
-                    hd.setAttribute('r', '5'); hd.setAttribute('fill', '#cc2020');
-                    hd.setAttribute('stroke', '#881010'); hd.setAttribute('stroke-width', '0.8');
+                    hd.setAttribute('r', '5'); hd.setAttribute('fill', '#2e8b3a');
+                    hd.setAttribute('stroke', '#1a5c25'); hd.setAttribute('stroke-width', '0.8');
                     svg.appendChild(hd);
                     const hl = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     hl.setAttribute('cx', px - 1.5); hl.setAttribute('cy', py - 1.5);
@@ -12924,14 +12930,11 @@ function openEnemiesPanel(questions) {
 
             // Colson → Hunt: straight vertical line from Colson bottom-center to Hunt top-center
             const colsonCX = colsonR.left + colsonR.width / 2 - cr.left;
-            const huntCX   = huntLeft + nodeW / 2;
             makeLine(`M ${colsonCX} ${colsonR.bottom - cr.top} L ${huntCX} ${huntTop}`);
 
             // Hunt + Liddy → WG: two-parent join from bottom-center of each card
-            const liddyCX  = liddyR.left + liddyR.width / 2 - cr.left;
-            const huntBY   = huntFloat.getBoundingClientRect().bottom - cr.top;
-            const barY     = wgTop - gap / 2;
-            const barCX    = (huntCX + liddyCX) / 2;
+            const huntBY = huntFloat.getBoundingClientRect().bottom - cr.top;
+            const barY   = wgTop - gap / 2;
             makeLine(`M ${huntCX}  ${huntBY}  L ${huntCX}  ${barY}`);
             makeLine(`M ${liddyCX} ${liddyBY} L ${liddyCX} ${barY}`);
             makeLine(`M ${huntCX}  ${barY}    L ${liddyCX} ${barY}`);
