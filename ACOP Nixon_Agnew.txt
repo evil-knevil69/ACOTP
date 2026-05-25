@@ -12501,6 +12501,24 @@ function openEnemiesPanel(questions) {
             color: #aaa;
             text-align: center;
         }
+        .nw-index-card {
+            position: absolute;
+            width: 90px;
+            background: #fefdf0;
+            border: 1px solid #bba060;
+            border-radius: 1px;
+            padding: 5px 8px;
+            font-family: 'TypewriterDry', 'Courier New', monospace;
+            font-size: 9px;
+            font-weight: bold;
+            color: #220000;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+            box-shadow: 1px 2px 5px rgba(0,0,0,0.22);
+            pointer-events: none;
+            z-index: 5;
+        }
         .nw-tree ul.nw-has-diagonal::before { display: none; }
         .nw-tree li.nw-diagonal-child::before,
         .nw-tree li.nw-diagonal-child::after { display: none; }
@@ -12750,6 +12768,12 @@ function openEnemiesPanel(questions) {
         </div>`;
         inner.appendChild(wgFloat);
 
+        const crimeCardEl = document.createElement('div');
+        crimeCardEl.id = 'nw-crime-wgbreak';
+        crimeCardEl.className = 'nw-index-card';
+        crimeCardEl.textContent = 'Watergate Break-In';
+        inner.appendChild(crimeCardEl);
+
         function _updateOrgBack(node) {
             const id = node.dataset.person;
             const loyalty  = window._getOrgStat(id, 'loyalty');
@@ -12846,7 +12870,51 @@ function openEnemiesPanel(questions) {
                 mccordFloat.style.top  = wgTop + 'px';
             }
 
-            inner.style.minHeight = (wgTop + 180) + 'px';
+            // Crime index card: Watergate Break-In pinned below WG card
+            const crimeCardEl = document.getElementById('nw-crime-wgbreak');
+            if (crimeCardEl && wgFloat) {
+                const wgNodeEl = wgFloat.querySelector('.nw-node');
+                const wgNR     = (wgNodeEl || wgFloat).getBoundingClientRect();
+                const crimeW   = crimeCardEl.offsetWidth || 90;
+                const crimeL   = wgNR.left - cr.left + (wgNR.width - crimeW) / 2;
+                const crimeT   = wgNR.bottom - cr.top + 25;
+                crimeCardEl.style.left = crimeL + 'px';
+                crimeCardEl.style.top  = crimeT + 'px';
+                inner.style.minHeight  = (crimeT + 60) + 'px';
+
+                const x1 = wgNR.left + wgNR.width  / 2 - cr.left;
+                const y1 = wgNR.bottom - cr.top;
+                const cR = crimeCardEl.getBoundingClientRect();
+                const x2 = cR.left + cR.width / 2 - cr.left;
+                const y2 = cR.top - cr.top;
+
+                const strEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                strEl.setAttribute('d', `M ${x1} ${y1} L ${x2} ${y2}`);
+                strEl.setAttribute('fill', 'none');
+                strEl.setAttribute('stroke', '#b82020');
+                strEl.setAttribute('stroke-width', '1.8');
+                strEl.setAttribute('stroke-linecap', 'round');
+                strEl.setAttribute('filter', 'url(#nw-string)');
+                svg.appendChild(strEl);
+
+                [[x1, y1], [x2, y2]].forEach(([px, py]) => {
+                    const sh = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    sh.setAttribute('cx', px + 1); sh.setAttribute('cy', py + 1);
+                    sh.setAttribute('r', '5');      sh.setAttribute('fill', 'rgba(0,0,0,0.22)');
+                    svg.appendChild(sh);
+                    const hd = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    hd.setAttribute('cx', px); hd.setAttribute('cy', py);
+                    hd.setAttribute('r', '5'); hd.setAttribute('fill', '#cc2020');
+                    hd.setAttribute('stroke', '#881010'); hd.setAttribute('stroke-width', '0.8');
+                    svg.appendChild(hd);
+                    const hl = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    hl.setAttribute('cx', px - 1.5); hl.setAttribute('cy', py - 1.5);
+                    hl.setAttribute('r', '2');        hl.setAttribute('fill', 'rgba(255,255,255,0.42)');
+                    svg.appendChild(hl);
+                });
+            } else {
+                inner.style.minHeight = (wgTop + 180) + 'px';
+            }
 
             // Colson → Hunt: straight vertical line from Colson bottom-center to Hunt top-center
             const colsonCX = colsonR.left + colsonR.width / 2 - cr.left;
