@@ -14030,6 +14030,87 @@ document.body.appendChild(honk);
         }).observe(gw, { childList: true, subtree: true });
     }
 })();
+
+/* ── Electoral map path simplification (Ramer-Douglas-Peucker) ── */
+(function() {
+    function _rdp(pts, eps) {
+        if (pts.length <= 2) return pts.slice();
+        let maxD = 0, idx = 0;
+        const ax = pts[0][0], ay = pts[0][1];
+        const bx = pts[pts.length-1][0], by = pts[pts.length-1][1];
+        const AB = Math.hypot(bx-ax, by-ay);
+        for (let k = 1; k < pts.length-1; k++) {
+            const d = AB < 1e-9
+                ? Math.hypot(pts[k][0]-ax, pts[k][1]-ay)
+                : Math.abs((bx-ax)*(ay-pts[k][1]) - (ax-pts[k][0])*(by-ay)) / AB;
+            if (d > maxD) { maxD = d; idx = k; }
+        }
+        if (maxD > eps) {
+            const L = _rdp(pts.slice(0, idx+1), eps);
+            const R = _rdp(pts.slice(idx), eps);
+            return [...L.slice(0,-1), ...R];
+        }
+        return [pts[0], pts[pts.length-1]];
+    }
+
+    function _simplifyD(d, eps) {
+        const re = /([MmLlHhVvCcSsQqTtAaZz])|([+-]?(?:\d*\.\d+|\d+)(?:[eE][+-]?\d+)?)/g;
+        const tokens = [];
+        let m;
+        while ((m = re.exec(d)) !== null) tokens.push(m[0]);
+        let i = 0, cx = 0, cy = 0, sx = 0, sy = 0, lastCmd = '';
+        const subpaths = [];
+        let cur = null;
+        const n = () => parseFloat(tokens[i++]);
+        const add = (x, y) => { cx = x; cy = y; cur && cur.push([x, y]); };
+        while (i < tokens.length) {
+            let cmd;
+            if (/[MmLlHhVvCcSsQqTtAaZz]/.test(tokens[i])) {
+                cmd = tokens[i++]; lastCmd = cmd;
+            } else {
+                cmd = lastCmd === 'M' ? 'L' : lastCmd === 'm' ? 'l' : lastCmd;
+            }
+            switch (cmd) {
+                case 'M': cx=n();cy=n();sx=cx;sy=cy;cur=[];subpaths.push(cur);cur.push([cx,cy]);break;
+                case 'm': cx+=n();cy+=n();sx=cx;sy=cy;cur=[];subpaths.push(cur);cur.push([cx,cy]);break;
+                case 'L': add(n(),n());break;
+                case 'l': add(cx+n(),cy+n());break;
+                case 'H': add(n(),cy);break;
+                case 'h': add(cx+n(),cy);break;
+                case 'V': add(cx,n());break;
+                case 'v': add(cx,cy+n());break;
+                case 'C': n();n();n();n();add(n(),n());break;
+                case 'c': {const _1=n(),_2=n(),_3=n(),_4=n(),dx=n(),dy=n();add(cx+dx,cy+dy);break;}
+                case 'S': n();n();add(n(),n());break;
+                case 's': n();n();add(cx+n(),cy+n());break;
+                case 'Q': n();n();add(n(),n());break;
+                case 'q': n();n();add(cx+n(),cy+n());break;
+                case 'T': add(n(),n());break;
+                case 't': add(cx+n(),cy+n());break;
+                case 'A': n();n();n();n();n();add(n(),n());break;
+                case 'a': n();n();n();n();n();add(cx+n(),cy+n());break;
+                case 'Z': case 'z': cx=sx;cy=sy;cur=null;break;
+            }
+        }
+        return subpaths.map(pts => {
+            if (!pts || pts.length < 2) return '';
+            const s = _rdp(pts, eps);
+            return s.map((p,k) => (k===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join('')+'Z';
+        }).join('');
+    }
+
+    function _checkAndSimplify() {
+        document.querySelectorAll('#map_container svg path:not([data-rdp])').forEach(el => {
+            const d = el.getAttribute('d');
+            if (d) el.setAttribute('d', _simplifyD(d, 1.5));
+            el.dataset.rdp = '1';
+        });
+    }
+
+    new MutationObserver(_checkAndSimplify)
+        .observe(document.body, { childList: true, subtree: true });
+})();
+
 // [JETS_CYOA_CAMPAIGN_DATA_END]
 //#endcode
 
