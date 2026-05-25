@@ -12042,15 +12042,21 @@ function updateStyling(url) {
         const sign = document.querySelector('#campaign_sign');
         const currentLeft = sign ? sign.style.left : '';
         const currentTop = sign ? sign.style.top : '';
-        const currentWidth = sign ? sign.style.width : '380px';
+        const currentWidth = sign ? sign.style.width : '';
         const currentHeight = sign ? sign.style.height : '';
+        const maxSignW = 350;
+        const rawW = parseFloat(currentWidth) || img.naturalWidth;
+        const rawH = parseFloat(currentHeight) || img.naturalHeight;
+        const scale = rawW > maxSignW ? maxSignW / rawW : 1;
+        const signW = Math.round(rawW * scale) + 'px';
+        const signH = Math.round(rawH * scale) + 'px';
         _signStyling.textContent = `
             #campaign_sign {
                 background-image: url("${url}");
                 background-size: 100% 100% !important;
                 background-position: center !important;
-                width: ${currentWidth || img.naturalWidth + 'px'};
-                height: ${currentHeight || img.naturalHeight + 'px'};
+                width: ${signW};
+                height: ${signH};
                 font-size: 0;
             }
         `;
