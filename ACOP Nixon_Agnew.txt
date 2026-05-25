@@ -12657,7 +12657,7 @@ function openEnemiesPanel(questions) {
 
     const _crossLinks = [
         { from: 'Strachan', to: 'Mitchell' },
-        { from: 'Hunt',     to: 'Krogh'    },
+        { from: 'Hunt',     to: 'Krogh',  toEdge: 'bottom' },
         { from: 'Hunt',     to: 'Liddy'    },
         { from: 'Larue', to: 'Klambach', fromEdge: 'bottom', toEdge: 'top' },
     ];
