@@ -11971,13 +11971,6 @@ style2.innerHTML = `
     #state_info ul li > span:first-child {
         font-weight: bold;
     }
-    #map_container {
-        background: #111 !important;
-    }
-    #map_container svg path {
-        stroke: #333 !important;
-        stroke-width: 0.5px !important;
-    }
 `;
 document.head.appendChild(style2);
 
