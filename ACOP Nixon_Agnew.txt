@@ -12410,14 +12410,16 @@ function openEnemiesPanel(questions) {
         .nw-node[data-state="indicted"]           { border-color: #aa2020; border-width: 2px; }
         .nw-node[data-state="imprisoned"]         { border-color: #661010; border-width: 2px; }
         .nw-status-pill {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 15px;
             margin: 2px -6px 0;
-            padding: 3px 0;
+            padding: 0;
             border-radius: 0 0 2px 2px;
             font-size: 9px;
             font-weight: bold;
             letter-spacing: 0.03em;
-            text-align: center;
             text-transform: uppercase;
             border: none;
             border-top: 1px solid rgba(0,0,0,0.12);
