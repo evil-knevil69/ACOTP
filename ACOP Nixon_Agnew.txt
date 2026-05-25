@@ -12836,7 +12836,7 @@ function openEnemiesPanel(questions) {
                 wgFloat.style.top   = wgTop    + 'px';
                 wgFloat.style.width = wgWidth  + 'px';
                 const wgNode = wgFloat.querySelector('.nw-node');
-                if (wgNode) wgNode.style.width = (wgWidth - 10) + 'px';
+                if (wgNode) wgNode.style.width = (wgWidth - 60) + 'px';
             }
 
             // McCord: same row as WG card, centred between LaRue and Stans
