@@ -11944,9 +11944,6 @@ cyoAdventure = function (a) {
 
 const style2 = document.createElement('style');
 style2.innerHTML = `
-    #game_window g {
-    overflow: visible !important;
-    }
     #candidate_pic {
         left: -16px !important;
         z-index: 7 !important;
@@ -12016,6 +12013,7 @@ function updateTypewriterVisibility() {
     }
     const gEl = document.querySelector('#game_window g');
     if (!gEl) return;
+    gEl.style.overflow = 'visible';
     if (!tw) {
         tw = document.createElement('div');
         tw.id = 'typewriter-overlay';
