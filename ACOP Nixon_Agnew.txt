@@ -14104,10 +14104,13 @@ document.body.appendChild(honk);
         }).join('');
     }
 
+    const EPS = 8;
     function _checkAndSimplify() {
-        document.querySelectorAll('#map_container svg path:not([data-rdp])').forEach(el => {
-            const d = el.getAttribute('d');
-            if (d) el.setAttribute('d', _simplifyD(d, 1.5));
+        document.querySelectorAll('#map_container svg path').forEach(el => {
+            const orig = el.dataset.rdpOrig || el.getAttribute('d');
+            if (!orig) return;
+            if (!el.dataset.rdpOrig) el.dataset.rdpOrig = orig;
+            el.setAttribute('d', _simplifyD(orig, EPS));
             el.dataset.rdp = '1';
         });
     }
