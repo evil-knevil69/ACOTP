@@ -14108,6 +14108,13 @@ document.body.appendChild(honk);
     const EPS = 8;
     let _obs;
 
+    /* ── Manual label nudges (SVG units from bbox centre) ─────────────────
+       Add an entry whenever a label needs repositioning:
+         'MI': { dx: 15, dy: 20 }  shifts Michigan's label right 15, down 20
+    ── */
+    const LABEL_OFFSETS = {
+    };
+
     function _injectStateLabels() {
         if (!document.getElementById('resume_questions_button')) return;
         const svg = document.querySelector('#map_container svg');
@@ -14122,9 +14129,10 @@ document.body.appendChild(honk);
             if (!el) return;
             const bb = el.getBBox();
             if (bb.width < 1) return;
+            const off = LABEL_OFFSETS[abbr] || {};
             const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            txt.setAttribute('x', (bb.x + bb.width / 2).toFixed(1));
-            txt.setAttribute('y', (bb.y + bb.height / 2).toFixed(1));
+            txt.setAttribute('x', (bb.x + bb.width / 2 + (off.dx || 0)).toFixed(1));
+            txt.setAttribute('y', (bb.y + bb.height / 2 + (off.dy || 0)).toFixed(1));
             txt.setAttribute('text-anchor', 'middle');
             txt.setAttribute('dominant-baseline', 'central');
             txt.className.baseVal = 'state-label';
