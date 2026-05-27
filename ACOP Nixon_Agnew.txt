@@ -11974,12 +11974,13 @@ style2.innerHTML = `
         stroke-linejoin: round;
         shape-rendering: crispEdges !important;
     }
-    #map_container svg text {
+    #map_container svg text.state-label {
         fill: #1a1a1a !important;
-        font-size: 8px !important;
-        font-weight: bold;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
+        font-size: 7px !important;
+        font-family: Georgia, 'Times New Roman', serif !important;
+        font-weight: normal;
+        pointer-events: none;
+        user-select: none;
     }
 `;
 document.head.appendChild(style2);
@@ -14105,6 +14106,35 @@ document.body.appendChild(honk);
     }
 
     const EPS = 8;
+
+    function _injectStateLabels() {
+        const svg = document.querySelector('#map_container svg');
+        if (!svg) return;
+        const plugin = typeof $ !== 'undefined' && $('#map_container').data('plugin-usmap');
+        if (!plugin || !plugin.stateShapes) return;
+        const abbrs = Object.keys(plugin.stateShapes);
+        if (!abbrs.length) return;
+        const existing = svg.querySelectorAll('text.state-label');
+        if (existing.length === abbrs.length) return;
+        existing.forEach(t => t.remove());
+        const frag = document.createDocumentFragment();
+        abbrs.forEach(abbr => {
+            const el = plugin.stateShapes[abbr]?.[0];
+            if (!el) return;
+            const bb = el.getBBox();
+            if (bb.width < 1) return;
+            const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            txt.setAttribute('x', (bb.x + bb.width / 2).toFixed(1));
+            txt.setAttribute('y', (bb.y + bb.height / 2).toFixed(1));
+            txt.setAttribute('text-anchor', 'middle');
+            txt.setAttribute('dominant-baseline', 'central');
+            txt.className.baseVal = 'state-label';
+            txt.textContent = abbr;
+            frag.appendChild(txt);
+        });
+        svg.appendChild(frag);
+    }
+
     function _checkAndSimplify() {
         document.querySelectorAll('#map_container svg path').forEach(el => {
             const orig = el.dataset.rdpOrig || el.getAttribute('d');
@@ -14113,6 +14143,7 @@ document.body.appendChild(honk);
             el.setAttribute('d', _simplifyD(orig, EPS));
             el.dataset.rdp = '1';
         });
+        _injectStateLabels();
     }
 
     new MutationObserver(_checkAndSimplify)
