@@ -14113,6 +14113,7 @@ document.body.appendChild(honk);
          'MI': { dx: 15, dy: 20 }  shifts Michigan's label right 15, down 20
     ── */
     const LABEL_OFFSETS = {
+        'CA': { dx: -16, dy: 10 },
     };
 
     function _injectStateLabels() {
