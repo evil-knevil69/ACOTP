@@ -14120,6 +14120,7 @@ document.body.appendChild(honk);
         'VA': { dx: 10, dy: 0 },
         'FL': { dx: 21, dy: -17 },
         'TX': { dx: 14, dy: 0 },
+        'LA': { dx: -16, dy: 14 },
     };
 
     function _injectStateLabels() {
