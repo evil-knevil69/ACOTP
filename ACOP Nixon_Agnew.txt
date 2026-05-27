@@ -14109,6 +14109,7 @@ document.body.appendChild(honk);
     let _obs;
 
     function _injectStateLabels() {
+        if (!document.getElementById('resume_questions_button')) return;
         const svg = document.querySelector('#map_container svg');
         if (!svg || svg.querySelector('text.state-label')) return;
         const plugin = typeof $ !== 'undefined' && $('#map_container').data('plugin-usmap');
