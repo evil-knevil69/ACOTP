@@ -14121,6 +14121,7 @@ document.body.appendChild(honk);
         'FL': { dx: 21, dy: -17 },
         'TX': { dx: 14, dy: 0 },
         'LA': { dx: -16, dy: 14 },
+        'NH': { dx: 0, dy: 5 },
     };
 
     function _injectStateLabels() {
