@@ -14118,6 +14118,7 @@ document.body.appendChild(honk);
         'ID': { dx: -2, dy: 20 },
         'MI': { dx: 20, dy: 20 },
         'VA': { dx: 10, dy: 0 },
+        'FL': { dx: 21, dy: -17 },
     };
 
     function _injectStateLabels() {
