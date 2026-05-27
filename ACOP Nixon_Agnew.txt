@@ -14114,6 +14114,7 @@ document.body.appendChild(honk);
     ── */
     const LABEL_OFFSETS = {
         'CA': { dx: -16, dy: 10 },
+        'MN': { dx: -7, dy: 0 },
     };
 
     function _injectStateLabels() {
