@@ -11974,6 +11974,9 @@ style2.innerHTML = `
         stroke-linejoin: round;
         shape-rendering: crispEdges !important;
     }
+    #map_container.election-map svg g {
+        filter: url(#lamp-glow);
+    }
     #map_container svg text.state-label {
         fill: #1a1a1a !important;
         font-size: 9px !important;
@@ -14159,9 +14162,39 @@ document.body.appendChild(honk);
         _obs.observe(document.body, { childList: true, subtree: true });
     }
 
+    function _addLampFilter(svg) {
+        if (svg.querySelector('#lamp-glow')) return;
+        const defs = svg.querySelector('defs');
+        if (!defs) return;
+        const f = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+        f.id = 'lamp-glow';
+        f.setAttribute('x', '-20%');
+        f.setAttribute('y', '-20%');
+        f.setAttribute('width', '140%');
+        f.setAttribute('height', '140%');
+        f.setAttribute('color-interpolation-filters', 'sRGB');
+        f.innerHTML = `
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+            <feColorMatrix in="blur" type="matrix" result="warm-blur"
+                values="1.5 0.3 0   0 0
+                        0.1 1.1 0   0 0
+                        0   0   0.4 0 0
+                        0   0   0   1.4 0"/>
+            <feBlend in="SourceGraphic" in2="warm-blur" mode="screen" result="bloomed"/>
+            <feColorMatrix in="bloomed" type="matrix"
+                values="1.08 0.10 0    0 0.03
+                        0.03 1.03 0    0 0.01
+                        0    0    0.88 0 0
+                        0    0    0    1 0"/>
+        `;
+        defs.appendChild(f);
+    }
+
     function _checkAndSimplify() {
         if (!document.getElementById('resume_questions_button')) return;
         document.getElementById('map_container')?.classList.add('election-map');
+        const svg = document.querySelector('#map_container svg');
+        if (svg) _addLampFilter(svg);
         document.querySelectorAll('#map_container svg path:not([data-rdp])').forEach(el => {
             el.dataset.rdp = '1';
             if (el.closest('defs, clipPath')) return;
