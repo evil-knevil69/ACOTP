@@ -14140,10 +14140,11 @@ document.body.appendChild(honk);
         if (!document.getElementById('resume_questions_button')) return;
         document.getElementById('map_container')?.classList.add('election-map');
         document.querySelectorAll('#map_container svg path:not([data-rdp])').forEach(el => {
+            el.dataset.rdp = '1';
+            if (el.closest('defs, clipPath')) return;
             const d = el.getAttribute('d');
             if (!d) return;
             el.setAttribute('d', _simplifyD(d, EPS));
-            el.dataset.rdp = '1';
         });
         _injectStateLabels();
     }
