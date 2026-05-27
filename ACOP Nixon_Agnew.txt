@@ -11978,7 +11978,7 @@ style2.innerHTML = `
         fill: #1a1a1a !important;
         font-size: 9px !important;
         font-family: Georgia, 'Times New Roman', serif !important;
-        font-weight: normal;
+        font-weight: bold;
         pointer-events: none;
         user-select: none;
     }
