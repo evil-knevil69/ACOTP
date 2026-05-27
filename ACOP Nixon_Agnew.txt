@@ -14106,17 +14106,15 @@ document.body.appendChild(honk);
     }
 
     const EPS = 8;
+    let _obs;
 
     function _injectStateLabels() {
         const svg = document.querySelector('#map_container svg');
-        if (!svg) return;
+        if (!svg || svg.querySelector('text.state-label')) return;
         const plugin = typeof $ !== 'undefined' && $('#map_container').data('plugin-usmap');
         if (!plugin || !plugin.stateShapes) return;
         const abbrs = Object.keys(plugin.stateShapes);
         if (!abbrs.length) return;
-        const existing = svg.querySelectorAll('text.state-label');
-        if (existing.length === abbrs.length) return;
-        existing.forEach(t => t.remove());
         const frag = document.createDocumentFragment();
         abbrs.forEach(abbr => {
             const el = plugin.stateShapes[abbr]?.[0];
@@ -14132,22 +14130,23 @@ document.body.appendChild(honk);
             txt.textContent = abbr;
             frag.appendChild(txt);
         });
+        _obs.disconnect();
         svg.appendChild(frag);
+        _obs.observe(document.body, { childList: true, subtree: true });
     }
 
     function _checkAndSimplify() {
-        document.querySelectorAll('#map_container svg path').forEach(el => {
-            const orig = el.dataset.rdpOrig || el.getAttribute('d');
-            if (!orig) return;
-            if (!el.dataset.rdpOrig) el.dataset.rdpOrig = orig;
-            el.setAttribute('d', _simplifyD(orig, EPS));
+        document.querySelectorAll('#map_container svg path:not([data-rdp])').forEach(el => {
+            const d = el.getAttribute('d');
+            if (!d) return;
+            el.setAttribute('d', _simplifyD(d, EPS));
             el.dataset.rdp = '1';
         });
         _injectStateLabels();
     }
 
-    new MutationObserver(_checkAndSimplify)
-        .observe(document.body, { childList: true, subtree: true });
+    _obs = new MutationObserver(_checkAndSimplify);
+    _obs.observe(document.body, { childList: true, subtree: true });
 })();
 
 // [JETS_CYOA_CAMPAIGN_DATA_END]
