@@ -14118,7 +14118,7 @@ document.body.appendChild(honk);
     const LABEL_OFFSETS = {
         'CA': { dx: -16, dy: 10 },
         'MN': { dx: -7, dy: 0 },
-        'ID': { dx: -2, dy: 20 },
+        'ID': { dx: -2, dy: 30 },
         'MI': { dx: 20, dy: 20 },
         'VA': { dx: 10, dy: 0 },
         'FL': { dx: 31, dy: -19 },
