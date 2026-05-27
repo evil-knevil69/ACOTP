@@ -14121,7 +14121,7 @@ document.body.appendChild(honk);
         'ID': { dx: -2, dy: 20 },
         'MI': { dx: 20, dy: 20 },
         'VA': { dx: 10, dy: 0 },
-        'FL': { dx: 21, dy: -17 },
+        'FL': { dx: 31, dy: -19 },
         'TX': { dx: 14, dy: 0 },
         'LA': { dx: -16, dy: 14 },
         'NH': { dx: 0, dy: 5 },
