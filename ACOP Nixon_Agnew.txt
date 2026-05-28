@@ -12198,6 +12198,14 @@ function openInnerCircle() {
     });
     btnRow.appendChild(enemiesBtn);
 
+    const officialsBtn = document.createElement('button');
+    officialsBtn.textContent = 'Officials';
+    officialsBtn.addEventListener('click', () => {
+        panel.remove();
+        openOfficialsPanel(questions);
+    });
+    btnRow.appendChild(officialsBtn);
+
     const backBtn = document.createElement('button');
     backBtn.textContent = 'Back';
     backBtn.addEventListener('click', () => {
@@ -12233,6 +12241,43 @@ function openEnemiesPanel(questions) {
     placeholder.style.fontSize = '16px';
     placeholder.style.color = '#555';
     placeholder.textContent = '— No enemies tracked yet —';
+    list.appendChild(placeholder);
+
+    panel.appendChild(list);
+
+    const btnRow = document.createElement('div');
+    btnRow.className = 'ic-panel-buttons';
+
+    const backBtn = document.createElement('button');
+    backBtn.textContent = 'Back';
+    backBtn.addEventListener('click', () => {
+        panel.remove();
+        openInnerCircle();
+    });
+    btnRow.appendChild(backBtn);
+    panel.appendChild(btnRow);
+
+    document.getElementById('game_window').appendChild(panel);
+}
+
+function openOfficialsPanel(questions) {
+    document.getElementById('officials_panel')?.remove();
+
+    const panel = document.createElement('div');
+    panel.id = 'officials_panel';
+
+    const title = document.createElement('h2');
+    title.textContent = 'Officials';
+    panel.appendChild(title);
+
+    const list = document.createElement('div');
+    list.className = 'officials-list';
+
+    const placeholder = document.createElement('p');
+    placeholder.style.fontFamily = "'TypewriterDry', sans-serif";
+    placeholder.style.fontSize = '16px';
+    placeholder.style.color = '#555';
+    placeholder.textContent = '— No officials tracked yet —';
     list.appendChild(placeholder);
 
     panel.appendChild(list);
