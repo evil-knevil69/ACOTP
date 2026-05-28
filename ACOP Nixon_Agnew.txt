@@ -13129,7 +13129,11 @@ const _gameObserver = new MutationObserver((() => {
             const visitImg = document.querySelector('#visit_content img');
             if (visitImg && !visitImg.dataset.visitImgSet && document.querySelector('#confirm_visit_button')) {
                 visitImg.dataset.visitImgSet = '1';
-                visitImg.src = _visitAdvisorImages[Math.floor(Math.random() * _visitAdvisorImages.length)];
+                visitImg.style.opacity = '0';
+                const newSrc = _visitAdvisorImages[Math.floor(Math.random() * _visitAdvisorImages.length)];
+                visitImg.onload = () => { visitImg.style.transition = 'opacity 0.15s'; visitImg.style.opacity = '1'; };
+                visitImg.onerror = () => { visitImg.style.opacity = '1'; };
+                visitImg.src = newSrc;
             }
 
             const noFeedbackBtn = document.getElementById('no_feedback_button');
