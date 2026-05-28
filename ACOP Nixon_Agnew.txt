@@ -11985,6 +11985,10 @@ style2.innerHTML = `
         pointer-events: none;
         user-select: none;
     }
+    .person_description_window {
+        overflow-y: auto !important;
+        max-height: 340px !important;
+    }
 `;
 document.head.appendChild(style2);
 
