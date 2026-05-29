@@ -11855,6 +11855,9 @@ var homeImprovements = 0;
 var Cambodia = 0;
 var ratfucking = 0;
 var ITT = 0;
+var FakeCables = 0;
+var MilkFund = 0;
+var Vesco = 0;
 
 // ── Nominee ───────────────────────────────────────────────────────────────────
 var Nominee = "Nixon";
