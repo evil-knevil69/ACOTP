@@ -11847,6 +11847,15 @@ var SOD = 'Laird';
 var OilEmbargo = 0;            // 1 once OPEC embargo is triggered
 var SaturdayNightMassacre = 0; // 1 once Cox is fired
 
+// ── Crime variables (for future chart use) ────────────────────────────────────
+var wiretapping = 0;
+var Ellsberg = 0;
+var taxEvasion = 0;
+var homeImprovements = 0;
+var Cambodia = 0;
+var ratfucking = 0;
+var ITT = 0;
+
 // ── Nominee ───────────────────────────────────────────────────────────────────
 var Nominee = "Nixon";
 
