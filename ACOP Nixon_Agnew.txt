@@ -11836,6 +11836,10 @@ var NSA = 'Kissinger';
 var ChiefOfStaff = 'Haldeman';
 var AttorneyGeneral = 'Kleindienst';
 var SOS = 'Rogers';
+var FBI = 'Gray';
+var SP = 'none';
+var CIA = 'Helms';
+var SOD = 'Laird';
 
 // ── World Event flags (state stance triggers) ─────────────────────────────────
 // These track whether each one-shot event has already fired.
