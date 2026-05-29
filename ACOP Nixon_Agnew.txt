@@ -11832,6 +11832,11 @@ var Klambach = 2;
 var Kleindienst = 2;
 var Colson = 2;
 
+var NSA = 'Kissinger';
+var ChiefOfStaff = 'Haldeman';
+var AttorneyGeneral = 'Kleindienst';
+var SOS = 'Rogers';
+
 // ── World Event flags (state stance triggers) ─────────────────────────────────
 // These track whether each one-shot event has already fired.
 // Set to 1 inside cyoAdventure when the triggering answer is given.
