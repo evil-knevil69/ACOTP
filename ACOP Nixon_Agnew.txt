@@ -12269,6 +12269,185 @@ function openEnemiesPanel(questions) {
     document.getElementById('game_window').appendChild(panel);
 }
 
+// ── Officials panel data ──────────────────────────────────────────────────────
+// Maps person name → { image, bio }.  image is '' until a URL is supplied.
+// When a position variable changes (e.g. ChiefOfStaff = 'Haig'), re-opening
+// the panel will automatically show the new entry via window[varName] lookup.
+const OFFICIALS_ROSTER = {
+    'Haldeman': {
+        image: '',
+        bio: "H.R. Haldeman serves as Nixon's iron-fisted Chief of Staff, controlling all access to the Oval Office with methodical precision. A former advertising executive, he is Nixon's most trusted enforcer and the chief architect of the re-election campaign's machinery."
+    },
+    'Kissinger': {
+        image: '',
+        bio: "Henry Kissinger serves as National Security Advisor, masterminding the secret backchannel diplomacy that opened China and reshaped détente with the Soviets. Calculating and media-savvy, he shapes foreign policy while carefully cultivating his own indispensability."
+    },
+    'Rogers': {
+        image: '',
+        bio: "William Rogers serves as Secretary of State, though his influence is systematically sidelined by Kissinger's parallel foreign policy apparatus. A loyal Nixon ally from the Eisenhower years, he handles formal diplomatic duties while real power flows elsewhere."
+    },
+    'Laird': {
+        image: '',
+        bio: "Melvin Laird serves as Secretary of Defense, overseeing the gradual Vietnamization policy designed to withdraw American troops while preserving South Vietnam. A shrewd congressional veteran, he frequently pushes back against both the White House and the military brass."
+    },
+    'Kleindienst': {
+        image: '',
+        bio: "Richard Kleindienst serves as Attorney General, having stepped up after Mitchell's departure under a gathering cloud of political scandal. A loyal partisan lawyer, his tenure will be defined by his proximity to Watergate's spreading contamination."
+    },
+    'Helms': {
+        image: '',
+        bio: "Richard Helms serves as Director of the CIA, a career intelligence officer who built the agency through the Cold War's darkest operations. He walks a careful line between serving the White House and protecting the CIA from Nixon's more reckless demands."
+    },
+    'Gray': {
+        image: '',
+        bio: "L. Patrick Gray serves as Acting FBI Director following J. Edgar Hoover's death, a Nixon loyalist without the institutional standing to resist White House pressure. His cooperation with the cover-up will eventually seal his own criminal fate."
+    },
+    'none': {
+        image: '',
+        bio: "This position currently stands vacant. No individual has yet been appointed to fill the role."
+    }
+};
+
+// Row order: CoS → NSA → SOS → SOD → AG (with SP + FBI beneath) → CIA
+const OFFICIALS_LAYOUT = [
+    { varName: 'ChiefOfStaff',    role: 'Chief of Staff' },
+    { varName: 'NSA',              role: 'Nat. Security Advisor' },
+    { varName: 'SOS',              role: 'Secretary of State' },
+    { varName: 'SOD',              role: 'Secretary of Defense' },
+    {
+        varName: 'AttorneyGeneral', role: 'Attorney General',
+        subordinates: [
+            { varName: 'SP',  role: 'Special Prosecutor' },
+            { varName: 'FBI', role: 'FBI Director' }
+        ]
+    },
+    { varName: 'CIA', role: 'CIA Director' }
+];
+
+;(() => {
+    const _ocStyle = document.createElement('style');
+    _ocStyle.textContent = `
+        #officials_panel {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(245, 232, 200, 0.97);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 12px 8px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+        #officials_panel h2 {
+            font-family: 'TypewriterDry', sans-serif;
+            text-align: center;
+            margin: 0 0 14px;
+            font-size: 18px;
+        }
+        .oc-grid {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            align-items: flex-start;
+            flex: 1;
+        }
+        .oc-ag-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .oc-ag-group > .oc-card {
+            margin-bottom: 0;
+        }
+        .oc-connector {
+            width: 1px;
+            height: 10px;
+            background: #888;
+            margin: 0 auto;
+        }
+        .oc-sub-row {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            position: relative;
+        }
+        .oc-sub-row::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 25%;
+            right: 25%;
+            height: 1px;
+            background: #888;
+        }
+        .oc-card {
+            width: 118px;
+            border: 1px solid #888;
+            border-radius: 3px;
+            padding: 7px 6px 6px;
+            background: rgba(255,255,255,0.84);
+            text-align: center;
+            box-shadow: 1px 1px 4px rgba(0,0,0,0.18);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .oc-card.oc-vacant {
+            opacity: 0.55;
+        }
+        .oc-photo {
+            width: 68px;
+            height: 68px;
+            border-radius: 3px;
+            overflow: hidden;
+            background: #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+            flex-shrink: 0;
+        }
+        .oc-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .oc-initials {
+            font-size: 17px;
+            font-weight: bold;
+            color: #777;
+            font-family: Arial, sans-serif;
+        }
+        .oc-role {
+            font-size: 8.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: #666;
+            font-family: 'TypewriterDry', sans-serif;
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+        .oc-name {
+            font-size: 12px;
+            font-weight: bold;
+            color: #111;
+            font-family: 'TypewriterDry', sans-serif;
+            margin-bottom: 4px;
+        }
+        .oc-bio {
+            font-size: 8.5px;
+            color: #444;
+            font-family: 'TypewriterDry', sans-serif;
+            line-height: 1.35;
+            text-align: left;
+        }
+    `;
+    document.head.appendChild(_ocStyle);
+})();
+
 function openOfficialsPanel(questions) {
     document.getElementById('officials_panel')?.remove();
 
@@ -12276,20 +12455,75 @@ function openOfficialsPanel(questions) {
     panel.id = 'officials_panel';
 
     const title = document.createElement('h2');
-    title.textContent = 'Officials';
+    title.textContent = 'Administration Officials';
     panel.appendChild(title);
 
-    const list = document.createElement('div');
-    list.className = 'officials-list';
+    const grid = document.createElement('div');
+    grid.className = 'oc-grid';
 
-    const placeholder = document.createElement('p');
-    placeholder.style.fontFamily = "'TypewriterDry', sans-serif";
-    placeholder.style.fontSize = '16px';
-    placeholder.style.color = '#555';
-    placeholder.textContent = '— No officials tracked yet —';
-    list.appendChild(placeholder);
+    function makeCard(varName, role) {
+        const person = window[varName];
+        const data = OFFICIALS_ROSTER[person] || { image: '', bio: 'No information available.' };
+        const isVacant = (person === 'none' || person == null);
 
-    panel.appendChild(list);
+        const card = document.createElement('div');
+        card.className = 'oc-card' + (isVacant ? ' oc-vacant' : '');
+
+        const photoWrap = document.createElement('div');
+        photoWrap.className = 'oc-photo';
+        if (data.image) {
+            const img = document.createElement('img');
+            img.src = data.image;
+            img.alt = person;
+            photoWrap.appendChild(img);
+        } else {
+            const initials = document.createElement('span');
+            initials.className = 'oc-initials';
+            initials.textContent = isVacant ? '—' : person.slice(0, 2).toUpperCase();
+            photoWrap.appendChild(initials);
+        }
+        card.appendChild(photoWrap);
+
+        const roleEl = document.createElement('div');
+        roleEl.className = 'oc-role';
+        roleEl.textContent = role;
+        card.appendChild(roleEl);
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'oc-name';
+        nameEl.textContent = isVacant ? '(Vacant)' : person;
+        card.appendChild(nameEl);
+
+        const bioEl = document.createElement('div');
+        bioEl.className = 'oc-bio';
+        bioEl.textContent = data.bio;
+        card.appendChild(bioEl);
+
+        return card;
+    }
+
+    OFFICIALS_LAYOUT.forEach(item => {
+        if (item.subordinates) {
+            const group = document.createElement('div');
+            group.className = 'oc-ag-group';
+            group.appendChild(makeCard(item.varName, item.role));
+
+            const connector = document.createElement('div');
+            connector.className = 'oc-connector';
+            group.appendChild(connector);
+
+            const subRow = document.createElement('div');
+            subRow.className = 'oc-sub-row';
+            item.subordinates.forEach(sub => subRow.appendChild(makeCard(sub.varName, sub.role)));
+            group.appendChild(subRow);
+
+            grid.appendChild(group);
+        } else {
+            grid.appendChild(makeCard(item.varName, item.role));
+        }
+    });
+
+    panel.appendChild(grid);
 
     const btnRow = document.createElement('div');
     btnRow.className = 'ic-panel-buttons';
