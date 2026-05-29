@@ -12366,6 +12366,7 @@ const OFFICIALS_LAYOUT = [
             justify-content: center;
             align-items: flex-start;
             flex: 1;
+            margin-top: 20px;
         }
         .oc-ag-group {
             display: flex;
@@ -12398,6 +12399,8 @@ const OFFICIALS_LAYOUT = [
         }
         .oc-card {
             width: 118px;
+            height: 230px;
+            overflow: hidden;
             border: 1px solid #888;
             border-radius: 3px;
             padding: 7px 6px 6px;
