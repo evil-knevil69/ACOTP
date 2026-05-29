@@ -12342,7 +12342,7 @@ const OFFICIALS_LAYOUT = [
         #officials_panel {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/design-space-paper-textured-background.jpg');
+            background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png');
             background-size: cover;
             background-position: center;
             z-index: 100;
@@ -12567,7 +12567,7 @@ function openOfficialsPanel(questions) {
         #inner_circle_panel {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/design-space-paper-textured-background.jpg');
+            background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png');
             background-size: cover;
             background-position: center;
             z-index: 100;
