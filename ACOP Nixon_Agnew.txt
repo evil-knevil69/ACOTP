@@ -12547,11 +12547,31 @@ function openOfficialsPanel(questions) {
     const _orgStyle = document.createElement('style');
     _orgStyle.textContent = `
         /* nw- prefix avoids colliding with Code 1's .org- classes */
+        #inner_circle_panel {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(245, 232, 200, 0.97);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 12px 8px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+        #inner_circle_panel h2 {
+            font-family: 'TypewriterDry', sans-serif;
+            text-align: center;
+            margin: 0 0 10px;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        /* overflow: auto on both axes — avoids the CSS spec rule that forces
+           overflow-y:visible to computed auto when overflow-x is non-visible */
         #nw-chart-wrapper {
             position: relative;
             width: 100%;
-            overflow-x: auto;
-            overflow-y: visible;
+            overflow: auto;
+            flex: 1;
         }
         #nw-chart-inner {
             position: relative;
