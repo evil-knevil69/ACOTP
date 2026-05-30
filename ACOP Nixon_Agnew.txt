@@ -11858,6 +11858,8 @@ var ITT = 0;
 var FakeCables = 0;
 var MilkFund = 0;
 var Vesco = 0;
+var oojHush = 0;
+var oojClemency = 0;
 
 // ── Nominee ───────────────────────────────────────────────────────────────────
 var Nominee = "Nixon";
