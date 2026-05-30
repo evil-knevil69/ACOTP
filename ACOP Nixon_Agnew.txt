@@ -12192,6 +12192,100 @@ function addInnerCircleButton() {
     btn.style.marginLeft = '10px';
     btn.addEventListener('click', openInnerCircle);
     ref.insertAdjacentElement('afterend', btn);
+
+    const padBtn = document.createElement('button');
+    padBtn.id = 'legal_pad_button';
+    padBtn.textContent = 'Legal Pad';
+    padBtn.style.marginLeft = '6px';
+    padBtn.addEventListener('click', openLegalPad);
+    btn.insertAdjacentElement('afterend', padBtn);
+}
+
+// ── Legal Pad ─────────────────────────────────────────────────────────────────
+// Two-tab panel using the ghost-button pattern from More Than Ever:
+// the background image shows the tab chrome; invisible buttons sit
+// precisely over the tab areas and swap the image + content on click.
+// Replace the placeholder URLs with real legal-pad tab images when ready.
+var _legalPadScreen = 0; // 0 = Nixon's Image tab, 1 = Crises tab
+
+function openLegalPad() {
+    document.getElementById('legal_pad_panel')?.remove();
+
+    const panel = document.createElement('div');
+    panel.id = 'legal_pad_panel';
+    Object.assign(panel.style, {
+        position:        'absolute',
+        top:             '3px',
+        left:            '0px',
+        width:           '962px',
+        height:          '582px',
+        backgroundImage: _legalPadScreen === 0
+            ? 'url("PLACEHOLDER_TAB0_IMAGE_URL")'
+            : 'url("PLACEHOLDER_TAB1_IMAGE_URL")',
+        backgroundSize:     'cover',
+        backgroundPosition: 'center',
+        zIndex:          '1000',
+    });
+
+    // Ghost button — Nixon's Image tab
+    const tabImage = document.createElement('button');
+    tabImage.style.cssText = 'width:245px;height:30px;position:relative;transform:translate(12px,5px);cursor:pointer;opacity:0;';
+    tabImage.onclick = () => {
+        if (_legalPadScreen !== 0) {
+            _legalPadScreen = 0;
+            panel.style.backgroundImage = 'url("PLACEHOLDER_TAB0_IMAGE_URL")';
+            _legalPadContent.innerHTML = _legalPadNixonText();
+        }
+    };
+    panel.appendChild(tabImage);
+
+    // Ghost button — Crises tab
+    const tabCrises = document.createElement('button');
+    tabCrises.style.cssText = 'width:245px;height:30px;position:relative;transform:translate(14px,5px);cursor:pointer;opacity:0;';
+    tabCrises.onclick = () => {
+        if (_legalPadScreen !== 1) {
+            _legalPadScreen = 1;
+            panel.style.backgroundImage = 'url("PLACEHOLDER_TAB1_IMAGE_URL")';
+            _legalPadContent.innerHTML = _legalPadCrisesText();
+        }
+    };
+    panel.appendChild(tabCrises);
+
+    // Close button
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '<b>Close</b>';
+    closeBtn.style.cssText = 'position:absolute;transform:translate(-723px,0px);';
+    closeBtn.onclick = () => panel.remove();
+    panel.appendChild(closeBtn);
+
+    // Content area
+    const _legalPadContent = document.createElement('div');
+    _legalPadContent.id = 'legal_pad_content';
+    _legalPadContent.innerHTML = _legalPadScreen === 0
+        ? _legalPadNixonText()
+        : _legalPadCrisesText();
+    Object.assign(_legalPadContent.style, {
+        fontFamily:  'Courier, monospace',
+        fontSize:    '14px',
+        position:    'relative',
+        transform:   'translate(14px, 20px)',
+        lineHeight:  '1.4',
+        paddingLeft: '10px',
+        color:       '#111',
+    });
+    panel.appendChild(_legalPadContent);
+
+    document.getElementById('game_window').appendChild(panel);
+}
+
+function _legalPadNixonText() {
+    // Nixon's Image tab — placeholder, populate with real content
+    return '(Nixon\'s Image content goes here)';
+}
+
+function _legalPadCrisesText() {
+    // Crises tab — placeholder, populate with real content
+    return '(Crises content goes here)';
 }
 
 function openInnerCircle() {
