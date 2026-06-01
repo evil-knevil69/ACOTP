@@ -12192,6 +12192,113 @@ function addInnerCircleButton() {
     btn.style.marginLeft = '10px';
     btn.addEventListener('click', openInnerCircle);
     ref.insertAdjacentElement('afterend', btn);
+
+    const padBtn = document.createElement('button');
+    padBtn.id = 'legal_pad_button';
+    padBtn.textContent = 'Legal Pad';
+    padBtn.style.marginLeft = '6px';
+    padBtn.addEventListener('click', openLegalPad);
+    btn.insertAdjacentElement('afterend', padBtn);
+}
+
+// ── Legal Pad ─────────────────────────────────────────────────────────────────
+const _LP_CRIMES = [
+    { varName: 'wiretapping',      label: 'Illegal Wiretapping' },
+    { varName: 'Ellsberg',         label: "Break-In at Ellsberg's Psychiatrist" },
+    { varName: 'taxEvasion',       label: 'Presidential Tax Fraud' },
+    { varName: 'homeImprovements', label: 'Federal Funds Used for Private Residences' },
+    { varName: 'Cambodia',         label: 'Secret Bombing of Cambodia' },
+    { varName: 'ratfucking',       label: 'Dirty Tricks' },
+    { varName: 'ITT',              label: 'ITT: Dita Beard' },
+    { varName: 'FakeCables',       label: 'Forged State Dept. Cables' },
+    { varName: 'MilkFund',         label: 'Dairy Industry Bribery' },
+    { varName: 'Vesco',            label: 'Illegal Vesco Campaign Contribution' },
+    { varName: 'oojHush',          label: 'Obstruction of Justice: Hush Money' },
+    { varName: 'oojClemency',      label: 'Obstruction of Justice: Clemency' },
+];
+
+var _legalPadScreen = 0; // 0 = High Crimes tab, 1+ = future tabs
+
+function _lpCrimesHTML() {
+    const tiers = [
+        { level: 3, heading: 'Impeachable Offenses' },
+        { level: 2, heading: 'Before the Grand Jury' },
+        { level: 1, heading: 'Known Crimes' },
+    ];
+    let html = '';
+    tiers.forEach(({ level, heading }) => {
+        const items = _LP_CRIMES.filter(c => window[c.varName] === level);
+        if (!items.length) return;
+        html += `<div style="margin-bottom:10px;">
+            <div style="font-family:'TypewriterDry',monospace;font-size:11px;font-weight:bold;
+                        text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #7a5c2e;
+                        margin-bottom:4px;padding-bottom:2px;color:#3a2a10;">${heading}</div>`;
+        items.forEach(c => {
+            html += `<div style="font-family:'TypewriterDry',monospace;font-size:12px;
+                                 color:#1a1a1a;line-height:1.5;">— ${c.label}</div>`;
+        });
+        html += `</div>`;
+    });
+    if (!html) html = `<div style="font-family:'TypewriterDry',monospace;font-size:12px;
+                                   color:#888;font-style:italic;">No actionable intelligence.</div>`;
+    return html;
+}
+
+function openLegalPad() {
+    document.getElementById('legal_pad_panel')?.remove();
+
+    const panel = document.createElement('div');
+    panel.id = 'legal_pad_panel';
+    Object.assign(panel.style, {
+        position:           'absolute',
+        top:                '3px',
+        left:               '0px',
+        width:              '962px',
+        height:             '582px',
+        backgroundImage:    'url("PLACEHOLDER_TAB0_IMAGE_URL")',
+        backgroundSize:     'cover',
+        backgroundPosition: 'center',
+        zIndex:             '1000',
+    });
+
+    // Ghost button — High Crimes tab (tab 0)
+    const tabCrimes = document.createElement('button');
+    tabCrimes.style.cssText = 'width:245px;height:30px;position:relative;transform:translate(12px,5px);cursor:pointer;opacity:0;';
+    tabCrimes.onclick = () => {
+        if (_legalPadScreen !== 0) {
+            _legalPadScreen = 0;
+            panel.style.backgroundImage = 'url("PLACEHOLDER_TAB0_IMAGE_URL")';
+            content.innerHTML = _lpCrimesHTML();
+        }
+    };
+    panel.appendChild(tabCrimes);
+
+    // Ghost button — future second tab (tab 1, placeholder)
+    const tabTwo = document.createElement('button');
+    tabTwo.style.cssText = 'width:245px;height:30px;position:relative;transform:translate(14px,5px);cursor:pointer;opacity:0;';
+    tabTwo.onclick = () => {
+        if (_legalPadScreen !== 1) {
+            _legalPadScreen = 1;
+            panel.style.backgroundImage = 'url("PLACEHOLDER_TAB1_IMAGE_URL")';
+            content.innerHTML = ''; // populate when second tab is ready
+        }
+    };
+    panel.appendChild(tabTwo);
+
+    // Close button
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '<b>Close</b>';
+    closeBtn.style.cssText = 'position:absolute;transform:translate(-723px,0px);';
+    closeBtn.onclick = () => panel.remove();
+    panel.appendChild(closeBtn);
+
+    // Content area
+    const content = document.createElement('div');
+    content.style.cssText = 'position:relative;transform:translate(14px,20px);padding-left:10px;';
+    content.innerHTML = _lpCrimesHTML();
+    panel.appendChild(content);
+
+    document.getElementById('game_window').appendChild(panel);
 }
 
 function openInnerCircle() {
