@@ -59,18 +59,45 @@ out_path = svg_path.replace('.svg', '_labeled.svg')
 if out_path == svg_path:
     out_path = svg_path + '_labeled.svg'
 
-# ── Load CSV ──────────────────────────────────────────────────────────────────
+# ── Load CSV (auto-converts named colours to hex and saves back) ──────────────
 color_map = {}   # hex → code
 skipped_csv = []
+rows_updated = False
+
 with open(csv_path, newline='', encoding='utf-8') as f:
-    for row in csv.DictReader(f):
-        code  = (row.get('code') or '').strip()
-        raw   = (row.get('colour') or row.get('color') or '').strip()
-        color = hex_from_string(raw)
-        if code and color:
-            color_map[color] = code
-        elif code and raw:
-            skipped_csv.append(f"  {code}: could not parse colour '{raw}'")
+    reader = csv.DictReader(f)
+    fieldnames = reader.fieldnames
+    all_rows = list(reader)
+
+for row in all_rows:
+    code     = (row.get('code') or '').strip()
+    col_key  = 'colour' if 'colour' in row else 'color'
+    raw      = (row.get(col_key) or '').strip()
+
+    # If it looks like a named colour (not a 3/6-char hex), convert it
+    if raw and not re.fullmatch(r'#?[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?', raw):
+        try:
+            import webcolors
+            converted = webcolors.name_to_hex(raw).lstrip('#')
+            print(f"  {code}: converted '{raw}' → #{converted}")
+            row[col_key] = converted
+            rows_updated = True
+        except Exception:
+            pass  # leave as-is; will be reported below
+
+    color = hex_from_string(row.get(col_key, ''))
+    if code and color:
+        color_map[color] = code
+    elif code and raw:
+        skipped_csv.append(f"  {code}: could not parse colour '{raw}'")
+
+# Save back if any named colours were converted
+if rows_updated:
+    with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(all_rows)
+    print(f"  → CSV updated with hex values")
 
 print(f"Loaded {len(color_map)} colour→code mappings")
 if skipped_csv:
