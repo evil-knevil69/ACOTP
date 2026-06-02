@@ -197,5 +197,6 @@ if matched:
     print(f"\nCountries tagged: {', '.join(sorted(set(matched)))}")
 
 # ── Write output ──────────────────────────────────────────────────────────────
-tree.write(out_path, xml_declaration=True, encoding='unicode', pretty_print=True)
+with open(out_path, 'wb') as f:
+    tree.write(f, xml_declaration=True, encoding='utf-8', pretty_print=True)
 print(f"\nSaved → {out_path}")
