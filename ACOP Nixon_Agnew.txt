@@ -12187,6 +12187,9 @@ function addInnerCircleButton() {
     const electoralBtn = document.getElementById('view_electoral_map');
     if (electoralBtn && electoralBtn.textContent.trim() !== 'Maps') electoralBtn.textContent = 'Maps';
 
+    // Inject World Map button when on the map screen
+    _addWorldMapBtn();
+
     if (document.getElementById('inner_circle_button')) return;
     const ref = document.getElementById('view_electoral_map');
     if (!ref) return;
@@ -15041,8 +15044,7 @@ campaignTrail_temp.jet_data = [{
 ]
 
 // ── World Map ────────────────────────────────────────────────────────────────
-;(function () {
-
+;
 const PAGES_BASE = 'https://evil-knevil69.github.io/ACOTP';
 const SVG_URL    = PAGES_BASE + '/worldmapNEW_labeledv2.svg';
 
@@ -15288,14 +15290,4 @@ function openCIAProfile(code, mapPanel, tooltip) {
     mapPanel.appendChild(viewer);
 }
 
-// ── Boot ────────────────────────────────────────────────────────────────────
-(function _boot() {
-    const gw = document.getElementById('game_window');
-    if (!gw) return;
-    new MutationObserver(() => {
-        _addWorldMapBtn();
-    }).observe(gw, { childList: true, subtree: true });
-})();
-
-})();
 
