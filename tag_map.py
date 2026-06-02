@@ -142,23 +142,50 @@ if skipped_csv:
 tree = etree.parse(svg_path)
 root = tree.getroot()
 
-matched   = []
-unmatched = []
+def hex_to_rgb(h):
+    return int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+
+def nearest_color(fill_hex, color_map, tolerance=12):
+    """Return the code for the closest CSV colour within tolerance, or None."""
+    if fill_hex in color_map:
+        return color_map[fill_hex], 0
+    r1, g1, b1 = hex_to_rgb(fill_hex)
+    best_code, best_dist = None, float('inf')
+    for csv_hex, code in color_map.items():
+        r2, g2, b2 = hex_to_rgb(csv_hex)
+        dist = ((r1-r2)**2 + (g1-g2)**2 + (b1-b2)**2) ** 0.5
+        if dist < best_dist:
+            best_dist, best_code = dist, code
+    if best_dist <= tolerance:
+        return best_code, best_dist
+    return None, best_dist
+
+matched      = []
+unmatched    = []
+fuzzy_used   = []
 
 for path in root.iter(f'{{{SVG_NS}}}path'):
     color = fill_from_element(path)
     if not color:
         continue
-    if color in color_map:
-        code = color_map[color]
+    code, dist = nearest_color(color, color_map)
+    if code:
         path.set('id', code)
         path.set(f'{{{INKSCAPE_NS}}}label', code)
         matched.append(code)
+        if dist > 0:
+            fuzzy_used.append(f'  #{color} → {code} (dist {dist:.1f})')
     else:
         unmatched.append(f'#{color}')
 
 # ── Report ────────────────────────────────────────────────────────────────────
 print(f"\nTagged    : {len(matched)} paths")
+if fuzzy_used:
+    print(f"Fuzzy     : {len(fuzzy_used)} paths matched within tolerance:")
+    for f in fuzzy_used[:20]:
+        print(f)
+    if len(fuzzy_used) > 20:
+        print(f"  ... and {len(fuzzy_used)-20} more")
 print(f"No match  : {len(set(unmatched))} unique fill colours (not in CSV)")
 
 if unmatched:
