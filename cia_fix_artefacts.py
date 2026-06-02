@@ -21,24 +21,29 @@ PAGE_DENIED_RE = re.compile(
 )
 
 # ── Fix 2: Map-label bleed ────────────────────────────────────────────────────
-# The all-caps country-name runs always start after real data ends.
-# Strategy: inside a <dd>…</dd>, strip any run of 3+ consecutive tokens that
-# are all-caps (2+ chars), possibly with OCR noise (partial words, stray
-# punctuation).  We anchor to the first such run and delete from there to end.
-#
-# Pattern: at least 3 tokens of 2+ uppercase letters, separated by spaces,
-# possibly with short junk tokens (digits, single chars, dots) interspersed.
-CAPS_RUN_RE = re.compile(
-    r'\s+'                              # leading whitespace
-    r'(?:[A-Z]{2,}[\s\.,]*){3,}'       # 3+ all-caps tokens
-    r'[A-Z\s\.,\-]*$',                 # rest of string (more caps / junk)
-)
+# Walk tokens from the right; strip any trailing run of 3+ consecutive
+# ALL-CAPS words (2+ alpha chars).  Pure Python — no regex, no backtracking.
+
+def _is_caps_word(w):
+    """True if w (after stripping punctuation) is 2+ uppercase alpha chars."""
+    core = w.strip('.,;:()-/')
+    return len(core) >= 2 and core.isalpha() and core.isupper()
+
+def _strip_trailing_caps_run(text, min_run=3):
+    words = text.split()
+    run_start = len(words)
+    for i in range(len(words) - 1, -1, -1):
+        if _is_caps_word(words[i]):
+            run_start = i
+        else:
+            break
+    if len(words) - run_start >= min_run:
+        return ' '.join(words[:run_start]).rstrip('.,;: ')
+    return text
 
 def clean_value(text: str) -> str:
-    # Fix 1 first
     text = PAGE_DENIED_RE.sub('', text)
-    # Fix 2: strip caps run from the end
-    text = CAPS_RUN_RE.sub('', text)
+    text = _strip_trailing_caps_run(text)
     return text.strip()
 
 
@@ -56,8 +61,9 @@ def fix_file(path: Path) -> tuple[int, int]:
             fixed = PAGE_DENIED_RE.sub('', fixed).strip()
             pd_count += 1
 
-        if CAPS_RUN_RE.search(fixed):
-            fixed = CAPS_RUN_RE.sub('', fixed).strip()
+        stripped = _strip_trailing_caps_run(fixed)
+        if stripped != fixed:
+            fixed = stripped.strip()
             ml_count += 1
 
         if fixed != inner:
