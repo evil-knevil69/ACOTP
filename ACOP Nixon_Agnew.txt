@@ -15041,7 +15041,7 @@ campaignTrail_temp.jet_data = [{
 ]
 
 // ── World Map ────────────────────────────────────────────────────────────────
-(function () {
+;(function () {
 
 const PAGES_BASE = 'https://evil-knevil69.github.io/ACOTP';
 const SVG_URL    = PAGES_BASE + '/worldmapNEW_labeledv2.svg';
