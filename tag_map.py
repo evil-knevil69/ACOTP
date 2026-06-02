@@ -18,15 +18,48 @@ SVG_NS      = 'http://www.w3.org/2000/svg'
 INKSCAPE_NS = 'http://www.inkscape.org/namespaces/inkscape'
 
 
+def recover_excel_sci(s):
+    """
+    Recover a 6-char hex colour that Excel corrupted into scientific notation.
+    e.g. '8.50E+35' → '085e34'  (Excel read the hex 'e' as a float exponent)
+    Returns the recovered hex string, or None if not applicable.
+    """
+    if not re.search(r'[Ee][+\-]?\d+', s):
+        return None
+    try:
+        val = float(s)
+    except ValueError:
+        return None
+    for exp in range(100):           # try 2-digit decimal exponents 00–99
+        exp_str = f'{exp:02d}'
+        abc_float = val / (10 ** exp)
+        abc_int = round(abc_float)
+        if 0 <= abc_int <= 999 and abs(abc_float - abc_int) < 1e-6:
+            candidate = f'{abc_int:03d}e{exp_str}'
+            try:
+                if float(candidate) == val:
+                    return candidate
+            except ValueError:
+                pass
+    return None
+
+
 def hex_from_string(s):
     """Normalise any colour string to 6-char lowercase hex, or None."""
     if not s:
         return None
-    s = s.strip().lstrip('#').lower()
+    s = s.strip()
+    # Attempt to undo Excel scientific-notation damage before anything else
+    recovered = recover_excel_sci(s)
+    if recovered:
+        return recovered
+    s = s.lstrip('#').lower()
     if re.fullmatch(r'[0-9a-f]{6}', s):
         return s
     if re.fullmatch(r'[0-9a-f]{3}', s):        # expand CSS shorthand
         return ''.join(c * 2 for c in s)
+    if re.fullmatch(r'[0-9a-f]{5}', s):        # missing leading zero
+        return '0' + s
     try:
         import webcolors
         return webcolors.name_to_hex(s).lstrip('#')
