@@ -12183,6 +12183,10 @@ function updateCampaignSign() {
 }
 
 function addInnerCircleButton() {
+    // Rename the electoral map button every time this fires (reliable timing via _gameObserver)
+    const electoralBtn = document.getElementById('view_electoral_map');
+    if (electoralBtn && electoralBtn.textContent.trim() !== 'Maps') electoralBtn.textContent = 'Maps';
+
     if (document.getElementById('inner_circle_button')) return;
     const ref = document.getElementById('view_electoral_map');
     if (!ref) return;
@@ -12192,13 +12196,6 @@ function addInnerCircleButton() {
     btn.style.marginLeft = '10px';
     btn.addEventListener('click', openInnerCircle);
     ref.insertAdjacentElement('afterend', btn);
-
-    const padBtn = document.createElement('button');
-    padBtn.id = 'legal_pad_button';
-    padBtn.textContent = 'Legal Pad';
-    padBtn.style.marginLeft = '6px';
-    padBtn.addEventListener('click', openLegalPad);
-    btn.insertAdjacentElement('afterend', padBtn);
 }
 
 // ── Legal Pad ─────────────────────────────────────────────────────────────────
@@ -15137,13 +15134,6 @@ function _addWorldMapBtn() {
     footer.appendChild(btn);
 }
 
-// ── Rename "Electoral Map" → "Maps" ─────────────────────────────────────────
-function _renameElectoralBtn() {
-    document.querySelectorAll('button').forEach(btn => {
-        if (btn.innerText.trim() === 'Electoral Map') btn.innerText = 'Maps';
-    });
-}
-
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
     document.getElementById('world-map-panel')?.remove();
@@ -15304,9 +15294,7 @@ function openCIAProfile(code, mapPanel, tooltip) {
     if (!gw) return;
     new MutationObserver(() => {
         _addWorldMapBtn();
-        _renameElectoralBtn();
     }).observe(gw, { childList: true, subtree: true });
-    _renameElectoralBtn();
 })();
 
 })();
