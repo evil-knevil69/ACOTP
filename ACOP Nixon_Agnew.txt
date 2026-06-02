@@ -15043,3 +15043,271 @@ campaignTrail_temp.jet_data = [{
 }
 ]
 
+// ── World Map ────────────────────────────────────────────────────────────────
+(function () {
+
+const PAGES_BASE = 'https://evil-knevil69.github.io/ACOTP';
+const SVG_URL    = PAGES_BASE + '/worldmapNEW_labeledv2.svg';
+
+const COUNTRY_NAMES = {
+  AL:'Albania',AD:'Andorra',AT:'Austria',BE:'Belgium',BG:'Bulgaria',
+  CS:'Czechoslovakia',DD:'East Germany',DE:'West Germany',DK:'Denmark',
+  ES:'Spain',FI:'Finland',FR:'France',GB:'United Kingdom',GR:'Greece',
+  HU:'Hungary',IE:'Ireland',IS:'Iceland',IT:'Italy',LI:'Liechtenstein',
+  LU:'Luxembourg',MC:'Monaco',MT:'Malta',NL:'Netherlands',NO:'Norway',
+  PL:'Poland',PT:'Portugal',RO:'Romania',SM:'San Marino',
+  SU:'Soviet Union',SE:'Sweden',CH:'Switzerland',TR:'Turkey',
+  VA:'Vatican City',YU:'Yugoslavia',BS:'Bahamas',BB:'Barbados',
+  CA:'Canada',CR:'Costa Rica',CU:'Cuba',DO:'Dominican Republic',
+  SV:'El Salvador',GT:'Guatemala',HT:'Haiti',HN:'Honduras',JM:'Jamaica',
+  MX:'Mexico',NI:'Nicaragua',PA:'Panama',TT:'Trinidad and Tobago',
+  GD:'Grenada',US:'United States',AR:'Argentina',BO:'Bolivia',BR:'Brazil',
+  CL:'Chile',CO:'Colombia',EC:'Ecuador',GY:'Guyana',PY:'Paraguay',
+  PE:'Peru',UY:'Uruguay',VE:'Venezuela',DZ:'Algeria',DY:'Dahomey',
+  BW:'Botswana',BI:'Burundi',CM:'Cameroon',CF:'Central African Republic',
+  TD:'Chad',CG:'Congo',ZR:'Zaire',EG:'Egypt',GQ:'Equatorial Guinea',
+  ET:'Ethiopia',GA:'Gabon',GM:'Gambia',GH:'Ghana',GN:'Guinea',
+  HV:'Upper Volta',CI:'Ivory Coast',KE:'Kenya',LS:'Lesotho',LR:'Liberia',
+  LY:'Libya',MG:'Malagasy Republic',MW:'Malawi',ML:'Mali',MR:'Mauritania',
+  MU:'Mauritius',MA:'Morocco',SWA:'South West Africa',NE:'Niger',
+  NG:'Nigeria',RH:'Rhodesia',RW:'Rwanda',SN:'Senegal',SL:'Sierra Leone',
+  SO:'Somalia',ZA:'South Africa',SD:'Sudan',SZ:'Swaziland',TZ:'Tanzania',
+  TG:'Togo',TN:'Tunisia',UG:'Uganda',ZM:'Zambia',BH:'Bahrain',
+  CY:'Cyprus',IR:'Iran',IQ:'Iraq',IL:'Israel',JO:'Jordan',KW:'Kuwait',
+  LB:'Lebanon',OM:'Oman',QA:'Qatar',SA:'Saudi Arabia',SY:'Syria',
+  AE:'United Arab Emirates',YE:'North Yemen',YD:'South Yemen',
+  AF:'Afghanistan',BD:'Bangladesh',BT:'Bhutan',IN:'India',MV:'Maldives',
+  NP:'Nepal',PK:'Pakistan',CE:'Ceylon',SK:'Sikkim',KH:'Cambodia',
+  ID:'Indonesia',LA:'Laos',MY:'Malaysia',BU:'Burma',PH:'Philippines',
+  SG:'Singapore',TH:'Thailand',VD:'North Vietnam',VN:'South Vietnam',
+  CN:'China',JP:'Japan',KP:'North Korea',KR:'South Korea',MN:'Mongolia',
+  TW:'Taiwan',AU:'Australia',FJ:'Fiji',NR:'Nauru',NZ:'New Zealand',
+  WS:'Western Samoa',TO:'Tonga',VU:'New Hebrides',EP:'Little St James'
+};
+
+const CODE_TO_FILE = {
+  AF:'afghanistan',AL:'albania',DZ:'algeria',AD:'andorra',
+  AR:'argentina',AU:'australia',AT:'austria',BH:'bahrain',
+  BS:'bahamas',BD:'bangladesh',BB:'barbados',BE:'belgium',
+  BT:'bhutan',BO:'bolivia',BW:'botswana',BR:'brazil',
+  BG:'bulgaria',BI:'burundi',KH:'cambodia',CM:'cameroon',CA:'canada',
+  CF:'central-african-republic',TD:'chad',CL:'chile',
+  CN:'china-people-s-republic-of',TW:'china-republic-of',
+  CO:'colombia',CG:'congo',CR:'costa-rica',CU:'cuba',CY:'cyprus',
+  CS:'czechoslovakia',DY:'dahomey',DK:'denmark',DO:'dominican-republic',
+  EC:'ecuador',EG:'egypt',SV:'el-salvador',GQ:'equatorial-guinea',
+  ET:'ethiopia',FJ:'fiji',FI:'finland',FR:'france',GA:'gabon',
+  GM:'gambia',GH:'ghana',DE:'germany-west',DD:'germany-east',
+  GR:'greece',GD:'grenada',GT:'guatemala',GN:'guinea',GY:'guyana',
+  HT:'haiti',HN:'honduras',HU:'hungary',IS:'iceland',IN:'india',
+  ID:'indonesia',IR:'iran',IQ:'iraq',IE:'ireland',IL:'israel',
+  IT:'italy',CI:'ivory-coast',JM:'jamaica',JP:'japan',JO:'jordan',
+  KE:'kenya',KP:'korea-north',KR:'korea-south',KW:'kuwait',LA:'laos',
+  LB:'lebanon',LS:'lesotho',LR:'liberia',LY:'libya',LI:'liechtenstein',
+  EP:'little-st-james',LU:'luxembourg',MG:'madagascar',MW:'malawi',
+  MY:'malaysia',MV:'maldives',ML:'mali',MT:'malta',MR:'mauritania',
+  MU:'mauritius',MX:'mexico',MC:'monaco',MN:'mongolia',MA:'morocco',
+  NR:'nauru',NP:'nepal',NL:'netherlands',NZ:'new-zealand',
+  VU:'new-hebrides',NI:'nicaragua',NE:'niger',NG:'nigeria',NO:'norway',
+  OM:'oman',PK:'pakistan',PA:'panama',PY:'paraguay',PE:'peru',
+  PH:'philippines',PL:'poland',PT:'portugal',QA:'qatar',RH:'rhodesia',
+  RO:'romania',RW:'rwanda',SA:'saudi-arabia',SN:'senegal',
+  SL:'sierra-leone',SG:'singapore',SO:'somalia',ZA:'south-africa',
+  SWA:'south-west-africa',ES:'spain',CE:'sri-lanka',SD:'sudan',
+  SZ:'swaziland',SE:'sweden',CH:'switzerland',SY:'syria',TZ:'tanzania',
+  TH:'thailand',TG:'togo',TO:'tonga',TT:'trinidad-and-tobago',
+  TN:'tunisia',TR:'turkey',SU:'u-s-s-r',UG:'uganda',
+  AE:'united-arab-emirates',GB:'united-kingdom',US:'united-states',
+  HV:'upper-volta',UY:'uruguay',VA:'vatican-city',VE:'venezuela',
+  VD:'vietnam-north',VN:'vietnam-south',WS:'western-samoa',
+  YD:'yemen-aden',YE:'yemen-sana',YU:'yugoslavia',ZR:'zaire',
+  ZM:'zambia',SK:'sikkim',BU:'burma',SM:'san-marino',
+};
+
+// ── Inject "World Map" button into #map_footer ──────────────────────────────
+function _addWorldMapBtn() {
+    if (document.getElementById('world_map_button')) return;
+    const footer = document.getElementById('map_footer');
+    if (!footer) return;
+    const btn = document.createElement('button');
+    btn.id = 'world_map_button';
+    btn.textContent = 'World Map';
+    btn.style.marginLeft = '10px';
+    btn.addEventListener('click', openWorldMap);
+    footer.appendChild(btn);
+}
+
+// ── Rename "Electoral Map" → "Maps" ─────────────────────────────────────────
+function _renameElectoralBtn() {
+    document.querySelectorAll('button').forEach(btn => {
+        if (btn.innerText.trim() === 'Electoral Map') btn.innerText = 'Maps';
+    });
+}
+
+// ── World Map panel ──────────────────────────────────────────────────────────
+function openWorldMap() {
+    document.getElementById('world-map-panel')?.remove();
+
+    const panel = document.createElement('div');
+    panel.id = 'world-map-panel';
+    panel.style.cssText = [
+        'position:absolute','top:0','left:0','width:989px','height:625px',
+        'background:#000','z-index:500','overflow:hidden','box-sizing:border-box'
+    ].join(';');
+
+    // Tooltip
+    const tooltip = document.createElement('div');
+    tooltip.id = 'wm-tooltip';
+    tooltip.style.cssText = [
+        'position:fixed','z-index:600','background:rgba(255,255,255,0.92)',
+        'backdrop-filter:blur(6px)','padding:4px 10px','border-radius:3px',
+        'font-family:TypewriterDry,monospace','font-size:13px','color:#111',
+        'pointer-events:none','display:none','white-space:nowrap',
+        'box-shadow:1px 2px 6px rgba(0,0,0,0.35)'
+    ].join(';');
+    document.body.appendChild(tooltip);
+
+    // SVG viewport wrapper
+    const viewport = document.createElement('div');
+    viewport.id = 'wm-viewport';
+    viewport.style.cssText = 'width:100%;height:100%;overflow:hidden;cursor:grab;position:relative;';
+
+    // Back button
+    const backBtn = document.createElement('button');
+    backBtn.textContent = '← Back';
+    backBtn.style.cssText = 'position:absolute;bottom:14px;left:14px;z-index:550;';
+    backBtn.addEventListener('click', () => { panel.remove(); tooltip.remove(); });
+
+    panel.appendChild(viewport);
+    panel.appendChild(backBtn);
+    document.getElementById('game_window').appendChild(panel);
+
+    // Load SVG
+    fetch(SVG_URL)
+        .then(r => r.text())
+        .then(svgText => {
+            viewport.innerHTML = svgText;
+            const svg = viewport.querySelector('svg');
+            if (!svg) return;
+
+            svg.removeAttribute('width');
+            svg.removeAttribute('height');
+            svg.style.cssText = 'position:absolute;top:0;left:0;width:1800px;height:900px;transform-origin:0 0;';
+
+            // Pan & zoom
+            let tx = -200, ty = -80, scale = 0.55;
+            let dragging = false, startX, startY, startTx, startTy;
+
+            function applyT() {
+                svg.style.transform = 'translate('+tx+'px,'+ty+'px) scale('+scale+')';
+            }
+            applyT();
+
+            viewport.addEventListener('mousedown', e => {
+                dragging = true;
+                startX = e.clientX; startY = e.clientY;
+                startTx = tx; startTy = ty;
+                viewport.style.cursor = 'grabbing';
+                e.preventDefault();
+            });
+            window.addEventListener('mousemove', e => {
+                if (!dragging) return;
+                tx = startTx + (e.clientX - startX);
+                ty = startTy + (e.clientY - startY);
+                applyT();
+            });
+            window.addEventListener('mouseup', () => {
+                dragging = false;
+                viewport.style.cursor = 'grab';
+            });
+            viewport.addEventListener('wheel', e => {
+                e.preventDefault();
+                const factor = e.deltaY < 0 ? 1.12 : 0.89;
+                const rect = viewport.getBoundingClientRect();
+                const mx = e.clientX - rect.left - tx;
+                const my = e.clientY - rect.top  - ty;
+                tx += mx * (1 - factor);
+                ty += my * (1 - factor);
+                scale *= factor;
+                applyT();
+            }, { passive: false });
+
+            // Hover & double-click per country path
+            svg.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
+                const code = el.id;
+                if (!code || !COUNTRY_NAMES[code]) return;
+                el.style.cursor = 'pointer';
+
+                el.addEventListener('mouseenter', () => {
+                    tooltip.textContent = COUNTRY_NAMES[code];
+                    tooltip.style.display = 'block';
+                });
+                el.addEventListener('mousemove', e => {
+                    tooltip.style.left = (e.clientX + 14) + 'px';
+                    tooltip.style.top  = (e.clientY - 28) + 'px';
+                });
+                el.addEventListener('mouseleave', () => {
+                    tooltip.style.display = 'none';
+                });
+                el.addEventListener('dblclick', e => {
+                    e.stopPropagation();
+                    tooltip.style.display = 'none';
+                    openCIAProfile(code, panel, tooltip);
+                });
+            });
+        })
+        .catch(() => {
+            viewport.innerHTML = '<p style="color:#fff;padding:40px;font-family:monospace">Failed to load map SVG.<br>Enable GitHub Pages and ensure SVG is published at:<br>' + SVG_URL + '</p>';
+        });
+}
+
+// ── CIA profile viewer ───────────────────────────────────────────────────────
+function openCIAProfile(code, mapPanel, tooltip) {
+    const stem = CODE_TO_FILE[code];
+    if (!stem) { alert('No CIA profile for ' + (COUNTRY_NAMES[code] || code)); return; }
+    const url = PAGES_BASE + '/CIA/' + stem + '.html';
+
+    const viewer = document.createElement('div');
+    viewer.id = 'cia-profile-viewer';
+    viewer.style.cssText = [
+        'position:absolute','top:0','left:0','width:989px','height:625px',
+        'background:#fafafa','z-index:510','display:flex',
+        'flex-direction:column','box-sizing:border-box','overflow:hidden'
+    ].join(';');
+
+    const bar = document.createElement('div');
+    bar.style.cssText = 'flex-shrink:0;height:44px;background:#000;display:flex;align-items:center;padding:0 12px;gap:12px;';
+
+    const backBtn = document.createElement('button');
+    backBtn.textContent = '← World Map';
+    backBtn.addEventListener('click', () => viewer.remove());
+    bar.appendChild(backBtn);
+
+    const lbl = document.createElement('span');
+    lbl.textContent = COUNTRY_NAMES[code] || code;
+    lbl.style.cssText = 'color:#fff;font-family:TypewriterDry,monospace;font-size:14px;';
+    bar.appendChild(lbl);
+
+    const iframe = document.createElement('iframe');
+    iframe.src = url;
+    iframe.sandbox = 'allow-same-origin';
+    iframe.style.cssText = 'flex:1;border:none;width:100%;background:#fafafa;';
+
+    viewer.appendChild(bar);
+    viewer.appendChild(iframe);
+    mapPanel.appendChild(viewer);
+}
+
+// ── Boot ────────────────────────────────────────────────────────────────────
+(function _boot() {
+    const gw = document.getElementById('game_window');
+    if (!gw) return;
+    new MutationObserver(() => {
+        _addWorldMapBtn();
+        _renameElectoralBtn();
+    }).observe(gw, { childList: true, subtree: true });
+    _renameElectoralBtn();
+})();
+
+})();
+
