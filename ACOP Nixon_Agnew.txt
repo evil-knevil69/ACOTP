@@ -15544,11 +15544,12 @@ function openWorldMap() {
 
                     const img = document.createElementNS(ns, 'image');
                     img.setAttribute('href', FLAG_URLS[code]);
-                    img.setAttribute('x', cx - Math.round(flagW / 2));
-                    img.setAttribute('y', cy - Math.round(flagH / 2));
+                    img.setAttribute('x', -(flagW / 2));
+                    img.setAttribute('y', -(flagH / 2));
                     img.setAttribute('width', flagW);
                     img.setAttribute('height', flagH);
                     img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                    img.setAttribute('transform', 'translate(' + cx + ',' + cy + ')');
                     img.style.opacity = '0.9';
                     g.appendChild(img);
                 });
