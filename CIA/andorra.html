@@ -19,14 +19,14 @@ html, body { margin: 0; padding: 0; }
 body {
   font-family: "Georgia", "Times New Roman", serif;
   color: var(--ink);
-  background: var(--bg);
+  background: url(https://file.garden/aXPgNT-ZRCxxpy0g/background.png) center/cover no-repeat fixed;
   line-height: 1.55;
 }
 .wrap {
   max-width: 820px;
   margin: 0 auto;
   padding: 36px 40px 80px;
-  background: #fff;
+  background: rgba(255,255,255,0.92);
   border-left: 1px solid var(--rule);
   border-right: 1px solid var(--rule);
   min-height: 100vh;
@@ -113,7 +113,7 @@ footer.colophon {
   line-height: 1.5;
 }
 @media print {
-  body { background: #fff; }
+  body { background: rgba(255,255,255,0.92); }
   .wrap { border: none; padding: 24px 0; max-width: none; }
   section.profile { break-inside: avoid; }
 }
@@ -122,6 +122,9 @@ footer.colophon {
   dl.fields { grid-template-columns: 1fr; }
   dl.fields dt { padding-top: 6px; }
 }
+
+.meta { display: none; }
+footer.colophon { display: none; }
 </style>
 </head>
 <body>

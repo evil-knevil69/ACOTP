@@ -15532,69 +15532,17 @@ function openCIAProfile(code, mapPanel, tooltip) {
 
     const lbl = document.createElement('span');
     lbl.textContent = COUNTRY_NAMES[code] || code;
-    lbl.style.cssText = 'color:#fff;font-family:TypewriterDry,monospace;font-size:14px;letter-spacing:0.06em;';
+    lbl.style.cssText = 'color:#fff;font-family:TypewriterDry,monospace;font-size:14px;';
     bar.appendChild(lbl);
 
-    const scroller = document.createElement('div');
-    scroller.style.cssText = 'flex:1;overflow:auto;padding:28px 36px 48px;font-family:TypewriterDry,monospace;font-size:13px;line-height:1.7;color:#d8d0c0;box-sizing:border-box;background:url(https://file.garden/aXPgNT-ZRCxxpy0g/background.png) center/cover no-repeat;';
+    const iframe = document.createElement('iframe');
+    iframe.src = url;
+    iframe.sandbox = 'allow-same-origin';
+    iframe.style.cssText = 'flex:1;border:none;width:100%;';
 
     viewer.appendChild(bar);
-    viewer.appendChild(scroller);
+    viewer.appendChild(iframe);
     mapPanel.appendChild(viewer);
-
-    fetch(url)
-        .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
-        .then(html => {
-            const doc = new DOMParser().parseFromString(html, 'text/html');
-
-            // Remove source line and footnote
-            doc.querySelectorAll('.meta, footer.colophon').forEach(el => el.remove());
-
-            let out = '';
-
-            // Header
-            const eyebrow = doc.querySelector('.eyebrow');
-            const h1 = doc.querySelector('header h1');
-            if (eyebrow) out += '<div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#888;margin-bottom:6px;">' + eyebrow.textContent + '</div>';
-            if (h1) out += '<h1 style="font-family:TypewriterDry,monospace;font-size:22px;margin:0 0 18px;padding-bottom:10px;border-bottom:1px solid #444;color:#f0e8d8;letter-spacing:0.05em;">' + h1.textContent + '</h1>';
-
-            // Special image (Little St James easter egg etc.)
-            doc.querySelectorAll('.wrap > div > img, .wrap img').forEach(img => {
-                out += '<div style="text-align:center;margin:20px 0;"><img src="' + img.src + '" style="max-width:100%;height:auto;border:1px solid #444;"></div>';
-            });
-
-            // Note / warning boxes
-            doc.querySelectorAll('.note').forEach(n => {
-                out += '<div style="border-left:3px solid #5588aa;padding:8px 14px;margin:12px 0;color:#b8c8d8;font-size:12px;">' + n.innerHTML + '</div>';
-            });
-            doc.querySelectorAll('.warning').forEach(n => {
-                out += '<div style="border-left:3px solid #aa7744;padding:8px 14px;margin:12px 0;color:#c8b090;font-size:12px;">' + n.innerHTML + '</div>';
-            });
-
-            // Profile sections
-            doc.querySelectorAll('section.profile').forEach(section => {
-                const heading = section.querySelector('h2');
-                out += '<div style="margin-top:20px;">';
-                if (heading) out += '<div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#888;border-bottom:1px solid #333;padding-bottom:3px;margin-bottom:8px;">' + heading.textContent + '</div>';
-                const dl = section.querySelector('dl');
-                if (dl) {
-                    const dts = dl.querySelectorAll('dt');
-                    const dds = dl.querySelectorAll('dd');
-                    out += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
-                    for (let i = 0; i < dts.length; i++) {
-                        out += '<tr><td style="width:190px;vertical-align:top;color:#999;padding:2px 14px 2px 0;font-size:12px;">' + (dts[i] ? dts[i].innerHTML : '') + '</td>'
-                             + '<td style="vertical-align:top;padding:2px 0;color:#d8d0c0;">' + (dds[i] ? dds[i].innerHTML : '') + '</td></tr>';
-                    }
-                    out += '</table>';
-                }
-                out += '</div>';
-            });
-
-            scroller.innerHTML = out;
-        })
-        .catch(() => {
-            scroller.innerHTML = '<p style="color:#888;font-family:TypewriterDry,monospace;padding:20px 0;">Profile not yet available.<br><small>' + url + '</small></p>';
-        });
 }
 
 
