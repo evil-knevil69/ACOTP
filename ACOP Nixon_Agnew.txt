@@ -11809,6 +11809,20 @@ const COUNTRY_LOYAL = {
   EP:  1, // Little St James
 };
 
+// Smooth gradient: red (0) → gray (50) → blue (100)
+function _loyalColour(score) {
+    const red  = [220, 38,  38];  // #dc2626
+    const gray = [160, 160, 160]; // #a0a0a0
+    const blue = [29,  78,  216]; // #1d4ed8
+    const from = score >= 50 ? gray : red;
+    const to   = score >= 50 ? blue : gray;
+    const t    = score >= 50 ? (score - 50) / 50 : score / 50;
+    return 'rgb(' +
+        Math.round(from[0] + t * (to[0] - from[0])) + ',' +
+        Math.round(from[1] + t * (to[1] - from[1])) + ',' +
+        Math.round(from[2] + t * (to[2] - from[2])) + ')';
+}
+
 campaignTrail_temp.cyoa = true;
 
 // pk -> index lookup for questions
@@ -15361,6 +15375,8 @@ function openWorldMap() {
     // Pan/zoom state — declared here so nav buttons can close over them
     let tx = -200, ty = -80, scale = 0.55;
     let applyT = () => {};
+    let allegiance = false;
+    let svgEl = null;
 
     [
         { label: '↑', fn: () => { ty += 80; applyT(); } },
@@ -15377,6 +15393,22 @@ function openWorldMap() {
         bar.appendChild(b);
     });
 
+    // Allegiance toggle
+    const allegBtn = document.createElement('button');
+    allegBtn.textContent = 'Allegiance';
+    allegBtn.style.cssText = 'margin-left:8px;cursor:pointer;padding:0 8px;height:30px;';
+    allegBtn.addEventListener('click', () => {
+        if (!svgEl) return;
+        allegiance = !allegiance;
+        allegBtn.style.outline = allegiance ? '2px solid #ccc' : '';
+        allegBtn.style.fontWeight = allegiance ? 'bold' : '';
+        svgEl.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
+            if (!el.id || !COUNTRY_NAMES[el.id]) return;
+            el.style.fill = allegiance ? _loyalColour(COUNTRY_LOYAL[el.id] || 0) : '';
+        });
+    });
+    bar.appendChild(allegBtn);
+
     container.appendChild(viewport);
     container.appendChild(bar);
     gw.appendChild(container);
@@ -15392,6 +15424,8 @@ function openWorldMap() {
             svg.removeAttribute('width');
             svg.removeAttribute('height');
             svg.style.cssText = 'position:absolute;top:0;left:0;width:1800px;height:900px;transform-origin:0 0;';
+
+            svgEl = svg;
 
             applyT = () => {
                 svg.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
@@ -15411,7 +15445,9 @@ function openWorldMap() {
                                : score >= 40 ? 'Neutral'
                                : score >= 10 ? 'Enemy'
                                : 'Bitter Enemy';
-                    tooltip.innerHTML = '<strong>' + COUNTRY_NAMES[code] + '</strong><br>' + band;
+                    const colour = _loyalColour(score);
+                    tooltip.innerHTML = '<strong>' + COUNTRY_NAMES[code] + '</strong><br>'
+                        + '<span style="color:' + colour + ';font-weight:bold">' + band + '</span>';
                     tooltip.style.display = 'block';
                 });
                 el.addEventListener('mousemove', e => {
