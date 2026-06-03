@@ -15380,13 +15380,24 @@ function openWorldMap() {
     let selectedEl = null;
     const origFills = new Map();
 
+    function doZoom(factor) {
+        const vw = viewport.clientWidth || 989;
+        const vh = viewport.clientHeight || 581;
+        const newScale = Math.max(0.08, Math.min(8, scale * factor));
+        const ratio = newScale / scale;
+        tx = Math.round(vw / 2 * (1 - ratio) + tx * ratio);
+        ty = Math.round(vh / 2 * (1 - ratio) + ty * ratio);
+        scale = newScale;
+        applyT();
+    }
+
     [
         { label: '^', fn: () => { ty += 80; applyT(); } },
         { label: 'v', fn: () => { ty -= 80; applyT(); } },
         { label: '<', fn: () => { tx += 80; applyT(); } },
         { label: '>', fn: () => { tx -= 80; applyT(); } },
-        { label: '+', fn: () => { scale = Math.min(scale * 1.25, 8); applyT(); } },
-        { label: '-', fn: () => { scale = Math.max(scale / 1.25, 0.08); applyT(); } },
+        { label: '+', fn: () => doZoom(1.25) },
+        { label: '-', fn: () => doZoom(1 / 1.25) },
     ].forEach(({ label, fn }) => {
         const b = document.createElement('button');
         b.textContent = label;
@@ -15445,8 +15456,8 @@ function openWorldMap() {
                 const code = el.id;
                 if (!code || !COUNTRY_NAMES[code]) return;
 
-                // Save original fill attribute so allegiance toggle can restore it
-                origFills.set(el, el.getAttribute('fill') || '');
+                // Save computed fill (not just attribute) so allegiance toggle can restore exactly
+                origFills.set(el, window.getComputedStyle(el).fill);
 
                 el.style.cursor = 'pointer';
                 el.style.pointerEvents = 'all';
@@ -15509,11 +15520,7 @@ function openCIAProfile(code, mapPanel, tooltip) {
 
     const viewer = document.createElement('div');
     viewer.id = 'cia-profile-viewer';
-    viewer.style.cssText = [
-        'position:absolute','top:0','left:0','width:989px','height:625px',
-        'background:#fafafa','z-index:510','display:flex',
-        'flex-direction:column','box-sizing:border-box','overflow:hidden'
-    ].join(';');
+    viewer.style.cssText = 'position:absolute;top:0;left:0;width:989px;height:625px;z-index:510;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;';
 
     const bar = document.createElement('div');
     bar.style.cssText = 'flex-shrink:0;height:44px;background:#000;display:flex;align-items:center;padding:0 12px;gap:12px;';
@@ -15525,17 +15532,69 @@ function openCIAProfile(code, mapPanel, tooltip) {
 
     const lbl = document.createElement('span');
     lbl.textContent = COUNTRY_NAMES[code] || code;
-    lbl.style.cssText = 'color:#fff;font-family:TypewriterDry,monospace;font-size:14px;';
+    lbl.style.cssText = 'color:#fff;font-family:TypewriterDry,monospace;font-size:14px;letter-spacing:0.06em;';
     bar.appendChild(lbl);
 
-    const iframe = document.createElement('iframe');
-    iframe.src = url;
-    iframe.sandbox = 'allow-same-origin';
-    iframe.style.cssText = 'flex:1;border:none;width:100%;background:#fafafa;';
+    const scroller = document.createElement('div');
+    scroller.style.cssText = 'flex:1;overflow:auto;padding:28px 36px 48px;font-family:TypewriterDry,monospace;font-size:13px;line-height:1.7;color:#d8d0c0;box-sizing:border-box;';
 
     viewer.appendChild(bar);
-    viewer.appendChild(iframe);
+    viewer.appendChild(scroller);
     mapPanel.appendChild(viewer);
+
+    fetch(url)
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+        .then(html => {
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+
+            // Remove source line and footnote
+            doc.querySelectorAll('.meta, footer.colophon').forEach(el => el.remove());
+
+            let out = '';
+
+            // Header
+            const eyebrow = doc.querySelector('.eyebrow');
+            const h1 = doc.querySelector('header h1');
+            if (eyebrow) out += '<div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#888;margin-bottom:6px;">' + eyebrow.textContent + '</div>';
+            if (h1) out += '<h1 style="font-family:TypewriterDry,monospace;font-size:22px;margin:0 0 18px;padding-bottom:10px;border-bottom:1px solid #444;color:#f0e8d8;letter-spacing:0.05em;">' + h1.textContent + '</h1>';
+
+            // Special image (Little St James easter egg etc.)
+            doc.querySelectorAll('.wrap > div > img, .wrap img').forEach(img => {
+                out += '<div style="text-align:center;margin:20px 0;"><img src="' + img.src + '" style="max-width:100%;height:auto;border:1px solid #444;"></div>';
+            });
+
+            // Note / warning boxes
+            doc.querySelectorAll('.note').forEach(n => {
+                out += '<div style="border-left:3px solid #5588aa;padding:8px 14px;margin:12px 0;color:#b8c8d8;font-size:12px;">' + n.innerHTML + '</div>';
+            });
+            doc.querySelectorAll('.warning').forEach(n => {
+                out += '<div style="border-left:3px solid #aa7744;padding:8px 14px;margin:12px 0;color:#c8b090;font-size:12px;">' + n.innerHTML + '</div>';
+            });
+
+            // Profile sections
+            doc.querySelectorAll('section.profile').forEach(section => {
+                const heading = section.querySelector('h2');
+                out += '<div style="margin-top:20px;">';
+                if (heading) out += '<div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#888;border-bottom:1px solid #333;padding-bottom:3px;margin-bottom:8px;">' + heading.textContent + '</div>';
+                const dl = section.querySelector('dl');
+                if (dl) {
+                    const dts = dl.querySelectorAll('dt');
+                    const dds = dl.querySelectorAll('dd');
+                    out += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+                    for (let i = 0; i < dts.length; i++) {
+                        out += '<tr><td style="width:190px;vertical-align:top;color:#999;padding:2px 14px 2px 0;font-size:12px;">' + (dts[i] ? dts[i].innerHTML : '') + '</td>'
+                             + '<td style="vertical-align:top;padding:2px 0;color:#d8d0c0;">' + (dds[i] ? dds[i].innerHTML : '') + '</td></tr>';
+                    }
+                    out += '</table>';
+                }
+                out += '</div>';
+            });
+
+            scroller.innerHTML = out;
+        })
+        .catch(() => {
+            scroller.innerHTML = '<p style="color:#888;font-family:TypewriterDry,monospace;padding:20px 0;">Profile not yet available.<br><small>' + url + '</small></p>';
+        });
 }
 
 
