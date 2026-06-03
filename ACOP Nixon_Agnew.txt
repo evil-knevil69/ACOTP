@@ -15322,7 +15322,7 @@ function _addWorldMapBtn() {
     const btn = document.createElement('button');
     btn.id = 'world_map_button';
     btn.textContent = 'World Map';
-    btn.style.cssText = 'position:absolute;z-index:10;left:' + (naturalLeft - 469) + 'px;top:' + (naturalTop - 107) + 'px;';
+    btn.style.cssText = 'position:absolute;z-index:10;left:' + (naturalLeft - 915) + 'px;top:' + (naturalTop + 41) + 'px;';
     btn.addEventListener('click', openWorldMap);
     gw.appendChild(btn);
 }
