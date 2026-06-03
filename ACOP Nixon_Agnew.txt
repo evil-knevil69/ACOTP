@@ -13954,6 +13954,12 @@ const tooltipList = [
         label: "Henry Peterson",
         body: "Assistant Attorney General (Criminal Division). Straight-shooting, smart. Unfortunately he trusts you, shares case files with you and is unable to believe there would ever be a direct connection between Watergate and the White House."
     },
+    {
+        searchString: "your crown still aches",
+        img: null,
+        label: "",
+        body: "Nixon broke one of his crowns during an election eve dinner with his family and had to have emergency dentistry. Not a bad omen."
+    },
 ];
 
 function generatePenStroke() {
