@@ -15536,7 +15536,7 @@ function openCIAProfile(code, mapPanel, tooltip) {
     bar.appendChild(lbl);
 
     const scroller = document.createElement('div');
-    scroller.style.cssText = 'flex:1;overflow:auto;padding:28px 36px 48px;font-family:TypewriterDry,monospace;font-size:13px;line-height:1.7;color:#d8d0c0;box-sizing:border-box;';
+    scroller.style.cssText = 'flex:1;overflow:auto;padding:28px 36px 48px;font-family:TypewriterDry,monospace;font-size:13px;line-height:1.7;color:#d8d0c0;box-sizing:border-box;background:url(https://file.garden/aXPgNT-ZRCxxpy0g/background.png) center/cover no-repeat;';
 
     viewer.appendChild(bar);
     viewer.appendChild(scroller);
