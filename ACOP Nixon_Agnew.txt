@@ -14360,14 +14360,11 @@ document.body.appendChild(honk);
 
     function _buildCrimes() {
         let h = `<p class="fd-head">High Crimes &amp; Misdemeanours</p>`;
-        if (!window._hcEvents.length) {
-            h += `<p class="fd-empty">No entries yet.</p>`;
+        const crimes = _lpCrimesHTML();
+        if (!crimes) {
+            h += `<p class="fd-empty">No charges brought yet.</p>`;
         } else {
-            for (const ev of window._hcEvents) {
-                h += `<div class="fd-crime-entry">`;
-                if (ev.date) h += `<span class="fd-crime-date">${ev.date}</span>`;
-                h += `<span class="fd-entry-body">${ev.text}</span></div>`;
-            }
+            h += crimes;
         }
         return h;
     }
@@ -15128,51 +15125,87 @@ function _addWorldMapBtn() {
     if (document.getElementById('world_map_button')) return;
     const footer = document.getElementById('map_footer');
     if (!footer) return;
+    const gw = document.getElementById('game_window');
+    if (!gw) return;
+    const gwRect = gw.getBoundingClientRect();
+    const ftRect = footer.getBoundingClientRect();
+    const naturalLeft = ftRect.right - gwRect.left;
+    const naturalTop  = ftRect.top - gwRect.top + ftRect.height / 2 - 14;
     const btn = document.createElement('button');
     btn.id = 'world_map_button';
     btn.textContent = 'World Map';
-    btn.style.marginLeft = '10px';
+    btn.style.cssText = 'position:absolute;z-index:10;left:' + (naturalLeft - 469) + 'px;top:' + (naturalTop - 107) + 'px;';
     btn.addEventListener('click', openWorldMap);
-    footer.appendChild(btn);
+    gw.appendChild(btn);
 }
 
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
-    document.getElementById('world-map-panel')?.remove();
+    document.getElementById('world-map-container')?.remove();
+    document.getElementById('wm-tooltip')?.remove();
 
-    const panel = document.createElement('div');
-    panel.id = 'world-map-panel';
-    panel.style.cssText = [
-        'position:absolute','top:0','left:0','width:989px','height:625px',
-        'background:#000','z-index:500','overflow:hidden','box-sizing:border-box'
-    ].join(';');
+    const gw = document.getElementById('game_window');
 
-    // Tooltip
+    // Hide all existing game-window children (preserves event listeners)
+    const hiddenEls = Array.from(gw.children);
+    hiddenEls.forEach(el => { el.style.display = 'none'; });
+
+    // Tooltip anchored to body for fixed positioning
     const tooltip = document.createElement('div');
     tooltip.id = 'wm-tooltip';
-    tooltip.style.cssText = [
-        'position:fixed','z-index:600','background:rgba(255,255,255,0.92)',
-        'backdrop-filter:blur(6px)','padding:4px 10px','border-radius:3px',
-        'font-family:TypewriterDry,monospace','font-size:13px','color:#111',
-        'pointer-events:none','display:none','white-space:nowrap',
-        'box-shadow:1px 2px 6px rgba(0,0,0,0.35)'
-    ].join(';');
+    tooltip.style.cssText = 'position:fixed;z-index:9999;background:rgba(255,255,255,0.92);backdrop-filter:blur(6px);padding:4px 10px;border-radius:3px;font-family:TypewriterDry,monospace;font-size:13px;color:#111;pointer-events:none;display:none;white-space:nowrap;box-shadow:1px 2px 6px rgba(0,0,0,0.35);';
     document.body.appendChild(tooltip);
 
-    // SVG viewport wrapper
+    // Full-window container
+    const container = document.createElement('div');
+    container.id = 'world-map-container';
+    container.style.cssText = 'width:989px;height:625px;background:#111;position:relative;box-sizing:border-box;display:flex;flex-direction:column;';
+
+    // SVG viewport fills all space above control bar
     const viewport = document.createElement('div');
     viewport.id = 'wm-viewport';
-    viewport.style.cssText = 'width:100%;height:100%;overflow:hidden;cursor:grab;position:relative;';
+    viewport.style.cssText = 'flex:1;overflow:hidden;position:relative;';
 
-    // Back button
+    // Control bar at the bottom
+    const bar = document.createElement('div');
+    bar.style.cssText = 'flex-shrink:0;height:44px;background:#000;display:flex;align-items:center;gap:6px;padding:0 12px;';
+
     const backBtn = document.createElement('button');
-    backBtn.textContent = '← Back';
-    backBtn.style.cssText = 'position:absolute;bottom:14px;left:14px;z-index:550;';
-    backBtn.addEventListener('click', () => { panel.remove(); tooltip.remove(); });
+    backBtn.textContent = '← Electoral Map';
+    backBtn.addEventListener('click', () => {
+        container.remove();
+        tooltip.remove();
+        hiddenEls.forEach(el => { el.style.display = ''; });
+    });
+    bar.appendChild(backBtn);
 
-    panel.appendChild(viewport);
-    panel.appendChild(backBtn);
-    document.getElementById('game_window').appendChild(panel);
+    // Spacer
+    const spacer = document.createElement('span');
+    spacer.style.cssText = 'flex:1;';
+    bar.appendChild(spacer);
+
+    // Pan/zoom state — declared here so nav buttons can close over them
+    let tx = -200, ty = -80, scale = 0.55;
+    let applyT = () => {};
+
+    [
+        { label: '↑', fn: () => { ty += 80; applyT(); } },
+        { label: '↓', fn: () => { ty -= 80; applyT(); } },
+        { label: '←', fn: () => { tx += 80; applyT(); } },
+        { label: '→', fn: () => { tx -= 80; applyT(); } },
+        { label: '+', fn: () => { scale = Math.min(scale * 1.25, 8); applyT(); } },
+        { label: '−', fn: () => { scale = Math.max(scale / 1.25, 0.08); applyT(); } },
+    ].forEach(({ label, fn }) => {
+        const b = document.createElement('button');
+        b.textContent = label;
+        b.style.cssText = 'width:30px;height:30px;font-size:15px;padding:0;cursor:pointer;';
+        b.addEventListener('click', fn);
+        bar.appendChild(b);
+    });
+
+    container.appendChild(viewport);
+    container.appendChild(bar);
+    gw.appendChild(container);
 
     // Load SVG
     fetch(SVG_URL)
@@ -15186,43 +15219,10 @@ function openWorldMap() {
             svg.removeAttribute('height');
             svg.style.cssText = 'position:absolute;top:0;left:0;width:1800px;height:900px;transform-origin:0 0;';
 
-            // Pan & zoom
-            let tx = -200, ty = -80, scale = 0.55;
-            let dragging = false, startX, startY, startTx, startTy;
-
-            function applyT() {
-                svg.style.transform = 'translate('+tx+'px,'+ty+'px) scale('+scale+')';
-            }
+            applyT = () => {
+                svg.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+            };
             applyT();
-
-            viewport.addEventListener('mousedown', e => {
-                dragging = true;
-                startX = e.clientX; startY = e.clientY;
-                startTx = tx; startTy = ty;
-                viewport.style.cursor = 'grabbing';
-                e.preventDefault();
-            });
-            window.addEventListener('mousemove', e => {
-                if (!dragging) return;
-                tx = startTx + (e.clientX - startX);
-                ty = startTy + (e.clientY - startY);
-                applyT();
-            });
-            window.addEventListener('mouseup', () => {
-                dragging = false;
-                viewport.style.cursor = 'grab';
-            });
-            viewport.addEventListener('wheel', e => {
-                e.preventDefault();
-                const factor = e.deltaY < 0 ? 1.12 : 0.89;
-                const rect = viewport.getBoundingClientRect();
-                const mx = e.clientX - rect.left - tx;
-                const my = e.clientY - rect.top  - ty;
-                tx += mx * (1 - factor);
-                ty += my * (1 - factor);
-                scale *= factor;
-                applyT();
-            }, { passive: false });
 
             // Hover & double-click per country path
             svg.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
@@ -15244,7 +15244,7 @@ function openWorldMap() {
                 el.addEventListener('dblclick', e => {
                     e.stopPropagation();
                     tooltip.style.display = 'none';
-                    openCIAProfile(code, panel, tooltip);
+                    openCIAProfile(code, container, tooltip);
                 });
             });
         })
