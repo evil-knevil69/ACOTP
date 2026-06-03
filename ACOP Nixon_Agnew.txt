@@ -15504,6 +15504,18 @@ function openWorldMap() {
             };
             applyT();
 
+            // Manual centroid overrides for countries whose bounding box spans
+            // overseas territories, placing the flag over the wrong location.
+            // Coordinates are in SVG units (map is 1800x900).
+            // Fill in after visual testing: FLAG_CENTRES['XX'] = {cx:NNN, cy:NNN};
+            const FLAG_CENTRES = {
+                FR: {cx: 500, cy: 245},   // metropolitan France
+                GB: {cx: 490, cy: 210},   // Great Britain
+                NL: {cx: 510, cy: 225},   // Netherlands
+                PT: {cx: 472, cy: 272},   // Portugal
+                ES: {cx: 485, cy: 268},   // Spain (mainland)
+            };
+
             // Build SVG flag overlay (flags as <image> elements inside the SVG)
             function buildFlagOverlay() {
                 if (flagOverlayG) { flagOverlayG.remove(); flagOverlayG = null; }
@@ -15539,8 +15551,9 @@ function openWorldMap() {
                     // Flag sized to cover 25% of bbox area (2:3 aspect ratio)
                     const flagW = Math.min(Math.max(Math.round(Math.sqrt(bb.width * bb.height * 0.375)), 20), 50);
                     const flagH = Math.round(flagW * 2 / 3);
-                    const cx = Math.round(bb.x + bb.width / 2);
-                    const cy = Math.round(bb.y + bb.height / 2);
+                    const override = FLAG_CENTRES[code];
+                    const cx = override ? override.cx : Math.round(bb.x + bb.width / 2);
+                    const cy = override ? override.cy : Math.round(bb.y + bb.height / 2);
 
                     const img = document.createElementNS(ns, 'image');
                     img.setAttribute('href', FLAG_URLS[code]);
