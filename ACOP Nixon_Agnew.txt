@@ -15314,17 +15314,23 @@ const CODE_TO_FILE = {
   ZM:'zambia',SK:'sikkim',BU:'burma',SM:'san-marino',
 };
 
-// 113 Category-1 country flags served from GitHub Pages (flags/*.svg)
+// Flags stored as .png rather than .svg (embedded raster originals)
+const FLAG_PNG = new Set(['IR','RO']);
+
+// All 154 country flags served from GitHub Pages (flags/*.svg or *.png)
 const FLAG_URLS = Object.fromEntries(
-  ['AD','AE','AR','AT','AU','BB','BD','BE','BI','BO','BR','BS','BT','BW',
-   'CA','CE','CF','CH','CI','CL','CN','CO','CR','CU','CY','DE','DK','DO',
-   'DZ','EC','FI','FJ','FR','GA','GB','GD','GH','GM','GN','GQ','GR','GT',
-   'GY','HN','ID','IE','IL','IN','IS','IT','JM','JO','JP','KE','KP','KR',
-   'KW','LB','LI','LR','LU','MA','MC','MG','ML','MT','MU','MV','MW','MX',
-   'MY','NE','NG','NI','NL','NO','NP','NR','NZ','OM','PA','PE','PH','PK',
-   'PT','PY','QA','SA','SD','SE','SG','SL','SM','SN','SO','SV','SZ','TD',
-   'TG','TH','TN','TO','TR','TT','TW','TZ','UG','US','UY','VA','WS','YE','ZM']
-  .map(c => [c, PAGES_BASE + '/flags/' + c + '.svg'])
+  ['AD','AE','AF','AL','AR','AT','AU','BB','BD','BE','BG','BH','BI','BO',
+   'BR','BS','BT','BU','BW','CA','CE','CF','CG','CH','CI','CL','CM','CN',
+   'CO','CR','CS','CU','CY','DD','DE','DK','DO','DY','DZ','EC','EG','EP',
+   'ES','ET','FI','FJ','FR','GA','GB','GD','GH','GM','GN','GQ','GR','GT',
+   'GY','HN','HT','HU','HV','ID','IE','IL','IN','IQ','IR','IS','IT','JM',
+   'JO','JP','KE','KH','KP','KR','KW','LA','LB','LI','LR','LS','LU','LY',
+   'MA','MC','MG','ML','MN','MR','MT','MU','MV','MW','MX','MY','NE','NG',
+   'NI','NL','NO','NP','NR','NZ','OM','PA','PE','PH','PK','PL','PT','PY',
+   'QA','RH','RO','RW','SA','SD','SE','SG','SK','SL','SM','SN','SO','SU',
+   'SV','SWA','SY','SZ','TD','TG','TH','TN','TO','TR','TT','TW','TZ','UG',
+   'US','UY','VA','VD','VE','VN','VU','WS','YD','YE','YU','ZA','ZM','ZR']
+  .map(c => [c, PAGES_BASE + '/flags/' + c + (FLAG_PNG.has(c) ? '.png' : '.svg')])
 );
 
 // ── Inject "World Map" button into #map_footer ──────────────────────────────
