@@ -11631,7 +11631,7 @@ campaignTrail_temp.running_mate_last_name = "Agnew";
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
 // ║  COUNTRY ALLEGIANCE  —  edit values freely, do not change the keys      ║
-// ║  Scale: 1 (hostile) → 100 (fully loyal). Reflects alignment c.1972.     ║
+// ║  Scale: 1 (hostile) -> 100 (fully loyal). Reflects alignment c.1972.     ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 const COUNTRY_LOYAL = {
   // ── Europe ──────────────────────────────────────────────────────────────
@@ -11809,7 +11809,7 @@ const COUNTRY_LOYAL = {
   EP:  1, // Little St James
 };
 
-// Smooth gradient: red (0) → gray (50) → blue (100)
+// Smooth gradient: red (0) -> gray (50) -> blue (100)
 function _loyalColour(score) {
     const red  = [220, 38,  38];  // #dc2626
     const gray = [160, 160, 160]; // #a0a0a0
@@ -12585,7 +12585,7 @@ function openEnemiesPanel(questions) {
 }
 
 // ── Officials panel data ──────────────────────────────────────────────────────
-// Maps person name → { image, bio }.  image is '' until a URL is supplied.
+// Maps person name -> { image, bio }.  image is '' until a URL is supplied.
 // When a position variable changes (e.g. ChiefOfStaff = 'Haig'), re-opening
 // the panel will automatically show the new entry via window[varName] lookup.
 const OFFICIALS_ROSTER = {
@@ -12623,7 +12623,7 @@ const OFFICIALS_ROSTER = {
     }
 };
 
-// Row order: CoS → NSA → SOS → SOD → AG (with SP + FBI beneath) → CIA
+// Row order: CoS -> NSA -> SOS -> SOD -> AG (with SP + FBI beneath) -> CIA
 const OFFICIALS_LAYOUT = [
     { varName: 'ChiefOfStaff',    role: 'Chief of Staff' },
     { varName: 'NSA',              role: 'Nat. Security Advisor' },
@@ -13577,11 +13577,11 @@ function openOfficialsPanel(questions) {
                 inner.style.minHeight = (wgTop + 180) + 'px';
             }
 
-            // Colson → Hunt: straight vertical line from Colson bottom-center to Hunt top-center
+            // Colson -> Hunt: straight vertical line from Colson bottom-center to Hunt top-center
             const colsonCX = colsonR.left + colsonR.width / 2 - cr.left;
             makeLine(`M ${colsonCX} ${colsonR.bottom - cr.top} L ${huntCX} ${huntTop}`);
 
-            // Hunt + Liddy → WG: two-parent join from bottom-center of each card
+            // Hunt + Liddy -> WG: two-parent join from bottom-center of each card
             const huntBY = huntFloat.getBoundingClientRect().bottom - cr.top;
             const barY   = wgTop - gap / 2;
             makeLine(`M ${huntCX}  ${huntBY}  L ${huntCX}  ${barY}`);
@@ -13589,7 +13589,7 @@ function openOfficialsPanel(questions) {
             makeLine(`M ${huntCX}  ${barY}    L ${liddyCX} ${barY}`);
             makeLine(`M ${barCX}   ${barY}    L ${barCX}   ${wgTop}`);
 
-            // Mitchell → McCord: branch off at the same level as Mitchell's other children
+            // Mitchell -> McCord: branch off at the same level as Mitchell's other children
             if (mitchellEl && magruderEl && mccordFloat) {
                 const mitchR   = mitchellEl.getBoundingClientRect();
                 const childTopY = magruderEl.getBoundingClientRect().top - cr.top;
@@ -15352,14 +15352,14 @@ function openWorldMap() {
     // SVG viewport fills all space above control bar
     const viewport = document.createElement('div');
     viewport.id = 'wm-viewport';
-    viewport.style.cssText = 'flex:1;overflow:hidden;position:relative;';
+    viewport.style.cssText = 'flex:1;overflow:hidden;position:relative;cursor:default;';
 
     // Control bar at the bottom
     const bar = document.createElement('div');
     bar.style.cssText = 'flex-shrink:0;height:44px;background:#000;display:flex;align-items:center;gap:6px;padding:0 12px;';
 
     const backBtn = document.createElement('button');
-    backBtn.textContent = '← Electoral Map';
+    backBtn.textContent = '<- Electoral Map';
     backBtn.addEventListener('click', () => {
         container.remove();
         tooltip.remove();
@@ -15373,18 +15373,20 @@ function openWorldMap() {
     bar.appendChild(spacer);
 
     // Pan/zoom state — declared here so nav buttons can close over them
-    let tx = -200, ty = -80, scale = 0.55;
+    let tx = 0, ty = 0, scale = 0.55;
     let applyT = () => {};
     let allegiance = false;
     let svgEl = null;
+    let selectedEl = null;
+    const origFills = new Map();
 
     [
-        { label: '↑', fn: () => { ty += 80; applyT(); } },
-        { label: '↓', fn: () => { ty -= 80; applyT(); } },
-        { label: '←', fn: () => { tx += 80; applyT(); } },
-        { label: '→', fn: () => { tx -= 80; applyT(); } },
+        { label: '^', fn: () => { ty += 80; applyT(); } },
+        { label: 'v', fn: () => { ty -= 80; applyT(); } },
+        { label: '<', fn: () => { tx += 80; applyT(); } },
+        { label: '>', fn: () => { tx -= 80; applyT(); } },
         { label: '+', fn: () => { scale = Math.min(scale * 1.25, 8); applyT(); } },
-        { label: '−', fn: () => { scale = Math.max(scale / 1.25, 0.08); applyT(); } },
+        { label: '-', fn: () => { scale = Math.max(scale / 1.25, 0.08); applyT(); } },
     ].forEach(({ label, fn }) => {
         const b = document.createElement('button');
         b.textContent = label;
@@ -15404,7 +15406,7 @@ function openWorldMap() {
         allegBtn.style.fontWeight = allegiance ? 'bold' : '';
         svgEl.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
             if (!el.id || !COUNTRY_NAMES[el.id]) return;
-            el.style.fill = allegiance ? _loyalColour(COUNTRY_LOYAL[el.id] || 0) : '';
+            el.style.fill = allegiance ? _loyalColour(COUNTRY_LOYAL[el.id] || 0) : (origFills.get(el) || '');
         });
     });
     bar.appendChild(allegBtn);
@@ -15423,20 +15425,31 @@ function openWorldMap() {
 
             svg.removeAttribute('width');
             svg.removeAttribute('height');
-            svg.style.cssText = 'position:absolute;top:0;left:0;width:1800px;height:900px;transform-origin:0 0;';
+            svg.style.cssText = 'position:absolute;top:0;left:0;width:1800px;height:900px;transform-origin:0 0;pointer-events:all;';
 
             svgEl = svg;
+
+            // Centre the SVG in the viewport on first load
+            const vw = viewport.clientWidth || 989;
+            const vh = viewport.clientHeight || 581;
+            tx = Math.round((vw - 1800 * scale) / 2);
+            ty = Math.round((vh - 900 * scale) / 2);
 
             applyT = () => {
                 svg.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
             };
             applyT();
 
-            // Hover & double-click per country path
+            // Hover, click & double-click per country path
             svg.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
                 const code = el.id;
                 if (!code || !COUNTRY_NAMES[code]) return;
+
+                // Save original fill attribute so allegiance toggle can restore it
+                origFills.set(el, el.getAttribute('fill') || '');
+
                 el.style.cursor = 'pointer';
+                el.style.pointerEvents = 'all';
 
                 el.addEventListener('mouseenter', () => {
                     const score = COUNTRY_LOYAL[code] || 0;
@@ -15456,6 +15469,25 @@ function openWorldMap() {
                 });
                 el.addEventListener('mouseleave', () => {
                     tooltip.style.display = 'none';
+                });
+                el.addEventListener('click', e => {
+                    e.stopPropagation();
+                    // Deselect the previously highlighted country
+                    if (selectedEl && selectedEl !== el) {
+                        selectedEl.style.stroke = '';
+                        selectedEl.style.strokeWidth = '';
+                    }
+                    if (selectedEl === el) {
+                        // Click again to deselect
+                        el.style.stroke = '';
+                        el.style.strokeWidth = '';
+                        selectedEl = null;
+                    } else {
+                        // Highlight this country with yellow outline
+                        el.style.stroke = '#ffff00';
+                        el.style.strokeWidth = '3px';
+                        selectedEl = el;
+                    }
                 });
                 el.addEventListener('dblclick', e => {
                     e.stopPropagation();
@@ -15487,7 +15519,7 @@ function openCIAProfile(code, mapPanel, tooltip) {
     bar.style.cssText = 'flex-shrink:0;height:44px;background:#000;display:flex;align-items:center;padding:0 12px;gap:12px;';
 
     const backBtn = document.createElement('button');
-    backBtn.textContent = '← World Map';
+    backBtn.textContent = '<- World Map';
     backBtn.addEventListener('click', () => viewer.remove());
     bar.appendChild(backBtn);
 
