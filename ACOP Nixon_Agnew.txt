@@ -14359,14 +14359,7 @@ document.body.appendChild(honk);
     }
 
     function _buildCrimes() {
-        let h = `<p class="fd-head">High Crimes &amp; Misdemeanours</p>`;
-        const crimes = _lpCrimesHTML();
-        if (!crimes) {
-            h += `<p class="fd-empty">No charges brought yet.</p>`;
-        } else {
-            h += crimes;
-        }
-        return h;
+        return `<p class="fd-head">High Crimes &amp; Misdemeanours</p>` + _lpCrimesHTML();
     }
 
     function _refresh() {
