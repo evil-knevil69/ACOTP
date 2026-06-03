@@ -19,17 +19,30 @@ fetch() {
   local out="$DEST/${code}.svg"
   if [[ -f "$out" ]]; then echo "skip $code (exists)"; return; fi
   echo -n "  $code ... "
-  local status
-  status=$(curl -s -o "$out" -w "%{http_code}" -L \
-    -H "User-Agent: $UA" \
-    -H "Referer: https://en.wikipedia.org/" \
-    "$url")
-  if [[ "$status" == "200" ]]; then
-    echo "ok"
-  else
-    echo "FAILED ($status)"
-    rm -f "$out"
-  fi
+  local status attempts=0
+  while [[ $attempts -lt 5 ]]; do
+    status=$(curl -s -o "$out" -w "%{http_code}" -L \
+      -H "User-Agent: $UA" \
+      -H "Referer: https://en.wikipedia.org/" \
+      "$url")
+    if [[ "$status" == "200" ]]; then
+      echo "ok"
+      sleep 0.4   # be polite — avoid triggering rate limits
+      return
+    elif [[ "$status" == "429" ]]; then
+      attempts=$((attempts + 1))
+      local wait=$((attempts * 3))
+      echo -n "(429, retrying in ${wait}s) "
+      rm -f "$out"
+      sleep "$wait"
+    else
+      echo "FAILED ($status)"
+      rm -f "$out"
+      return
+    fi
+  done
+  echo "FAILED (gave up after repeated 429s)"
+  rm -f "$out"
 }
 
 echo "Downloading flags..."
