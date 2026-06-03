@@ -11628,6 +11628,187 @@ campaignTrail_temp.candidate_last_name = "Nixon";
 campaignTrail_temp.running_mate_last_name = "Agnew";
 
 //#startcode
+
+// ╔══════════════════════════════════════════════════════════════════════════╗
+// ║  COUNTRY ALLEGIANCE  —  edit values freely, do not change the keys      ║
+// ║  Scale: 1 (hostile) → 100 (fully loyal). Reflects alignment c.1972.     ║
+// ╚══════════════════════════════════════════════════════════════════════════╝
+const COUNTRY_LOYAL = {
+  // ── Europe ──────────────────────────────────────────────────────────────
+  AL: 18, // Albania — Hoxha, Stalinist, hostile to both superpowers
+  AD: 72, // Andorra
+  AT: 65, // Austria — neutral but Western-oriented
+  BE: 82, // Belgium — NATO core
+  BG: 18, // Bulgaria — Soviet satellite
+  CS: 18, // Czechoslovakia — Soviet satellite (Warsaw Pact)
+  DD: 20, // East Germany — no US recognition, Soviet satellite
+  DE: 85, // West Germany — key NATO ally
+  DK: 80, // Denmark — NATO
+  ES: 68, // Spain — Franco, US bases, anti-communist
+  FI: 48, // Finland — Finlandization
+  FR: 75, // France — NATO but independent streak
+  GB: 90, // United Kingdom — Special Relationship
+  GR: 68, // Greece — military junta but NATO
+  HU: 18, // Hungary — Soviet satellite
+  IE: 58, // Ireland — neutral, not NATO
+  IS: 75, // Iceland — NATO, US Keflavik base
+  IT: 72, // Italy — NATO; large Communist Party
+  LI: 72, // Liechtenstein
+  LU: 82, // Luxembourg — NATO
+  MC: 72, // Monaco
+  MT: 48, // Malta — Mintoff's neutralism
+  NL: 82, // Netherlands — NATO
+  NO: 80, // Norway — NATO
+  PL: 18, // Poland — Soviet satellite
+  PT: 72, // Portugal — NATO (Estado Novo)
+  RO: 25, // Romania — most independent Soviet bloc state
+  SM: 55, // San Marino — Western but communist coalition govt
+  SU: 15, // Soviet Union — superpower rival
+  SE: 52, // Sweden — neutral, critical of Vietnam War
+  CH: 62, // Switzerland — neutral but Western-integrated
+  TR: 72, // Turkey — NATO
+  VA: 62, // Vatican City — anti-communist but neutral
+  YU: 48, // Yugoslavia — non-aligned, independent communist
+
+  // ── North America & Caribbean ────────────────────────────────────────────
+  BS: 72, // Bahamas — British colony (ind. 1973), Western
+  BB: 70, // Barbados — Commonwealth
+  CA: 88, // Canada — NORAD, NATO, close partner
+  CR: 72, // Costa Rica — stable democracy, pro-US
+  CU: 12, // Cuba — Soviet ally
+  DO: 75, // Dominican Republic — US intervened 1965, Balaguer
+  SV: 68, // El Salvador
+  GT: 70, // Guatemala — US-backed 1954, anti-communist
+  HT: 55, // Haiti — Duvalier, nominally anti-communist
+  HN: 68, // Honduras
+  JM: 65, // Jamaica — Commonwealth
+  MX: 58, // Mexico — PRI, independent foreign policy
+  NI: 72, // Nicaragua — Somoza dynasty, pro-US
+  PA: 52, // Panama — Canal Zone tensions with Torrijos
+  TT: 65, // Trinidad and Tobago — Commonwealth
+  GD: 65, // Grenada — British associated state
+  US:100, // United States
+
+  // ── South America ────────────────────────────────────────────────────────
+  AR: 50, // Argentina — Perón returning, complex
+  BO: 55, // Bolivia — Banzer military govt, anti-communist
+  BR: 68, // Brazil — military dictatorship, anti-communist
+  CL: 28, // Chile — Allende (socialist)
+  CO: 62, // Colombia — pro-US
+  EC: 52, // Ecuador — military
+  GY: 42, // Guyana — Burnham's cooperative socialism
+  PY: 65, // Paraguay — Stroessner, anti-communist
+  PE: 38, // Peru — Velasco left-leaning military
+  UY: 50, // Uruguay — liberal democracy, Tupamaros crisis
+  VE: 62, // Venezuela — democratic, oil
+
+  // ── Africa ───────────────────────────────────────────────────────────────
+  DZ: 25, // Algeria — FLN socialist, Soviet equipment
+  DY: 45, // Dahomey — unstable, various coups
+  BW: 58, // Botswana — pro-Western democracy
+  BI: 40, // Burundi
+  CM: 52, // Cameroon — French sphere
+  CF: 45, // Central African Republic — Bokassa
+  TD: 50, // Chad — French sphere, civil war
+  CG: 20, // Congo (Brazzaville) — Marxist People's Republic
+  ZR: 65, // Zaire — Mobutu, US anti-communist ally
+  EG: 45, // Egypt — Sadat expelled Soviet advisors 1972, shifting toward US
+  GQ: 28, // Equatorial Guinea — Macias Nguema, brutal
+  ET: 62, // Ethiopia — Haile Selassie, US military aid
+  GA: 58, // Gabon — Bongo, French/Western sphere, oil
+  GM: 55, // Gambia — pro-Western, Jawara
+  GH: 45, // Ghana — Acheampong coup Jan 1972
+  GN: 15, // Guinea — Sékou Touré, radical Marxist
+  HV: 48, // Upper Volta — Lamizana
+  CI: 62, // Ivory Coast — Houphouët-Boigny, pro-French/West
+  KE: 60, // Kenya — Kenyatta, pro-Western
+  LS: 52, // Lesotho
+  LR: 68, // Liberia — historically very pro-US
+  LY: 18, // Libya — Gaddafi, anti-Western, nationalised oil
+  MG: 45, // Malagasy Republic
+  MW: 55, // Malawi — Banda, moderately pro-Western
+  ML: 25, // Mali — military, Soviet equipment
+  MR: 45, // Mauritania
+  MU: 58, // Mauritius — Commonwealth, pro-Western
+  MA: 62, // Morocco — Hassan II, pro-Western
+ SWA: 55, // South West Africa — South African administered
+  NE: 48, // Niger — French sphere
+  NG: 52, // Nigeria — post-civil war, non-aligned
+  RH: 28, // Rhodesia — UDI, sanctions
+  RW: 45, // Rwanda
+  SN: 58, // Senegal — Senghor, pro-French/West
+  SL: 50, // Sierra Leone
+  SO: 22, // Somalia — Soviet ally, Siad Barre Marxist
+  ZA: 50, // South Africa — anti-communist but apartheid complicates
+  SD: 40, // Sudan — shifting from USSR toward non-alignment
+  SZ: 55, // Swaziland
+  TZ: 28, // Tanzania — Nyerere, socialist, critical of US
+  TG: 50, // Togo — French sphere
+  TN: 60, // Tunisia — Bourguiba, pro-Western
+  UG: 22, // Uganda — Idi Amin, expelled Asians 1972, erratic
+  ZM: 38, // Zambia — Kaunda, non-aligned socialist
+
+  // ── Middle East ──────────────────────────────────────────────────────────
+  BH: 65, // Bahrain — pro-Western, just independent
+  CY: 55, // Cyprus — non-aligned
+  IR: 82, // Iran — Shah, strongly pro-US, CENTO
+  IQ: 18, // Iraq — Ba'athist, Treaty of Friendship with USSR 1972
+  IL: 92, // Israel — very close US ally
+  JO: 72, // Jordan — King Hussein, stable pro-US
+  KW: 65, // Kuwait — oil, pro-Western
+  LB: 62, // Lebanon — Western-oriented
+  OM: 65, // Oman — Qaboos, British/US-backed
+  QA: 62, // Qatar
+  SA: 75, // Saudi Arabia — key oil ally, anti-communist
+  SY: 18, // Syria — Assad Ba'athist, Soviet ally
+  AE: 65, // United Arab Emirates — pro-Western
+  YE: 42, // North Yemen — Yemen Arab Republic, complex
+  YD: 12, // South Yemen — Marxist PDRY
+
+  // ── South Asia ───────────────────────────────────────────────────────────
+  AF: 38, // Afghanistan — non-aligned, Soviet influence growing
+  BD: 38, // Bangladesh — new country; US backed Pakistan in 1971 war
+  BT: 45, // Bhutan — Indian protectorate
+  IN: 38, // India — non-aligned but clear Soviet tilt
+  MV: 50, // Maldives
+  NP: 50, // Nepal — non-aligned
+  PK: 72, // Pakistan — key US ally, Nixon's China backchannel
+  CE: 42, // Ceylon — Bandaranaike, socialist, non-aligned
+  SK: 48, // Sikkim — Indian protectorate
+
+  // ── Southeast Asia ───────────────────────────────────────────────────────
+  KH: 62, // Cambodia — Lon Nol (US-backed after Sihanouk ousted 1970)
+  ID: 68, // Indonesia — Suharto, anti-communist, US-backed
+  LA: 55, // Laos — RLG pro-US, complicated civil war
+  MY: 60, // Malaysia — anti-communist, pro-Western
+  BU: 35, // Burma — Ne Win, strict neutrality/isolation
+  PH: 72, // Philippines — Marcos, US bases (Subic Bay, Clark)
+  SG: 65, // Singapore — Lee Kuan Yew, anti-communist
+  TH: 72, // Thailand — military govt, US Vietnam War staging
+  VD:  8, // North Vietnam — at war with the US
+  VN: 78, // South Vietnam — US ally, Thieu government
+
+  // ── East Asia ────────────────────────────────────────────────────────────
+  CN: 30, // China (PRC) — Nixon's Feb 1972 visit; Shanghai Communiqué
+  JP: 85, // Japan — key ally, rebuilt under US umbrella
+  KP: 10, // North Korea — Kim Il-sung, hostile
+  KR: 82, // South Korea — key ally (troops in Vietnam)
+  MN: 18, // Mongolia — Soviet satellite
+  TW: 78, // Taiwan (ROC) — US ally; Shanghai Communiqué complicated things
+
+  // ── Oceania ──────────────────────────────────────────────────────────────
+  AU: 85, // Australia — ANZUS, strong ally
+  FJ: 65, // Fiji — Commonwealth, pro-Western
+  NR: 55, // Nauru — just independent 1968
+  NZ: 80, // New Zealand — ANZUS (though withdrawing from Vietnam)
+  WS: 55, // Western Samoa
+  TO: 58, // Tonga
+  VU: 58, // New Hebrides — Anglo-French condominium
+
+  // ── Easter egg ───────────────────────────────────────────────────────────
+  EP:  1, // Little St James
+};
+
 campaignTrail_temp.cyoa = true;
 
 // pk -> index lookup for questions
@@ -15131,45 +15312,6 @@ function _addWorldMapBtn() {
     btn.addEventListener('click', openWorldMap);
     gw.appendChild(btn);
 }
-
-// ── Country allegiance to US (1–100) ─────────────────────────────────────────
-const COUNTRY_LOYAL = {
-  // Europe
-  AL:  3, AD: 70, AT: 65, BE: 80, BG:  8, CS:  8, DD:  5, DE: 82,
-  DK: 78, ES: 65, FI: 45, FR: 72, GB: 88, GR: 68, HU:  8, IE: 55,
-  IS: 75, IT: 72, LI: 75, LU: 80, MC: 72, MT: 48, NL: 80, NO: 78,
-  PL:  8, PT: 70, RO: 20, SM: 55, SU:  5, SE: 50, CH: 60, TR: 70,
-  VA: 60, YU: 45,
-  // North America & Caribbean
-  BS: 72, BB: 70, CA: 88, CR: 72, CU:  3, DO: 75, SV: 68, GT: 70,
-  HT: 55, HN: 68, JM: 65, MX: 55, NI: 72, PA: 50, TT: 65, GD: 65,
-  US:100,
-  // South America
-  AR: 48, BO: 55, BR: 65, CL: 28, CO: 62, EC: 52, GY: 42, PY: 65,
-  PE: 38, UY: 48, VE: 60,
-  // Africa
-  DZ: 22, DY: 45, BW: 55, BI: 40, CM: 52, CF: 45, TD: 50, CG: 18,
-  ZR: 65, EG: 42, GQ: 28, ET: 62, GA: 58, GM: 55, GH: 45, GN: 15,
-  HV: 45, CI: 62, KE: 58, LS: 52, LR: 68, LY: 10, MG: 45, MW: 55,
-  ML: 25, MR: 45, MU: 58, MA: 62, SWA:55, NE: 48, NG: 52, RH: 30,
-  RW: 45, SN: 55, SL: 48, SO: 20, ZA: 50, SD: 38, SZ: 55, TZ: 28,
-  TG: 50, TN: 58, UG: 22, ZM: 38,
-  // Middle East
-  BH: 65, CY: 55, IR: 80, IQ: 15, IL: 92, JO: 72, KW: 65, LB: 60,
-  OM: 65, QA: 62, SA: 72, SY: 12, AE: 65, YE: 42, YD:  8,
-  // South Asia
-  AF: 35, BD: 38, BT: 45, IN: 38, MV: 50, NP: 50, PK: 72, CE: 42,
-  SK: 48,
-  // Southeast Asia
-  KH: 60, ID: 65, LA: 55, MY: 58, BU: 35, PH: 72, SG: 65, TH: 72,
-  VD:  3, VN: 75,
-  // East Asia
-  CN: 25, JP: 82, KP:  3, KR: 82, MN:  8, TW: 78,
-  // Oceania
-  AU: 82, FJ: 65, NR: 55, NZ: 80, WS: 55, TO: 58, VU: 58,
-  // Easter egg
-  EP:  1,
-};
 
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
