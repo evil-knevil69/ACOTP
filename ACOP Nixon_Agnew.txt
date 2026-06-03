@@ -15347,7 +15347,7 @@ function openWorldMap() {
     // Full-window container
     const container = document.createElement('div');
     container.id = 'world-map-container';
-    container.style.cssText = 'width:989px;height:625px;background:#111;position:relative;left:110px;box-sizing:border-box;display:flex;flex-direction:column;';
+    container.style.cssText = 'width:989px;height:625px;background:#111;position:relative;left:60px;box-sizing:border-box;display:flex;flex-direction:column;';
 
     // SVG viewport fills all space above control bar
     const viewport = document.createElement('div');
