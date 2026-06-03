@@ -15458,7 +15458,7 @@ function openWorldMap() {
         flagsOn = !flagsOn;
         flagBtn.style.outline = flagsOn ? '2px solid #ccc' : '';
         flagBtn.style.fontWeight = flagsOn ? 'bold' : '';
-        if (flagOverlayG) flagOverlayG.style.display = flagsOn ? '' : 'none';
+        if (flagOverlayG) flagOverlayG.setAttribute('display', flagsOn ? 'block' : 'none');
     });
     bar.appendChild(flagBtn);
 
@@ -15511,7 +15511,7 @@ function openWorldMap() {
                 const ns = 'http://www.w3.org/2000/svg';
                 const g = document.createElementNS(ns, 'g');
                 g.id = 'wm-flag-overlay';
-                g.style.display = 'none';
+                g.setAttribute('display', 'none');
                 g.style.pointerEvents = 'none';
 
                 Object.keys(FLAG_URLS).forEach(code => {
@@ -15537,7 +15537,7 @@ function openWorldMap() {
                     }
 
                     // Flag sized to cover 25% of bbox area (2:3 aspect ratio)
-                    const flagW = Math.min(Math.max(Math.round(Math.sqrt(bb.width * bb.height * 0.375)), 20), 80);
+                    const flagW = Math.min(Math.max(Math.round(Math.sqrt(bb.width * bb.height * 0.375)), 20), 50);
                     const flagH = Math.round(flagW * 2 / 3);
                     const cx = Math.round(bb.x + bb.width / 2);
                     const cy = Math.round(bb.y + bb.height / 2);
