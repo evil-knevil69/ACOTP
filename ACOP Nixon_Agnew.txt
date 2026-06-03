@@ -15536,8 +15536,8 @@ function openWorldMap() {
                         return;
                     }
 
-                    // Flag width: 55% of bbox, clamped 28-80 SVG units; height is 2:3 ratio
-                    const flagW = Math.min(Math.max(bb.width * 0.55, 28), 80);
+                    // Flag sized to cover 25% of bbox area (2:3 aspect ratio)
+                    const flagW = Math.min(Math.max(Math.round(Math.sqrt(bb.width * bb.height * 0.375)), 20), 80);
                     const flagH = Math.round(flagW * 2 / 3);
                     const cx = Math.round(bb.x + bb.width / 2);
                     const cy = Math.round(bb.y + bb.height / 2);
