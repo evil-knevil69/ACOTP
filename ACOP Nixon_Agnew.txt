@@ -15453,6 +15453,19 @@ function openWorldMap() {
             ty = Math.round((vh - 900 * scale) / 2);
 
             applyT = () => {
+                const W  = 1800 * scale;
+                const H  = 900  * scale;
+                const vw = viewport.clientWidth  || 989;
+                const vh = viewport.clientHeight || 581;
+                // Horizontal wrap: map loops east-west
+                while (tx > vw)      tx -= W;
+                while (tx + W < 0)   tx += W;
+                // Vertical clamp: poles are real edges
+                if (H >= vh) {
+                    ty = Math.max(vh - H, Math.min(0, ty));
+                } else {
+                    ty = Math.round((vh - H) / 2);
+                }
                 svg.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
             };
             applyT();
