@@ -15314,6 +15314,123 @@ const CODE_TO_FILE = {
   ZM:'zambia',SK:'sikkim',BU:'burma',SM:'san-marino',
 };
 
+// 113 Category-1 country flags (Wikimedia Commons, MD5-hashed paths)
+const FLAG_URLS = {
+  AD:'https://upload.wikimedia.org/wikipedia/commons/1/19/Flag_of_Andorra.svg',
+  AE:'https://upload.wikimedia.org/wikipedia/commons/c/cb/Flag_of_the_United_Arab_Emirates.svg',
+  AR:'https://upload.wikimedia.org/wikipedia/commons/1/1a/Flag_of_Argentina.svg',
+  AT:'https://upload.wikimedia.org/wikipedia/commons/4/41/Flag_of_Austria.svg',
+  AU:'https://upload.wikimedia.org/wikipedia/commons/b/b9/Flag_of_Australia.svg',
+  BB:'https://upload.wikimedia.org/wikipedia/commons/e/ef/Flag_of_Barbados.svg',
+  BD:'https://upload.wikimedia.org/wikipedia/commons/f/f9/Flag_of_Bangladesh.svg',
+  BE:'https://upload.wikimedia.org/wikipedia/commons/9/92/Flag_of_Belgium_(civil).svg',
+  BI:'https://upload.wikimedia.org/wikipedia/commons/5/50/Flag_of_Burundi.svg',
+  BO:'https://upload.wikimedia.org/wikipedia/commons/d/de/Flag_of_Bolivia_(state).svg',
+  BR:'https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg',
+  BS:'https://upload.wikimedia.org/wikipedia/commons/9/93/Flag_of_the_Bahamas.svg',
+  BT:'https://upload.wikimedia.org/wikipedia/commons/9/91/Flag_of_Bhutan.svg',
+  BW:'https://upload.wikimedia.org/wikipedia/commons/f/fa/Flag_of_Botswana.svg',
+  CA:'https://upload.wikimedia.org/wikipedia/commons/d/d9/Flag_of_Canada_(Pantone).svg',
+  CE:'https://upload.wikimedia.org/wikipedia/commons/1/11/Flag_of_Sri_Lanka.svg',
+  CF:'https://upload.wikimedia.org/wikipedia/commons/6/6f/Flag_of_the_Central_African_Republic.svg',
+  CH:'https://upload.wikimedia.org/wikipedia/commons/f/f3/Flag_of_Switzerland.svg',
+  CI:'https://upload.wikimedia.org/wikipedia/commons/f/fe/Flag_of_C%C3%B4te_d%27Ivoire.svg',
+  CL:'https://upload.wikimedia.org/wikipedia/commons/7/78/Flag_of_Chile.svg',
+  CN:'https://upload.wikimedia.org/wikipedia/commons/f/fa/Flag_of_the_People%27s_Republic_of_China.svg',
+  CO:'https://upload.wikimedia.org/wikipedia/commons/2/21/Flag_of_Colombia.svg',
+  CR:'https://upload.wikimedia.org/wikipedia/commons/f/f2/Flag_of_Costa_Rica.svg',
+  CU:'https://upload.wikimedia.org/wikipedia/commons/b/bd/Flag_of_Cuba.svg',
+  CY:'https://upload.wikimedia.org/wikipedia/commons/d/d4/Flag_of_Cyprus.svg',
+  DE:'https://upload.wikimedia.org/wikipedia/commons/b/ba/Flag_of_Germany.svg',
+  DK:'https://upload.wikimedia.org/wikipedia/commons/9/9c/Flag_of_Denmark.svg',
+  DO:'https://upload.wikimedia.org/wikipedia/commons/9/9f/Flag_of_the_Dominican_Republic.svg',
+  DZ:'https://upload.wikimedia.org/wikipedia/commons/7/77/Flag_of_Algeria.svg',
+  EC:'https://upload.wikimedia.org/wikipedia/commons/e/e8/Flag_of_Ecuador.svg',
+  FI:'https://upload.wikimedia.org/wikipedia/commons/b/bc/Flag_of_Finland.svg',
+  FJ:'https://upload.wikimedia.org/wikipedia/commons/b/ba/Flag_of_Fiji.svg',
+  FR:'https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg',
+  GA:'https://upload.wikimedia.org/wikipedia/commons/0/04/Flag_of_Gabon.svg',
+  GB:'https://upload.wikimedia.org/wikipedia/commons/a/ae/Flag_of_the_United_Kingdom.svg',
+  GD:'https://upload.wikimedia.org/wikipedia/commons/b/bc/Flag_of_Grenada.svg',
+  GH:'https://upload.wikimedia.org/wikipedia/commons/1/19/Flag_of_Ghana.svg',
+  GM:'https://upload.wikimedia.org/wikipedia/commons/9/99/Flag_of_the_Gambia.svg',
+  GN:'https://upload.wikimedia.org/wikipedia/commons/e/ed/Flag_of_Guinea.svg',
+  GQ:'https://upload.wikimedia.org/wikipedia/commons/3/31/Flag_of_Equatorial_Guinea.svg',
+  GR:'https://upload.wikimedia.org/wikipedia/commons/5/5c/Flag_of_Greece.svg',
+  GT:'https://upload.wikimedia.org/wikipedia/commons/e/ec/Flag_of_Guatemala.svg',
+  GY:'https://upload.wikimedia.org/wikipedia/commons/9/99/Flag_of_Guyana.svg',
+  HN:'https://upload.wikimedia.org/wikipedia/commons/8/82/Flag_of_Honduras.svg',
+  ID:'https://upload.wikimedia.org/wikipedia/commons/9/9f/Flag_of_Indonesia.svg',
+  IE:'https://upload.wikimedia.org/wikipedia/commons/4/45/Flag_of_Ireland.svg',
+  IL:'https://upload.wikimedia.org/wikipedia/commons/d/d4/Flag_of_Israel.svg',
+  IN:'https://upload.wikimedia.org/wikipedia/commons/4/41/Flag_of_India.svg',
+  IS:'https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Iceland.svg',
+  IT:'https://upload.wikimedia.org/wikipedia/commons/0/03/Flag_of_Italy.svg',
+  JM:'https://upload.wikimedia.org/wikipedia/commons/0/0a/Flag_of_Jamaica.svg',
+  JO:'https://upload.wikimedia.org/wikipedia/commons/c/c0/Flag_of_Jordan.svg',
+  JP:'https://upload.wikimedia.org/wikipedia/commons/9/9e/Flag_of_Japan.svg',
+  KE:'https://upload.wikimedia.org/wikipedia/commons/4/49/Flag_of_Kenya.svg',
+  KP:'https://upload.wikimedia.org/wikipedia/commons/5/51/Flag_of_North_Korea.svg',
+  KR:'https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg',
+  KW:'https://upload.wikimedia.org/wikipedia/commons/a/aa/Flag_of_Kuwait.svg',
+  LB:'https://upload.wikimedia.org/wikipedia/commons/5/59/Flag_of_Lebanon.svg',
+  LI:'https://upload.wikimedia.org/wikipedia/commons/4/47/Flag_of_Liechtenstein.svg',
+  LR:'https://upload.wikimedia.org/wikipedia/commons/b/b8/Flag_of_Liberia.svg',
+  LU:'https://upload.wikimedia.org/wikipedia/commons/d/da/Flag_of_Luxembourg.svg',
+  MA:'https://upload.wikimedia.org/wikipedia/commons/2/2c/Flag_of_Morocco.svg',
+  MC:'https://upload.wikimedia.org/wikipedia/commons/e/ea/Flag_of_Monaco.svg',
+  MG:'https://upload.wikimedia.org/wikipedia/commons/b/bc/Flag_of_Madagascar.svg',
+  ML:'https://upload.wikimedia.org/wikipedia/commons/9/92/Flag_of_Mali.svg',
+  MT:'https://upload.wikimedia.org/wikipedia/commons/7/73/Flag_of_Malta.svg',
+  MU:'https://upload.wikimedia.org/wikipedia/commons/7/77/Flag_of_Mauritius.svg',
+  MV:'https://upload.wikimedia.org/wikipedia/commons/0/0f/Flag_of_Maldives.svg',
+  MW:'https://upload.wikimedia.org/wikipedia/commons/d/d1/Flag_of_Malawi.svg',
+  MX:'https://upload.wikimedia.org/wikipedia/commons/f/fc/Flag_of_Mexico.svg',
+  MY:'https://upload.wikimedia.org/wikipedia/commons/6/66/Flag_of_Malaysia.svg',
+  NE:'https://upload.wikimedia.org/wikipedia/commons/f/f4/Flag_of_Niger.svg',
+  NG:'https://upload.wikimedia.org/wikipedia/commons/7/79/Flag_of_Nigeria.svg',
+  NI:'https://upload.wikimedia.org/wikipedia/commons/1/19/Flag_of_Nicaragua.svg',
+  NL:'https://upload.wikimedia.org/wikipedia/commons/2/20/Flag_of_the_Netherlands.svg',
+  NO:'https://upload.wikimedia.org/wikipedia/commons/d/d9/Flag_of_Norway.svg',
+  NP:'https://upload.wikimedia.org/wikipedia/commons/9/9b/Flag_of_Nepal.svg',
+  NR:'https://upload.wikimedia.org/wikipedia/commons/3/30/Flag_of_Nauru.svg',
+  NZ:'https://upload.wikimedia.org/wikipedia/commons/3/3e/Flag_of_New_Zealand.svg',
+  OM:'https://upload.wikimedia.org/wikipedia/commons/d/dd/Flag_of_Oman.svg',
+  PA:'https://upload.wikimedia.org/wikipedia/commons/a/ab/Flag_of_Panama.svg',
+  PE:'https://upload.wikimedia.org/wikipedia/commons/c/cf/Flag_of_Peru.svg',
+  PH:'https://upload.wikimedia.org/wikipedia/commons/9/99/Flag_of_the_Philippines.svg',
+  PK:'https://upload.wikimedia.org/wikipedia/commons/3/32/Flag_of_Pakistan.svg',
+  PT:'https://upload.wikimedia.org/wikipedia/commons/5/5c/Flag_of_Portugal.svg',
+  PY:'https://upload.wikimedia.org/wikipedia/commons/2/27/Flag_of_Paraguay.svg',
+  QA:'https://upload.wikimedia.org/wikipedia/commons/6/65/Flag_of_Qatar.svg',
+  SA:'https://upload.wikimedia.org/wikipedia/commons/0/0d/Flag_of_Saudi_Arabia.svg',
+  SD:'https://upload.wikimedia.org/wikipedia/commons/0/01/Flag_of_Sudan.svg',
+  SE:'https://upload.wikimedia.org/wikipedia/commons/4/4c/Flag_of_Sweden.svg',
+  SG:'https://upload.wikimedia.org/wikipedia/commons/4/48/Flag_of_Singapore.svg',
+  SL:'https://upload.wikimedia.org/wikipedia/commons/1/17/Flag_of_Sierra_Leone.svg',
+  SM:'https://upload.wikimedia.org/wikipedia/commons/b/b1/Flag_of_San_Marino.svg',
+  SN:'https://upload.wikimedia.org/wikipedia/commons/f/fd/Flag_of_Senegal.svg',
+  SO:'https://upload.wikimedia.org/wikipedia/commons/a/a0/Flag_of_Somalia.svg',
+  SV:'https://upload.wikimedia.org/wikipedia/commons/3/34/Flag_of_El_Salvador.svg',
+  SZ:'https://upload.wikimedia.org/wikipedia/commons/f/fb/Flag_of_Eswatini.svg',
+  TD:'https://upload.wikimedia.org/wikipedia/commons/4/4b/Flag_of_Chad.svg',
+  TG:'https://upload.wikimedia.org/wikipedia/commons/6/68/Flag_of_Togo.svg',
+  TH:'https://upload.wikimedia.org/wikipedia/commons/a/a9/Flag_of_Thailand.svg',
+  TN:'https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Tunisia.svg',
+  TO:'https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Tonga.svg',
+  TR:'https://upload.wikimedia.org/wikipedia/commons/b/b4/Flag_of_Turkey.svg',
+  TT:'https://upload.wikimedia.org/wikipedia/commons/6/64/Flag_of_Trinidad_and_Tobago.svg',
+  TW:'https://upload.wikimedia.org/wikipedia/commons/7/72/Flag_of_the_Republic_of_China.svg',
+  TZ:'https://upload.wikimedia.org/wikipedia/commons/3/38/Flag_of_Tanzania.svg',
+  UG:'https://upload.wikimedia.org/wikipedia/commons/4/4e/Flag_of_Uganda.svg',
+  US:'https://upload.wikimedia.org/wikipedia/commons/a/a4/Flag_of_the_United_States.svg',
+  UY:'https://upload.wikimedia.org/wikipedia/commons/f/fe/Flag_of_Uruguay.svg',
+  VA:'https://upload.wikimedia.org/wikipedia/commons/e/e1/Flag_of_Vatican_City.svg',
+  WS:'https://upload.wikimedia.org/wikipedia/commons/3/31/Flag_of_Samoa.svg',
+  YE:'https://upload.wikimedia.org/wikipedia/commons/8/89/Flag_of_Yemen.svg',
+  ZM:'https://upload.wikimedia.org/wikipedia/commons/0/06/Flag_of_Zambia.svg',
+};
+
 // ── Inject "World Map" button into #map_footer ──────────────────────────────
 function _addWorldMapBtn() {
     if (document.getElementById('world_map_button')) return;
@@ -15489,7 +15606,10 @@ function openWorldMap() {
                                : score >= 10 ? 'Enemy'
                                : 'Bitter Enemy';
                     const colour = _loyalColour(score);
-                    tooltip.innerHTML = '<strong>' + COUNTRY_NAMES[code] + '</strong><br>'
+                    const flagImg = FLAG_URLS[code]
+                        ? '<img src="' + FLAG_URLS[code] + '" style="height:16px;width:24px;object-fit:cover;vertical-align:middle;border:1px solid #555;margin-right:5px;display:inline-block">'
+                        : '';
+                    tooltip.innerHTML = flagImg + '<strong>' + COUNTRY_NAMES[code] + '</strong><br>'
                         + '<span style="color:' + colour + ';font-weight:bold">' + band + '</span>';
                     tooltip.style.display = 'block';
                 });
@@ -15561,6 +15681,13 @@ function openCIAProfile(code, mapPanel, tooltip) {
     lbl.textContent = COUNTRY_NAMES[code] || code;
     lbl.style.cssText = 'color:#fff;font-family:TypewriterDry,monospace;font-size:14px;';
     bar.appendChild(lbl);
+
+    if (FLAG_URLS[code]) {
+        const flagEl = document.createElement('img');
+        flagEl.src = FLAG_URLS[code];
+        flagEl.style.cssText = 'height:22px;width:33px;object-fit:cover;border:1px solid #555;vertical-align:middle;margin-left:4px;';
+        bar.appendChild(flagEl);
+    }
 
     const iframe = document.createElement('iframe');
     iframe.src = url;
