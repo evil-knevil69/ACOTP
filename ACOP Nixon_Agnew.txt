@@ -15454,11 +15454,12 @@ function openWorldMap() {
     flagBtn.textContent = 'Flags';
     flagBtn.style.cssText = 'margin-left:4px;cursor:pointer;padding:0 8px;height:30px;';
     flagBtn.addEventListener('click', () => {
-        if (!svgEl) return;
+        if (!svgEl || !flagOverlayG) return;
         flagsOn = !flagsOn;
         flagBtn.style.outline = flagsOn ? '2px solid #ccc' : '';
         flagBtn.style.fontWeight = flagsOn ? 'bold' : '';
-        if (flagOverlayG) flagOverlayG.setAttribute('display', flagsOn ? 'block' : 'none');
+        if (flagsOn) { svgEl.appendChild(flagOverlayG); }
+        else         { flagOverlayG.remove(); }
     });
     bar.appendChild(flagBtn);
 
@@ -15523,7 +15524,6 @@ function openWorldMap() {
                 const ns = 'http://www.w3.org/2000/svg';
                 const g = document.createElementNS(ns, 'g');
                 g.id = 'wm-flag-overlay';
-                g.setAttribute('display', 'none');
                 g.style.pointerEvents = 'none';
 
                 Object.keys(FLAG_URLS).forEach(code => {
@@ -15567,7 +15567,7 @@ function openWorldMap() {
                     g.appendChild(img);
                 });
 
-                svg.appendChild(g);
+                // Group is kept detached; button handler appends/removes it
                 flagOverlayG = g;
             }
             buildFlagOverlay();
