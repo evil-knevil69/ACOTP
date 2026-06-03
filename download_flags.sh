@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
-# Downloads 113 Category-1 country flags from Wikimedia Commons into flags/
-# Run this once from the repo root: bash download_flags.sh
-# Then: git add flags/ && git commit -m "Add country flag SVGs" && git push
+# Downloads 113 Category-1 country flags from Wikimedia Commons.
+#
+# Usage: save this file anywhere on your Mac, then run:
+#   bash download_flags.sh
+#
+# Creates a "flags" folder next to this script containing XX.svg files.
+# Upload those files to the repo at:
+#   https://github.com/evil-knevil69/ACOTP/upload/main/flags
+# (drag-and-drop all 113 SVGs at once, then commit directly to main)
 
 set -euo pipefail
 UA="Mozilla/5.0 (compatible; ACOTP-mod/1.0; +https://github.com/evil-knevil69/ACOTP)"
-DEST="$(dirname "$0")/flags"
+DEST="$(cd "$(dirname "$0")" && pwd)/flags"
 mkdir -p "$DEST"
 
 fetch() {
@@ -141,11 +147,11 @@ fetch WS 'https://upload.wikimedia.org/wikipedia/commons/3/31/Flag_of_Samoa.svg'
 fetch YE 'https://upload.wikimedia.org/wikipedia/commons/8/89/Flag_of_Yemen.svg'
 fetch ZM 'https://upload.wikimedia.org/wikipedia/commons/0/06/Flag_of_Zambia.svg'
 
-downloaded=$(ls "$DEST"/*.svg 2>/dev/null | wc -l)
+downloaded=$(ls "$DEST"/*.svg 2>/dev/null | wc -l | tr -d ' ')
 echo ""
-echo "Done. $downloaded / 113 flags saved to flags/"
+echo "Done. $downloaded / 113 flags saved to: $DEST"
 echo ""
-echo "Next steps:"
-echo "  git add flags/"
-echo "  git commit -m 'Add 113 country flag SVGs'"
-echo "  git push"
+echo "Upload to GitHub:"
+echo "  1. Go to https://github.com/evil-knevil69/ACOTP/upload/main/flags"
+echo "  2. Drag and drop all $downloaded SVG files from $DEST"
+echo "  3. Commit directly to main"
