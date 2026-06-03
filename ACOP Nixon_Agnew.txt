@@ -15552,8 +15552,13 @@ function openWorldMap() {
                     const flagW = Math.min(Math.max(Math.round(Math.sqrt(bb.width * bb.height * 0.375)), 20), 50);
                     const flagH = Math.round(flagW * 2 / 3);
                     const override = FLAG_CENTRES[code];
-                    const cx = override ? override.cx : Math.round(bb.x + bb.width / 2);
-                    const cy = override ? override.cy : Math.round(bb.y + bb.height / 2);
+                    const bcx = Math.round(bb.x + bb.width / 2);
+                    const bcy = Math.round(bb.y + bb.height / 2);
+                    // Override countries: centred on the given point.
+                    // All others: shift left flagW/2 and up flagH/2 so the flag
+                    // sits in the upper-left quadrant of the centroid.
+                    const tx = override ? override.cx : bcx - Math.round(flagW / 2);
+                    const ty = override ? override.cy : bcy - Math.round(flagH / 2);
 
                     const img = document.createElementNS(ns, 'image');
                     img.setAttribute('href', FLAG_URLS[code]);
@@ -15562,7 +15567,7 @@ function openWorldMap() {
                     img.setAttribute('width', flagW);
                     img.setAttribute('height', flagH);
                     img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-                    img.setAttribute('transform', 'translate(' + cx + ',' + cy + ')');
+                    img.setAttribute('transform', 'translate(' + tx + ',' + ty + ')');
                     img.style.opacity = '0.9';
                     g.appendChild(img);
                 });
