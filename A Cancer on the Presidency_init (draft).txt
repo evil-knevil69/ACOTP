@@ -46,7 +46,7 @@ campaignTrail_temp.global_parameter_json = [
             "global_variance": 0.01,
             "state_variance": 0.005,
             "question_count": 25,
-            "default_map_color_hex": "#C9C9C9",
+            "default_map_color_hex": "#c8a070",
             "no_state_map_color_hex": "#999999"
         }
     }
@@ -63,7 +63,7 @@ campaignTrail_temp.candidate_json = [
             "party": "Republican",
             "state": "California",
             "priority": 1,
-            "description": "<div style=\"max-height: 250px; overflow-y: auto; font-size: 1.0em;\"><p><b>The election was called at 9.01pm EST.</b> Dick Nixon has finished his last campaign.</p><p>It should be a triumphal moment, final vindication against the establishment, self-satisfied Ivy League elites, the wild eyed liberals, and above all else, <b>the media</b>. The Enemy has been driven from the temple.</p><p>Instead, in the void left by victory, Nixon sits in a darkened room. On a pad of paper he writes out all the negative comments that press will say about him tomorrow. He notes his lack of coattails. The lowest turnout since 1948. His mandate defined entirely by what it was against, ‘welfare ethics’, busing, amnesty; peace without honor.</p><p>He knows.</p><p>He knows he is trapped. The crises are specks of cells on the body politic. Prices are about to be decontrolled, Henry’s trip to Hanoi has been rescheduled 3 times. ‘Dirty Tricks’ still sit below the fold.</p><p> But, four more years, he must use all of his strategy and wisdom and fight his worst instincts to get to the other side and secure his historic legacy. He must find a way through, even as the walls close in and the enemy returns, out of focus shadows in this darkness.</p><p>He has just proven them all wrong, and he will do so again. </p></div>",
+            "description": "<div style=\"font-size: 1.0em;\"><p><b>The election was called at 9.01pm EST.</b> Dick Nixon has finished his last campaign.</p><p>It should be a triumphal moment, final vindication against the establishment, self-satisfied Ivy League elites, the wild eyed liberals, and above all else, <b>the media</b>. The Enemy has been driven from the temple.</p><p>Instead, in the void left by victory, Nixon sits in a darkened room. On a pad of paper he writes out all the negative comments that press will say about him tomorrow. He notes his lack of coattails. The lowest turnout since 1948. His mandate defined entirely by what it was against, ‘welfare ethics’, busing, amnesty; peace without honor.</p><p>He knows.</p><p>He knows he is trapped. The crises are specks of cells on the body politic. Prices are about to be decontrolled, Henry’s trip to Hanoi has been rescheduled 3 times. ‘Dirty Tricks’ still sit below the fold.</p><p> But, four more years, he must use all of his strategy and wisdom and fight his worst instincts to get to the other side and secure his historic legacy. He must find a way through, even as the walls close in and the enemy returns, out of focus shadows in this darkness.</p><p>He has just proven them all wrong, and he will do so again. </p></div>",
             "color_hex": "#0000FF",
             "secondary_color_hex": null,
             "is_active": 1,
@@ -86,7 +86,7 @@ campaignTrail_temp.candidate_json = [
             "party": "Republican",
             "state": "Maryland",
             "priority": 1,
-            "description": "<div style=\"max-height: 250px; overflow-y: auto; font-size: 1.0em;\"><p><strong>Vice President Spiro Agnew</strong> was hardly the world historical monster recorded by posterity. He is an American commonplace, an over-promoted hack cast adrift in social forces he could barely grasp let alone understand. Corrupt in a <i>de rigeour</i> way, he enjoys himself too much on foreign trips and fails to impose himself on any projects granted by the President.</p><p>But Agnew does his political chores. He is able to speak sonorously in a tone just below a dog whistle. He can divide friends from enemies and frame simple, obvious and wrong solutions that excite the New Right and the base of the party even if its grandees have not yet been won over.</p><p>He believes that ‘76 is his for the taking. In his complacency he does not see that the last election was merely a remission. As good as he is at identifying enemies, he cannot strategise against them. All he can do is rage and seethe as they grow exponentially. They will overwhelm him.</p></div>",
+            "description": "<div style=\"max-height: 300px; overflow-y: auto; font-size: 1.0em;\"><p><strong>Vice President Spiro Agnew</strong> was hardly the world historical monster recorded by posterity. He is an American commonplace, an over-promoted hack cast adrift in social forces he could barely grasp let alone understand. Corrupt in a <i>de rigeour</i> way, he enjoys himself too much on foreign trips and fails to impose himself on any projects granted by the President.</p><p>But Agnew does his political chores. He is able to speak sonorously in a tone just below a dog whistle. He can divide friends from enemies and frame simple, obvious and wrong solutions that excite the New Right and the base of the party even if its grandees have not yet been won over.</p><p>He believes that ‘76 is his for the taking. In his complacency he does not see that the last election was merely a remission. As good as he is at identifying enemies, he cannot strategise against them. All he can do is rage and seethe as they grow exponentially. They will overwhelm him.</p></div>",
             "color_hex": "#0000FF",
             "secondary_color_hex": null,
             "is_active": 0,
@@ -94,7 +94,7 @@ campaignTrail_temp.candidate_json = [
             "electoral_victory_message": "This guy wins!",
             "electoral_loss_message": "This guy loses!",
             "no_electoral_majority_message": "We all win?",
-            "description_as_running_mate": "<div style=\"max-height: 250px; overflow-y: auto;\"><p>Spiro Agnew was hardly the world historical monster recorded by posterity. He is an American commonplace, an over-promoted hack cast adrift in social forces he could barely grasp let alone understand. Corrupt in a de rigeour way, he enjoys himself too much on foreign trips and fails to impose himself on any projects granted by the President.</p><p>But Agnew does his political chores. He is able to speak sonorously in a tone just below a dog whistle. He can divide friends from enemies and frame simple, obvious and wrong solutions that excite the New Right and the base of the party even if its grandees have not yet been won over.</p><p>He believes that ‘76 is his for the taking. In his complacency he does not see that the last election was merely a remission. As good as he is at identifying enemies, he cannot strategise against them. All he can do is rage and seethe as they grow exponentially. They will overwhelm him.</p></div>",
+            "description_as_running_mate": "<div style=\"max-height: 300px; overflow-y: auto;\"><p>Spiro Agnew was hardly the world historical monster recorded by posterity. He is an American commonplace, an over-promoted hack cast adrift in social forces he could barely grasp let alone understand. Corrupt in a de rigeour way, he enjoys himself too much on foreign trips and fails to impose himself on any projects granted by the President.</p><p>But Agnew does his political chores. He is able to speak sonorously in a tone just below a dog whistle. He can divide friends from enemies and frame simple, obvious and wrong solutions that excite the New Right and the base of the party even if its grandees have not yet been won over.</p><p>He believes that ‘76 is his for the taking. In his complacency he does not see that the last election was merely a remission. As good as he is at identifying enemies, he cannot strategise against them. All he can do is rage and seethe as they grow exponentially. They will overwhelm him.</p></div>",
             "candidate_score": 1,
             "running_mate": true
         }
@@ -217,7 +217,9 @@ campaignTrail_temp.opponents_default_json = [
         "election": 10,
         "candidates": [
             92,
-            50000
+            50000,
+            70000,
+            80000
         ]
     }
 ]
@@ -227,7 +229,9 @@ campaignTrail_temp.opponents_weighted_json = [
         "election": 10,
         "candidates": [
             92,
-            50000
+            50000,
+            70000,
+            80000
         ]
     }
 ]
@@ -441,10 +445,10 @@ style.innerHTML = `
   display: none;
 }
 #candidate_summary {
-    height: 325px !important;
+    height: 350px !important;
 }
 #running_mate_summary {
-    height: 325px !important;
+    height: 350px !important;
 }
 #running_mate_summary > ul > li:nth-child(3) {
   display: none;
@@ -458,7 +462,7 @@ style.innerHTML = `
     text-align: center !important;
 }
 .person_summary {
-    height: 325px !important;
+    height: 350px !important;
     overflow: hidden !important;
 }
 .person_summary ul {
@@ -661,11 +665,21 @@ div.content_single {
     height: 85px !important;
     padding-bottom: 5px !important;
 }
-#game_window {
+/* Early screens (intro, candidate select, difficulty): expand with content */
+#game_window:not(:has(#question_form)) {
     height: auto !important;
     min-height: 625px !important;
     max-height: none !important;
     overflow: visible !important;
+    padding-bottom: 0 !important;
+}
+/* Question gameplay: expand freely, with padding to clear the g overlay */
+#game_window:has(#question_form) {
+    height: auto !important;
+    min-height: 450px !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding-bottom: 175px !important;
 }
 
 #game_window, .inner_window, #game_header, .description_window_small, .inner_window_front, .inner_window_w_desc, .inner_window_question, .inner_inner_window, .below_header, .election_description_window, .person_description_window, #candidate_description_window, #question_header, #answers_container, #feedback_container {
@@ -712,7 +726,27 @@ ul {
 }
 #inner_window_3,
 #inner_window_4 {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
     padding-bottom: 50px !important;
+    width: 100% !important;
+}
+.description_window_small {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    width: 100% !important;
+}
+#opponent_selection_description_window {
+    width: calc(100% - 10px) !important;
+    margin-bottom: 90px !important;
+}
+#feedback_container {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    width: calc(100% + 30px) !important;
 }
 #inner_window_question p {
     padding-top: 70px !important;
@@ -730,6 +764,8 @@ ul {
 }
 #menu_container {
     flex-shrink: 0 !important;
+    position: relative !important;
+    background: transparent !important;
 }
 #map_container {
     width: 721px !important;
@@ -891,13 +927,17 @@ div.center img#header {
 .overlay_window {
     height: auto !important;
     max-height: none !important;
-    overflow-y: auto !important;
+    overflow: visible !important;
+    width: auto !important;
+    max-width: 920px !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
 }
 .overlay_window_content {
     height: auto !important;
-    max-height: 450px !important;
     max-height: none !important;
-    overflow-y: auto !important;
+    overflow: visible !important;
+    width: auto !important;
 }
 .overlay_window_content img {
     width: auto !important;
@@ -907,14 +947,20 @@ div.center img#header {
     font-weight: normal !important;
     text-wrap: balance;
 }
+#visit_window:has(#no_feedback_button) p {
+    text-align: left !important;
+}
+#visit_overlay {
+    min-height: 725px !important;
+}
 #visit_window {
     position: absolute !important;
     top: 0 !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
     margin: 0 !important;
-    max-height: 450px !important;
     height: auto !important;
+    max-height: none !important;
     width: auto !important;
     overflow-y: auto !important;
 }
@@ -931,9 +977,11 @@ div.center img#header {
     position: absolute !important;
     cursor: grab;
     z-index: 999;
-}
-#menu_container {
-    position: relative !important;
+    background-color: #FFFF99 !important;
+    width: 210px !important;
+    font-family: Georgia, serif !important;
+    height: auto !important;
+    pointer-events: auto !important;
 }
 .map-pin {
     position: absolute;
@@ -945,20 +993,10 @@ div.center img#header {
     transform: rotateZ(-1deg) !important;
     min-height: 160px !important;
 }
-
 #state_result_container {
     transform: rotateZ(1deg) rotateX(2deg) !important;
     min-height: 225.68px !important;
 }
-#overall_result_container,
-#state_result_container {
-    background-color: #FFFF99 !important;
-    width: 210px !important;
-    font-family: Georgia, serif !important;
-    height: auto !important;
-    pointer-events: auto !important;
-}
-
 #overall_result_container *,
 #state_result_container * {
     font-family: Georgia, serif !important;
@@ -968,9 +1006,6 @@ div.center img#header {
 #overall_result,
 #state_info {
     background-color: #FFFF99 !important;
-}
-#menu_container {
-background: transparent !important;
 }
 #map_footer {
     position: absolute !important;
@@ -993,45 +1028,52 @@ background: transparent !important;
     display: inline-block;
     cursor: pointer;
 }
-.mytooltip .mytooltiptext {
+.mytooltip .mytooltiptext, #tooltip-portal {
     display: none;
     position: fixed;
     z-index: 999999;
     width: 270px;
-    background: #fff;
-    padding: 8px 8px 30px 8px;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 2px 2px 14px 2px;
     border-radius: 2px;
     box-shadow: 2px 2px 8px rgba(0,0,0,0.4), 0 0 1px rgba(0,0,0,0.2);
     pointer-events: none;
     text-align: center;
 }
-.mytooltip .mytooltiptext img {
-    width: 100%;
+.mytooltip .mytooltiptext img, #tooltip-portal img {
+    width: auto;
+    max-width: 200px;
     height: auto;
     display: block;
-    margin: 0 0 8px 0;
+    margin: 0 auto 2px auto;
 }
-.mytooltip .mytooltiptext .tt-label {
+.mytooltip .mytooltiptext .tt-label, #tooltip-portal .tt-label {
+    display: block;
     font-family: Georgia, serif;
     font-size: 14px;
     font-weight: bold;
     color: #333;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
-.mytooltip .mytooltiptext .tt-body {
+.mytooltip .mytooltiptext .tt-body, #tooltip-portal .tt-body {
+    display: block;
+    margin-top: 3px;
+    padding: 3px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,240,240,0.9) 100%);
+    box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), 0 1px 3px rgba(0,0,0,0.15);
+    border-radius: 2px;
+}
+.mytooltip .mytooltiptext .tt-body-text, #tooltip-portal .tt-body-text {
     font-family: 'PermanentMarker', cursive;
     font-size: 12px;
     color: rgb(96, 115, 129);
     transform: rotate(-1.5deg) skewX(-3deg);
     display: block;
-    margin-top: 6px;
-    line-height: 1.1;
+    line-height: 1.45;
     letter-spacing: 0.05em;
     text-align: left;
-    padding: 4px;
-    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,240,240,0.9) 100%);
-    box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), 0 1px 3px rgba(0,0,0,0.15);
-    border-radius: 2px;
 }
 .game_answer_row span {
     text-decoration: underline;
@@ -1042,6 +1084,68 @@ background: transparent !important;
 }
 .game_answer_row:hover span {
     text-decoration-color: rgba(96, 115, 129, 0.55);
+}
+@keyframes answerFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.game_answer_row {
+    animation: answerFadeIn 0.28s ease-out both;
+    animation-delay: var(--answer-i-delay, 0ms);
+}
+/* ── Inner Circle / Enemies panels ────────────────────────────── */
+#inner_circle_panel, #enemies_panel {
+    position: absolute;
+    top: 0; left: 0;
+    width: 989px; height: 625px;
+    background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png');
+    background-size: cover; background-position: center;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 24px 32px; box-sizing: border-box;
+    overflow-y: auto;
+    z-index: 400;
+    font-family: 'TypewriterDry', sans-serif;
+}
+#inner_circle_panel h2, #enemies_panel h2 {
+    font-size: 20px; letter-spacing: 0.18em;
+    text-transform: uppercase; margin-bottom: 16px;
+}
+.ic-panel-buttons {
+    display: flex; gap: 12px; margin-top: auto; padding-top: 16px;
+}
+/* ── Historical panel ──────────────────────────────────────────── */
+#historical-panel {
+    position: absolute;
+    top: 0; left: 0;
+    width: 989px; height: 625px;
+    background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png');
+    background-size: cover; background-position: center;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 32px 48px; box-sizing: border-box;
+    overflow-y: auto;
+    z-index: 450;
+    font-family: 'TypewriterDry', sans-serif;
+}
+#historical-panel h2 {
+    font-size: 20px; letter-spacing: 0.18em;
+    text-transform: uppercase; margin-bottom: 20px;
+}
+#historical-panel-body {
+    font-size: 13px; line-height: 1.6;
+    max-width: 640px; flex: 1; overflow-y: auto;
+    text-align: left;
+}
+.historical-placeholder {
+    color: #888; font-style: italic;
+}
+/* ── Question date (replaces "Question X of Y" h3 in progress bar) ─ */
+#progress_bar h3[data-date-attached] {
+    font-family: 'TypewriterDry', sans-serif;
+    font-size: 16px;
+    cursor: default;
+    pointer-events: auto !important;
 }
   #results_container { color: #fcfcfc; }
   .inner_window_w_desc { background-color: transparent !important; }
@@ -1055,7 +1159,7 @@ document.head.appendChild(style);
 e=campaignTrail_temp
 
 var changeGameDisp = (hide) => {
-  disp = "";
+  let disp = "";
   if (hide) {
     disp = "none";
   }
@@ -1063,7 +1167,7 @@ var changeGameDisp = (hide) => {
 };
 
 e.creditsPage = () => {
-  credits_html = `
+  let credits_html = `
     <h3>Coding</h3>
     <p><font color='#010101'>Evil_Knevil69</font></p>
     <p><font color='#010101'>Philip (aged 9)</font></p>
@@ -1085,7 +1189,6 @@ e.creditsPage = () => {
   document
     .getElementsByClassName("inner_window_w_desc")[0]
     .children[1].appendChild(spacer);
-    changeGameDisp(true);
     var menuHeader = document.createElement("div");
     menuHeader.classList.add("inner_window_front");
     menuHeader.innerHTML = `<h1 style='font-family: "monospace";'><font color='#010101'>Credits</font></h1>`;
@@ -1116,7 +1219,7 @@ e.creditsPage = () => {
 }
 
 e.watergatePage = () => {
-  watergate_html = `
+  let watergate_html = `
     <img src='https://file.garden/aXPgNT-ZRCxxpy0g/wwwatergate.jpeg' style='float: left; margin-right: 12px; width: 450px;'>
     <h3>Watergate in the 21st Century</h3>
     <p><font color='#010101'>Evil_Knevil69</font></p>
@@ -1334,7 +1437,7 @@ function replaceRadioButtons() {
 
     radios.forEach(radio => {
     const label = document.querySelector('label[for="' + radio.id + '"]');
-    const labelText = label ? label.textContent.trim() : '';
+    const labelText = label ? label.innerHTML.trim() : '';
 
     const row = document.createElement('div');
     row.className = 'game_answer_row';
@@ -1356,7 +1459,7 @@ function replaceRadioButtons() {
     checkLabel.appendChild(svg);
 
     const textSpan = document.createElement('span');
-    textSpan.textContent = labelText;
+    textSpan.innerHTML = labelText;
     row.appendChild(checkLabel);
     row.appendChild(textSpan);
 
@@ -1401,10 +1504,18 @@ function replaceRadioButtons() {
         }, true); // capture phase so it fires before engine handler
     }
 }
-const observer = new MutationObserver(() => {
-    replaceButtonText();
-    replaceRadioButtons();
-});
+const observer = new MutationObserver((() => {
+    let _pending = false;
+    return () => {
+        if (_pending) return;
+        _pending = true;
+        requestAnimationFrame(() => {
+            _pending = false;
+            replaceButtonText();
+            replaceRadioButtons();
+        });
+    };
+})());
 
 //event listeners, play music add watergate button, adjust image containers
 
@@ -1470,17 +1581,25 @@ function makeDraggable(elId, savedPos) {
     new MutationObserver(updatePin).observe(el, { attributes: true, attributeFilter: ['style'] });
 }
 
-const mapPanelObserver = new MutationObserver(() => {
-    const overall = document.getElementById('overall_result_container');
-    const state = document.getElementById('state_result_container');
-    if (overall && !overall.dataset.dragHooked) {
-        makeDraggable('overall_result_container', { left: savedOverallLeft, top: savedOverallTop });
-    }
-    if (state && !state.dataset.dragHooked) {
-        makeDraggable('state_result_container', { left: savedStateLeft, top: savedStateTop });
-    }
-});
-mapPanelObserver.observe(document.body, { childList: true, subtree: true });
+const mapPanelObserver = new MutationObserver((() => {
+    let _pending = false;
+    return () => {
+        if (_pending) return;
+        _pending = true;
+        requestAnimationFrame(() => {
+            _pending = false;
+            const overall = document.getElementById('overall_result_container');
+            const state = document.getElementById('state_result_container');
+            if (overall && !overall.dataset.dragHooked) {
+                makeDraggable('overall_result_container', { left: savedOverallLeft, top: savedOverallTop });
+            }
+            if (state && !state.dataset.dragHooked) {
+                makeDraggable('state_result_container', { left: savedStateLeft, top: savedStateTop });
+            }
+        });
+    };
+})());
+mapPanelObserver.observe(document.getElementById('game_window'), { childList: true, subtree: true });
 
 window.playCreditsMusic = function() {
     if (!window.playlist) {
@@ -1905,7 +2024,7 @@ setInterval(() => {
         }
         #interlaced {
             position: absolute;
-            background: repeating-linear-gradient(transparent 0px 1px, rgba(0,0,0,0.3) 3px 4px);
+            background: repeating-linear-gradient(transparent 0px 2px, rgba(0,0,0,0.3) 4px 5px);
             top: 0;
             left: 0;
             right: 0;
@@ -1927,7 +2046,7 @@ setInterval(() => {
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: repeating-linear-gradient(to bottom, transparent 0px, transparent 1px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 3px);
+                background: repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(0,0,0,0.15) 3px, rgba(0,0,0,0.15) 4px);
                 pointer-events: none;
                 z-index: 2;
             `;
@@ -2096,7 +2215,7 @@ setInterval(() => {
                                 <div style="display:none;position:absolute;bottom:25px;left:50%;transform:translateX(-50%) rotate(` + pin.rot + `);width:270px;background:#fff;padding:8px 8px 30px 8px;border-radius:2px;box-shadow:2px 2px 8px rgba(0,0,0,0.4), 0 0 1px rgba(0,0,0,0.2);pointer-events:none;text-align:center;z-index:999;">
                                 <img src='` + pin.img + `' style='width:100%;height:auto;display:block;margin:0 0 8px 0;'/>
                                 <div style="font-family:Georgia,serif;font-size:14px;font-weight:bold;color:#333;margin-bottom:4px;">` + pin.label + `</div>
-                                <div style="font-family:'PermanentMarker',cursive;font-size:12px;font-weight:normal;color:rgb(96, 115, 129);transform:rotate(-1.5deg) skewX(-3deg);display:block;margin-top:6px;line-height:1.1;letter-spacing:0.05em;word-spacing:0.1em;text-align:left;padding:4px 4px;background:linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,240,240,0.9) 100%);box-shadow:inset 0 1px 2px rgba(255,255,255,0.8), 0 1px 3px rgba(0,0,0,0.15);border-radius:2px;">` + pin.body + `</div>
+                                <div style="display:block;margin-top:6px;padding:4px;background:linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,240,240,0.9) 100%);box-shadow:inset 0 1px 2px rgba(255,255,255,0.8), 0 1px 3px rgba(0,0,0,0.15);border-radius:2px;"><span style="font-family:'PermanentMarker',cursive;font-size:12px;font-weight:normal;color:rgb(96, 115, 129);transform:rotate(-1.5deg) skewX(-3deg);display:block;line-height:1.1;letter-spacing:0.05em;word-spacing:0.1em;text-align:left;">` + pin.body + `</span></div>
                             </div>
                         `;
                         const tooltip = el.querySelector('div');
@@ -2195,18 +2314,22 @@ setInterval(() => {
                     const mapSvg = mapContainerEl ? mapContainerEl.querySelector('svg:not(#visit-noise-overlay):not(.visit-pin-svg)') : null;
                     if (mapSvg && !mapSvg.dataset.planeHooked) {
                         mapSvg.dataset.planeHooked = 'true';
-                        mapSvg.addEventListener('click', function(e) {
+                        let _flyTimer = null;
+                        function _planeClickHandler(ev) {
                             const now = Date.now();
                             const lastClick = parseInt(plane.dataset.lastClick || '0');
                             if (plane.dataset.flying === 'true') {
                                 if (now - lastClick < 500) {
-                                    plane.remove();
+                                    clearTimeout(_flyTimer);
+                                    mapSvg.removeEventListener('click', _planeClickHandler, true);
                                     delete mapSvg.dataset.planeHooked;
-                                    e.target.dispatchEvent(new MouseEvent('click', {
+                                    plane.remove();
+                                    ev.stopPropagation();
+                                    ev.target.dispatchEvent(new MouseEvent('click', {
                                         bubbles: true,
                                         cancelable: true,
-                                        clientX: e.clientX,
-                                        clientY: e.clientY
+                                        clientX: ev.clientX,
+                                        clientY: ev.clientY
                                     }));
                                 }
                                 return;
@@ -2214,8 +2337,8 @@ setInterval(() => {
                             plane.dataset.lastClick = now;
                             plane.dataset.flying = 'true';
                             const containerRect = mapContainerEl.getBoundingClientRect();
-                            const clickX = e.clientX - containerRect.left;
-                            const clickY = e.clientY - containerRect.top;
+                            const clickX = ev.clientX - containerRect.left;
+                            const clickY = ev.clientY - containerRect.top;
                             const dx = clickX - startPin.x;
                             const dy = clickY - startPin.y;
                             const hitEaster = (clickX >= 680 && clickX <= 925 && clickY >= 335 && clickY <= 502);
@@ -2228,25 +2351,27 @@ setInterval(() => {
                                 plane.style.left = (clickX - 17) + 'px';
                                 plane.style.top = (clickY - 17) + 'px';
                             }, 50);
-                            e.stopPropagation();
-                            const originalTarget = e.target;
+                            ev.stopPropagation();
+                            const originalTarget = ev.target;
                             if (hitEaster) {
-                                            setTimeout(() => {
-                                                const plop = new Audio('https://file.garden/aXPgNT-ZRCxxpy0g/plop2.mp3');
-                                                plop.play();
-                                            }, 3500);
-                                        }
-                                        setTimeout(() => {
-                                            plane.remove();
-                                            originalTarget.dispatchEvent(new MouseEvent('click', {
-                                                bubbles: true,
-                                                cancelable: true,
-                                                clientX: e.clientX,
-                                                clientY: e.clientY
-                                            }));
-                                            delete mapSvg.dataset.planeHooked;
-                                        }, 5000);
-                        }, true);
+                                setTimeout(() => {
+                                    const plop = new Audio('https://file.garden/aXPgNT-ZRCxxpy0g/plop2.mp3');
+                                    plop.play();
+                                }, 3500);
+                            }
+                            _flyTimer = setTimeout(() => {
+                                mapSvg.removeEventListener('click', _planeClickHandler, true);
+                                plane.remove();
+                                originalTarget.dispatchEvent(new MouseEvent('click', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    clientX: ev.clientX,
+                                    clientY: ev.clientY
+                                }));
+                                delete mapSvg.dataset.planeHooked;
+                            }, 5000);
+                        }
+                        mapSvg.addEventListener('click', _planeClickHandler, true);
                  }
                             }
                         } else {
@@ -2277,7 +2402,7 @@ setInterval(() => {
                 setTimeout(function() {
                     const credits = document.getElementById("credits");
                     if (credits) {
-                        credits.innerHTML = `<div style="display: inline-flex; gap: 10px; margin-top: 30px; margin-left: -80px;"><button onclick='e.creditsPage(); playCreditsMusic();'>Credits</button><button onclick='e.watergatePage()'>What was Watergate?</button></div>`;
+                        credits.innerHTML = `<div style="display: inline-flex; gap: 10px; margin-top: 20px; margin-left: -80px;"><button onclick='e.creditsPage(); playCreditsMusic();'>Credits</button><button onclick='e.watergatePage()'>What was Watergate?</button></div>`;
                         credits.style.visibility = "visible";
                     }
                     const headerImg = document.getElementById("header");
@@ -2705,17 +2830,30 @@ playBtn.addEventListener('click', () => {
     tapeRecorder.style.position = 'absolute';
     tapeRecorder.style.cursor = 'grab';
     tapeRecorder.style.opacity = '0';
-    setTimeout(() => {
+
+    let _playerDragged = false;
+
+    function _positionRecorder() {
         const gameWindow = document.getElementById('game_window');
+        if (!gameWindow || !contentSingle) return;
         const gameWindowRect = gameWindow.getBoundingClientRect();
         const contentSingleRect = contentSingle.getBoundingClientRect();
         tapeRecorder.style.left = (gameWindowRect.left - contentSingleRect.left - 20) + 'px';
         tapeRecorder.style.top = (gameWindowRect.bottom - contentSingleRect.top + window.scrollY) + 'px';
+    }
+
+    setTimeout(() => {
+        _positionRecorder();
         tapeRecorder.style.opacity = '1';
     }, 500);
 
+    window.addEventListener('resize', () => {
+        if (!_playerDragged) _positionRecorder();
+    });
+
     tapeRecorder.addEventListener('mousedown', (e) => {
         if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'A' || e.target.tagName === 'SELECT') return;
+        _playerDragged = true;
         isDragging = true;
         const recRect = tapeRecorder.getBoundingClientRect();
         dragOffsetX = e.clientX - recRect.left;
