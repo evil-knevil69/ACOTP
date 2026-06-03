@@ -15549,6 +15549,14 @@ function openCIAProfile(code, mapPanel, tooltip) {
     backBtn.addEventListener('click', () => viewer.remove());
     bar.appendChild(backBtn);
 
+    const indexBtn = document.createElement('button');
+    indexBtn.textContent = 'Basic Intelligence Factbook';
+    indexBtn.addEventListener('click', () => {
+        iframe.src = PAGES_BASE + '/CIA/index.html';
+        lbl.textContent = 'Basic Intelligence Factbook';
+    });
+    bar.appendChild(indexBtn);
+
     const lbl = document.createElement('span');
     lbl.textContent = COUNTRY_NAMES[code] || code;
     lbl.style.cssText = 'color:#fff;font-family:TypewriterDry,monospace;font-size:14px;';
