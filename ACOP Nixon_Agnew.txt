@@ -15132,6 +15132,45 @@ function _addWorldMapBtn() {
     gw.appendChild(btn);
 }
 
+// ── Country allegiance to US (1–100) ─────────────────────────────────────────
+const COUNTRY_LOYAL = {
+  // Europe
+  AL:  3, AD: 70, AT: 65, BE: 80, BG:  8, CS:  8, DD:  5, DE: 82,
+  DK: 78, ES: 65, FI: 45, FR: 72, GB: 88, GR: 68, HU:  8, IE: 55,
+  IS: 75, IT: 72, LI: 75, LU: 80, MC: 72, MT: 48, NL: 80, NO: 78,
+  PL:  8, PT: 70, RO: 20, SM: 55, SU:  5, SE: 50, CH: 60, TR: 70,
+  VA: 60, YU: 45,
+  // North America & Caribbean
+  BS: 72, BB: 70, CA: 88, CR: 72, CU:  3, DO: 75, SV: 68, GT: 70,
+  HT: 55, HN: 68, JM: 65, MX: 55, NI: 72, PA: 50, TT: 65, GD: 65,
+  US:100,
+  // South America
+  AR: 48, BO: 55, BR: 65, CL: 28, CO: 62, EC: 52, GY: 42, PY: 65,
+  PE: 38, UY: 48, VE: 60,
+  // Africa
+  DZ: 22, DY: 45, BW: 55, BI: 40, CM: 52, CF: 45, TD: 50, CG: 18,
+  ZR: 65, EG: 42, GQ: 28, ET: 62, GA: 58, GM: 55, GH: 45, GN: 15,
+  HV: 45, CI: 62, KE: 58, LS: 52, LR: 68, LY: 10, MG: 45, MW: 55,
+  ML: 25, MR: 45, MU: 58, MA: 62, SWA:55, NE: 48, NG: 52, RH: 30,
+  RW: 45, SN: 55, SL: 48, SO: 20, ZA: 50, SD: 38, SZ: 55, TZ: 28,
+  TG: 50, TN: 58, UG: 22, ZM: 38,
+  // Middle East
+  BH: 65, CY: 55, IR: 80, IQ: 15, IL: 92, JO: 72, KW: 65, LB: 60,
+  OM: 65, QA: 62, SA: 72, SY: 12, AE: 65, YE: 42, YD:  8,
+  // South Asia
+  AF: 35, BD: 38, BT: 45, IN: 38, MV: 50, NP: 50, PK: 72, CE: 42,
+  SK: 48,
+  // Southeast Asia
+  KH: 60, ID: 65, LA: 55, MY: 58, BU: 35, PH: 72, SG: 65, TH: 72,
+  VD:  3, VN: 75,
+  // East Asia
+  CN: 25, JP: 82, KP:  3, KR: 82, MN:  8, TW: 78,
+  // Oceania
+  AU: 82, FJ: 65, NR: 55, NZ: 80, WS: 55, TO: 58, VU: 58,
+  // Easter egg
+  EP:  1,
+};
+
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
     document.getElementById('world-map-container')?.remove();
