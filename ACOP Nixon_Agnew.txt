@@ -15405,7 +15405,13 @@ function openWorldMap() {
                 el.style.cursor = 'pointer';
 
                 el.addEventListener('mouseenter', () => {
-                    tooltip.textContent = COUNTRY_NAMES[code];
+                    const score = COUNTRY_LOYAL[code] || 0;
+                    const band = score >= 75 ? 'Allied'
+                               : score >= 60 ? 'Aligned'
+                               : score >= 40 ? 'Neutral'
+                               : score >= 10 ? 'Enemy'
+                               : 'Bitter Enemy';
+                    tooltip.innerHTML = '<strong>' + COUNTRY_NAMES[code] + '</strong><br>' + band;
                     tooltip.style.display = 'block';
                 });
                 el.addEventListener('mousemove', e => {
