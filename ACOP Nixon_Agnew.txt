@@ -15732,8 +15732,24 @@ function openWorldMap() {
                     const flagImg = (flagsOn && FLAG_URLS[code] && smallFlagCodes.has(code))
                         ? '<img src="' + FLAG_URLS[code] + '" style="height:16px;width:24px;object-fit:cover;vertical-align:middle;border:1px solid #555;margin-right:5px;display:inline-block">'
                         : '';
+                    let extraLine = '';
+                    if (code === 'SU') {
+                        const rel = RelationswiththeSoviets;
+                        const relText  = rel >= 10 ? 'A New World Order'
+                                       : rel >= 8  ? 'Alignment'
+                                       : rel >= 5  ? 'Détente'
+                                       : rel >= 3  ? 'Cold'
+                                       : 'Hostile';
+                        const relColour = rel >= 10 ? '#ffffff'
+                                        : rel >= 8  ? '#4caf50'
+                                        : rel >= 5  ? '#2196f3'
+                                        : rel >= 3  ? '#ff9800'
+                                        : '#f44336';
+                        extraLine = '<br><span style="color:' + relColour + ';font-weight:bold">Relations: ' + rel + ' — ' + relText + '</span>';
+                    }
                     tooltip.innerHTML = flagImg + '<strong>' + COUNTRY_NAMES[code] + '</strong><br>'
-                        + '<span style="color:' + colour + ';font-weight:bold">' + band + '</span>';
+                        + '<span style="color:' + colour + ';font-weight:bold">' + band + '</span>'
+                        + extraLine;
                     tooltip.style.display = 'block';
                 });
                 el.addEventListener('mousemove', e => {
