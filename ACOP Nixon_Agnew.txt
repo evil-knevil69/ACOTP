@@ -12055,6 +12055,7 @@ var MilkFund = 0;
 var Vesco = 0;
 var oojHush = 0;
 var oojClemency = 0;
+var dncbreakin = 2;
 
 // ── Nominee ───────────────────────────────────────────────────────────────────
 var Nominee = "Nixon";
@@ -12410,6 +12411,7 @@ const _LP_CRIMES = [
     { varName: 'Vesco',            label: 'Illegal Vesco Campaign Contribution' },
     { varName: 'oojHush',          label: 'Obstruction of Justice: Hush Money' },
     { varName: 'oojClemency',      label: 'Obstruction of Justice: Clemency' },
+    { varName: 'dncbreakin',       label: 'DNC Break-In at the Watergate' },
 ];
 
 var _legalPadScreen = 0; // 0 = High Crimes tab, 1+ = future tabs
