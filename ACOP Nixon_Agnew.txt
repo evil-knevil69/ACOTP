@@ -15848,6 +15848,53 @@ function openCIAProfile(code, mapPanel, tooltip) {
         bar.appendChild(flagEl);
     }
 
+    const mainAudio = document.getElementById('audio');
+    const antAudio = new Audio(PAGES_BASE + '/anthems/' + code + '.ogg');
+    antAudio.preload = 'none';
+    let antActive = false, antWasPlaying = false;
+
+    const antBtn = document.createElement('button');
+    antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
+    antBtn.style.cssText = 'margin-left:8px;';
+
+    function onAntEnded() { stopAnthem(true); }
+    function onMainResume() { stopAnthem(false); }
+
+    function stopAnthem(resumeMain) {
+        if (!antActive) return;
+        antActive = false;
+        antAudio.pause();
+        antAudio.currentTime = 0;
+        antAudio.removeEventListener('ended', onAntEnded);
+        if (mainAudio) mainAudio.removeEventListener('play', onMainResume);
+        antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
+        if (resumeMain && antWasPlaying && mainAudio) mainAudio.play().catch(() => {});
+    }
+
+    antBtn.addEventListener('click', () => {
+        if (antActive) {
+            stopAnthem(true);
+        } else {
+            antActive = true;
+            antWasPlaying = !!(mainAudio && !mainAudio.paused);
+            antBtn.innerHTML = '&#9646;&#9646;&nbsp;National Anthem';
+            if (antWasPlaying) mainAudio.pause();
+            if (mainAudio) mainAudio.addEventListener('play', onMainResume);
+            antAudio.currentTime = 0;
+            antAudio.play().catch(() => {
+                antActive = false;
+                antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
+                if (mainAudio) mainAudio.removeEventListener('play', onMainResume);
+                if (antWasPlaying && mainAudio) mainAudio.play().catch(() => {});
+            });
+            antAudio.addEventListener('ended', onAntEnded, { once: true });
+        }
+    });
+
+    backBtn.addEventListener('click', () => stopAnthem(true));
+
+    bar.appendChild(antBtn);
+
     const iframe = document.createElement('iframe');
     iframe.src = url;
     iframe.sandbox = 'allow-same-origin';
