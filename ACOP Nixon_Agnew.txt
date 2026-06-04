@@ -15557,7 +15557,7 @@ function openWorldMap() {
                 g.id = 'wm-flag-overlay';
                 g.style.pointerEvents = 'none';
 
-                const _bigFlagCodes = new Set(['IN','BR','SU','CN','US','CA']);
+                const _bigFlagCodes = new Set(['IN','BR','SU','CN','US','CA','AU']);
 
                 Object.keys(FLAG_URLS).forEach(code => {
                     const els = Array.from(svg.querySelectorAll('[id="' + code + '"]'));
