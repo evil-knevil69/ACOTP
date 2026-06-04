@@ -15818,10 +15818,10 @@ function openCIAProfile(code, mapPanel, tooltip) {
 
     const viewer = document.createElement('div');
     viewer.id = 'cia-profile-viewer';
-    viewer.style.cssText = 'position:absolute;top:0;left:0;width:989px;height:625px;z-index:510;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;';
+    viewer.style.cssText = 'position:absolute;top:0;left:0;width:989px;height:625px;z-index:510;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;user-select:none;';
 
     const bar = document.createElement('div');
-    bar.style.cssText = 'flex-shrink:0;height:44px;background:#000;display:flex;align-items:center;padding:0 12px;gap:12px;';
+    bar.style.cssText = 'flex-shrink:0;height:44px;background:#000;display:flex;align-items:center;padding:0 12px;gap:12px;overflow:hidden;';
 
     const backBtn = document.createElement('button');
     backBtn.textContent = '<- World Map';
@@ -15855,7 +15855,7 @@ function openCIAProfile(code, mapPanel, tooltip) {
 
     const antBtn = document.createElement('button');
     antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
-    antBtn.style.cssText = 'margin-left:8px;';
+    antBtn.style.cssText = 'margin-left:8px;height:30px;padding:0 8px;font-size:12px;';
 
     function onAntEnded() { stopAnthem(true); }
     function onMainResume() { stopAnthem(false); }
