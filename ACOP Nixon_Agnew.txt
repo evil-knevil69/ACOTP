@@ -15763,7 +15763,7 @@ function openWorldMap() {
                                       : v >= 3 ? '#ff9800'
                                       : v >= 1 ? '#ffb300'
                                       : '#f44336';
-                        extraLine = '<br><span style="color:' + vColour + ';font-weight:bold">Vietnam: ' + v + ' — ' + vText + '</span>';
+                        extraLine = '<br><span style="color:' + vColour + ';font-weight:bold">Situation: ' + v + ' — ' + vText + '</span>';
                     }
                     tooltip.innerHTML = flagImg + '<strong>' + COUNTRY_NAMES[code] + '</strong><br>'
                         + '<span style="color:' + colour + ';font-weight:bold">' + band + '</span>'
