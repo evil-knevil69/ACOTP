@@ -15383,9 +15383,13 @@ function openWorldMap() {
     const bar = document.createElement('div');
     bar.style.cssText = 'flex-shrink:0;height:44px;background:#000;display:flex;align-items:center;gap:6px;padding:0 12px;';
 
+    // Cleanup hooks registered during SVG load (keyboard, drag, wheel listeners)
+    const mapCleanup = [];
+
     const backBtn = document.createElement('button');
     backBtn.textContent = '<- Electoral Map';
     backBtn.addEventListener('click', () => {
+        mapCleanup.forEach(fn => fn());
         container.remove();
         tooltip.remove();
         hiddenEls.forEach(el => { el.style.display = ''; });
@@ -15407,6 +15411,7 @@ function openWorldMap() {
     let flagsOn = false;
     const smallFlagCodes = new Set();
     let flagOverlayG = null;
+    let vScrollTrack, vScrollThumb, hScrollTrack, hScrollThumb;
 
     function doZoom(factor) {
         const vw = viewport.clientWidth || 989;
@@ -15502,6 +15507,32 @@ function openWorldMap() {
                     ty = Math.round((vh - H) / 2);
                 }
                 svg.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+
+                // Sync scrollbar thumbs
+                if (vScrollTrack && hScrollTrack) {
+                    const trackH = vScrollTrack.clientHeight || vh;
+                    if (H > vh) {
+                        vScrollTrack.style.display = '';
+                        const thumbH = Math.max(20, Math.round(vh / H * trackH));
+                        const thumbTop = Math.round(-ty / (H - vh) * (trackH - thumbH));
+                        vScrollThumb.style.height = thumbH + 'px';
+                        vScrollThumb.style.top = thumbTop + 'px';
+                    } else {
+                        vScrollTrack.style.display = 'none';
+                    }
+
+                    const trackW = hScrollTrack.clientWidth || vw;
+                    if (W > vw) {
+                        hScrollTrack.style.display = '';
+                        const thumbW = Math.max(20, Math.round(vw / W * trackW));
+                        const wrappedX = ((-tx) % W + W) % W;
+                        const thumbLeft = Math.round(wrappedX / W * (trackW - thumbW));
+                        hScrollThumb.style.width = thumbW + 'px';
+                        hScrollThumb.style.left = thumbLeft + 'px';
+                    } else {
+                        hScrollTrack.style.display = 'none';
+                    }
+                }
             };
             applyT();
 
@@ -15576,6 +15607,104 @@ function openWorldMap() {
                 flagOverlayG = g;
             }
             buildFlagOverlay();
+
+            // ── Scrollbars ──────────────────────────────────────────────────
+            // Created after innerHTML is set so they aren't wiped by SVG load.
+            vScrollTrack = document.createElement('div');
+            vScrollTrack.style.cssText = 'position:absolute;right:0;top:0;bottom:0;width:12px;background:rgba(0,0,0,0.35);z-index:20;';
+            vScrollThumb = document.createElement('div');
+            vScrollThumb.style.cssText = 'position:absolute;right:0;width:12px;background:rgba(200,200,200,0.65);border-radius:6px;cursor:pointer;min-height:20px;';
+            vScrollTrack.appendChild(vScrollThumb);
+            viewport.appendChild(vScrollTrack);
+
+            hScrollTrack = document.createElement('div');
+            hScrollTrack.style.cssText = 'position:absolute;left:0;bottom:0;right:12px;height:12px;background:rgba(0,0,0,0.35);z-index:20;';
+            hScrollThumb = document.createElement('div');
+            hScrollThumb.style.cssText = 'position:absolute;top:0;height:12px;background:rgba(200,200,200,0.65);border-radius:6px;cursor:pointer;min-width:20px;';
+            hScrollTrack.appendChild(hScrollThumb);
+            viewport.appendChild(hScrollTrack);
+            applyT(); // sync thumb positions now that elements exist
+
+            // Vertical scrollbar drag
+            let vDrag = false, vDragY = 0, vDragTy = 0;
+            vScrollThumb.addEventListener('mousedown', e => {
+                e.preventDefault(); vDrag = true; vDragY = e.clientY; vDragTy = ty;
+            });
+            const onVMove = e => {
+                if (!vDrag) return;
+                const H = 900 * scale, vh2 = viewport.clientHeight || 581;
+                const trackH = vScrollTrack.clientHeight || vh2;
+                const thumbH = Math.max(20, Math.round(vh2 / H * trackH));
+                const delta = e.clientY - vDragY;
+                ty = Math.round(vDragTy - delta * (H - vh2) / (trackH - thumbH));
+                applyT();
+            };
+            const onVUp = () => { vDrag = false; };
+            document.addEventListener('mousemove', onVMove);
+            document.addEventListener('mouseup',   onVUp);
+            mapCleanup.push(() => {
+                document.removeEventListener('mousemove', onVMove);
+                document.removeEventListener('mouseup',   onVUp);
+            });
+
+            // Horizontal scrollbar drag
+            let hDrag = false, hDragX = 0, hDragTx = 0;
+            hScrollThumb.addEventListener('mousedown', e => {
+                e.preventDefault(); hDrag = true; hDragX = e.clientX; hDragTx = tx;
+            });
+            const onHMove = e => {
+                if (!hDrag) return;
+                const W = 1800 * scale;
+                const trackW = hScrollTrack.clientWidth || (viewport.clientWidth || 989);
+                const thumbW = Math.max(20, Math.round((viewport.clientWidth || 989) / W * trackW));
+                const delta = e.clientX - hDragX;
+                tx = Math.round(hDragTx - delta * W / (trackW - thumbW));
+                applyT();
+            };
+            const onHUp = () => { hDrag = false; };
+            document.addEventListener('mousemove', onHMove);
+            document.addEventListener('mouseup',   onHUp);
+            mapCleanup.push(() => {
+                document.removeEventListener('mousemove', onHMove);
+                document.removeEventListener('mouseup',   onHUp);
+            });
+
+            // ── Mouse wheel ──────────────────────────────────────────────────
+            const onWheel = e => {
+                e.preventDefault();
+                if (e.ctrlKey) {
+                    const rect = viewport.getBoundingClientRect();
+                    const mx = e.clientX - rect.left;
+                    const my = e.clientY - rect.top;
+                    const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+                    const newScale = Math.max(0.08, Math.min(8, scale * factor));
+                    const ratio = newScale / scale;
+                    tx = Math.round(mx * (1 - ratio) + tx * ratio);
+                    ty = Math.round(my * (1 - ratio) + ty * ratio);
+                    scale = newScale;
+                } else {
+                    tx -= Math.round(e.deltaX);
+                    ty -= Math.round(e.deltaY);
+                }
+                applyT();
+            };
+            viewport.addEventListener('wheel', onWheel, { passive: false });
+            mapCleanup.push(() => viewport.removeEventListener('wheel', onWheel));
+
+            // ── Keyboard navigation ──────────────────────────────────────────
+            const STEP = 80;
+            const onMapKey = e => {
+                if (e.key === '+' || e.key === '=' || e.code === 'NumpadAdd')    { doZoom(1.25);       e.preventDefault(); return; }
+                if (e.key === '-'                || e.code === 'NumpadSubtract') { doZoom(1 / 1.25);   e.preventDefault(); return; }
+                let moved = false;
+                if      (e.code === 'Numpad8') { ty += STEP; moved = true; }
+                else if (e.code === 'Numpad2') { ty -= STEP; moved = true; }
+                else if (e.code === 'Numpad4') { tx += STEP; moved = true; }
+                else if (e.code === 'Numpad6') { tx -= STEP; moved = true; }
+                if (moved) { applyT(); e.preventDefault(); }
+            };
+            document.addEventListener('keydown', onMapKey);
+            mapCleanup.push(() => document.removeEventListener('keydown', onMapKey));
 
             // Hover, click & double-click per country path
             svg.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
