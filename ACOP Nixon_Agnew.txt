@@ -15379,7 +15379,7 @@ function openWorldMap() {
     // SVG viewport fills all space above control bar
     const viewport = document.createElement('div');
     viewport.id = 'wm-viewport';
-    viewport.style.cssText = 'flex:1;overflow:hidden;position:relative;cursor:default;';
+    viewport.style.cssText = 'flex:1;overflow:hidden;position:relative;cursor:default;user-select:none;';
 
     // Control bar at the bottom
     const bar = document.createElement('div');
