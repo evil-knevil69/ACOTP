@@ -15891,8 +15891,6 @@ function openCIAProfile(code, mapPanel, tooltip) {
         }
     });
 
-    backBtn.addEventListener('click', () => stopAnthem(true));
-
     bar.appendChild(antBtn);
 
     const iframe = document.createElement('iframe');
