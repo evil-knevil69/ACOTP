@@ -15730,8 +15730,8 @@ function openWorldMap() {
                                : score >= 10 ? 'Enemy'
                                : 'Bitter Enemy';
                     const colour = _loyalColour(score);
-                    // Small countries (too tiny for on-map flag) show flag in tooltip when Flags is on
-                    const flagImg = (flagsOn && FLAG_URLS[code] && smallFlagCodes.has(code))
+                    // Flag always shown in tooltip regardless of map overlay toggle
+                    const flagImg = FLAG_URLS[code]
                         ? '<img src="' + FLAG_URLS[code] + '" style="height:16px;width:24px;object-fit:cover;vertical-align:middle;border:1px solid #555;margin-right:5px;display:inline-block">'
                         : '';
                     let extraLine = '';
