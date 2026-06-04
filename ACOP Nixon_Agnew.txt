@@ -12055,6 +12055,7 @@ var MilkFund = 0;
 var Vesco = 0;
 var oojHush = 0;
 var oojClemency = 0;
+var dncbreakin = 2;
 
 // ── Nominee ───────────────────────────────────────────────────────────────────
 var Nominee = "Nixon";
@@ -12410,6 +12411,7 @@ const _LP_CRIMES = [
     { varName: 'Vesco',            label: 'Illegal Vesco Campaign Contribution' },
     { varName: 'oojHush',          label: 'Obstruction of Justice: Hush Money' },
     { varName: 'oojClemency',      label: 'Obstruction of Justice: Clemency' },
+    { varName: 'dncbreakin',       label: 'Break-In at the Watergate' },
 ];
 
 var _legalPadScreen = 0; // 0 = High Crimes tab, 1+ = future tabs
@@ -15383,9 +15385,13 @@ function openWorldMap() {
     const bar = document.createElement('div');
     bar.style.cssText = 'flex-shrink:0;height:44px;background:#000;display:flex;align-items:center;gap:6px;padding:0 12px;';
 
+    // Cleanup hooks registered during SVG load (keyboard, drag, wheel listeners)
+    const mapCleanup = [];
+
     const backBtn = document.createElement('button');
     backBtn.textContent = '<- Electoral Map';
     backBtn.addEventListener('click', () => {
+        mapCleanup.forEach(fn => fn());
         container.remove();
         tooltip.remove();
         hiddenEls.forEach(el => { el.style.display = ''; });
@@ -15407,6 +15413,7 @@ function openWorldMap() {
     let flagsOn = false;
     const smallFlagCodes = new Set();
     let flagOverlayG = null;
+    let vScrollTrack, vScrollThumb, hScrollTrack, hScrollThumb;
 
     function doZoom(factor) {
         const vw = viewport.clientWidth || 989;
@@ -15502,6 +15509,32 @@ function openWorldMap() {
                     ty = Math.round((vh - H) / 2);
                 }
                 svg.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+
+                // Sync scrollbar thumbs
+                if (vScrollTrack && hScrollTrack) {
+                    const trackH = vScrollTrack.clientHeight || vh;
+                    if (H > vh) {
+                        vScrollTrack.style.display = '';
+                        const thumbH = Math.max(20, Math.round(vh / H * trackH));
+                        const thumbTop = Math.round(-ty / (H - vh) * (trackH - thumbH));
+                        vScrollThumb.style.height = thumbH + 'px';
+                        vScrollThumb.style.top = thumbTop + 'px';
+                    } else {
+                        vScrollTrack.style.display = 'none';
+                    }
+
+                    const trackW = hScrollTrack.clientWidth || vw;
+                    if (W > vw) {
+                        hScrollTrack.style.display = '';
+                        const thumbW = Math.max(20, Math.round(vw / W * trackW));
+                        const wrappedX = ((-tx) % W + W) % W;
+                        const thumbLeft = Math.round(wrappedX / W * (trackW - thumbW));
+                        hScrollThumb.style.width = thumbW + 'px';
+                        hScrollThumb.style.left = thumbLeft + 'px';
+                    } else {
+                        hScrollTrack.style.display = 'none';
+                    }
+                }
             };
             applyT();
 
@@ -15526,6 +15559,8 @@ function openWorldMap() {
                 g.id = 'wm-flag-overlay';
                 g.style.pointerEvents = 'none';
 
+                const _bigFlagCodes = new Set(['IN','BR','SU','CN','US','CA','AU']);
+
                 Object.keys(FLAG_URLS).forEach(code => {
                     const els = Array.from(svg.querySelectorAll('[id="' + code + '"]'));
                     if (!els.length) return;
@@ -15548,8 +15583,9 @@ function openWorldMap() {
                         return;
                     }
 
-                    // Flag sized to cover 25% of bbox area (2:3 aspect ratio)
-                    const flagW = Math.min(Math.max(Math.round(Math.sqrt(bb.width * bb.height * 0.375)), 20), 50);
+                    // Large countries 25% of bbox area; all others 15% (2:3 aspect ratio)
+                    const _areaPct = _bigFlagCodes.has(code) ? 0.375 : 0.225;
+                    const flagW = Math.min(Math.max(Math.round(Math.sqrt(bb.width * bb.height * _areaPct)), 20), 50);
                     const flagH = Math.round(flagW * 2 / 3);
                     const override = FLAG_CENTRES[code];
                     const bcx = Math.round(bb.x + bb.width / 2);
@@ -15577,6 +15613,104 @@ function openWorldMap() {
             }
             buildFlagOverlay();
 
+            // ── Scrollbars ──────────────────────────────────────────────────
+            // Created after innerHTML is set so they aren't wiped by SVG load.
+            vScrollTrack = document.createElement('div');
+            vScrollTrack.style.cssText = 'position:absolute;right:0;top:0;bottom:0;width:12px;background:rgba(0,0,0,0.35);z-index:20;';
+            vScrollThumb = document.createElement('div');
+            vScrollThumb.style.cssText = 'position:absolute;right:0;width:12px;background:rgba(200,200,200,0.65);border-radius:6px;cursor:pointer;min-height:20px;';
+            vScrollTrack.appendChild(vScrollThumb);
+            viewport.appendChild(vScrollTrack);
+
+            hScrollTrack = document.createElement('div');
+            hScrollTrack.style.cssText = 'position:absolute;left:0;bottom:0;right:12px;height:12px;background:rgba(0,0,0,0.35);z-index:20;';
+            hScrollThumb = document.createElement('div');
+            hScrollThumb.style.cssText = 'position:absolute;top:0;height:12px;background:rgba(200,200,200,0.65);border-radius:6px;cursor:pointer;min-width:20px;';
+            hScrollTrack.appendChild(hScrollThumb);
+            viewport.appendChild(hScrollTrack);
+            applyT(); // sync thumb positions now that elements exist
+
+            // Vertical scrollbar drag
+            let vDrag = false, vDragY = 0, vDragTy = 0;
+            vScrollThumb.addEventListener('mousedown', e => {
+                e.preventDefault(); vDrag = true; vDragY = e.clientY; vDragTy = ty;
+            });
+            const onVMove = e => {
+                if (!vDrag) return;
+                const H = 900 * scale, vh2 = viewport.clientHeight || 581;
+                const trackH = vScrollTrack.clientHeight || vh2;
+                const thumbH = Math.max(20, Math.round(vh2 / H * trackH));
+                const delta = e.clientY - vDragY;
+                ty = Math.round(vDragTy - delta * (H - vh2) / (trackH - thumbH));
+                applyT();
+            };
+            const onVUp = () => { vDrag = false; };
+            document.addEventListener('mousemove', onVMove);
+            document.addEventListener('mouseup',   onVUp);
+            mapCleanup.push(() => {
+                document.removeEventListener('mousemove', onVMove);
+                document.removeEventListener('mouseup',   onVUp);
+            });
+
+            // Horizontal scrollbar drag
+            let hDrag = false, hDragX = 0, hDragTx = 0;
+            hScrollThumb.addEventListener('mousedown', e => {
+                e.preventDefault(); hDrag = true; hDragX = e.clientX; hDragTx = tx;
+            });
+            const onHMove = e => {
+                if (!hDrag) return;
+                const W = 1800 * scale;
+                const trackW = hScrollTrack.clientWidth || (viewport.clientWidth || 989);
+                const thumbW = Math.max(20, Math.round((viewport.clientWidth || 989) / W * trackW));
+                const delta = e.clientX - hDragX;
+                tx = Math.round(hDragTx - delta * W / (trackW - thumbW));
+                applyT();
+            };
+            const onHUp = () => { hDrag = false; };
+            document.addEventListener('mousemove', onHMove);
+            document.addEventListener('mouseup',   onHUp);
+            mapCleanup.push(() => {
+                document.removeEventListener('mousemove', onHMove);
+                document.removeEventListener('mouseup',   onHUp);
+            });
+
+            // ── Mouse wheel ──────────────────────────────────────────────────
+            const onWheel = e => {
+                e.preventDefault();
+                if (e.ctrlKey) {
+                    const rect = viewport.getBoundingClientRect();
+                    const mx = e.clientX - rect.left;
+                    const my = e.clientY - rect.top;
+                    const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+                    const newScale = Math.max(0.08, Math.min(8, scale * factor));
+                    const ratio = newScale / scale;
+                    tx = Math.round(mx * (1 - ratio) + tx * ratio);
+                    ty = Math.round(my * (1 - ratio) + ty * ratio);
+                    scale = newScale;
+                } else {
+                    tx -= Math.round(e.deltaX);
+                    ty -= Math.round(e.deltaY);
+                }
+                applyT();
+            };
+            viewport.addEventListener('wheel', onWheel, { passive: false });
+            mapCleanup.push(() => viewport.removeEventListener('wheel', onWheel));
+
+            // ── Keyboard navigation ──────────────────────────────────────────
+            const STEP = 80;
+            const onMapKey = e => {
+                if (e.key === '+' || e.key === '=' || e.code === 'NumpadAdd')    { doZoom(1.25);       e.preventDefault(); return; }
+                if (e.key === '-'                || e.code === 'NumpadSubtract') { doZoom(1 / 1.25);   e.preventDefault(); return; }
+                let moved = false;
+                if      (e.code === 'Numpad8' || e.code === 'ArrowUp')    { ty += STEP; moved = true; }
+                else if (e.code === 'Numpad2' || e.code === 'ArrowDown')  { ty -= STEP; moved = true; }
+                else if (e.code === 'Numpad4' || e.code === 'ArrowLeft')  { tx += STEP; moved = true; }
+                else if (e.code === 'Numpad6' || e.code === 'ArrowRight') { tx -= STEP; moved = true; }
+                if (moved) { applyT(); e.preventDefault(); }
+            };
+            document.addEventListener('keydown', onMapKey);
+            mapCleanup.push(() => document.removeEventListener('keydown', onMapKey));
+
             // Hover, click & double-click per country path
             svg.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
                 const code = el.id;
@@ -15596,12 +15730,46 @@ function openWorldMap() {
                                : score >= 10 ? 'Enemy'
                                : 'Bitter Enemy';
                     const colour = _loyalColour(score);
-                    // Small countries (too tiny for on-map flag) show flag in tooltip when Flags is on
-                    const flagImg = (flagsOn && FLAG_URLS[code] && smallFlagCodes.has(code))
+                    // Flag always shown in tooltip regardless of map overlay toggle
+                    const flagImg = FLAG_URLS[code]
                         ? '<img src="' + FLAG_URLS[code] + '" style="height:16px;width:24px;object-fit:cover;vertical-align:middle;border:1px solid #555;margin-right:5px;display:inline-block">'
                         : '';
+                    let extraLine = '';
+                    if (code === 'SU') {
+                        const rel = RelationswiththeSoviets;
+                        const relText  = rel >= 10 ? 'A New World Order'
+                                       : rel >= 8  ? 'Alignment'
+                                       : rel >= 5  ? 'Détente'
+                                       : rel >= 3  ? 'Cold'
+                                       : 'Hostile';
+                        const relColour = rel >= 10 ? '#ffffff'
+                                        : rel >= 8  ? '#4caf50'
+                                        : rel >= 5  ? '#2196f3'
+                                        : rel >= 3  ? '#ff9800'
+                                        : '#f44336';
+                        extraLine = '<br><span style="color:' + relColour + ';font-weight:bold">Relations: ' + rel + ' — ' + relText + '</span>';
+                    }
+                    if (code === 'VD' || code === 'VN') {
+                        const v = Vietnam;
+                        const vText   = v >= 8 ? 'Not Our Problem'
+                                      : v >= 7 ? 'Uneasy Peace'
+                                      : v >= 6 ? 'Moderate Insurgency'
+                                      : v >= 5 ? 'US Carpet Bombing'
+                                      : v >= 3 ? 'Open Combat'
+                                      : v >= 1 ? 'Tanks at the Gates of Saigon'
+                                      : 'A Total Loss';
+                        const vColour = v >= 8 ? '#388e3c'
+                                      : v >= 7 ? '#aed581'
+                                      : v >= 6 ? '#ffeb3b'
+                                      : v >= 5 ? '#f9a825'
+                                      : v >= 3 ? '#ff9800'
+                                      : v >= 1 ? '#ffb300'
+                                      : '#f44336';
+                        extraLine = '<br><span style="color:' + vColour + ';font-weight:bold">Situation: ' + v + ' — ' + vText + '</span>';
+                    }
                     tooltip.innerHTML = flagImg + '<strong>' + COUNTRY_NAMES[code] + '</strong><br>'
-                        + '<span style="color:' + colour + ';font-weight:bold">' + band + '</span>';
+                        + '<span style="color:' + colour + ';font-weight:bold">' + band + '</span>'
+                        + extraLine;
                     tooltip.style.display = 'block';
                 });
                 el.addEventListener('mousemove', e => {
@@ -15679,6 +15847,51 @@ function openCIAProfile(code, mapPanel, tooltip) {
         flagEl.style.cssText = 'height:22px;width:33px;object-fit:cover;border:1px solid #555;vertical-align:middle;margin-left:4px;';
         bar.appendChild(flagEl);
     }
+
+    const mainAudio = document.getElementById('audio');
+    const antAudio = new Audio(PAGES_BASE + '/anthems/' + code + '.ogg');
+    antAudio.preload = 'none';
+    let antActive = false, antWasPlaying = false;
+
+    const antBtn = document.createElement('button');
+    antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
+    antBtn.style.cssText = 'margin-left:8px;';
+
+    function onAntEnded() { stopAnthem(true); }
+    function onMainResume() { stopAnthem(false); }
+
+    function stopAnthem(resumeMain) {
+        if (!antActive) return;
+        antActive = false;
+        antAudio.pause();
+        antAudio.currentTime = 0;
+        antAudio.removeEventListener('ended', onAntEnded);
+        if (mainAudio) mainAudio.removeEventListener('play', onMainResume);
+        antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
+        if (resumeMain && antWasPlaying && mainAudio) mainAudio.play().catch(() => {});
+    }
+
+    antBtn.addEventListener('click', () => {
+        if (antActive) {
+            stopAnthem(true);
+        } else {
+            antActive = true;
+            antWasPlaying = !!(mainAudio && !mainAudio.paused);
+            antBtn.innerHTML = '&#9646;&#9646;&nbsp;National Anthem';
+            if (antWasPlaying) mainAudio.pause();
+            if (mainAudio) mainAudio.addEventListener('play', onMainResume);
+            antAudio.currentTime = 0;
+            antAudio.play().catch(() => {
+                antActive = false;
+                antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
+                if (mainAudio) mainAudio.removeEventListener('play', onMainResume);
+                if (antWasPlaying && mainAudio) mainAudio.play().catch(() => {});
+            });
+            antAudio.addEventListener('ended', onAntEnded, { once: true });
+        }
+    });
+
+    bar.appendChild(antBtn);
 
     const iframe = document.createElement('iframe');
     iframe.src = url;
