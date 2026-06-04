@@ -15557,6 +15557,8 @@ function openWorldMap() {
                 g.id = 'wm-flag-overlay';
                 g.style.pointerEvents = 'none';
 
+                const _bigFlagCodes = new Set(['IN','BR','SU','CN','US','CA']);
+
                 Object.keys(FLAG_URLS).forEach(code => {
                     const els = Array.from(svg.querySelectorAll('[id="' + code + '"]'));
                     if (!els.length) return;
@@ -15579,8 +15581,9 @@ function openWorldMap() {
                         return;
                     }
 
-                    // Flag sized to cover 25% of bbox area (2:3 aspect ratio)
-                    const flagW = Math.min(Math.max(Math.round(Math.sqrt(bb.width * bb.height * 0.375)), 20), 50);
+                    // Large countries 25% of bbox area; all others 15% (2:3 aspect ratio)
+                    const _areaPct = _bigFlagCodes.has(code) ? 0.375 : 0.225;
+                    const flagW = Math.min(Math.max(Math.round(Math.sqrt(bb.width * bb.height * _areaPct)), 20), 50);
                     const flagH = Math.round(flagW * 2 / 3);
                     const override = FLAG_CENTRES[code];
                     const bcx = Math.round(bb.x + bb.width / 2);
