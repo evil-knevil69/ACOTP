@@ -12411,7 +12411,7 @@ const _LP_CRIMES = [
     { varName: 'Vesco',            label: 'Illegal Vesco Campaign Contribution' },
     { varName: 'oojHush',          label: 'Obstruction of Justice: Hush Money' },
     { varName: 'oojClemency',      label: 'Obstruction of Justice: Clemency' },
-    { varName: 'dncbreakin',       label: 'DNC Break-In at the Watergate' },
+    { varName: 'dncbreakin',       label: 'Break-In at the Watergate' },
 ];
 
 var _legalPadScreen = 0; // 0 = High Crimes tab, 1+ = future tabs
