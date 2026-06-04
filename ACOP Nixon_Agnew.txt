@@ -15697,10 +15697,10 @@ function openWorldMap() {
                 if (e.key === '+' || e.key === '=' || e.code === 'NumpadAdd')    { doZoom(1.25);       e.preventDefault(); return; }
                 if (e.key === '-'                || e.code === 'NumpadSubtract') { doZoom(1 / 1.25);   e.preventDefault(); return; }
                 let moved = false;
-                if      (e.code === 'Numpad8') { ty += STEP; moved = true; }
-                else if (e.code === 'Numpad2') { ty -= STEP; moved = true; }
-                else if (e.code === 'Numpad4') { tx += STEP; moved = true; }
-                else if (e.code === 'Numpad6') { tx -= STEP; moved = true; }
+                if      (e.code === 'Numpad8' || e.code === 'ArrowUp')    { ty += STEP; moved = true; }
+                else if (e.code === 'Numpad2' || e.code === 'ArrowDown')  { ty -= STEP; moved = true; }
+                else if (e.code === 'Numpad4' || e.code === 'ArrowLeft')  { tx += STEP; moved = true; }
+                else if (e.code === 'Numpad6' || e.code === 'ArrowRight') { tx -= STEP; moved = true; }
                 if (moved) { applyT(); e.preventDefault(); }
             };
             document.addEventListener('keydown', onMapKey);
