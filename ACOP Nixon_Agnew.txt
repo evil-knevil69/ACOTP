@@ -15716,7 +15716,7 @@ function openWorldMap() {
                     type: 'war',
                     label: 'Vietnam War',
                     img: null, // TODO: e.g. 'https://file.garden/.../vietnam.jpg'
-                    body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina.',
+                    body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. The political cost at home continues to mount.',
                     country: 'VD',
                     active: () => (typeof Vietnam !== 'undefined') && Vietnam <= 7,
                 },
