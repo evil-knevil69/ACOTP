@@ -16164,6 +16164,7 @@ function openCIAProfile(code, mapPanel, tooltip) {
         antAudio.removeEventListener('ended', onAntEnded);
         if (mainAudio) mainAudio.removeEventListener('play', onMainResume);
         antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
+        if (window.__activeAnthemStop === stopAnthem) window.__activeAnthemStop = null;
         if (resumeMain && antWasPlaying && mainAudio) mainAudio.play().catch(() => {});
     }
 
@@ -16172,15 +16173,26 @@ function openCIAProfile(code, mapPanel, tooltip) {
             stopAnthem(true);
         } else {
             antActive = true;
-            antWasPlaying = !!(mainAudio && !mainAudio.paused);
+            // Stop any other country's anthem first so two never play over each other.
+            const _prevStop = window.__activeAnthemStop;
+            if (_prevStop && _prevStop !== stopAnthem) {
+                const _prevWasPlaying = window.__anthemMainWasPlaying;
+                _prevStop(false);                  // pause the other anthem; we take over main-audio handling
+                antWasPlaying = !!_prevWasPlaying;  // inherit whether the tape was playing before anthems began
+            } else {
+                antWasPlaying = !!(mainAudio && !mainAudio.paused);
+            }
+            window.__activeAnthemStop = stopAnthem;
+            window.__anthemMainWasPlaying = antWasPlaying;
             antBtn.innerHTML = '&#9646;&#9646;&nbsp;National Anthem';
-            if (antWasPlaying) mainAudio.pause();
+            if (antWasPlaying && mainAudio && !mainAudio.paused) mainAudio.pause();
             if (mainAudio) mainAudio.addEventListener('play', onMainResume);
             antAudio.currentTime = 0;
             antAudio.play().catch(() => {
                 antActive = false;
                 antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
                 if (mainAudio) mainAudio.removeEventListener('play', onMainResume);
+                if (window.__activeAnthemStop === stopAnthem) window.__activeAnthemStop = null;
                 if (antWasPlaying && mainAudio) mainAudio.play().catch(() => {});
             });
             antAudio.addEventListener('ended', onAntEnded, { once: true });
