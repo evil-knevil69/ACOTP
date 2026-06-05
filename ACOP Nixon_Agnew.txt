@@ -15488,15 +15488,16 @@ const FLAG_URLS = Object.fromEntries(
 // Countries with confirmed .ogg anthem files on GitHub Pages
 const ANTHEM_COUNTRIES = new Set([
   'AD','AE','AF','AL','AR','AT','AU','BB','BD','BE','BG','BH','BI','BO',
-  'BR','BS','BU','BW','CA','CE','CG','CH','CL','CN','CR','CS','CU','CY',
-  'DE','DK','DO','DY','DZ','EC','EG','ES','ET','FI','FJ','FR','GA','GB',
-  'GD','GH','GM','GQ','GR','GT','GY','HN','HT','HU','HV','ID','IE','IL',
-  'IN','IQ','IR','IS','IT','JO','JP','KE','KH','KR','KW','LA','LB','LI',
-  'LR','LU','LY','MA','MC','MG','ML','MT','MU','MV','MW','MX','MY','NE',
-  'NG','NI','NL','NO','NP','NR','NZ','OM','PA','PE','PH','PK','PL','PT',
-  'PY','QA','RH','RO','RW','SA','SD','SE','SG','SK','SL','SM','SN','SO',
-  'SU','SV','SWA','SY','SZ','TD','TH','TN','TO','TR','TT','TW','TZ','UG',
-  'US','UY','VA','VD','VE','VN','VU','YD','YE','YU','ZA','ZM','ZR'
+  'BR','BS','BU','BW','CA','CE','CF','CG','CH','CL','CN','CR','CS','CU',
+  'CY','DE','DK','DO','DY','DZ','EC','EG','ES','ET','FI','FJ','FR','GA',
+  'GB','GD','GH','GM','GQ','GR','GT','GY','HN','HT','HU','HV','ID','IE',
+  'IL','IN','IQ','IR','IS','IT','JO','JP','KE','KH','KP','KR','KW','LA',
+  'LB','LI','LR','LS','LU','LY','MA','MC','MG','ML','MR','MT','MU','MV',
+  'MW','MX','MY','NE','NG','NI','NL','NO','NP','NR','NZ','OM','PA','PE',
+  'PH','PK','PL','PT','PY','QA','RH','RO','RW','SA','SD','SE','SG','SK',
+  'SL','SM','SN','SO','SU','SV','SWA','SY','SZ','TD','TG','TH','TN','TO',
+  'TR','TT','TW','TZ','UG','US','UY','VA','VD','VE','VN','VU','YD','YE',
+  'YU','ZA','ZM','ZR'
 ]);
 
 // ── Inject "World Map" button into #map_footer ──────────────────────────────
