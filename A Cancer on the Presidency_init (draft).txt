@@ -2325,22 +2325,25 @@ function __mapVisitTick() {
                     if (mapSvg && !mapSvg.dataset.planeHooked) {
                         mapSvg.dataset.planeHooked = 'true';
                         let _flyTimer = null;
+                        let _plopTimer = null;
                         function _planeClickHandler(ev) {
+                            if (ev && ev._synthetic) return; // re-dispatched pass-through click: let the map handle it, don't re-launch
                             const now = Date.now();
                             const lastClick = parseInt(plane.dataset.lastClick || '0');
                             if (plane.dataset.flying === 'true') {
                                 if (now - lastClick < 500) {
                                     clearTimeout(_flyTimer);
+                                    clearTimeout(_plopTimer);
                                     mapSvg.removeEventListener('click', _planeClickHandler, true);
                                     delete mapSvg.dataset.planeHooked;
                                     plane.remove();
                                     ev.stopPropagation();
-                                    ev.target.dispatchEvent(new MouseEvent('click', {
-                                        bubbles: true,
-                                        cancelable: true,
-                                        clientX: ev.clientX,
-                                        clientY: ev.clientY
-                                    }));
+                                    const _passthru = new MouseEvent('click', {
+                                        bubbles: true, cancelable: true,
+                                        clientX: ev.clientX, clientY: ev.clientY
+                                    });
+                                    _passthru._synthetic = true;
+                                    ev.target.dispatchEvent(_passthru);
                                 }
                                 return;
                             }
@@ -2364,7 +2367,7 @@ function __mapVisitTick() {
                             ev.stopPropagation();
                             const originalTarget = ev.target;
                             if (hitEaster) {
-                                setTimeout(() => {
+                                _plopTimer = setTimeout(() => {
                                     const plop = new Audio('https://file.garden/aXPgNT-ZRCxxpy0g/plop2.mp3');
                                     plop.play();
                                 }, 3500);
@@ -2372,12 +2375,12 @@ function __mapVisitTick() {
                             _flyTimer = setTimeout(() => {
                                 mapSvg.removeEventListener('click', _planeClickHandler, true);
                                 plane.remove();
-                                originalTarget.dispatchEvent(new MouseEvent('click', {
-                                    bubbles: true,
-                                    cancelable: true,
-                                    clientX: ev.clientX,
-                                    clientY: ev.clientY
-                                }));
+                                const _passthru = new MouseEvent('click', {
+                                    bubbles: true, cancelable: true,
+                                    clientX: ev.clientX, clientY: ev.clientY
+                                });
+                                _passthru._synthetic = true;
+                                originalTarget.dispatchEvent(_passthru);
                                 delete mapSvg.dataset.planeHooked;
                             }, 5000);
                         }
@@ -2759,6 +2762,10 @@ playBtn.addEventListener('click', () => {
             playBtn.classList.remove('active');
             stopVisuals();
         } else {
+            if (window._introSound) {
+                window._introSound.pause();
+                window._introSound.currentTime = 0;
+            }
             audio.play();
             playbackState = 'play';
             playBtn.classList.add('active');
@@ -2766,12 +2773,6 @@ playBtn.addEventListener('click', () => {
             showStrips();
         }
     });
-    if (window._introSound) {
-        playBtn.addEventListener('click', () => {
-            window._introSound.pause();
-            window._introSound.currentTime = 0;
-        }, { once: true });
-    }
 
     // Shared seek transport: one interval, stopped on mouseup ANYWHERE. Previously
     // each press created its own interval cleared only by the button's own mouseup,
