@@ -15617,38 +15617,38 @@ function openWorldMap() {
 
             // ── Map event icons ──────────────────────────────────────────────
             // SVG shapes, all centred on (0,0), ~22px diameter.
-            // Style: 1970s military intelligence map — off-white disc, inked linework.
             const _evNS = 'http://www.w3.org/2000/svg';
             const _ICON_SHAPES = {
-                // Crosshair/target — war / military invasion
+                // 8-point starburst with glowing centre — war / military conflict
                 war: [
-                    { tag: 'circle', attrs: { r: '11', fill: '#F4EFE3', stroke: '#999', 'stroke-width': '0.5' } },
-                    { tag: 'circle', attrs: { r: '8',  fill: 'none',    stroke: '#8B0000', 'stroke-width': '1.6' } },
-                    { tag: 'circle', attrs: { r: '2.5', fill: '#8B0000' } },
-                    { tag: 'line',   attrs: { x1: '-8', y1: '0', x2: '-3.2', y2: '0', stroke: '#8B0000', 'stroke-width': '1.6' } },
-                    { tag: 'line',   attrs: { x1: '3.2', y1: '0', x2: '8', y2: '0',   stroke: '#8B0000', 'stroke-width': '1.6' } },
-                    { tag: 'line',   attrs: { x1: '0', y1: '-8', x2: '0', y2: '-3.2', stroke: '#8B0000', 'stroke-width': '1.6' } },
-                    { tag: 'line',   attrs: { x1: '0', y1: '3.2', x2: '0', y2: '8',   stroke: '#8B0000', 'stroke-width': '1.6' } },
+                    { tag: 'circle',  attrs: { r: '11', fill: '#F4EFE3', stroke: '#999', 'stroke-width': '0.5' } },
+                    { tag: 'polygon', attrs: { points: '0,-9 1.7,-4.2 6.4,-6.4 4.2,-1.7 9,0 4.2,1.7 6.4,6.4 1.7,4.2 0,9 -1.7,4.2 -6.4,6.4 -4.2,1.7 -9,0 -4.2,-1.7 -6.4,-6.4 -1.7,-4.2', fill: '#CC3300', 'stroke-width': '0' } },
+                    { tag: 'circle',  attrs: { r: '4.5', fill: '#FFAA00' } },
+                    { tag: 'circle',  attrs: { r: '2', fill: '#FFEE44' } },
                 ],
-                // NATO enemy-unit box (square + X) — civil war / insurgency
+                // Arm holding AK-47 silhouette — insurgency / guerrilla conflict
                 insurgency: [
-                    { tag: 'circle', attrs: { r: '11', fill: '#F4EFE3', stroke: '#999', 'stroke-width': '0.5' } },
-                    { tag: 'rect',   attrs: { x: '-8', y: '-8', width: '16', height: '16', fill: 'none', stroke: '#8B3A00', 'stroke-width': '1.6' } },
-                    { tag: 'line',   attrs: { x1: '-8', y1: '-8', x2: '8', y2: '8',  stroke: '#8B3A00', 'stroke-width': '1.6' } },
-                    { tag: 'line',   attrs: { x1: '8',  y1: '-8', x2: '-8', y2: '8', stroke: '#8B3A00', 'stroke-width': '1.6' } },
+                    { tag: 'circle',  attrs: { r: '11', fill: '#1A2810', stroke: '#555', 'stroke-width': '0.5' } },
+                    { tag: 'path',    attrs: { d: 'M 1,5 L 0,9 L 5,9 L 5.5,5 Z', fill: '#C4825A' } },
+                    { tag: 'polygon', attrs: { points: '-10,0.5 -7,-2 -5,-2 -5,1 -7,1', fill: '#7A4F1A' } },
+                    { tag: 'rect',    attrs: { x: '-5', y: '-3', width: '9', height: '4', fill: '#C8B464' } },
+                    { tag: 'rect',    attrs: { x: '-3', y: '-5.5', width: '3', height: '2.5', fill: '#C8B464' } },
+                    { tag: 'rect',    attrs: { x: '4', y: '-1', width: '6', height: '1.5', fill: '#B0A080' } },
+                    { tag: 'path',    attrs: { d: 'M -3,1 C -4,4 -4.5,7 -3.5,8 L -1,8 C 0,7 0,4 0,1 Z', fill: '#7A4F1A' } },
+                    { tag: 'rect',    attrs: { x: '2', y: '1', width: '2', height: '5', fill: '#7A4F1A', rx: '0.5' } },
                 ],
-                // Warning triangle with exclamation — natural disaster
+                // Lightning bolt — natural disaster
                 disaster: [
                     { tag: 'circle',  attrs: { r: '11', fill: '#F4EFE3', stroke: '#999', 'stroke-width': '0.5' } },
-                    { tag: 'polygon', attrs: { points: '0,-9 8.5,6 -8.5,6', fill: 'none', stroke: '#8B6000', 'stroke-width': '1.8', 'stroke-linejoin': 'miter' } },
-                    { tag: 'rect',    attrs: { x: '-1', y: '-3', width: '2', height: '5',   fill: '#8B6000' } },
-                    { tag: 'rect',    attrs: { x: '-1', y: '3.5', width: '2', height: '2', fill: '#8B6000' } },
+                    { tag: 'polygon', attrs: { points: '3,-9 -1.5,0 1.5,0 -4,9 0.5,0 -2.5,0', fill: '#4A90D9', stroke: '#1A6FAA', 'stroke-width': '0.5', 'stroke-linejoin': 'miter' } },
                 ],
-                // Diamond outline — political crisis
+                // Exclamation mark in circle — political crisis
                 crisis: [
-                    { tag: 'circle',  attrs: { r: '11', fill: '#F4EFE3', stroke: '#999', 'stroke-width': '0.5' } },
-                    { tag: 'polygon', attrs: { points: '0,-9 8,0 0,9 -8,0', fill: 'none', stroke: '#00008B', 'stroke-width': '1.8' } },
-                ]
+                    { tag: 'circle', attrs: { r: '11', fill: '#F4EFE3', stroke: '#999', 'stroke-width': '0.5' } },
+                    { tag: 'circle', attrs: { r: '8', fill: 'none', stroke: '#CC0000', 'stroke-width': '2' } },
+                    { tag: 'rect',   attrs: { x: '-1', y: '-5', width: '2', height: '6.5', fill: '#CC0000', rx: '0.8' } },
+                    { tag: 'circle', attrs: { cx: '0', cy: '4.5', r: '1.2', fill: '#CC0000' } },
+                ],
             };
 
             // Event definitions — add new entries here as scenarios are written.
@@ -15721,7 +15721,7 @@ function openWorldMap() {
                 });
 
                 g.addEventListener('mouseenter', () => {
-                    tooltip.innerHTML = '<strong>' + def.label + '</strong>';
+                    tooltip.innerHTML = '<strong style="color:#111">' + def.label + '</strong>';
                     tooltip.style.display = 'block';
                 });
                 g.addEventListener('mousemove', e => {
@@ -15896,7 +15896,7 @@ function openWorldMap() {
                                       : '#f44336';
                         extraLine = '<br><span style="color:' + vColour + ';font-weight:bold">Situation: ' + v + ' — ' + vText + '</span>';
                     }
-                    tooltip.innerHTML = flagImg + '<strong>' + COUNTRY_NAMES[code] + '</strong><br>'
+                    tooltip.innerHTML = flagImg + '<strong style="color:#111">' + COUNTRY_NAMES[code] + '</strong><br>'
                         + '<span style="color:' + colour + ';font-weight:bold">' + band + '</span>'
                         + extraLine;
                     tooltip.style.display = 'block';
