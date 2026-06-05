@@ -15699,7 +15699,7 @@ function openWorldMap() {
                     type: 'insurgency',
                     label: 'The Troubles — Northern Ireland',
                     img: null, // TODO: e.g. 'https://file.garden/.../ni_troubles.jpg'
-                    body: 'Ongoing sectarian conflict between republican and loyalist paramilitaries. The Provisional IRA has escalated its bombing campaign across the British mainland.',
+                    body: 'Rooted in the 1921 partition and systematic discrimination against the Catholic minority under Protestant rule. Civil unrest from 1969 escalated into armed conflict by both sides. British forces killed 14 unarmed civilians on Bloody Sunday, 30 January 1972, sharply accelerating IRA recruitment. Westminster assumed direct rule of the province in March 1972. The security situation is deteriorating.',
                     positionFn: (s) => {
                         const ie = s.querySelector('#IE');
                         if (ie) { try { const b = ie.getBBox(); return { x: b.x + b.width + 2, y: b.y + b.height * 0.2 }; } catch(e) {} }
