@@ -15630,7 +15630,7 @@ function openWorldMap() {
                 ],
                 // Lightning bolt — natural disaster
                 disaster: [
-                    { tag: 'polygon', attrs: { points: '4,-11 -2,0 2,0 -5,11 1,0 -3,0', fill: '#FFAA00', stroke: '#8B5A00', 'stroke-width': '0.8' } },
+                    { tag: 'polygon', attrs: { points: '4,-11 -2,0 2,0 -5,11 1,0 -3,0', fill: '#5AACF0', stroke: '#1A6FAA', 'stroke-width': '0.8' } },
                 ],
                 // Exclamation mark in circle — political crisis
                 crisis: [
