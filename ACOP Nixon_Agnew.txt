@@ -15739,7 +15739,7 @@ function openWorldMap() {
                     type: 'insurgency',
                     label: 'Rhodesian Bush War',
                     img: null, // TODO: e.g. 'https://file.garden/.../rhodesia.jpg'
-                    body: 'Ian Smith\'s white-minority government declared independence from Britain in November 1965, triggering international sanctions and diplomatic isolation. ZANLA and ZIPRA guerrilla forces — backed respectively by Mozambique and Zambia — have been conducting cross-border operations since 1972, escalating pressure on Salisbury. Britain refuses to recognise the regime; the United States maintains limited covert contact. The security situation is worsening and a negotiated settlement remains distant.',
+                    body: 'Ian Smith\'s white-minority government declared independence from Britain in November 1965, triggering international sanctions and diplomatic isolation. Guerrilla forces backed by Mozambique and Zambia have been conducting cross-border operations since 1972, escalating pressure on Salisbury. Britain refuses to recognise the regime; the United States maintains limited covert contact.',
                     country: 'RH',
                     active: () => true,
                 },
