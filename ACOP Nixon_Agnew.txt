@@ -15414,6 +15414,7 @@ function openWorldMap() {
     const smallFlagCodes = new Set();
     let flagOverlayG = null;
     let vScrollTrack, vScrollThumb, hScrollTrack, hScrollThumb;
+    let _updateIconVis = () => {};
 
     function doZoom(factor) {
         const vw = viewport.clientWidth || 989;
@@ -15535,6 +15536,7 @@ function openWorldMap() {
                         hScrollTrack.style.display = 'none';
                     }
                 }
+                _updateIconVis();
             };
             applyT();
 
@@ -15612,6 +15614,134 @@ function openWorldMap() {
                 flagOverlayG = g;
             }
             buildFlagOverlay();
+
+            // ── Map event icons ──────────────────────────────────────────────
+            // SVG shapes, all centred on (0,0) fitting inside a ~22px diameter circle.
+            const _evNS = 'http://www.w3.org/2000/svg';
+            const _ICON_SHAPES = {
+                // 8-point starburst — war / military invasion
+                war: [
+                    { tag: 'path', attrs: {
+                        d: 'M 0,-11 L 1.9,-4.6 L 7.8,-7.8 L 4.6,-1.9 L 11,0 L 4.6,1.9 L 7.8,7.8 L 1.9,4.6 L 0,11 L -1.9,4.6 L -7.8,7.8 L -4.6,1.9 L -11,0 L -4.6,-1.9 L -7.8,-7.8 L -1.9,-4.6 Z',
+                        fill: '#CC0000', stroke: '#5a0000', 'stroke-width': '0.8'
+                    }}
+                ],
+                // Flame — civil war / insurgency (outer body + inner highlight)
+                insurgency: [
+                    { tag: 'path', attrs: {
+                        d: 'M 0,-11 C 6,-7 9,0 7,5 C 5,9 0,11 0,11 C 0,11 -5,9 -7,5 C -9,0 -6,-7 0,-11 Z',
+                        fill: '#FF5500', stroke: '#7a2000', 'stroke-width': '0.8'
+                    }},
+                    { tag: 'path', attrs: {
+                        d: 'M 0,-5 C 3,-2 4,2 3,5 C 2,7 0,7 0,7 C 0,7 -2,7 -3,5 C -4,2 -3,-2 0,-5 Z',
+                        fill: '#FFB040', stroke: 'none', 'stroke-width': '0'
+                    }}
+                ],
+                // Lightning bolt — natural disaster
+                disaster: [
+                    { tag: 'polygon', attrs: {
+                        points: '4,-11 -2,0 2,0 -5,11 1,0 -3,0',
+                        fill: '#FFAA00', stroke: '#8B5A00', 'stroke-width': '0.8'
+                    }}
+                ],
+                // Exclamation in circle — political crisis
+                crisis: [
+                    { tag: 'circle', attrs: { r: '10.5', fill: 'none', stroke: '#CC0000', 'stroke-width': '2' } },
+                    { tag: 'rect',   attrs: { x: '-1.5', y: '-7', width: '3', height: '9',  fill: '#CC0000' } },
+                    { tag: 'rect',   attrs: { x: '-1.5', y: '4',  width: '3', height: '3',  fill: '#CC0000' } }
+                ]
+            };
+
+            // Event definitions — add new entries here as scenarios are written.
+            // active() is called on every pan/zoom; keep it lightweight.
+            // country: SVG path id whose centroid is used for placement.
+            // positionFn(svg): override for manual placement (e.g. sub-national regions).
+            const _EVENT_DEFS = [
+                {
+                    id: 'ni-troubles',
+                    type: 'insurgency',
+                    label: 'The Troubles — Northern Ireland',
+                    positionFn: (s) => {
+                        const ie = s.querySelector('#IE');
+                        if (ie) { try { const b = ie.getBBox(); return { x: b.x + b.width + 2, y: b.y + b.height * 0.2 }; } catch(e) {} }
+                        return { x: 488, y: 196 };
+                    },
+                    active: () => true,
+                },
+                {
+                    id: 'vietnam-war',
+                    type: 'war',
+                    label: 'Vietnam War',
+                    country: 'VD',
+                    active: () => (typeof Vietnam !== 'undefined') && Vietnam <= 7,
+                },
+                {
+                    id: 'managua-quake',
+                    type: 'disaster',
+                    label: 'Managua Earthquake',
+                    country: 'NI',
+                    active: () => typeof managua !== 'undefined' && managua >= 1,
+                },
+                {
+                    id: 'cyprus-invasion',
+                    type: 'war',
+                    label: 'Turkish Invasion of Cyprus',
+                    country: 'CY',
+                    active: () => typeof cyprusInvasion !== 'undefined' && cyprusInvasion >= 1,
+                },
+            ];
+
+            const _iconGroup = document.createElementNS(_evNS, 'g');
+            _iconGroup.id = 'wm-events';
+            svg.appendChild(_iconGroup);
+
+            const _iconNodes = [];
+            _EVENT_DEFS.forEach(def => {
+                const specs = _ICON_SHAPES[def.type];
+                if (!specs) return;
+
+                // Position
+                let px = 0, py = 0;
+                try {
+                    if (def.positionFn) {
+                        const pos = def.positionFn(svg);
+                        px = pos.x; py = pos.y;
+                    } else if (def.country) {
+                        const el = svg.querySelector('#' + def.country);
+                        if (el) { const b = el.getBBox(); px = b.x + b.width / 2; py = b.y + b.height / 2; }
+                    }
+                } catch(e) {}
+
+                const g = document.createElementNS(_evNS, 'g');
+                g.setAttribute('transform', 'translate(' + Math.round(px) + ',' + Math.round(py) + ')');
+
+                specs.forEach(spec => {
+                    const el = document.createElementNS(_evNS, spec.tag);
+                    Object.entries(spec.attrs).forEach(([k, v]) => el.setAttribute(k, v));
+                    g.appendChild(el);
+                });
+
+                g.addEventListener('mouseenter', () => {
+                    tooltip.innerHTML = '<strong>' + def.label + '</strong>';
+                    tooltip.style.display = 'block';
+                });
+                g.addEventListener('mousemove', e => {
+                    const r = viewport.getBoundingClientRect();
+                    tooltip.style.left = (e.clientX - r.left + 12) + 'px';
+                    tooltip.style.top  = (e.clientY - r.top  - 28) + 'px';
+                });
+                g.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+
+                _iconGroup.appendChild(g);
+                _iconNodes.push({ g, def });
+            });
+
+            _updateIconVis = () => {
+                _iconNodes.forEach(({ g, def }) => {
+                    try { g.style.display = def.active() ? '' : 'none'; } catch(e) {}
+                });
+            };
+            _updateIconVis();
 
             // ── Scrollbars ──────────────────────────────────────────────────
             // Created after innerHTML is set so they aren't wiped by SVG load.
