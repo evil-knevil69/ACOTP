@@ -15735,6 +15735,15 @@ function openWorldMap() {
                     active: () => typeof cyprusInvasion !== 'undefined' && cyprusInvasion >= 1,
                 },
                 {
+                    id: 'guatemala-civil-war',
+                    type: 'war',
+                    label: 'Guatemalan Civil War',
+                    img: null, // TODO: e.g. 'https://file.garden/.../guatemala.jpg'
+                    body: 'A CIA-backed coup in 1954 overthrew the elected government of Jacobo Árbenz and installed a succession of military regimes, triggering an armed insurgency that has persisted since 1960. Leftist guerrilla groups operating from the highlands have been met with systematic counter-insurgency operations, including US-trained security forces and government-linked death squads. The conflict has claimed tens of thousands of lives and shows no sign of resolution.',
+                    country: 'GT',
+                    active: () => true,
+                },
+                {
                     id: 'rhodesia-bush-war',
                     type: 'insurgency',
                     label: 'Rhodesian Bush War',
