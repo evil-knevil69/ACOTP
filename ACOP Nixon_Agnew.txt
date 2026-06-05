@@ -13734,6 +13734,9 @@ const _visitAdvisorImages = [
 ].filter(Boolean);
 
 let _lastQuestionPK = null;
+let _worldEventDefs = null;   // populated by openWorldMap(); read by _buildWorld()
+const _newEvents = new Set(); // event ids that became active this question — shown red
+function _markEventNew(id) { _newEvents.add(id); }
 
 // ── MAP EVENT TIMER ───────────────────────────────────────────────────────────
 // Use _scheduleAfterQuestions(n, fn) inside any questionData onShow callback
@@ -13778,6 +13781,7 @@ const _gameObserver = new MutationObserver((() => {
                     }
                     const qd = (currentPK != null && questionData[currentPK]) || {};
                     if (qd.signImg) changeImage(qd.signImg);
+                    _newEvents.clear();
                     if (qd.onShow) qd.onShow();
                     if (qd.transition && !_shownTransitions.has(currentPK) && document.getElementById('question_form')) {
                         showSectionTransition(qd.transition, currentPK);
@@ -14599,12 +14603,64 @@ document.body.appendChild(honk);
         return `<p class="fd-head">High Crimes &amp; Misdemeanours</p>` + _lpCrimesHTML();
     }
 
+    function _buildWorld() {
+        const defs = _worldEventDefs;
+        if (!defs) return `<p class="fd-head">World Affairs</p><p style="color:#888;font-style:italic;font-size:11px;">Open the World Map first to load events.</p>`;
+
+        const continents = ['Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America'];
+        const transientTypes = new Set(['coup', 'disaster']);
+        let h = `<p class="fd-head">World Affairs</p>`;
+
+        for (const continent of continents) {
+            const events = defs.filter(d => d.continent === continent);
+            h += `<p style="font-family:Georgia,serif;font-size:12px;font-weight:bold;margin:8px 0 2px 0;color:#3a2000;">${continent}</p>`;
+
+            const visibleEvents = events.filter(d => {
+                const isActive = d.active();
+                return isActive || !transientTypes.has(d.type);
+            });
+
+            if (visibleEvents.length === 0) {
+                h += `<p style="color:#aaa;font-size:10px;margin:0 0 4px 14px;">—</p>`;
+            } else {
+                for (const def of visibleEvents) {
+                    const isActive = def.active();
+                    const isNew = _newEvents.has(def.id);
+                    let style = 'font-size:11px;margin:1px 0 1px 14px;';
+                    if (isActive && isNew)   style += 'color:#cc0000;font-weight:bold;';
+                    else if (!isActive)       style += 'text-decoration:line-through;color:#999;';
+                    h += `<p style="${style}">• ${def.label}</p>`;
+                }
+            }
+        }
+
+        // ── Globe button — opens World Map ────────────────────────────────────
+        h += `<div style="text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid #c8b87a;">
+            <button id="fd-world-globe-btn" title="Open World Map" style="background:none;border:1px solid #a07028;border-radius:4px;padding:5px 12px;cursor:pointer;color:#5a3a0a;font-size:10px;display:inline-flex;align-items:center;gap:5px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a07028" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+                World Map
+            </button>
+        </div>`;
+        // ── TODO: replace SVG globe above with custom icon when available ──────
+
+        return h;
+    }
+
     function _refresh() {
         const pad = document.getElementById('fd-pad');
         if (!pad) return;
         const which = document.querySelector('.fd-tab.fd-active')?.dataset.tab;
         if (which === 'nation') pad.innerHTML = _buildNation();
         else if (which === 'crimes') pad.innerHTML = _buildCrimes();
+        else if (which === 'world') {
+            pad.innerHTML = _buildWorld();
+            const gb = pad.querySelector('#fd-world-globe-btn');
+            if (gb) gb.addEventListener('click', () => { _close(); openWorldMap(); });
+        }
     }
 
     /* ── Drag ── */
@@ -14651,6 +14707,7 @@ document.body.appendChild(honk);
         [
             { label: 'State of the Nation',         key: 'nation' },
             { label: 'High Crimes & Misdemeanours', key: 'crimes' },
+            { label: 'World Affairs',               key: 'world'  },
         ].forEach(({ label, key }, i) => {
             const t = document.createElement('button');
             t.className = 'fd-tab' + (i === 0 ? ' fd-active' : '');
@@ -15730,6 +15787,7 @@ function openWorldMap() {
             const _EVENT_DEFS = [
                 {
                     id: 'ni-troubles',
+                    continent: 'Europe',
                     type: 'insurgency',
                     label: 'The Troubles — Northern Ireland',
                     img: null, // TODO: e.g. 'https://file.garden/.../ni_troubles.jpg'
@@ -15743,6 +15801,7 @@ function openWorldMap() {
                 },
                 {
                     id: 'vietnam-war',
+                    continent: 'Asia',
                     type: 'war',
                     label: 'Vietnam War',
                     img: null, // TODO: e.g. 'https://file.garden/.../vietnam.jpg'
@@ -15752,6 +15811,7 @@ function openWorldMap() {
                 },
                 {
                     id: 'khmer-civil-war',
+                    continent: 'Asia',
                     type: 'war',
                     label: 'Cambodian Civil War',
                     img: null, // TODO: e.g. 'https://file.garden/.../cambodia.jpg'
@@ -15761,6 +15821,7 @@ function openWorldMap() {
                 },
                 {
                     id: 'laotian-civil-war',
+                    continent: 'Asia',
                     type: 'war',
                     label: 'Laotian Civil War',
                     img: null, // TODO: e.g. 'https://file.garden/.../laos.jpg'
@@ -15770,6 +15831,7 @@ function openWorldMap() {
                 },
                 {
                     id: 'managua-quake',
+                    continent: 'North America',
                     type: 'disaster',
                     label: 'Managua Earthquake',
                     img: null, // TODO: e.g. 'https://file.garden/.../managua.jpg'
@@ -15779,6 +15841,7 @@ function openWorldMap() {
                 },
                 {
                     id: 'cyprus-invasion',
+                    continent: 'Europe',
                     type: 'war',
                     label: 'Turkish Invasion of Cyprus',
                     img: null, // TODO: e.g. 'https://file.garden/.../cyprus.jpg'
@@ -15788,6 +15851,7 @@ function openWorldMap() {
                 },
                 {
                     id: 'chad-civil-war',
+                    continent: 'Africa',
                     type: 'insurgency',
                     label: 'Chadian Civil War',
                     img: null, // TODO: e.g. 'https://file.garden/.../chad.jpg'
@@ -15797,6 +15861,7 @@ function openWorldMap() {
                 },
                 {
                     id: 'guatemala-civil-war',
+                    continent: 'North America',
                     type: 'war',
                     label: 'Guatemalan Civil War',
                     img: null, // TODO: e.g. 'https://file.garden/.../guatemala.jpg'
@@ -15806,6 +15871,7 @@ function openWorldMap() {
                 },
                 {
                     id: 'rhodesia-bush-war',
+                    continent: 'Africa',
                     type: 'insurgency',
                     label: 'Rhodesian Bush War',
                     img: null, // TODO: e.g. 'https://file.garden/.../rhodesia.jpg'
@@ -15815,6 +15881,7 @@ function openWorldMap() {
                 },
                 {
                     id: 'eritrean-war',
+                    continent: 'Africa',
                     type: 'insurgency',
                     label: 'Eritrean War of Independence',
                     img: null, // TODO: e.g. 'https://file.garden/.../eritrea.jpg'
@@ -15823,6 +15890,7 @@ function openWorldMap() {
                     active: () => eritrea >= 1,
                 },
             ];
+            _worldEventDefs = _EVENT_DEFS;
             // ── END TOOLTIP CONTENT ──────────────────────────────────────────────────
 
             const _iconGroup = document.createElementNS(_evNS, 'g');
