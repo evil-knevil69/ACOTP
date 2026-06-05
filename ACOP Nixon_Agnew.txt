@@ -12007,13 +12007,132 @@ var MentalState = 0;
 var ApprovalRating = 62;
 var CongressionalSupport = 6;
 var RepublicanSupport = 9;
-var Vietnam = 6;
-var chad = 1;
-var khmer = 1;
-var laos = 1;
-var eritrea = 1;
-var managua = 0;
-var cyprusInvasion = 0;
+// ── WORLD EVENTS ─────────────────────────────────────────────────────────────
+// To add a new event:
+//   1. Declare its variable here  (1 = active from start, 0 = triggered by a question)
+//   2. Add its entry to _EVENT_DEFS below
+// ─────────────────────────────────────────────────────────────────────────────
+var Vietnam        = 6;  // Vietnam War (also used for other game logic)
+var chad           = 1;  // Chadian Civil War
+var khmer          = 1;  // Cambodian Civil War
+var laos           = 1;  // Laotian Civil War
+var eritrea        = 1;  // Eritrean War of Independence
+var managua        = 0;  // Managua Earthquake        (triggered by question onShow)
+var cyprusInvasion = 0;  // Turkish Invasion of Cyprus (triggered by question onShow)
+
+// ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
+// Add a new entry here whenever you add a variable above.
+// Fields: id, continent, type, label, img, body, country/positionFn, active()
+// continent must match exactly: 'Africa' | 'Asia' | 'Europe' | 'North America' | 'Oceania' | 'South America'
+// ─────────────────────────────────────────────────────────────────────────────
+const _EVENT_DEFS = [
+    {
+        id: 'ni-troubles',
+        continent: 'Europe',
+        type: 'insurgency',
+        label: 'The Troubles — Northern Ireland',
+        img: null, // TODO: e.g. 'https://file.garden/.../ni_troubles.jpg'
+        body: 'Rooted in the 1921 partition and systematic discrimination against the Catholic minority under Protestant rule. Civil unrest from 1969 escalated into armed conflict by both sides. British forces killed 14 unarmed civilians on Bloody Sunday, 30 January 1972, sharply accelerating IRA recruitment. Westminster assumed direct rule of the province in March 1972. The security situation is deteriorating.',
+        positionFn: (s) => {
+            const ie = s.querySelector('#IE');
+            if (ie) { try { const b = ie.getBBox(); return { x: b.x + b.width + 2, y: b.y + b.height * 0.2 }; } catch(e) {} }
+            return { x: 488, y: 196 };
+        },
+        active: () => true,
+    },
+    {
+        id: 'vietnam-war',
+        continent: 'Asia',
+        type: 'war',
+        label: 'Vietnam War',
+        img: null, // TODO: e.g. 'https://file.garden/.../vietnam.jpg'
+        body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. The political cost at home continues to mount.',
+        country: 'VD',
+        active: () => (typeof Vietnam !== 'undefined') && Vietnam <= 7,
+    },
+    {
+        id: 'khmer-civil-war',
+        continent: 'Asia',
+        type: 'war',
+        label: 'Cambodian Civil War',
+        img: null, // TODO: e.g. 'https://file.garden/.../cambodia.jpg'
+        body: 'A 1970 coup aided by the US removed Prince Sihanouk and installed the Lon Nol government. Lon Nol, paralysed by a stroke and absorbed by the occult, is losing his grip on reality. The Khmer Rouge, previously a marginal force, now controls large areas of the countryside despite the slaughter of USAF saturation bombing. The government\'s hold on the cities is increasingly precarious.',
+        country: 'KH',
+        active: () => khmer >= 1,
+    },
+    {
+        id: 'laotian-civil-war',
+        continent: 'Asia',
+        type: 'war',
+        label: 'Laotian Civil War',
+        img: null, // TODO: e.g. 'https://file.garden/.../laos.jpg'
+        body: 'The Royal Lao Government has fought the communist Pathet Lao since 1953, with North Vietnamese forces providing decisive support to the insurgents. The CIA maintains a secret army of Hmong fighters under General Vang Pao, conducting unconventional warfare across the Plain of Jars. US bombing of the Ho Chi Minh Trail has made Laos the most heavily bombed country per capita in history. Congress and the public remain largely unaware of the scale of American involvement.',
+        country: 'LA',
+        active: () => laos >= 1,
+    },
+    {
+        id: 'managua-quake',
+        continent: 'North America',
+        type: 'disaster',
+        label: 'Managua Earthquake',
+        img: null, // TODO: e.g. 'https://file.garden/.../managua.jpg'
+        body: 'A 6.2-magnitude earthquake struck the Nicaraguan capital on December 23, 1972, killing over 10,000 and levelled much of the city centre.',
+        country: 'NI',
+        active: () => managua >= 1,
+    },
+    {
+        id: 'cyprus-invasion',
+        continent: 'Europe',
+        type: 'war',
+        label: 'Turkish Invasion of Cyprus',
+        img: null, // TODO: e.g. 'https://file.garden/.../cyprus.jpg'
+        body: 'Following a Greek Cypriot coup backed by the Athens junta, Turkey invaded Cyprus in July 1974. The island is now partitioned between Greek and Turkish zones.',
+        country: 'CY',
+        active: () => cyprusInvasion >= 1,
+    },
+    {
+        id: 'chad-civil-war',
+        continent: 'Africa',
+        type: 'insurgency',
+        label: 'Chadian Civil War',
+        img: null, // TODO: e.g. 'https://file.garden/.../chad.jpg'
+        body: 'Chad has been engulfed in civil conflict since 1965, when northern Muslim populations rose against the southern-dominated government of François Tombalbaye. The rebel FROLINAT movement draws support from Libya\'s Muammar Gaddafi, who has territorial designs on the uranium-rich Aozou Strip. French forces have intervened repeatedly to prop up the Chadian government, but the insurgency continues to expand.',
+        country: 'TD',
+        active: () => chad >= 1,
+    },
+    {
+        id: 'guatemala-civil-war',
+        continent: 'North America',
+        type: 'war',
+        label: 'Guatemalan Civil War',
+        img: null, // TODO: e.g. 'https://file.garden/.../guatemala.jpg'
+        body: 'A CIA-backed coup in 1954 overthrew the elected government of Jacobo Árbenz and installed a succession of military regimes, triggering an armed insurgency that has persisted since 1960. Leftist guerrilla groups operating from the highlands have been met with systematic counter-insurgency operations, including US-trained security forces and government-linked death squads. The conflict has claimed tens of thousands of lives and shows no sign of resolution.',
+        country: 'GT',
+        active: () => true,
+    },
+    {
+        id: 'rhodesia-bush-war',
+        continent: 'Africa',
+        type: 'insurgency',
+        label: 'Rhodesian Bush War',
+        img: null, // TODO: e.g. 'https://file.garden/.../rhodesia.jpg'
+        body: 'Ian Smith\'s white-minority government declared independence from Britain in November 1965, triggering international sanctions and diplomatic isolation. Guerrilla forces backed by Mozambique and Zambia have been conducting cross-border operations since 1972, escalating pressure on Salisbury. Britain refuses to recognise the regime; the United States maintains limited covert contact.',
+        country: 'RH',
+        active: () => true,
+    },
+    {
+        id: 'eritrean-war',
+        continent: 'Africa',
+        type: 'insurgency',
+        label: 'Eritrean War of Independence',
+        img: null, // TODO: e.g. 'https://file.garden/.../eritrea.jpg'
+        body: 'Eritrea was federated with Ethiopia in 1952 and formally annexed in 1962 by Emperor Haile Selassie, triggering an armed independence movement that has persisted since 1961. The Eritrean Liberation Front now contests large areas of the territory. Ethiopia is a key US ally in the Horn of Africa; Washington has maintained silence on Selassie\'s suppression of the insurgency.',
+        country: 'ET',
+        active: () => eritrea >= 1,
+    },
+];
+// ── END WORLD EVENTS ──────────────────────────────────────────────────────────
+
 var Haldeman = 2;
 var Erlichman = 2;
 var Mitchell = 1;
@@ -13734,7 +13853,6 @@ const _visitAdvisorImages = [
 ].filter(Boolean);
 
 let _lastQuestionPK = null;
-let _worldEventDefs = null;   // populated by openWorldMap(); read by _buildWorld()
 const _newEvents = new Set(); // event ids that became active this question — shown red
 function _markEventNew(id) { _newEvents.add(id); }
 
@@ -14604,8 +14722,7 @@ document.body.appendChild(honk);
     }
 
     function _buildWorld() {
-        const defs = _worldEventDefs;
-        if (!defs) return `<p class="fd-head">World Affairs</p><p style="color:#888;font-style:italic;font-size:11px;">Open the World Map first to load events.</p>`;
+        const defs = _EVENT_DEFS;
 
         const continents = ['Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America'];
         const transientTypes = new Set(['coup', 'disaster']);
@@ -15783,114 +15900,6 @@ function openWorldMap() {
             //   positionFn  — manual placement override (e.g. sub-national regions)
             //   active()    — called on every pan/zoom; return true to show the icon
             //
-            // ── TOOLTIP CONTENT — update img + body for each event ───────────────────
-            const _EVENT_DEFS = [
-                {
-                    id: 'ni-troubles',
-                    continent: 'Europe',
-                    type: 'insurgency',
-                    label: 'The Troubles — Northern Ireland',
-                    img: null, // TODO: e.g. 'https://file.garden/.../ni_troubles.jpg'
-                    body: 'Rooted in the 1921 partition and systematic discrimination against the Catholic minority under Protestant rule. Civil unrest from 1969 escalated into armed conflict by both sides. British forces killed 14 unarmed civilians on Bloody Sunday, 30 January 1972, sharply accelerating IRA recruitment. Westminster assumed direct rule of the province in March 1972. The security situation is deteriorating.',
-                    positionFn: (s) => {
-                        const ie = s.querySelector('#IE');
-                        if (ie) { try { const b = ie.getBBox(); return { x: b.x + b.width + 2, y: b.y + b.height * 0.2 }; } catch(e) {} }
-                        return { x: 488, y: 196 };
-                    },
-                    active: () => true,
-                },
-                {
-                    id: 'vietnam-war',
-                    continent: 'Asia',
-                    type: 'war',
-                    label: 'Vietnam War',
-                    img: null, // TODO: e.g. 'https://file.garden/.../vietnam.jpg'
-                    body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. The political cost at home continues to mount.',
-                    country: 'VD',
-                    active: () => (typeof Vietnam !== 'undefined') && Vietnam <= 7,
-                },
-                {
-                    id: 'khmer-civil-war',
-                    continent: 'Asia',
-                    type: 'war',
-                    label: 'Cambodian Civil War',
-                    img: null, // TODO: e.g. 'https://file.garden/.../cambodia.jpg'
-                    body: 'A 1970 coup aided by the US removed Prince Sihanouk and installed the Lon Nol government. Lon Nol, paralysed by a stroke and absorbed by the occult, is losing his grip on reality. The Khmer Rouge, previously a marginal force, now controls large areas of the countryside despite the slaughter of USAF saturation bombing. The government\'s hold on the cities is increasingly precarious.',
-                    country: 'KH',
-                    active: () => khmer >= 1,
-                },
-                {
-                    id: 'laotian-civil-war',
-                    continent: 'Asia',
-                    type: 'war',
-                    label: 'Laotian Civil War',
-                    img: null, // TODO: e.g. 'https://file.garden/.../laos.jpg'
-                    body: 'The Royal Lao Government has fought the communist Pathet Lao since 1953, with North Vietnamese forces providing decisive support to the insurgents. The CIA maintains a secret army of Hmong fighters under General Vang Pao, conducting unconventional warfare across the Plain of Jars. US bombing of the Ho Chi Minh Trail has made Laos the most heavily bombed country per capita in history. Congress and the public remain largely unaware of the scale of American involvement.',
-                    country: 'LA',
-                    active: () => laos >= 1,
-                },
-                {
-                    id: 'managua-quake',
-                    continent: 'North America',
-                    type: 'disaster',
-                    label: 'Managua Earthquake',
-                    img: null, // TODO: e.g. 'https://file.garden/.../managua.jpg'
-                    body: 'A 6.2-magnitude earthquake struck the Nicaraguan capital on December 23, 1972, killing over 10,000 and levelling much of the city centre.',
-                    country: 'NI',
-                    active: () => managua >= 1,
-                },
-                {
-                    id: 'cyprus-invasion',
-                    continent: 'Europe',
-                    type: 'war',
-                    label: 'Turkish Invasion of Cyprus',
-                    img: null, // TODO: e.g. 'https://file.garden/.../cyprus.jpg'
-                    body: 'Following a Greek Cypriot coup backed by the Athens junta, Turkey invaded Cyprus in July 1974. The island is now partitioned between Greek and Turkish zones.',
-                    country: 'CY',
-                    active: () => cyprusInvasion >= 1,
-                },
-                {
-                    id: 'chad-civil-war',
-                    continent: 'Africa',
-                    type: 'insurgency',
-                    label: 'Chadian Civil War',
-                    img: null, // TODO: e.g. 'https://file.garden/.../chad.jpg'
-                    body: 'Chad has been engulfed in civil conflict since 1965, when northern Muslim populations rose against the southern-dominated government of François Tombalbaye. The rebel FROLINAT movement draws support from Libya\'s Muammar Gaddafi, who has territorial designs on the uranium-rich Aozou Strip. French forces have intervened repeatedly to prop up the Chadian government, but the insurgency continues to expand.',
-                    country: 'TD',
-                    active: () => chad >= 1,
-                },
-                {
-                    id: 'guatemala-civil-war',
-                    continent: 'North America',
-                    type: 'war',
-                    label: 'Guatemalan Civil War',
-                    img: null, // TODO: e.g. 'https://file.garden/.../guatemala.jpg'
-                    body: 'A CIA-backed coup in 1954 overthrew the elected government of Jacobo Árbenz and installed a succession of military regimes, triggering an armed insurgency that has persisted since 1960. Leftist guerrilla groups operating from the highlands have been met with systematic counter-insurgency operations, including US-trained security forces and government-linked death squads. The conflict has claimed tens of thousands of lives and shows no sign of resolution.',
-                    country: 'GT',
-                    active: () => true,
-                },
-                {
-                    id: 'rhodesia-bush-war',
-                    continent: 'Africa',
-                    type: 'insurgency',
-                    label: 'Rhodesian Bush War',
-                    img: null, // TODO: e.g. 'https://file.garden/.../rhodesia.jpg'
-                    body: 'Ian Smith\'s white-minority government declared independence from Britain in November 1965, triggering international sanctions and diplomatic isolation. Guerrilla forces backed by Mozambique and Zambia have been conducting cross-border operations since 1972, escalating pressure on Salisbury. Britain refuses to recognise the regime; the United States maintains limited covert contact.',
-                    country: 'RH',
-                    active: () => true,
-                },
-                {
-                    id: 'eritrean-war',
-                    continent: 'Africa',
-                    type: 'insurgency',
-                    label: 'Eritrean War of Independence',
-                    img: null, // TODO: e.g. 'https://file.garden/.../eritrea.jpg'
-                    body: 'Eritrea was federated with Ethiopia in 1952 and formally annexed in 1962 by Emperor Haile Selassie, triggering an armed independence movement that has persisted since 1961. The Eritrean Liberation Front now contests large areas of the territory. Ethiopia is a key US ally in the Horn of Africa; Washington has maintained silence on Selassie\'s suppression of the insurgency.',
-                    country: 'ET',
-                    active: () => eritrea >= 1,
-                },
-            ];
-            _worldEventDefs = _EVENT_DEFS;
             // ── END TOOLTIP CONTENT ──────────────────────────────────────────────────
 
             const _iconGroup = document.createElementNS(_evNS, 'g');
