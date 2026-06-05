@@ -13731,11 +13731,26 @@ const _visitAdvisorImages = [
 ].filter(Boolean);
 
 let _lastQuestionPK = null;
+
+// ── MAP EVENT TIMER ───────────────────────────────────────────────────────────
+// Use _scheduleAfterQuestions(n, fn) inside any questionData onShow callback
+// to make a map icon disappear automatically after n questions have elapsed.
+//
+// Example (in questionData):
+//   450: { date: "December 1972", onShow: () => {
+//       managua = 1;
+//       _scheduleAfterQuestions(2, () => { managua = 0; });
+//   }, signImg: '...', historical: null },
+//
+// The icon shows when the question loads and clears n questions later.
+// Use n=1 for a single-question flash; n=2 for two questions; etc.
+// ─────────────────────────────────────────────────────────────────────────────
 let _questionCount = 0;
 const _questionTimers = [];
 function _scheduleAfterQuestions(n, fn) {
     _questionTimers.push({ fireAt: _questionCount + n, fn });
 }
+// ── END MAP EVENT TIMER ───────────────────────────────────────────────────────
 const _gameObserver = new MutationObserver((() => {
     let _pending = false;
     return () => {
