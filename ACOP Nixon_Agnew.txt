@@ -15623,10 +15623,30 @@ function openWorldMap() {
                 war: [
                     { tag: 'path', attrs: { d: 'M 0,-11 L 1.9,-4.6 L 7.8,-7.8 L 4.6,-1.9 L 11,0 L 4.6,1.9 L 7.8,7.8 L 1.9,4.6 L 0,11 L -1.9,4.6 L -7.8,7.8 L -4.6,1.9 L -11,0 L -4.6,-1.9 L -7.8,-7.8 L -1.9,-4.6 Z', fill: '#CC0000', stroke: '#5a0000', 'stroke-width': '0.8' } },
                 ],
-                // Flame — insurgency / guerrilla conflict
+                // Fist holding AK-47 — insurgency / guerrilla conflict
                 insurgency: [
-                    { tag: 'path', attrs: { d: 'M 0,-11 C 6,-7 9,0 7,5 C 5,9 0,11 0,11 C 0,11 -5,9 -7,5 C -9,0 -6,-7 0,-11 Z', fill: '#FF5500', stroke: '#7a2000', 'stroke-width': '0.8' } },
-                    { tag: 'path', attrs: { d: 'M 0,-5 C 3,-2 4,2 3,5 C 2,7 0,7 0,7 C 0,7 -2,7 -3,5 C -4,2 -3,-2 0,-5 Z', fill: '#FFB040' } },
+                    { tag: 'g', attrs: { transform: 'rotate(-35)' }, children: [
+                        // forearm (tapered, from below fist)
+                        { tag: 'path',    attrs: { d: 'M -0.5,4.5 L -2,10 L 2.5,10 L 2.5,4.5 Z', fill: '#CC0000' } },
+                        // wooden stock (left)
+                        { tag: 'polygon', attrs: { points: '-10,0 -8,-2 -5,-2 -5,1.5 -8,1.5', fill: '#CC0000' } },
+                        // receiver body
+                        { tag: 'rect',    attrs: { x: '-5', y: '-2.5', width: '9', height: '4', fill: '#CC0000' } },
+                        // carry handle / rear sight
+                        { tag: 'rect',    attrs: { x: '-2', y: '-5', width: '3', height: '2.5', fill: '#CC0000' } },
+                        // banana magazine
+                        { tag: 'path',    attrs: { d: 'M -2.5,1.5 C -3.5,4 -3.5,7 -2,8 L 0,8 C 1,7 0.5,4 0,1.5 Z', fill: '#CC0000' } },
+                        // gas tube (above barrel)
+                        { tag: 'rect',    attrs: { x: '3', y: '-4', width: '5.5', height: '1.5', fill: '#CC0000' } },
+                        // barrel
+                        { tag: 'rect',    attrs: { x: '4', y: '-1', width: '6.5', height: '1.5', fill: '#CC0000' } },
+                        // front sight block at muzzle
+                        { tag: 'rect',    attrs: { x: '8.5', y: '-4', width: '1.5', height: '3', fill: '#CC0000' } },
+                        // fist (rounded rect over pistol grip)
+                        { tag: 'rect',    attrs: { x: '-1', y: '-0.5', width: '6', height: '5', fill: '#CC0000', rx: '2' } },
+                        // white knuckle line
+                        { tag: 'line',    attrs: { x1: '-0.5', y1: '2', x2: '4.5', y2: '2', stroke: 'white', 'stroke-width': '0.8' } },
+                    ] },
                 ],
                 // Lightning bolt — natural disaster
                 disaster: [
@@ -15703,11 +15723,13 @@ function openWorldMap() {
                 const g = document.createElementNS(_evNS, 'g');
                 g.setAttribute('transform', 'translate(' + Math.round(px) + ',' + Math.round(py) + ')');
 
-                specs.forEach(spec => {
-                    const el = document.createElementNS(_evNS, spec.tag);
-                    Object.entries(spec.attrs).forEach(([k, v]) => el.setAttribute(k, v));
-                    g.appendChild(el);
-                });
+                const _mkEl = (tag, attrs, children) => {
+                    const el = document.createElementNS(_evNS, tag);
+                    Object.entries(attrs || {}).forEach(([k, v]) => el.setAttribute(k, v));
+                    (children || []).forEach(c => el.appendChild(_mkEl(c.tag, c.attrs, c.children)));
+                    return el;
+                };
+                specs.forEach(spec => g.appendChild(_mkEl(spec.tag, spec.attrs, spec.children)));
 
                 g.addEventListener('mouseenter', () => {
                     tooltip.innerHTML = '<strong style="color:#111">' + def.label + '</strong>';
