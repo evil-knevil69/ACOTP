@@ -12504,7 +12504,7 @@ function updateCampaignSign() {
 }
 
 function addInnerCircleButton() {
-    // Rename the electoral map button every time this fires (reliable timing via _gameObserver)
+    // Rename the electoral map button every time this fires (reliable timing via the shared game-window observer)
     const electoralBtn = document.getElementById('view_electoral_map');
     if (electoralBtn && electoralBtn.textContent.trim() !== 'Maps') electoralBtn.textContent = 'Maps';
 
@@ -13875,13 +13875,30 @@ function _scheduleAfterQuestions(n, fn) {
     _questionTimers.push({ fireAt: _questionCount + n, fn });
 }
 // ── END MAP EVENT TIMER ───────────────────────────────────────────────────────
-const _gameObserver = new MutationObserver((() => {
+// Shared #game_window observer (defined idempotently in Code 1; redefined here
+// so Code 2 works even if loaded first). One MutationObserver, many subscribers.
+window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
+    const subs = [];
     let _pending = false;
-    return () => {
+    const run = () => {
+        _pending = false;
+        for (let i = 0; i < subs.length; i++) { try { subs[i](); } catch (e) {} }
+    };
+    const obs = new MutationObserver(() => {
         if (_pending) return;
         _pending = true;
-        requestAnimationFrame(() => {
-            _pending = false;
+        requestAnimationFrame(run);
+    });
+    (function attach() {
+        const gw = document.getElementById('game_window');
+        if (gw) obs.observe(gw, { childList: true, subtree: true });
+        else requestAnimationFrame(attach);
+    })();
+    return function (cb) { subs.push(cb); try { cb(); } catch (e) {} };
+})();
+
+window.__onGameWindowMutation(() => {
+        {
             updateTypewriterVisibility();
             updateCampaignSign();
             addInnerCircleButton();
@@ -13932,10 +13949,8 @@ const _gameObserver = new MutationObserver((() => {
             if (noFeedbackBtn && !noFeedbackBtn.dataset.historicalHooked) {
                 injectHistoricalButton(noFeedbackBtn, _lastQuestionPK);
             }
-        });
-    };
-})());
-_gameObserver.observe(document.getElementById('game_window'), { childList: true, subtree: true });
+        }
+});
 
 const tooltipList = [
     {
@@ -14875,13 +14890,11 @@ document.body.appendChild(honk);
         anchor.insertAdjacentElement('afterend', btn);
     }
 
-    const gw = document.getElementById('game_window');
-    if (gw) {
-        new MutationObserver(() => {
-            _injectBtn();
-            _refresh();
-        }).observe(gw, { childList: true, subtree: true });
-    }
+    // Folded into the shared #game_window observer instead of a 4th observer.
+    window.__onGameWindowMutation(() => {
+        _injectBtn();
+        _refresh();
+    });
 })();
 
 /* ── Electoral map path simplification (Ramer-Douglas-Peucker) ── */
@@ -15566,6 +15579,7 @@ function _addWorldMapBtn() {
 function openWorldMap() {
     document.getElementById('world-map-container')?.remove();
     document.getElementById('wm-tooltip')?.remove();
+    document.getElementById('wm-event-tooltip')?.remove();
 
     const gw = document.getElementById('game_window');
 
@@ -15584,6 +15598,16 @@ function openWorldMap() {
     evTooltip.id = 'wm-event-tooltip';
     evTooltip.style.cssText = 'position:fixed;z-index:9999;width:216px;background:rgba(255,255,255,0.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:2px 2px 11px 2px;border-radius:2px;box-shadow:2px 2px 8px rgba(0,0,0,0.4),0 0 1px rgba(0,0,0,0.2);pointer-events:none;display:none;text-align:center;';
     document.body.appendChild(evTooltip);
+
+    // Shared edge-aware tooltip positioner (used by both the flag and event tooltips)
+    const _placeTip = (tip, ev, pad = 14) => {
+        const tw = tip.offsetWidth, th = tip.offsetHeight;
+        let x = ev.clientX + pad, y = ev.clientY + pad;
+        if (x + tw > window.innerWidth)  x = ev.clientX - tw - pad;
+        if (y + th > window.innerHeight) y = ev.clientY - th - pad;
+        tip.style.left = x + 'px';
+        tip.style.top  = y + 'px';
+    };
 
     // Full-window container
     const container = document.createElement('div');
@@ -15608,6 +15632,7 @@ function openWorldMap() {
         mapCleanup.forEach(fn => fn());
         container.remove();
         tooltip.remove();
+        evTooltip.remove();
         hiddenEls.forEach(el => { el.style.display = ''; });
     });
     bar.appendChild(backBtn);
@@ -15750,7 +15775,6 @@ function openWorldMap() {
                         hScrollTrack.style.display = 'none';
                     }
                 }
-                _updateIconVis();
             };
             applyT();
 
@@ -15945,14 +15969,7 @@ function openWorldMap() {
                     evTooltip.innerHTML = imgHtml + labelHtml + bodyHtml;
                     evTooltip.style.display = 'block';
                 });
-                g.addEventListener('mousemove', e => {
-                    const pad = 16, tw = evTooltip.offsetWidth, th = evTooltip.offsetHeight;
-                    let x = e.clientX + pad, y = e.clientY + pad;
-                    if (x + tw > window.innerWidth)  x = e.clientX - tw - pad;
-                    if (y + th > window.innerHeight) y = e.clientY - th - pad;
-                    evTooltip.style.left = x + 'px';
-                    evTooltip.style.top  = y + 'px';
-                });
+                g.addEventListener('mousemove', e => _placeTip(evTooltip, e, 16));
                 g.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
 
                 _iconGroup.appendChild(g);
@@ -16125,10 +16142,7 @@ function openWorldMap() {
                         + extraLine;
                     tooltip.style.display = 'block';
                 });
-                el.addEventListener('mousemove', e => {
-                    tooltip.style.left = (e.clientX + 14) + 'px';
-                    tooltip.style.top  = (e.clientY - 28) + 'px';
-                });
+                el.addEventListener('mousemove', e => _placeTip(tooltip, e));
                 el.addEventListener('mouseleave', () => {
                     tooltip.style.display = 'none';
                 });
