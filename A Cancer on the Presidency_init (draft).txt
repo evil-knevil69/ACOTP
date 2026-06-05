@@ -2508,9 +2508,9 @@ let tapeRecorder;
 let playerAnchor;
 
 function setupMusicPlayer() {
-    window.playlist = new Playlist();
     if (window._musicPlayerSetup) return;
     window._musicPlayerSetup = true;
+    window.playlist = new Playlist();
 
     const newSong1 = new Song(
         "Victory at Sea", "Nixon",
@@ -2545,6 +2545,7 @@ function setupMusicPlayer() {
     playerAnchor = document.createElement("div");
     playerAnchor.id = "player-anchor";
     const contentSingle = document.querySelector(".content_single");
+    if (!contentSingle) { window._musicPlayerSetup = false; return; } // retry on a later call once it exists
     contentSingle.appendChild(playerAnchor);
     playerAnchor.appendChild(tapeRecorder);
 
@@ -2772,26 +2773,35 @@ playBtn.addEventListener('click', () => {
         }, { once: true });
     }
 
+    // Shared seek transport: one interval, stopped on mouseup ANYWHERE. Previously
+    // each press created its own interval cleared only by the button's own mouseup,
+    // so releasing off-button left it seeking forever and rapid presses stacked.
+    let _seekInterval = null;
+    function _stopSeek() {
+        if (!_seekInterval) return;
+        clearInterval(_seekInterval);
+        _seekInterval = null;
+        if (isPlaying) {
+            audio.play();
+            playbackState = 'play';
+            setReelAnimation('play');
+        } else {
+            playbackState = 'pause';
+            setReelAnimation('pause');
+        }
+    }
+    document.addEventListener('mouseup', _stopSeek);
+
     rwBtn.addEventListener('mousedown', () => {
         isPlaying = playbackState === 'play';
         audio.pause();
         playbackState = 'rw';
         setReelAnimation('rw');
-        const rwInterval = setInterval(() => {
+        clearInterval(_seekInterval);
+        _seekInterval = setInterval(() => {
             audio.currentTime = Math.max(0, audio.currentTime - 2);
             updateTapeVisuals();
         }, 100);
-        rwBtn.addEventListener('mouseup', () => {
-            clearInterval(rwInterval);
-            if (isPlaying) {
-                audio.play();
-                playbackState = 'play';
-                setReelAnimation('play');
-            } else {
-                playbackState = 'pause';
-                setReelAnimation('pause');
-            }
-        }, { once: true });
     });
 
     ffBtn.addEventListener('mousedown', () => {
@@ -2799,21 +2809,11 @@ playBtn.addEventListener('click', () => {
         audio.pause();
         playbackState = 'ff';
         setReelAnimation('ff');
-        const ffInterval = setInterval(() => {
+        clearInterval(_seekInterval);
+        _seekInterval = setInterval(() => {
             audio.currentTime = Math.min(audio.duration, audio.currentTime + 2);
             updateTapeVisuals();
         }, 100);
-        ffBtn.addEventListener('mouseup', () => {
-            clearInterval(ffInterval);
-            if (isPlaying) {
-                audio.play();
-                playbackState = 'play';
-                setReelAnimation('play');
-            } else {
-                playbackState = 'pause';
-                setReelAnimation('pause');
-            }
-        }, { once: true });
     });
 
     volUpBtn.addEventListener('click', () => {
