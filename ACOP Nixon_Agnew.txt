@@ -12010,6 +12010,8 @@ var RepublicanSupport = 9;
 var Vietnam = 6;
 var chad = 1;
 var khmer = 1;
+var laos = 1;
+var eritrea = 1;
 var managua = 0;
 var cyprusInvasion = 0;
 var Haldeman = 2;
@@ -15758,6 +15760,15 @@ function openWorldMap() {
                     active: () => khmer >= 1,
                 },
                 {
+                    id: 'laotian-civil-war',
+                    type: 'war',
+                    label: 'Laotian Civil War',
+                    img: null, // TODO: e.g. 'https://file.garden/.../laos.jpg'
+                    body: 'The Royal Lao Government has fought the communist Pathet Lao since 1953, with North Vietnamese forces providing decisive support to the insurgents. The CIA maintains a secret army of Hmong fighters under General Vang Pao, conducting unconventional warfare across the Plain of Jars. US bombing of the Ho Chi Minh Trail has made Laos the most heavily bombed country per capita in history. Congress and the public remain largely unaware of the scale of American involvement.',
+                    country: 'LA',
+                    active: () => laos >= 1,
+                },
+                {
                     id: 'managua-quake',
                     type: 'disaster',
                     label: 'Managua Earthquake',
@@ -15801,6 +15812,15 @@ function openWorldMap() {
                     body: 'Ian Smith\'s white-minority government declared independence from Britain in November 1965, triggering international sanctions and diplomatic isolation. Guerrilla forces backed by Mozambique and Zambia have been conducting cross-border operations since 1972, escalating pressure on Salisbury. Britain refuses to recognise the regime; the United States maintains limited covert contact.',
                     country: 'RH',
                     active: () => true,
+                },
+                {
+                    id: 'eritrean-war',
+                    type: 'insurgency',
+                    label: 'Eritrean War of Independence',
+                    img: null, // TODO: e.g. 'https://file.garden/.../eritrea.jpg'
+                    body: 'Eritrea was federated with Ethiopia in 1952 and formally annexed in 1962 by Emperor Haile Selassie, triggering an armed independence movement that has persisted since 1961. The Eritrean Liberation Front now contests large areas of the territory. Ethiopia is a key US ally in the Horn of Africa; Washington has maintained silence on Selassie\'s suppression of the insurgency.',
+                    country: 'ET',
+                    active: () => eritrea >= 1,
                 },
             ];
             // ── END TOOLTIP CONTENT ──────────────────────────────────────────────────
