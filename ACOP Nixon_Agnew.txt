@@ -13731,6 +13731,11 @@ const _visitAdvisorImages = [
 ].filter(Boolean);
 
 let _lastQuestionPK = null;
+let _questionCount = 0;
+const _questionTimers = [];
+function _scheduleAfterQuestions(n, fn) {
+    _questionTimers.push({ fireAt: _questionCount + n, fn });
+}
 const _gameObserver = new MutationObserver((() => {
     let _pending = false;
     return () => {
@@ -13746,6 +13751,13 @@ const _gameObserver = new MutationObserver((() => {
                 const currentPK = campaignTrail_temp.questions_json?.[e.question_number]?.pk ?? null;
                 if (currentPK !== _lastQuestionPK) {
                     _lastQuestionPK = currentPK;
+                    _questionCount++;
+                    for (let i = _questionTimers.length - 1; i >= 0; i--) {
+                        if (_questionCount >= _questionTimers[i].fireAt) {
+                            _questionTimers[i].fn();
+                            _questionTimers.splice(i, 1);
+                        }
+                    }
                     const qd = (currentPK != null && questionData[currentPK]) || {};
                     if (qd.signImg) changeImage(qd.signImg);
                     if (qd.onShow) qd.onShow();
