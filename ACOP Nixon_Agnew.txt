@@ -12026,6 +12026,7 @@ var Stans = 2;
 var Klambach = 2;
 var Kleindienst = 2;
 var Colson = 2;
+var chad = 1;
 
 var NSA = 'Kissinger';
 var ChiefOfStaff = 'Haldeman';
@@ -15733,6 +15734,15 @@ function openWorldMap() {
                     body: 'Following a Greek Cypriot coup backed by the Athens junta, Turkey invaded Cyprus in July 1974. The island is now partitioned between Greek and Turkish zones.',
                     country: 'CY',
                     active: () => typeof cyprusInvasion !== 'undefined' && cyprusInvasion >= 1,
+                },
+                {
+                    id: 'chad-civil-war',
+                    type: 'insurgency',
+                    label: 'Chadian Civil War',
+                    img: null, // TODO: e.g. 'https://file.garden/.../chad.jpg'
+                    body: 'Chad has been engulfed in civil conflict since 1965, when northern Muslim populations rose against the southern-dominated government of François Tombalbaye. The rebel FROLINAT movement draws support from Libya\'s Muammar Gaddafi, who has territorial designs on the uranium-rich Aozou Strip. French forces have intervened repeatedly to prop up the Chadian government, but the insurgency continues to expand.',
+                    country: 'TD',
+                    active: () => typeof chad !== 'undefined' && chad >= 1,
                 },
                 {
                     id: 'guatemala-civil-war',
