@@ -15619,35 +15619,24 @@ function openWorldMap() {
             // SVG shapes, all centred on (0,0), ~22px diameter.
             const _evNS = 'http://www.w3.org/2000/svg';
             const _ICON_SHAPES = {
-                // 8-point starburst with glowing centre — war / military conflict
+                // 8-point starburst — war / military conflict
                 war: [
-                    { tag: 'circle',  attrs: { r: '11', fill: '#F4EFE3', stroke: '#999', 'stroke-width': '0.5' } },
-                    { tag: 'polygon', attrs: { points: '0,-9 1.7,-4.2 6.4,-6.4 4.2,-1.7 9,0 4.2,1.7 6.4,6.4 1.7,4.2 0,9 -1.7,4.2 -6.4,6.4 -4.2,1.7 -9,0 -4.2,-1.7 -6.4,-6.4 -1.7,-4.2', fill: '#CC3300', 'stroke-width': '0' } },
-                    { tag: 'circle',  attrs: { r: '4.5', fill: '#FFAA00' } },
-                    { tag: 'circle',  attrs: { r: '2', fill: '#FFEE44' } },
+                    { tag: 'path', attrs: { d: 'M 0,-11 L 1.9,-4.6 L 7.8,-7.8 L 4.6,-1.9 L 11,0 L 4.6,1.9 L 7.8,7.8 L 1.9,4.6 L 0,11 L -1.9,4.6 L -7.8,7.8 L -4.6,1.9 L -11,0 L -4.6,-1.9 L -7.8,-7.8 L -1.9,-4.6 Z', fill: '#CC0000', stroke: '#5a0000', 'stroke-width': '0.8' } },
                 ],
-                // Arm holding AK-47 silhouette — insurgency / guerrilla conflict
+                // Flame — insurgency / guerrilla conflict
                 insurgency: [
-                    { tag: 'circle',  attrs: { r: '11', fill: '#1A2810', stroke: '#555', 'stroke-width': '0.5' } },
-                    { tag: 'path',    attrs: { d: 'M 1,5 L 0,9 L 5,9 L 5.5,5 Z', fill: '#C4825A' } },
-                    { tag: 'polygon', attrs: { points: '-10,0.5 -7,-2 -5,-2 -5,1 -7,1', fill: '#7A4F1A' } },
-                    { tag: 'rect',    attrs: { x: '-5', y: '-3', width: '9', height: '4', fill: '#C8B464' } },
-                    { tag: 'rect',    attrs: { x: '-3', y: '-5.5', width: '3', height: '2.5', fill: '#C8B464' } },
-                    { tag: 'rect',    attrs: { x: '4', y: '-1', width: '6', height: '1.5', fill: '#B0A080' } },
-                    { tag: 'path',    attrs: { d: 'M -3,1 C -4,4 -4.5,7 -3.5,8 L -1,8 C 0,7 0,4 0,1 Z', fill: '#7A4F1A' } },
-                    { tag: 'rect',    attrs: { x: '2', y: '1', width: '2', height: '5', fill: '#7A4F1A', rx: '0.5' } },
+                    { tag: 'path', attrs: { d: 'M 0,-11 C 6,-7 9,0 7,5 C 5,9 0,11 0,11 C 0,11 -5,9 -7,5 C -9,0 -6,-7 0,-11 Z', fill: '#FF5500', stroke: '#7a2000', 'stroke-width': '0.8' } },
+                    { tag: 'path', attrs: { d: 'M 0,-5 C 3,-2 4,2 3,5 C 2,7 0,7 0,7 C 0,7 -2,7 -3,5 C -4,2 -3,-2 0,-5 Z', fill: '#FFB040' } },
                 ],
                 // Lightning bolt — natural disaster
                 disaster: [
-                    { tag: 'circle',  attrs: { r: '11', fill: '#F4EFE3', stroke: '#999', 'stroke-width': '0.5' } },
-                    { tag: 'polygon', attrs: { points: '3,-9 -1.5,0 1.5,0 -4,9 0.5,0 -2.5,0', fill: '#4A90D9', stroke: '#1A6FAA', 'stroke-width': '0.5', 'stroke-linejoin': 'miter' } },
+                    { tag: 'polygon', attrs: { points: '4,-11 -2,0 2,0 -5,11 1,0 -3,0', fill: '#FFAA00', stroke: '#8B5A00', 'stroke-width': '0.8' } },
                 ],
                 // Exclamation mark in circle — political crisis
                 crisis: [
-                    { tag: 'circle', attrs: { r: '11', fill: '#F4EFE3', stroke: '#999', 'stroke-width': '0.5' } },
-                    { tag: 'circle', attrs: { r: '8', fill: 'none', stroke: '#CC0000', 'stroke-width': '2' } },
-                    { tag: 'rect',   attrs: { x: '-1', y: '-5', width: '2', height: '6.5', fill: '#CC0000', rx: '0.8' } },
-                    { tag: 'circle', attrs: { cx: '0', cy: '4.5', r: '1.2', fill: '#CC0000' } },
+                    { tag: 'circle', attrs: { r: '10.5', fill: 'none', stroke: '#CC0000', 'stroke-width': '2' } },
+                    { tag: 'rect',   attrs: { x: '-1.5', y: '-7', width: '3', height: '9', fill: '#CC0000' } },
+                    { tag: 'rect',   attrs: { x: '-1.5', y: '4', width: '3', height: '3', fill: '#CC0000' } },
                 ],
             };
 
