@@ -15887,13 +15887,13 @@ function openWorldMap() {
                                       : v >= 3 ? 'Open Combat'
                                       : v >= 1 ? 'Tanks at the Gates of Saigon'
                                       : 'A Total Loss';
-                        const vColour = v >= 8 ? '#388e3c'
-                                      : v >= 7 ? '#aed581'
-                                      : v >= 6 ? '#ffeb3b'
-                                      : v >= 5 ? '#f9a825'
-                                      : v >= 3 ? '#ff9800'
-                                      : v >= 1 ? '#ffb300'
-                                      : '#f44336';
+                        const vColour = v >= 8 ? '#2e7d32'
+                                      : v >= 7 ? '#558b2f'
+                                      : v >= 6 ? '#b8860b'
+                                      : v >= 5 ? '#c66b00'
+                                      : v >= 3 ? '#d84315'
+                                      : v >= 1 ? '#b71c1c'
+                                      : '#7f0000';
                         extraLine = '<br><span style="color:' + vColour + ';font-weight:bold">Situation: ' + v + ' — ' + vText + '</span>';
                     }
                     tooltip.innerHTML = flagImg + '<strong style="color:#111">' + COUNTRY_NAMES[code] + '</strong><br>'
