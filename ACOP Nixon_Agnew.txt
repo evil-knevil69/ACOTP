@@ -12008,6 +12008,7 @@ var ApprovalRating = 62;
 var CongressionalSupport = 6;
 var RepublicanSupport = 9;
 var Vietnam = 6;
+var chad = 1;
 var Haldeman = 2;
 var Erlichman = 2;
 var Mitchell = 1;
@@ -12026,7 +12027,6 @@ var Stans = 2;
 var Klambach = 2;
 var Kleindienst = 2;
 var Colson = 2;
-var chad = 1;
 
 var NSA = 'Kissinger';
 var ChiefOfStaff = 'Haldeman';
