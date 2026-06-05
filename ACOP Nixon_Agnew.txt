@@ -13748,6 +13748,7 @@ const _gameObserver = new MutationObserver((() => {
                     _lastQuestionPK = currentPK;
                     const qd = (currentPK != null && questionData[currentPK]) || {};
                     if (qd.signImg) changeImage(qd.signImg);
+                    if (qd.onShow) qd.onShow();
                     if (qd.transition && !_shownTransitions.has(currentPK) && document.getElementById('question_form')) {
                         showSectionTransition(qd.transition, currentPK);
                     }
