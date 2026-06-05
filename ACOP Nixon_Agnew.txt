@@ -15855,7 +15855,7 @@ function openCIAProfile(code, mapPanel, tooltip) {
 
     const antBtn = document.createElement('button');
     antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
-    antBtn.style.cssText = 'margin-left:8px;height:30px;padding:0 8px;font-size:12px;';
+    antBtn.style.cssText = 'margin:0 0 0 8px;height:28px;padding:0 8px;font-size:12px;line-height:28px;vertical-align:middle;box-sizing:border-box;';
 
     function onAntEnded() { stopAnthem(true); }
     function onMainResume() { stopAnthem(false); }
