@@ -12009,6 +12009,7 @@ var CongressionalSupport = 6;
 var RepublicanSupport = 9;
 var Vietnam = 6;
 var chad = 1;
+var khmer = 1;
 var managua = 0;
 var cyprusInvasion = 0;
 var Haldeman = 2;
@@ -15746,6 +15747,15 @@ function openWorldMap() {
                     body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. The political cost at home continues to mount.',
                     country: 'VD',
                     active: () => (typeof Vietnam !== 'undefined') && Vietnam <= 7,
+                },
+                {
+                    id: 'khmer-civil-war',
+                    type: 'war',
+                    label: 'Cambodian Civil War',
+                    img: null, // TODO: e.g. 'https://file.garden/.../cambodia.jpg'
+                    body: 'A 1970 coup aided by the US removed Prince Sihanouk and installed the Lon Nol government. Lon Nol, paralysed by a stroke and absorbed by the occult, is losing his grip on reality. The Khmer Rouge, previously a marginal force, now controls large areas of the countryside despite the slaughter of USAF saturation bombing. The government\'s hold on the cities is increasingly precarious.',
+                    country: 'KH',
+                    active: () => khmer >= 1,
                 },
                 {
                     id: 'managua-quake',
