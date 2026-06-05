@@ -15485,6 +15485,20 @@ const FLAG_URLS = Object.fromEntries(
     Object.entries(COUNTRIES).filter(([, v]) => v.flag).map(([k, v]) => [k, PAGES_BASE + '/flags/' + k + '.' + v.flag])
 );
 
+// Countries with confirmed .ogg anthem files on GitHub Pages
+const ANTHEM_COUNTRIES = new Set([
+  'AD','AE','AF','AL','AR','AT','AU','BB','BD','BE','BG','BH','BI','BO',
+  'BR','BS','BU','BW','CA','CE','CG','CH','CL','CN','CR','CS','CU','CY',
+  'DE','DK','DO','DY','DZ','EC','EG','ES','ET','FI','FJ','FR','GA','GB',
+  'GD','GH','GM','GQ','GR','GT','GY','HN','HT','HU','HV','ID','IE','IL',
+  'IN','IQ','IR','IS','IT','JO','JP','KE','KH','KR','KW','LA','LB','LI',
+  'LR','LU','LY','MA','MC','MG','ML','MT','MU','MV','MW','MX','MY','NE',
+  'NG','NI','NL','NO','NP','NR','NZ','OM','PA','PE','PH','PK','PL','PT',
+  'PY','QA','RH','RO','RW','SA','SD','SE','SG','SK','SL','SM','SN','SO',
+  'SU','SV','SWA','SY','SZ','TD','TH','TN','TO','TR','TT','TW','TZ','UG',
+  'US','UY','VA','VD','VE','VN','VU','YD','YE','YU','ZA','ZM','ZR'
+]);
+
 // ── Inject "World Map" button into #map_footer ──────────────────────────────
 function _addWorldMapBtn() {
     if (document.getElementById('world_map_button')) return;
@@ -16145,61 +16159,64 @@ function openCIAProfile(code, mapPanel, tooltip) {
     }
 
     const mainAudio = document.getElementById('audio');
-    const antAudio = new Audio(PAGES_BASE + '/anthems/' + code + '.ogg');
-    antAudio.preload = 'none';
-    let antActive = false, antWasPlaying = false;
 
-    const antBtn = document.createElement('button');
-    antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
-    antBtn.style.cssText = 'margin:0 0 0 8px;height:28px;padding:0 8px;font-size:12px;line-height:28px;vertical-align:middle;box-sizing:border-box;';
+    if (ANTHEM_COUNTRIES.has(code)) {
+        const antAudio = new Audio(PAGES_BASE + '/anthems/' + code + '.ogg');
+        antAudio.preload = 'none';
+        let antActive = false, antWasPlaying = false;
 
-    function onAntEnded() { stopAnthem(true); }
-    function onMainResume() { stopAnthem(false); }
-
-    function stopAnthem(resumeMain) {
-        if (!antActive) return;
-        antActive = false;
-        antAudio.pause();
-        antAudio.currentTime = 0;
-        antAudio.removeEventListener('ended', onAntEnded);
-        if (mainAudio) mainAudio.removeEventListener('play', onMainResume);
+        const antBtn = document.createElement('button');
         antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
-        if (window.__activeAnthemStop === stopAnthem) window.__activeAnthemStop = null;
-        if (resumeMain && antWasPlaying && mainAudio) mainAudio.play().catch(() => {});
-    }
+        antBtn.style.cssText = 'margin:0 0 0 8px;height:28px;padding:0 8px;font-size:12px;line-height:28px;vertical-align:middle;box-sizing:border-box;';
 
-    antBtn.addEventListener('click', () => {
-        if (antActive) {
-            stopAnthem(true);
-        } else {
-            antActive = true;
-            // Stop any other country's anthem first so two never play over each other.
-            const _prevStop = window.__activeAnthemStop;
-            if (_prevStop && _prevStop !== stopAnthem) {
-                const _prevWasPlaying = window.__anthemMainWasPlaying;
-                _prevStop(false);                  // pause the other anthem; we take over main-audio handling
-                antWasPlaying = !!_prevWasPlaying;  // inherit whether the tape was playing before anthems began
-            } else {
-                antWasPlaying = !!(mainAudio && !mainAudio.paused);
-            }
-            window.__activeAnthemStop = stopAnthem;
-            window.__anthemMainWasPlaying = antWasPlaying;
-            antBtn.innerHTML = '&#9646;&#9646;&nbsp;National Anthem';
-            if (antWasPlaying && mainAudio && !mainAudio.paused) mainAudio.pause();
-            if (mainAudio) mainAudio.addEventListener('play', onMainResume);
+        function onAntEnded() { stopAnthem(true); }
+        function onMainResume() { stopAnthem(false); }
+
+        function stopAnthem(resumeMain) {
+            if (!antActive) return;
+            antActive = false;
+            antAudio.pause();
             antAudio.currentTime = 0;
-            antAudio.play().catch(() => {
-                antActive = false;
-                antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
-                if (mainAudio) mainAudio.removeEventListener('play', onMainResume);
-                if (window.__activeAnthemStop === stopAnthem) window.__activeAnthemStop = null;
-                if (antWasPlaying && mainAudio) mainAudio.play().catch(() => {});
-            });
-            antAudio.addEventListener('ended', onAntEnded, { once: true });
+            antAudio.removeEventListener('ended', onAntEnded);
+            if (mainAudio) mainAudio.removeEventListener('play', onMainResume);
+            antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
+            if (window.__activeAnthemStop === stopAnthem) window.__activeAnthemStop = null;
+            if (resumeMain && antWasPlaying && mainAudio) mainAudio.play().catch(() => {});
         }
-    });
 
-    bar.appendChild(antBtn);
+        antBtn.addEventListener('click', () => {
+            if (antActive) {
+                stopAnthem(true);
+            } else {
+                antActive = true;
+                // Stop any other country's anthem first so two never play over each other.
+                const _prevStop = window.__activeAnthemStop;
+                if (_prevStop && _prevStop !== stopAnthem) {
+                    const _prevWasPlaying = window.__anthemMainWasPlaying;
+                    _prevStop(false);                  // pause the other anthem; we take over main-audio handling
+                    antWasPlaying = !!_prevWasPlaying;  // inherit whether the tape was playing before anthems began
+                } else {
+                    antWasPlaying = !!(mainAudio && !mainAudio.paused);
+                }
+                window.__activeAnthemStop = stopAnthem;
+                window.__anthemMainWasPlaying = antWasPlaying;
+                antBtn.innerHTML = '&#9646;&#9646;&nbsp;National Anthem';
+                if (antWasPlaying && mainAudio && !mainAudio.paused) mainAudio.pause();
+                if (mainAudio) mainAudio.addEventListener('play', onMainResume);
+                antAudio.currentTime = 0;
+                antAudio.play().catch(() => {
+                    antActive = false;
+                    antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
+                    if (mainAudio) mainAudio.removeEventListener('play', onMainResume);
+                    if (window.__activeAnthemStop === stopAnthem) window.__activeAnthemStop = null;
+                    if (antWasPlaying && mainAudio) mainAudio.play().catch(() => {});
+                });
+                antAudio.addEventListener('ended', onAntEnded, { once: true });
+            }
+        });
+
+        bar.appendChild(antBtn);
+    }
 
     const iframe = document.createElement('iframe');
     iframe.src = url;
