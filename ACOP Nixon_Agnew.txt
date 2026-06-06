@@ -14758,7 +14758,7 @@ document.body.appendChild(honk);
         const defs = _worldEventDefs || [];
 
         const continents = ['Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America'];
-        const transientTypes = new Set(['coup', 'disaster']);
+        const transientTypes = new Set(['coup', 'disaster', 'war']);
         let h = `<p class="fd-head">World Affairs</p>`;
 
         for (const continent of continents) {
@@ -15935,6 +15935,7 @@ function openWorldMap() {
                 g.addEventListener('mousemove', e => _placeTip(evTooltip, e, 16));
                 g.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
 
+                g.style.display = 'none'; // hidden until _updateIconVis() evaluates active()
                 _iconGroup.appendChild(g);
                 _iconNodes.push({ g, def });
             });
