@@ -15540,7 +15540,7 @@ function _addWorldMapBtn() {
     const btn = document.createElement('button');
     btn.id = 'world_map_button';
     btn.textContent = 'World Map';
-    btn.style.cssText = 'position:absolute;z-index:10;left:' + (naturalLeft - 915) + 'px;top:' + (naturalTop + 21) + 'px;';
+    btn.style.cssText = 'position:absolute;z-index:10;left:' + (naturalLeft - 915) + 'px;top:' + (naturalTop + 6) + 'px;';
     btn.addEventListener('click', openWorldMap);
     gw.appendChild(btn);
 }
@@ -15798,9 +15798,8 @@ function openWorldMap() {
                     const flagW = Math.min(Math.max(Math.round(Math.sqrt(bb.width * bb.height * _areaPct)), 20), 50);
                     const flagH = Math.round(flagW * 2 / 3);
                     const override = FLAG_CENTRES[code];
-                    const fc = _pathCentroid(best);
-                    const bcx = Math.round(fc.x);
-                    const bcy = Math.round(fc.y);
+                    const bcx = Math.round(bb.x + bb.width / 2);
+                    const bcy = Math.round(bb.y + bb.height / 2);
                     // Override countries: centred on the given point.
                     // All others: shift left flagW/2 and up flagH/2 so the flag
                     // sits in the upper-left quadrant of the centroid.
@@ -15989,33 +15988,6 @@ function openWorldMap() {
             _iconGroup.id = 'wm-events';
             svg.appendChild(_iconGroup);
 
-            // Visual centroid: sample points along all paths, weighted by path length.
-            // Falls back to bounding-box centre if getTotalLength/getPointAtLength fail.
-            function _pathCentroid(el) {
-                try {
-                    const paths = el.tagName.toLowerCase() === 'path'
-                        ? [el] : Array.from(el.querySelectorAll('path'));
-                    if (paths.length > 0) {
-                        const lens = paths.map(p => { try { return p.getTotalLength(); } catch(e) { return 0; } });
-                        const total = lens.reduce((s, l) => s + l, 0);
-                        if (total > 0) {
-                            let sx = 0, sy = 0, count = 0;
-                            paths.forEach((path, i) => {
-                                if (lens[i] === 0) return;
-                                const n = Math.max(1, Math.round(300 * lens[i] / total));
-                                for (let j = 0; j <= n; j++) {
-                                    const pt = path.getPointAtLength(lens[i] * j / n);
-                                    sx += pt.x; sy += pt.y; count++;
-                                }
-                            });
-                            if (count > 0) return { x: sx / count, y: sy / count };
-                        }
-                    }
-                } catch(e) {}
-                const b = el.getBBox();
-                return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
-            }
-
             const _iconNodes = [];
             _EVENT_DEFS.forEach(def => {
                 const specs = _ICON_SHAPES[def.type];
@@ -16029,7 +16001,7 @@ function openWorldMap() {
                         px = pos.x; py = pos.y;
                     } else if (def.country) {
                         const el = svg.querySelector('#' + def.country);
-                        if (el) { const pos = _pathCentroid(el); px = pos.x; py = pos.y; }
+                        if (el) { const b = el.getBBox(); px = b.x + b.width / 2; py = b.y + b.height / 2; }
                     }
                     if (def.positionOffset) { px += def.positionOffset.x || 0; py += def.positionOffset.y || 0; }
                 } catch(e) {}
@@ -16078,14 +16050,32 @@ function openWorldMap() {
                 g.addEventListener('mousemove', e => _placeTip(evTooltip, e, 16));
                 g.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
 
-                g.style.display = 'none'; // hidden until _updateIconVis() evaluates state()
+                // Clicks and double-clicks pass through to the country path underneath.
+                const _fwdClick = (type, e) => {
+                    e.stopPropagation();
+                    g.style.pointerEvents = 'none';
+                    const under = document.elementFromPoint(e.clientX, e.clientY);
+                    g.style.pointerEvents = '';
+                    if (under && under !== g) under.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY }));
+                };
+                g.addEventListener('click',    e => _fwdClick('click', e));
+                g.addEventListener('dblclick', e => _fwdClick('dblclick', e));
+
+                g.style.display = 'none';
+                g.style.opacity = '0';
+                g.style.pointerEvents = 'none';
                 _iconGroup.appendChild(g);
                 _iconNodes.push({ g, def });
             });
 
             _updateIconVis = () => {
                 _iconNodes.forEach(({ g, def }) => {
-                    try { g.style.display = def.state() === 1 ? '' : 'none'; } catch(e) {}
+                    const show = def.state() === 1;
+                    try {
+                        g.style.display = show ? '' : 'none';
+                        g.style.opacity = show ? '' : '0';
+                        g.style.pointerEvents = show ? '' : 'none';
+                    } catch(e) {}
                 });
             };
             _updateIconVis();
