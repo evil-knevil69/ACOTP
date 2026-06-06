@@ -16038,29 +16038,32 @@ function openWorldMap() {
                 flagOffsetPanel.textContent = lines.length ? lines.join('\n') : '(drag a flag to see its position)';
             };
 
+            // Delegate mousedown on the group so we don't rely on per-image listeners.
             if (flagOverlayG) {
-                flagOverlayG.querySelectorAll('image').forEach(img => {
-                    img.addEventListener('mousedown', ev => {
-                        if (!_flagEditMode) return;
-                        ev.stopPropagation(); ev.preventDefault();
-                        const m = (img.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
-                        const cx = m ? parseFloat(m[1]) : 0, cy = m ? parseFloat(m[2]) : 0;
-                        const sx = ev.clientX, sy = ev.clientY;
-                        const onMove = mv => {
-                            img.setAttribute('transform', `translate(${cx + (mv.clientX - sx) / scale},${cy + (mv.clientY - sy) / scale})`);
-                        };
-                        const onUp = () => {
-                            document.removeEventListener('mousemove', onMove);
-                            document.removeEventListener('mouseup', onUp);
-                            const fm = (img.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
-                            if (fm && img.dataset.code) {
-                                _flagMoves[img.dataset.code] = { cx: Math.round(parseFloat(fm[1])), cy: Math.round(parseFloat(fm[2])) };
-                                _refreshFlagPanel();
-                            }
-                        };
-                        document.addEventListener('mousemove', onMove);
-                        document.addEventListener('mouseup', onUp);
-                    });
+                flagOverlayG.addEventListener('mousedown', ev => {
+                    if (!_flagEditMode) return;
+                    // Walk up to the <image> element
+                    let img = ev.target;
+                    while (img && img !== flagOverlayG && img.tagName.toLowerCase() !== 'image') img = img.parentElement;
+                    if (!img || img.tagName.toLowerCase() !== 'image') return;
+                    ev.stopPropagation(); ev.preventDefault();
+                    const m = (img.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+                    const cx = m ? parseFloat(m[1]) : 0, cy = m ? parseFloat(m[2]) : 0;
+                    const sx = ev.clientX, sy = ev.clientY;
+                    const onMove = mv => {
+                        img.setAttribute('transform', `translate(${cx + (mv.clientX - sx) / scale},${cy + (mv.clientY - sy) / scale})`);
+                    };
+                    const onUp = () => {
+                        document.removeEventListener('mousemove', onMove);
+                        document.removeEventListener('mouseup', onUp);
+                        const fm = (img.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+                        if (fm && img.dataset.code) {
+                            _flagMoves[img.dataset.code] = { cx: Math.round(parseFloat(fm[1])), cy: Math.round(parseFloat(fm[2])) };
+                            _refreshFlagPanel();
+                        }
+                    };
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
                 });
             }
 
@@ -16075,8 +16078,12 @@ function openWorldMap() {
                 if (flagOverlayG) {
                     // Auto-show flags when entering edit mode
                     if (_flagEditMode && !flagsOn) { flagsOn = true; svgEl.appendChild(flagOverlayG); }
+                    // Set pointer-events on the group AND explicitly on each image
                     flagOverlayG.style.pointerEvents = _flagEditMode ? 'all' : 'none';
-                    flagOverlayG.querySelectorAll('image').forEach(img => { img.style.cursor = _flagEditMode ? 'grab' : ''; });
+                    flagOverlayG.querySelectorAll('image').forEach(img => {
+                        img.style.pointerEvents = _flagEditMode ? 'all' : '';
+                        img.style.cursor = _flagEditMode ? 'grab' : '';
+                    });
                 }
                 if (_flagEditMode) _refreshFlagPanel();
             });
