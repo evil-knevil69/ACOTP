@@ -15798,8 +15798,9 @@ function openWorldMap() {
                     const flagW = Math.min(Math.max(Math.round(Math.sqrt(bb.width * bb.height * _areaPct)), 20), 50);
                     const flagH = Math.round(flagW * 2 / 3);
                     const override = FLAG_CENTRES[code];
-                    const bcx = Math.round(bb.x + bb.width / 2);
-                    const bcy = Math.round(bb.y + bb.height / 2);
+                    const fc = _pathCentroid(best);
+                    const bcx = Math.round(fc.x);
+                    const bcy = Math.round(fc.y);
                     // Override countries: centred on the given point.
                     // All others: shift left flagW/2 and up flagH/2 so the flag
                     // sits in the upper-left quadrant of the centroid.
@@ -15990,7 +15991,7 @@ function openWorldMap() {
 
             // Visual centroid: sample points along all paths, weighted by path length.
             // Falls back to bounding-box centre if getTotalLength/getPointAtLength fail.
-            const _pathCentroid = el => {
+            function _pathCentroid(el) {
                 try {
                     const paths = el.tagName.toLowerCase() === 'path'
                         ? [el] : Array.from(el.querySelectorAll('path'));
@@ -16013,7 +16014,7 @@ function openWorldMap() {
                 } catch(e) {}
                 const b = el.getBBox();
                 return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
-            };
+            }
 
             const _iconNodes = [];
             _EVENT_DEFS.forEach(def => {
