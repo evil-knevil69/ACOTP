@@ -15911,7 +15911,18 @@ function openWorldMap() {
                 };
                 specs.forEach(spec => g.appendChild(_mkEl(spec.tag, spec.attrs, spec.children)));
 
-                g.addEventListener('mouseenter', () => {
+                // Transparent hit area so hovering anywhere near the icon triggers events.
+                const _hit = document.createElementNS(_evNS, 'circle');
+                _hit.setAttribute('r', '14');
+                _hit.setAttribute('fill', 'transparent');
+                _hit.setAttribute('stroke', 'none');
+                _hit.setAttribute('pointer-events', 'all');
+                g.appendChild(_hit);
+
+                g.style.cursor = 'pointer';
+                g.setAttribute('pointer-events', 'all');
+
+                g.addEventListener('mouseenter', e => {
                     const imgHtml = def.img
                         ? `<img src="${def.img}" style="width:auto;max-width:160px;height:auto;display:block;margin:0 auto 2px auto">`
                         : `<div style="width:160px;height:90px;background:#e0dbd5;display:flex;align-items:center;justify-content:center;color:#a09080;font-size:9px;margin:0 auto 2px auto">[image]</div>`;
@@ -15921,6 +15932,11 @@ function openWorldMap() {
                         : '';
                     evTooltip.innerHTML = imgHtml + labelHtml + bodyHtml;
                     evTooltip.style.display = 'block';
+                    const _pad = 16;
+                    let _x = e.clientX + _pad, _y = e.clientY + _pad;
+                    if (_x + 216 > window.innerWidth) _x = e.clientX - 216 - _pad;
+                    evTooltip.style.left = _x + 'px';
+                    evTooltip.style.top  = _y + 'px';
                 });
                 g.addEventListener('mousemove', e => _placeTip(evTooltip, e, 16));
                 g.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
