@@ -15870,7 +15870,8 @@ function openWorldMap() {
             //   img         — photo/map URL for the polaroid image (null = placeholder)
             //   body        — 1–2 sentence description shown below the title
             //   country     — SVG path id whose centroid is used for placement
-            //   positionFn  — manual placement override (e.g. sub-national regions)
+            //   positionFn     — full manual placement fn(svg) → {x,y}; overrides centroid
+            //   positionOffset — {x,y} nudge added after centroid (e.g. positionOffset:{x:5,y:-10})
             //   state()     — returns 0 (hidden), 1 (visible), or 3 (crossed out in legal pad only)
             //
             // ── TOOLTIP CONTENT — update img + body for each event ───────────────────
@@ -15987,6 +15988,33 @@ function openWorldMap() {
             _iconGroup.id = 'wm-events';
             svg.appendChild(_iconGroup);
 
+            // Visual centroid: sample points along all paths, weighted by path length.
+            // Falls back to bounding-box centre if getTotalLength/getPointAtLength fail.
+            const _pathCentroid = el => {
+                try {
+                    const paths = el.tagName.toLowerCase() === 'path'
+                        ? [el] : Array.from(el.querySelectorAll('path'));
+                    if (paths.length > 0) {
+                        const lens = paths.map(p => { try { return p.getTotalLength(); } catch(e) { return 0; } });
+                        const total = lens.reduce((s, l) => s + l, 0);
+                        if (total > 0) {
+                            let sx = 0, sy = 0, count = 0;
+                            paths.forEach((path, i) => {
+                                if (lens[i] === 0) return;
+                                const n = Math.max(1, Math.round(300 * lens[i] / total));
+                                for (let j = 0; j <= n; j++) {
+                                    const pt = path.getPointAtLength(lens[i] * j / n);
+                                    sx += pt.x; sy += pt.y; count++;
+                                }
+                            });
+                            if (count > 0) return { x: sx / count, y: sy / count };
+                        }
+                    }
+                } catch(e) {}
+                const b = el.getBBox();
+                return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+            };
+
             const _iconNodes = [];
             _EVENT_DEFS.forEach(def => {
                 const specs = _ICON_SHAPES[def.type];
@@ -16000,8 +16028,9 @@ function openWorldMap() {
                         px = pos.x; py = pos.y;
                     } else if (def.country) {
                         const el = svg.querySelector('#' + def.country);
-                        if (el) { const b = el.getBBox(); px = b.x + b.width / 2; py = b.y + b.height / 2; }
+                        if (el) { const pos = _pathCentroid(el); px = pos.x; py = pos.y; }
                     }
+                    if (def.positionOffset) { px += def.positionOffset.x || 0; py += def.positionOffset.y || 0; }
                 } catch(e) {}
 
                 const g = document.createElementNS(_evNS, 'g');
