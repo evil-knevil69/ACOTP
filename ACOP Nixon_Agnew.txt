@@ -15863,6 +15863,9 @@ function openWorldMap() {
             _iconGroup.id = 'wm-events';
             svg.appendChild(_iconGroup);
 
+            let _editMode = false;
+            const _movedOffsets = {}; // id → {x,y} accumulated via drag tool
+
             const _iconNodes = [];
             _EVENT_DEFS.forEach(def => {
                 const specs = _ICON_SHAPES[def.type];
@@ -15880,6 +15883,9 @@ function openWorldMap() {
                     }
                     if (def.positionOffset) { px += def.positionOffset.x || 0; py += def.positionOffset.y || 0; }
                 } catch(e) {}
+                // base position before any positionOffset (used by drag tool to compute the offset)
+                const _basePx = Math.round(px - (def.positionOffset ? (def.positionOffset.x || 0) : 0));
+                const _basePy = Math.round(py - (def.positionOffset ? (def.positionOffset.y || 0) : 0));
 
                 const g = document.createElementNS(_evNS, 'g');
                 g.setAttribute('transform', 'translate(' + Math.round(px) + ',' + Math.round(py) + ')');
@@ -15926,10 +15932,34 @@ function openWorldMap() {
                 g.addEventListener('mousemove', e => _placeTip(evTooltip, e, 16));
                 g.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
 
+                // Drag handler for "Move Icons" edit mode.
+                g.addEventListener('mousedown', ev => {
+                    if (!_editMode) return;
+                    ev.stopPropagation(); ev.preventDefault();
+                    const m = (g.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+                    const cx = m ? parseFloat(m[1]) : 0, cy = m ? parseFloat(m[2]) : 0;
+                    const sx = ev.clientX, sy = ev.clientY;
+                    const onMove = mv => {
+                        g.setAttribute('transform', `translate(${cx + (mv.clientX - sx) / scale},${cy + (mv.clientY - sy) / scale})`);
+                    };
+                    const onUp = () => {
+                        document.removeEventListener('mousemove', onMove);
+                        document.removeEventListener('mouseup', onUp);
+                        const fm = (g.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+                        if (fm) {
+                            _movedOffsets[def.id] = { x: Math.round(parseFloat(fm[1]) - _basePx), y: Math.round(parseFloat(fm[2]) - _basePy) };
+                            _refreshOffsets();
+                        }
+                    };
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                });
+
                 // Clicks and double-clicks pass through to the country path underneath.
                 // Temporarily set display:none (CSS + SVG attribute) so elementFromPoint
                 // ignores this element and all its children (including the hit-area circle).
                 const _fwdClick = (type, e) => {
+                    if (_editMode) return;
                     e.stopPropagation();
                     g.style.display = 'none';
                     g.setAttribute('display', 'none');
@@ -15961,6 +15991,30 @@ function openWorldMap() {
                 });
             };
             _updateIconVis();
+
+            // ── Move Icons tool ──────────────────────────────────────────────
+            const offsetPanel = document.createElement('div');
+            offsetPanel.style.cssText = 'position:absolute;bottom:16px;left:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:480px;white-space:pre;display:none;pointer-events:none;';
+            viewport.appendChild(offsetPanel);
+
+            const _refreshOffsets = () => {
+                const lines = Object.entries(_movedOffsets).map(([id, o]) =>
+                    `${id}:\n  positionOffset: { x: ${o.x}, y: ${o.y} }`);
+                offsetPanel.textContent = lines.length ? lines.join('\n\n') : '(drag a visible icon to see its offset)';
+            };
+
+            const moveBtn = document.createElement('button');
+            moveBtn.textContent = 'Move Icons';
+            moveBtn.style.cssText = 'margin-left:8px;cursor:pointer;padding:0 10px;height:30px;font-size:11px;';
+            moveBtn.addEventListener('click', () => {
+                _editMode = !_editMode;
+                moveBtn.style.background = _editMode ? '#f90' : '';
+                moveBtn.style.color      = _editMode ? '#000' : '';
+                offsetPanel.style.display = _editMode ? 'block' : 'none';
+                _iconNodes.forEach(({ g }) => { g.style.cursor = _editMode ? 'grab' : 'pointer'; });
+                if (_editMode) _refreshOffsets();
+            });
+            bar.appendChild(moveBtn);
 
             // ── Scrollbars ──────────────────────────────────────────────────
             // Created after innerHTML is set so they aren't wiped by SVG load.
