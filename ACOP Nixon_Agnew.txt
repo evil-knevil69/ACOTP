@@ -16221,7 +16221,7 @@ function openCIAProfile(code, mapPanel, tooltip) {
 
     const iframe = document.createElement('iframe');
     iframe.src = url;
-    iframe.sandbox = 'allow-same-origin';
+    iframe.sandbox = 'allow-same-origin allow-scripts';
     iframe.style.cssText = 'flex:1;border:none;width:100%;';
 
     viewer.appendChild(bar);
