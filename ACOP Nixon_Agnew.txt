@@ -14788,16 +14788,8 @@ document.body.appendChild(honk);
 
         // ── Globe button — opens World Map ────────────────────────────────────
         h += `<div style="text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid #c8b87a;">
-            <button id="fd-world-globe-btn" title="Open World Map" style="background:none;border:1px solid #a07028;border-radius:4px;padding:5px 12px;cursor:pointer;color:#5a3a0a;font-size:10px;display:inline-flex;align-items:center;gap:5px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a07028" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="2" y1="12" x2="22" y2="12"/>
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                </svg>
-                World Map
-            </button>
+            <img id="fd-world-globe-btn" src="https://file.garden/aXPgNT-ZRCxxpy0g/globeicon.png" title="Open World Map" style="width:40px;height:40px;cursor:pointer;display:inline-block;">
         </div>`;
-        // ── TODO: replace SVG globe above with custom icon when available ──────
 
         return h;
     }
