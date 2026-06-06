@@ -12047,6 +12047,7 @@ const _EVENT_DEFS = [
             if (ie) { try { const b = ie.getBBox(); return { x: b.x + b.width + 2, y: b.y + b.height * 0.2 }; } catch(e) {} }
             return { x: 488, y: 196 };
         },
+        positionOffset: { x: -16, y: -18 },
         state: () => 1,
     },
     {
@@ -12057,6 +12058,7 @@ const _EVENT_DEFS = [
         img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/0331_vietnam9.jpg',
         body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. The political cost at home continues to mount.',
         country: 'VD',
+        positionOffset: { x: 12, y: 25 },
         state: () => (typeof Vietnam !== 'undefined') && Vietnam <= 7 ? 1 : 3,
     },
     {
@@ -12067,6 +12069,7 @@ const _EVENT_DEFS = [
         img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/cambodia.gif',
         body: 'A 1970 coup aided by the US removed Prince Sihanouk and installed the Lon Nol government. Lon Nol, paralysed by a stroke and absorbed by the occult, is losing his grip on reality. The Khmer Rouge, previously a marginal force, now controls large areas of the countryside despite the slaughter of USAF saturation bombing. The government\'s hold on the cities is increasingly precarious.',
         country: 'KH',
+        positionOffset: { x: -10, y: -12 },
         state: () => khmer,
     },
     {
@@ -12107,6 +12110,7 @@ const _EVENT_DEFS = [
         img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9783.jpeg',
         body: 'Chad has been engulfed in civil conflict since 1965, when northern Muslim populations rose against the southern-dominated government of François Tombalbaye. The rebel FROLINAT movement draws support from Libya\'s Muammar Gaddafi, who has territorial designs on the uranium-rich Aozou Strip. French forces have intervened repeatedly to prop up the Chadian government, but the insurgency continues to expand.',
         country: 'TD',
+        positionOffset: { x: -11, y: -18 },
         state: () => chad,
     },
     {
@@ -12117,6 +12121,7 @@ const _EVENT_DEFS = [
         img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/guatemala.jpeg',
         body: 'A CIA-backed coup in 1954 overthrew the elected government of Jacobo Árbenz and installed a succession of military regimes, triggering an armed insurgency that has persisted since 1960. Leftist guerrilla groups operating from the highlands have been met with systematic counter-insurgency operations, including US-trained security forces and government-linked death squads. The conflict has claimed tens of thousands of lives and shows no sign of resolution.',
         country: 'GT',
+        positionOffset: { x: -11, y: -9 },
         state: () => 1,
     },
     {
@@ -12127,6 +12132,7 @@ const _EVENT_DEFS = [
         img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/rhodesia-ezgif.com-optimize.gif',
         body: 'Ian Smith\'s white-minority government declared independence from Britain in November 1965, triggering international sanctions and diplomatic isolation. Guerrilla forces backed by Mozambique and Zambia have been conducting cross-border operations since 1972, escalating pressure on Salisbury. Britain refuses to recognise the regime; the United States maintains limited covert contact.',
         country: 'RH',
+        positionOffset: { x: -7, y: -26 },
         state: () => 1,
     },
     {
@@ -12137,6 +12143,7 @@ const _EVENT_DEFS = [
         img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9784.jpeg',
         body: 'Eritrea was federated with Ethiopia in 1952 and formally annexed in 1962 by Emperor Haile Selassie, triggering an armed independence movement that has persisted since 1961. The Eritrean Liberation Front now contests large areas of the territory. Ethiopia is a key US ally in the Horn of Africa; Washington has maintained silence on Selassie\'s suppression of the insurgency.',
         country: 'ET',
+        positionOffset: { x: -10, y: -30 },
         state: () => eritrea,
     },
 ];
@@ -15809,6 +15816,7 @@ function openWorldMap() {
                     img.setAttribute('height', flagH);
                     img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
                     img.setAttribute('transform', 'translate(' + tx + ',' + ty + ')');
+                    img.dataset.code = code;
                     img.style.opacity = '0.9';
                     g.appendChild(img);
                 });
@@ -16015,6 +16023,64 @@ function openWorldMap() {
                 if (_editMode) _refreshOffsets();
             });
             bar.appendChild(moveBtn);
+
+            // ── Move Flags tool ──────────────────────────────────────────────
+            let _flagEditMode = false;
+            const _flagMoves = {}; // code → {cx, cy} — paste into FLAG_CENTRES
+
+            const flagOffsetPanel = document.createElement('div');
+            flagOffsetPanel.style.cssText = 'position:absolute;bottom:16px;right:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:480px;white-space:pre;display:none;pointer-events:none;';
+            viewport.appendChild(flagOffsetPanel);
+
+            const _refreshFlagPanel = () => {
+                const lines = Object.entries(_flagMoves).map(([code, p]) =>
+                    `${code}: { cx: ${p.cx}, cy: ${p.cy} }`);
+                flagOffsetPanel.textContent = lines.length ? lines.join('\n') : '(drag a flag to see its position)';
+            };
+
+            if (flagOverlayG) {
+                flagOverlayG.querySelectorAll('image').forEach(img => {
+                    img.addEventListener('mousedown', ev => {
+                        if (!_flagEditMode) return;
+                        ev.stopPropagation(); ev.preventDefault();
+                        const m = (img.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+                        const cx = m ? parseFloat(m[1]) : 0, cy = m ? parseFloat(m[2]) : 0;
+                        const sx = ev.clientX, sy = ev.clientY;
+                        const onMove = mv => {
+                            img.setAttribute('transform', `translate(${cx + (mv.clientX - sx) / scale},${cy + (mv.clientY - sy) / scale})`);
+                        };
+                        const onUp = () => {
+                            document.removeEventListener('mousemove', onMove);
+                            document.removeEventListener('mouseup', onUp);
+                            const fm = (img.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+                            if (fm && img.dataset.code) {
+                                _flagMoves[img.dataset.code] = { cx: Math.round(parseFloat(fm[1])), cy: Math.round(parseFloat(fm[2])) };
+                                _refreshFlagPanel();
+                            }
+                        };
+                        document.addEventListener('mousemove', onMove);
+                        document.addEventListener('mouseup', onUp);
+                    });
+                });
+            }
+
+            const moveFlagsBtn = document.createElement('button');
+            moveFlagsBtn.textContent = 'Move Flags';
+            moveFlagsBtn.style.cssText = 'margin-left:8px;cursor:pointer;padding:0 10px;height:30px;font-size:11px;';
+            moveFlagsBtn.addEventListener('click', () => {
+                _flagEditMode = !_flagEditMode;
+                moveFlagsBtn.style.background = _flagEditMode ? '#f90' : '';
+                moveFlagsBtn.style.color      = _flagEditMode ? '#000' : '';
+                flagOffsetPanel.style.display  = _flagEditMode ? 'block' : 'none';
+                if (flagOverlayG) {
+                    // Auto-show flags when entering edit mode
+                    if (_flagEditMode && !flagsOn) { flagsOn = true; svgEl.appendChild(flagOverlayG); }
+                    flagOverlayG.style.pointerEvents = _flagEditMode ? 'all' : 'none';
+                    flagOverlayG.querySelectorAll('image').forEach(img => { img.style.cursor = _flagEditMode ? 'grab' : ''; });
+                }
+                if (_flagEditMode) _refreshFlagPanel();
+            });
+            bar.appendChild(moveFlagsBtn);
 
             // ── Scrollbars ──────────────────────────────────────────────────
             // Created after innerHTML is set so they aren't wiped by SVG load.
