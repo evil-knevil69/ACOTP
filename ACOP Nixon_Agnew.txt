@@ -11633,181 +11633,190 @@ campaignTrail_temp.running_mate_last_name = "Agnew";
 // ║  COUNTRY ALLEGIANCE  —  edit values freely, do not change the keys      ║
 // ║  Scale: 1 (hostile) -> 100 (fully loyal). Reflects alignment c.1972.     ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
-const COUNTRY_LOYAL = {
+// ── COUNTRIES — single source of truth for per-country data ──────────────────
+// One entry per country. The maps below (COUNTRY_LOYAL, COUNTRY_NAMES,
+// CODE_TO_FILE, FLAG_URLS) are DERIVED from this — add a new country here only.
+//   name  : display name        loyal: US-loyalty score 0–100
+//   file  : feedback-image slug  flag : 'svg' | 'png' (omit if no flag asset)
+// ─────────────────────────────────────────────────────────────────────────────
+const COUNTRIES = {
   // ── Europe ──────────────────────────────────────────────────────────────
-  AL: 18, // Albania — Hoxha, Stalinist, hostile to both superpowers
-  AD: 72, // Andorra
-  AT: 65, // Austria — neutral but Western-oriented
-  BE: 82, // Belgium — NATO core
-  BG: 18, // Bulgaria — Soviet satellite
-  CS: 18, // Czechoslovakia — Soviet satellite (Warsaw Pact)
-  DD: 20, // East Germany — no US recognition, Soviet satellite
-  DE: 85, // West Germany — key NATO ally
-  DK: 80, // Denmark — NATO
-  ES: 68, // Spain — Franco, US bases, anti-communist
-  FI: 48, // Finland — Finlandization
-  FR: 75, // France — NATO but independent streak
-  GB: 90, // United Kingdom — Special Relationship
-  GR: 68, // Greece — military junta but NATO
-  HU: 18, // Hungary — Soviet satellite
-  IE: 58, // Ireland — neutral, not NATO
-  IS: 75, // Iceland — NATO, US Keflavik base
-  IT: 72, // Italy — NATO; large Communist Party
-  LI: 72, // Liechtenstein
-  LU: 82, // Luxembourg — NATO
-  MC: 72, // Monaco
-  MT: 48, // Malta — Mintoff's neutralism
-  NL: 82, // Netherlands — NATO
-  NO: 80, // Norway — NATO
-  PL: 18, // Poland — Soviet satellite
-  PT: 72, // Portugal — NATO (Estado Novo)
-  RO: 25, // Romania — most independent Soviet bloc state
-  SM: 55, // San Marino — Western but communist coalition govt
-  SU: 15, // Soviet Union — superpower rival
-  SE: 52, // Sweden — neutral, critical of Vietnam War
-  CH: 62, // Switzerland — neutral but Western-integrated
-  TR: 72, // Turkey — NATO
-  VA: 62, // Vatican City — anti-communist but neutral
-  YU: 48, // Yugoslavia — non-aligned, independent communist
+  AL: { name:'Albania', loyal:18, file:'albania', flag:'svg' }, // Albania — Hoxha, Stalinist, hostile to both superpowers
+  AD: { name:'Andorra', loyal:72, file:'andorra', flag:'svg' }, // Andorra
+  AT: { name:'Austria', loyal:65, file:'austria', flag:'svg' }, // Austria — neutral but Western-oriented
+  BE: { name:'Belgium', loyal:82, file:'belgium', flag:'svg' }, // Belgium — NATO core
+  BG: { name:'Bulgaria', loyal:18, file:'bulgaria', flag:'svg' }, // Bulgaria — Soviet satellite
+  CS: { name:'Czechoslovakia', loyal:18, file:'czechoslovakia', flag:'svg' }, // Czechoslovakia — Soviet satellite (Warsaw Pact)
+  DD: { name:'East Germany', loyal:20, file:'germany-east', flag:'svg' }, // East Germany — no US recognition, Soviet satellite
+  DE: { name:'West Germany', loyal:85, file:'germany-west', flag:'svg' }, // West Germany — key NATO ally
+  DK: { name:'Denmark', loyal:80, file:'denmark', flag:'svg' }, // Denmark — NATO
+  ES: { name:'Spain', loyal:68, file:'spain', flag:'svg' }, // Spain — Franco, US bases, anti-communist
+  FI: { name:'Finland', loyal:48, file:'finland', flag:'svg' }, // Finland — Finlandization
+  FR: { name:'France', loyal:75, file:'france', flag:'svg' }, // France — NATO but independent streak
+  GB: { name:'United Kingdom', loyal:90, file:'united-kingdom', flag:'svg' }, // United Kingdom — Special Relationship
+  GR: { name:'Greece', loyal:68, file:'greece', flag:'svg' }, // Greece — military junta but NATO
+  HU: { name:'Hungary', loyal:18, file:'hungary', flag:'svg' }, // Hungary — Soviet satellite
+  IE: { name:'Ireland', loyal:58, file:'ireland', flag:'svg' }, // Ireland — neutral, not NATO
+  IS: { name:'Iceland', loyal:75, file:'iceland', flag:'svg' }, // Iceland — NATO, US Keflavik base
+  IT: { name:'Italy', loyal:72, file:'italy', flag:'svg' }, // Italy — NATO; large Communist Party
+  LI: { name:'Liechtenstein', loyal:72, file:'liechtenstein', flag:'svg' }, // Liechtenstein
+  LU: { name:'Luxembourg', loyal:82, file:'luxembourg', flag:'svg' }, // Luxembourg — NATO
+  MC: { name:'Monaco', loyal:72, file:'monaco', flag:'svg' }, // Monaco
+  MT: { name:'Malta', loyal:48, file:'malta', flag:'svg' }, // Malta — Mintoff's neutralism
+  NL: { name:'Netherlands', loyal:82, file:'netherlands', flag:'svg' }, // Netherlands — NATO
+  NO: { name:'Norway', loyal:80, file:'norway', flag:'svg' }, // Norway — NATO
+  PL: { name:'Poland', loyal:18, file:'poland', flag:'svg' }, // Poland — Soviet satellite
+  PT: { name:'Portugal', loyal:72, file:'portugal', flag:'svg' }, // Portugal — NATO (Estado Novo)
+  RO: { name:'Romania', loyal:25, file:'romania', flag:'png' }, // Romania — most independent Soviet bloc state
+  SM: { name:'San Marino', loyal:55, file:'san-marino', flag:'svg' }, // San Marino — Western but communist coalition govt
+  SU: { name:'Soviet Union', loyal:15, file:'u-s-s-r', flag:'svg' }, // Soviet Union — superpower rival
+  SE: { name:'Sweden', loyal:52, file:'sweden', flag:'svg' }, // Sweden — neutral, critical of Vietnam War
+  CH: { name:'Switzerland', loyal:62, file:'switzerland', flag:'svg' }, // Switzerland — neutral but Western-integrated
+  TR: { name:'Turkey', loyal:72, file:'turkey', flag:'svg' }, // Turkey — NATO
+  VA: { name:'Vatican City', loyal:62, file:'vatican-city', flag:'svg' }, // Vatican City — anti-communist but neutral
+  YU: { name:'Yugoslavia', loyal:48, file:'yugoslavia', flag:'svg' }, // Yugoslavia — non-aligned, independent communist
 
   // ── North America & Caribbean ────────────────────────────────────────────
-  BS: 72, // Bahamas — British colony (ind. 1973), Western
-  BB: 70, // Barbados — Commonwealth
-  CA: 88, // Canada — NORAD, NATO, close partner
-  CR: 72, // Costa Rica — stable democracy, pro-US
-  CU: 12, // Cuba — Soviet ally
-  DO: 75, // Dominican Republic — US intervened 1965, Balaguer
-  SV: 68, // El Salvador
-  GT: 70, // Guatemala — US-backed 1954, anti-communist
-  HT: 55, // Haiti — Duvalier, nominally anti-communist
-  HN: 68, // Honduras
-  JM: 65, // Jamaica — Commonwealth
-  MX: 58, // Mexico — PRI, independent foreign policy
-  NI: 72, // Nicaragua — Somoza dynasty, pro-US
-  PA: 52, // Panama — Canal Zone tensions with Torrijos
-  TT: 65, // Trinidad and Tobago — Commonwealth
-  GD: 65, // Grenada — British associated state
-  US:100, // United States
+  BS: { name:'Bahamas', loyal:72, file:'bahamas', flag:'svg' }, // Bahamas — British colony (ind. 1973), Western
+  BB: { name:'Barbados', loyal:70, file:'barbados', flag:'svg' }, // Barbados — Commonwealth
+  CA: { name:'Canada', loyal:88, file:'canada', flag:'svg' }, // Canada — NORAD, NATO, close partner
+  CR: { name:'Costa Rica', loyal:72, file:'costa-rica', flag:'svg' }, // Costa Rica — stable democracy, pro-US
+  CU: { name:'Cuba', loyal:12, file:'cuba', flag:'svg' }, // Cuba — Soviet ally
+  DO: { name:'Dominican Republic', loyal:75, file:'dominican-republic', flag:'svg' }, // Dominican Republic — US intervened 1965, Balaguer
+  SV: { name:'El Salvador', loyal:68, file:'el-salvador', flag:'svg' }, // El Salvador
+  GT: { name:'Guatemala', loyal:70, file:'guatemala', flag:'svg' }, // Guatemala — US-backed 1954, anti-communist
+  HT: { name:'Haiti', loyal:55, file:'haiti', flag:'svg' }, // Haiti — Duvalier, nominally anti-communist
+  HN: { name:'Honduras', loyal:68, file:'honduras', flag:'svg' }, // Honduras
+  JM: { name:'Jamaica', loyal:65, file:'jamaica', flag:'svg' }, // Jamaica — Commonwealth
+  MX: { name:'Mexico', loyal:58, file:'mexico', flag:'svg' }, // Mexico — PRI, independent foreign policy
+  NI: { name:'Nicaragua', loyal:72, file:'nicaragua', flag:'svg' }, // Nicaragua — Somoza dynasty, pro-US
+  PA: { name:'Panama', loyal:52, file:'panama', flag:'svg' }, // Panama — Canal Zone tensions with Torrijos
+  TT: { name:'Trinidad and Tobago', loyal:65, file:'trinidad-and-tobago', flag:'svg' }, // Trinidad and Tobago — Commonwealth
+  GD: { name:'Grenada', loyal:65, file:'grenada', flag:'svg' }, // Grenada — British associated state
+  US: { name:'United States', loyal:100, file:'united-states', flag:'svg' }, // United States
 
   // ── South America ────────────────────────────────────────────────────────
-  AR: 50, // Argentina — Perón returning, complex
-  BO: 55, // Bolivia — Banzer military govt, anti-communist
-  BR: 68, // Brazil — military dictatorship, anti-communist
-  CL: 28, // Chile — Allende (socialist)
-  CO: 62, // Colombia — pro-US
-  EC: 52, // Ecuador — military
-  GY: 42, // Guyana — Burnham's cooperative socialism
-  PY: 65, // Paraguay — Stroessner, anti-communist
-  PE: 38, // Peru — Velasco left-leaning military
-  UY: 50, // Uruguay — liberal democracy, Tupamaros crisis
-  VE: 62, // Venezuela — democratic, oil
+  AR: { name:'Argentina', loyal:50, file:'argentina', flag:'svg' }, // Argentina — Perón returning, complex
+  BO: { name:'Bolivia', loyal:55, file:'bolivia', flag:'svg' }, // Bolivia — Banzer military govt, anti-communist
+  BR: { name:'Brazil', loyal:68, file:'brazil', flag:'svg' }, // Brazil — military dictatorship, anti-communist
+  CL: { name:'Chile', loyal:28, file:'chile', flag:'svg' }, // Chile — Allende (socialist)
+  CO: { name:'Colombia', loyal:62, file:'colombia', flag:'svg' }, // Colombia — pro-US
+  EC: { name:'Ecuador', loyal:52, file:'ecuador', flag:'svg' }, // Ecuador — military
+  GY: { name:'Guyana', loyal:42, file:'guyana', flag:'svg' }, // Guyana — Burnham's cooperative socialism
+  PY: { name:'Paraguay', loyal:65, file:'paraguay', flag:'svg' }, // Paraguay — Stroessner, anti-communist
+  PE: { name:'Peru', loyal:38, file:'peru', flag:'svg' }, // Peru — Velasco left-leaning military
+  UY: { name:'Uruguay', loyal:50, file:'uruguay', flag:'svg' }, // Uruguay — liberal democracy, Tupamaros crisis
+  VE: { name:'Venezuela', loyal:62, file:'venezuela', flag:'svg' }, // Venezuela — democratic, oil
 
   // ── Africa ───────────────────────────────────────────────────────────────
-  DZ: 25, // Algeria — FLN socialist, Soviet equipment
-  DY: 45, // Dahomey — unstable, various coups
-  BW: 58, // Botswana — pro-Western democracy
-  BI: 40, // Burundi
-  CM: 52, // Cameroon — French sphere
-  CF: 45, // Central African Republic — Bokassa
-  TD: 50, // Chad — French sphere, civil war
-  CG: 20, // Congo (Brazzaville) — Marxist People's Republic
-  ZR: 65, // Zaire — Mobutu, US anti-communist ally
-  EG: 45, // Egypt — Sadat expelled Soviet advisors 1972, shifting toward US
-  GQ: 28, // Equatorial Guinea — Macias Nguema, brutal
-  ET: 62, // Ethiopia — Haile Selassie, US military aid
-  GA: 58, // Gabon — Bongo, French/Western sphere, oil
-  GM: 55, // Gambia — pro-Western, Jawara
-  GH: 45, // Ghana — Acheampong coup Jan 1972
-  GN: 15, // Guinea — Sékou Touré, radical Marxist
-  HV: 48, // Upper Volta — Lamizana
-  CI: 62, // Ivory Coast — Houphouët-Boigny, pro-French/West
-  KE: 60, // Kenya — Kenyatta, pro-Western
-  LS: 52, // Lesotho
-  LR: 68, // Liberia — historically very pro-US
-  LY: 18, // Libya — Gaddafi, anti-Western, nationalised oil
-  MG: 45, // Malagasy Republic
-  MW: 55, // Malawi — Banda, moderately pro-Western
-  ML: 25, // Mali — military, Soviet equipment
-  MR: 45, // Mauritania
-  MU: 58, // Mauritius — Commonwealth, pro-Western
-  MA: 62, // Morocco — Hassan II, pro-Western
- SWA: 55, // South West Africa — South African administered
-  NE: 48, // Niger — French sphere
-  NG: 52, // Nigeria — post-civil war, non-aligned
-  RH: 28, // Rhodesia — UDI, sanctions
-  RW: 45, // Rwanda
-  SN: 58, // Senegal — Senghor, pro-French/West
-  SL: 50, // Sierra Leone
-  SO: 22, // Somalia — Soviet ally, Siad Barre Marxist
-  ZA: 50, // South Africa — anti-communist but apartheid complicates
-  SD: 40, // Sudan — shifting from USSR toward non-alignment
-  SZ: 55, // Swaziland
-  TZ: 28, // Tanzania — Nyerere, socialist, critical of US
-  TG: 50, // Togo — French sphere
-  TN: 60, // Tunisia — Bourguiba, pro-Western
-  UG: 22, // Uganda — Idi Amin, expelled Asians 1972, erratic
-  ZM: 38, // Zambia — Kaunda, non-aligned socialist
+  DZ: { name:'Algeria', loyal:25, file:'algeria', flag:'svg' }, // Algeria — FLN socialist, Soviet equipment
+  DY: { name:'Dahomey', loyal:45, file:'dahomey', flag:'svg' }, // Dahomey — unstable, various coups
+  BW: { name:'Botswana', loyal:58, file:'botswana', flag:'svg' }, // Botswana — pro-Western democracy
+  BI: { name:'Burundi', loyal:40, file:'burundi', flag:'svg' }, // Burundi
+  CM: { name:'Cameroon', loyal:52, file:'cameroon', flag:'svg' }, // Cameroon — French sphere
+  CF: { name:'Central African Republic', loyal:45, file:'central-african-republic', flag:'svg' }, // Central African Republic — Bokassa
+  TD: { name:'Chad', loyal:50, file:'chad', flag:'svg' }, // Chad — French sphere, civil war
+  CG: { name:'Congo', loyal:20, file:'congo', flag:'svg' }, // Congo (Brazzaville) — Marxist People's Republic
+  ZR: { name:'Zaire', loyal:65, file:'zaire', flag:'svg' }, // Zaire — Mobutu, US anti-communist ally
+  EG: { name:'Egypt', loyal:45, file:'egypt', flag:'svg' }, // Egypt — Sadat expelled Soviet advisors 1972, shifting toward US
+  GQ: { name:'Equatorial Guinea', loyal:28, file:'equatorial-guinea', flag:'svg' }, // Equatorial Guinea — Macias Nguema, brutal
+  ET: { name:'Ethiopia', loyal:62, file:'ethiopia', flag:'svg' }, // Ethiopia — Haile Selassie, US military aid
+  GA: { name:'Gabon', loyal:58, file:'gabon', flag:'svg' }, // Gabon — Bongo, French/Western sphere, oil
+  GM: { name:'Gambia', loyal:55, file:'gambia', flag:'svg' }, // Gambia — pro-Western, Jawara
+  GH: { name:'Ghana', loyal:45, file:'ghana', flag:'svg' }, // Ghana — Acheampong coup Jan 1972
+  GN: { name:'Guinea', loyal:15, file:'guinea', flag:'svg' }, // Guinea — Sékou Touré, radical Marxist
+  HV: { name:'Upper Volta', loyal:48, file:'upper-volta', flag:'svg' }, // Upper Volta — Lamizana
+  CI: { name:'Ivory Coast', loyal:62, file:'ivory-coast', flag:'svg' }, // Ivory Coast — Houphouët-Boigny, pro-French/West
+  KE: { name:'Kenya', loyal:60, file:'kenya', flag:'svg' }, // Kenya — Kenyatta, pro-Western
+  LS: { name:'Lesotho', loyal:52, file:'lesotho', flag:'svg' }, // Lesotho
+  LR: { name:'Liberia', loyal:68, file:'liberia', flag:'svg' }, // Liberia — historically very pro-US
+  LY: { name:'Libya', loyal:18, file:'libya', flag:'svg' }, // Libya — Gaddafi, anti-Western, nationalised oil
+  MG: { name:'Malagasy Republic', loyal:45, file:'madagascar', flag:'svg' }, // Malagasy Republic
+  MW: { name:'Malawi', loyal:55, file:'malawi', flag:'svg' }, // Malawi — Banda, moderately pro-Western
+  ML: { name:'Mali', loyal:25, file:'mali', flag:'svg' }, // Mali — military, Soviet equipment
+  MR: { name:'Mauritania', loyal:45, file:'mauritania', flag:'svg' }, // Mauritania
+  MU: { name:'Mauritius', loyal:58, file:'mauritius', flag:'svg' }, // Mauritius — Commonwealth, pro-Western
+  MA: { name:'Morocco', loyal:62, file:'morocco', flag:'svg' }, // Morocco — Hassan II, pro-Western
+  SWA: { name:'South West Africa', loyal:55, file:'south-west-africa', flag:'svg' }, // South West Africa — South African administered
+  NE: { name:'Niger', loyal:48, file:'niger', flag:'svg' }, // Niger — French sphere
+  NG: { name:'Nigeria', loyal:52, file:'nigeria', flag:'svg' }, // Nigeria — post-civil war, non-aligned
+  RH: { name:'Rhodesia', loyal:28, file:'rhodesia', flag:'svg' }, // Rhodesia — UDI, sanctions
+  RW: { name:'Rwanda', loyal:45, file:'rwanda', flag:'svg' }, // Rwanda
+  SN: { name:'Senegal', loyal:58, file:'senegal', flag:'svg' }, // Senegal — Senghor, pro-French/West
+  SL: { name:'Sierra Leone', loyal:50, file:'sierra-leone', flag:'svg' }, // Sierra Leone
+  SO: { name:'Somalia', loyal:22, file:'somalia', flag:'svg' }, // Somalia — Soviet ally, Siad Barre Marxist
+  ZA: { name:'South Africa', loyal:50, file:'south-africa', flag:'svg' }, // South Africa — anti-communist but apartheid complicates
+  SD: { name:'Sudan', loyal:40, file:'sudan', flag:'svg' }, // Sudan — shifting from USSR toward non-alignment
+  SZ: { name:'Swaziland', loyal:55, file:'swaziland', flag:'svg' }, // Swaziland
+  TZ: { name:'Tanzania', loyal:28, file:'tanzania', flag:'svg' }, // Tanzania — Nyerere, socialist, critical of US
+  TG: { name:'Togo', loyal:50, file:'togo', flag:'svg' }, // Togo — French sphere
+  TN: { name:'Tunisia', loyal:60, file:'tunisia', flag:'svg' }, // Tunisia — Bourguiba, pro-Western
+  UG: { name:'Uganda', loyal:22, file:'uganda', flag:'svg' }, // Uganda — Idi Amin, expelled Asians 1972, erratic
+  ZM: { name:'Zambia', loyal:38, file:'zambia', flag:'svg' }, // Zambia — Kaunda, non-aligned socialist
 
   // ── Middle East ──────────────────────────────────────────────────────────
-  BH: 65, // Bahrain — pro-Western, just independent
-  CY: 55, // Cyprus — non-aligned
-  IR: 82, // Iran — Shah, strongly pro-US, CENTO
-  IQ: 18, // Iraq — Ba'athist, Treaty of Friendship with USSR 1972
-  IL: 92, // Israel — very close US ally
-  JO: 72, // Jordan — King Hussein, stable pro-US
-  KW: 65, // Kuwait — oil, pro-Western
-  LB: 62, // Lebanon — Western-oriented
-  OM: 65, // Oman — Qaboos, British/US-backed
-  QA: 62, // Qatar
-  SA: 75, // Saudi Arabia — key oil ally, anti-communist
-  SY: 18, // Syria — Assad Ba'athist, Soviet ally
-  AE: 65, // United Arab Emirates — pro-Western
-  YE: 42, // North Yemen — Yemen Arab Republic, complex
-  YD: 12, // South Yemen — Marxist PDRY
+  BH: { name:'Bahrain', loyal:65, file:'bahrain', flag:'svg' }, // Bahrain — pro-Western, just independent
+  CY: { name:'Cyprus', loyal:55, file:'cyprus', flag:'svg' }, // Cyprus — non-aligned
+  IR: { name:'Iran', loyal:82, file:'iran', flag:'png' }, // Iran — Shah, strongly pro-US, CENTO
+  IQ: { name:'Iraq', loyal:18, file:'iraq', flag:'svg' }, // Iraq — Ba'athist, Treaty of Friendship with USSR 1972
+  IL: { name:'Israel', loyal:92, file:'israel', flag:'svg' }, // Israel — very close US ally
+  JO: { name:'Jordan', loyal:72, file:'jordan', flag:'svg' }, // Jordan — King Hussein, stable pro-US
+  KW: { name:'Kuwait', loyal:65, file:'kuwait', flag:'svg' }, // Kuwait — oil, pro-Western
+  LB: { name:'Lebanon', loyal:62, file:'lebanon', flag:'svg' }, // Lebanon — Western-oriented
+  OM: { name:'Oman', loyal:65, file:'oman', flag:'svg' }, // Oman — Qaboos, British/US-backed
+  QA: { name:'Qatar', loyal:62, file:'qatar', flag:'svg' }, // Qatar
+  SA: { name:'Saudi Arabia', loyal:75, file:'saudi-arabia', flag:'svg' }, // Saudi Arabia — key oil ally, anti-communist
+  SY: { name:'Syria', loyal:18, file:'syria', flag:'svg' }, // Syria — Assad Ba'athist, Soviet ally
+  AE: { name:'United Arab Emirates', loyal:65, file:'united-arab-emirates', flag:'svg' }, // United Arab Emirates — pro-Western
+  YE: { name:'North Yemen', loyal:42, file:'yemen-sana', flag:'svg' }, // North Yemen — Yemen Arab Republic, complex
+  YD: { name:'South Yemen', loyal:12, file:'yemen-aden', flag:'svg' }, // South Yemen — Marxist PDRY
 
   // ── South Asia ───────────────────────────────────────────────────────────
-  AF: 38, // Afghanistan — non-aligned, Soviet influence growing
-  BD: 38, // Bangladesh — new country; US backed Pakistan in 1971 war
-  BT: 45, // Bhutan — Indian protectorate
-  IN: 38, // India — non-aligned but clear Soviet tilt
-  MV: 50, // Maldives
-  NP: 50, // Nepal — non-aligned
-  PK: 72, // Pakistan — key US ally, Nixon's China backchannel
-  CE: 42, // Ceylon — Bandaranaike, socialist, non-aligned
-  SK: 48, // Sikkim — Indian protectorate
+  AF: { name:'Afghanistan', loyal:38, file:'afghanistan', flag:'svg' }, // Afghanistan — non-aligned, Soviet influence growing
+  BD: { name:'Bangladesh', loyal:38, file:'bangladesh', flag:'svg' }, // Bangladesh — new country; US backed Pakistan in 1971 war
+  BT: { name:'Bhutan', loyal:45, file:'bhutan', flag:'svg' }, // Bhutan — Indian protectorate
+  IN: { name:'India', loyal:38, file:'india', flag:'svg' }, // India — non-aligned but clear Soviet tilt
+  MV: { name:'Maldives', loyal:50, file:'maldives', flag:'svg' }, // Maldives
+  NP: { name:'Nepal', loyal:50, file:'nepal', flag:'svg' }, // Nepal — non-aligned
+  PK: { name:'Pakistan', loyal:72, file:'pakistan', flag:'svg' }, // Pakistan — key US ally, Nixon's China backchannel
+  CE: { name:'Ceylon', loyal:42, file:'sri-lanka', flag:'svg' }, // Ceylon — Bandaranaike, socialist, non-aligned
+  SK: { name:'Sikkim', loyal:48, file:'sikkim', flag:'svg' }, // Sikkim — Indian protectorate
 
   // ── Southeast Asia ───────────────────────────────────────────────────────
-  KH: 62, // Cambodia — Lon Nol (US-backed after Sihanouk ousted 1970)
-  ID: 68, // Indonesia — Suharto, anti-communist, US-backed
-  LA: 55, // Laos — RLG pro-US, complicated civil war
-  MY: 60, // Malaysia — anti-communist, pro-Western
-  BU: 35, // Burma — Ne Win, strict neutrality/isolation
-  PH: 72, // Philippines — Marcos, US bases (Subic Bay, Clark)
-  SG: 65, // Singapore — Lee Kuan Yew, anti-communist
-  TH: 72, // Thailand — military govt, US Vietnam War staging
-  VD:  8, // North Vietnam — at war with the US
-  VN: 78, // South Vietnam — US ally, Thieu government
+  KH: { name:'Cambodia', loyal:62, file:'cambodia', flag:'svg' }, // Cambodia — Lon Nol (US-backed after Sihanouk ousted 1970)
+  ID: { name:'Indonesia', loyal:68, file:'indonesia', flag:'svg' }, // Indonesia — Suharto, anti-communist, US-backed
+  LA: { name:'Laos', loyal:55, file:'laos', flag:'svg' }, // Laos — RLG pro-US, complicated civil war
+  MY: { name:'Malaysia', loyal:60, file:'malaysia', flag:'svg' }, // Malaysia — anti-communist, pro-Western
+  BU: { name:'Burma', loyal:35, file:'burma', flag:'svg' }, // Burma — Ne Win, strict neutrality/isolation
+  PH: { name:'Philippines', loyal:72, file:'philippines', flag:'svg' }, // Philippines — Marcos, US bases (Subic Bay, Clark)
+  SG: { name:'Singapore', loyal:65, file:'singapore', flag:'svg' }, // Singapore — Lee Kuan Yew, anti-communist
+  TH: { name:'Thailand', loyal:72, file:'thailand', flag:'svg' }, // Thailand — military govt, US Vietnam War staging
+  VD: { name:'North Vietnam', loyal:8, file:'vietnam-north', flag:'svg' }, // North Vietnam — at war with the US
+  VN: { name:'South Vietnam', loyal:78, file:'vietnam-south', flag:'svg' }, // South Vietnam — US ally, Thieu government
 
   // ── East Asia ────────────────────────────────────────────────────────────
-  CN: 30, // China (PRC) — Nixon's Feb 1972 visit; Shanghai Communiqué
-  JP: 85, // Japan — key ally, rebuilt under US umbrella
-  KP: 10, // North Korea — Kim Il-sung, hostile
-  KR: 82, // South Korea — key ally (troops in Vietnam)
-  MN: 18, // Mongolia — Soviet satellite
-  TW: 78, // Taiwan (ROC) — US ally; Shanghai Communiqué complicated things
+  CN: { name:'China', loyal:30, file:'china-people-s-republic-of', flag:'svg' }, // China (PRC) — Nixon's Feb 1972 visit; Shanghai Communiqué
+  JP: { name:'Japan', loyal:85, file:'japan', flag:'svg' }, // Japan — key ally, rebuilt under US umbrella
+  KP: { name:'North Korea', loyal:10, file:'korea-north', flag:'svg' }, // North Korea — Kim Il-sung, hostile
+  KR: { name:'South Korea', loyal:82, file:'korea-south', flag:'svg' }, // South Korea — key ally (troops in Vietnam)
+  MN: { name:'Mongolia', loyal:18, file:'mongolia', flag:'svg' }, // Mongolia — Soviet satellite
+  TW: { name:'Taiwan', loyal:78, file:'china-republic-of', flag:'svg' }, // Taiwan (ROC) — US ally; Shanghai Communiqué complicated things
 
   // ── Oceania ──────────────────────────────────────────────────────────────
-  AU: 85, // Australia — ANZUS, strong ally
-  FJ: 65, // Fiji — Commonwealth, pro-Western
-  NR: 55, // Nauru — just independent 1968
-  NZ: 80, // New Zealand — ANZUS (though withdrawing from Vietnam)
-  WS: 55, // Western Samoa
-  TO: 58, // Tonga
-  VU: 58, // New Hebrides — Anglo-French condominium
+  AU: { name:'Australia', loyal:85, file:'australia', flag:'svg' }, // Australia — ANZUS, strong ally
+  FJ: { name:'Fiji', loyal:65, file:'fiji', flag:'svg' }, // Fiji — Commonwealth, pro-Western
+  NR: { name:'Nauru', loyal:55, file:'nauru', flag:'svg' }, // Nauru — just independent 1968
+  NZ: { name:'New Zealand', loyal:80, file:'new-zealand', flag:'svg' }, // New Zealand — ANZUS (though withdrawing from Vietnam)
+  WS: { name:'Western Samoa', loyal:55, file:'western-samoa', flag:'svg' }, // Western Samoa
+  TO: { name:'Tonga', loyal:58, file:'tonga', flag:'svg' }, // Tonga
+  VU: { name:'New Hebrides', loyal:58, file:'new-hebrides', flag:'svg' }, // New Hebrides — Anglo-French condominium
 
   // ── Easter egg ───────────────────────────────────────────────────────────
-  EP:  1, // Little St James
+  EP: { name:'Little St James', loyal:1, file:'little-st-james', flag:'svg' }, // Little St James
 };
+const COUNTRY_LOYAL = Object.fromEntries(
+    Object.entries(COUNTRIES).filter(([, v]) => v.loyal != null).map(([k, v]) => [k, v.loyal])
+);
 
 // Smooth gradient: red (0) -> gray (50) -> blue (100)
 function _loyalColour(score) {
@@ -12007,7 +12016,132 @@ var MentalState = 0;
 var ApprovalRating = 62;
 var CongressionalSupport = 6;
 var RepublicanSupport = 9;
-var Vietnam = 6;
+// ── WORLD EVENTS ─────────────────────────────────────────────────────────────
+// To add a new event:
+//   1. Declare its variable here  (1 = showing, 0 = hidden, 3 = crossed out)
+//   2. Add its entry to _EVENT_DEFS below
+// ─────────────────────────────────────────────────────────────────────────────
+var Vietnam        = 6;  // Vietnam War (also used for other game logic)
+var chad           = 1;  // Chadian Civil War
+var khmer          = 1;  // Cambodian Civil War
+var laos           = 1;  // Laotian Civil War
+var eritrea        = 1;  // Eritrean War of Independence
+var managua        = 0;  // Managua Earthquake        (triggered by question onShow)
+var cyprusInvasion = 0;  // Turkish Invasion of Cyprus (triggered by question onShow)
+
+// ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
+// Add a new entry here whenever you add a variable above.
+// Fields: id, continent, type, label, img, body, country/positionFn, state()
+// continent must match exactly: 'Africa' | 'Asia' | 'Europe' | 'North America' | 'Oceania' | 'South America'
+// ─────────────────────────────────────────────────────────────────────────────
+const _EVENT_DEFS = [
+    {
+        id: 'ni-troubles',
+        continent: 'Europe',
+        type: 'insurgency',
+        label: 'The Troubles — Northern Ireland',
+        img: null, // TODO: e.g. 'https://file.garden/.../ni_troubles.jpg'
+        body: 'Rooted in the 1921 partition and systematic discrimination against the Catholic minority under Protestant rule. Civil unrest from 1969 escalated into armed conflict by both sides. British forces killed 14 unarmed civilians on Bloody Sunday, 30 January 1972, sharply accelerating IRA recruitment. Westminster assumed direct rule of the province in March 1972. The security situation is deteriorating.',
+        positionFn: (s) => {
+            const ie = s.querySelector('#IE');
+            if (ie) { try { const b = ie.getBBox(); return { x: b.x + b.width + 2, y: b.y + b.height * 0.2 }; } catch(e) {} }
+            return { x: 488, y: 196 };
+        },
+        state: () => 1,
+    },
+    {
+        id: 'vietnam-war',
+        continent: 'Asia',
+        type: 'war',
+        label: 'Vietnam War',
+        img: null, // TODO: e.g. 'https://file.garden/.../vietnam.jpg'
+        body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. The political cost at home continues to mount.',
+        country: 'VD',
+        state: () => (typeof Vietnam !== 'undefined') && Vietnam <= 7 ? 1 : 3,
+    },
+    {
+        id: 'khmer-civil-war',
+        continent: 'Asia',
+        type: 'war',
+        label: 'Cambodian Civil War',
+        img: null, // TODO: e.g. 'https://file.garden/.../cambodia.jpg'
+        body: 'A 1970 coup aided by the US removed Prince Sihanouk and installed the Lon Nol government. Lon Nol, paralysed by a stroke and absorbed by the occult, is losing his grip on reality. The Khmer Rouge, previously a marginal force, now controls large areas of the countryside despite the slaughter of USAF saturation bombing. The government\'s hold on the cities is increasingly precarious.',
+        country: 'KH',
+        state: () => khmer,
+    },
+    {
+        id: 'laotian-civil-war',
+        continent: 'Asia',
+        type: 'war',
+        label: 'Laotian Civil War',
+        img: null, // TODO: e.g. 'https://file.garden/.../laos.jpg'
+        body: 'The Royal Lao Government has fought the communist Pathet Lao since 1953, with North Vietnamese forces providing decisive support to the insurgents. The CIA maintains a secret army of Hmong fighters under General Vang Pao, conducting unconventional warfare across the Plain of Jars. US bombing of the Ho Chi Minh Trail has made Laos the most heavily bombed country per capita in history. Congress and the public remain largely unaware of the scale of American involvement.',
+        country: 'LA',
+        state: () => laos,
+    },
+    {
+        id: 'managua-quake',
+        continent: 'North America',
+        type: 'disaster',
+        label: 'Managua Earthquake',
+        img: null, // TODO: e.g. 'https://file.garden/.../managua.jpg'
+        body: 'A 6.2-magnitude earthquake struck the Nicaraguan capital on December 23, 1972, killing over 10,000 and levelled much of the city centre.',
+        country: 'NI',
+        state: () => managua,
+    },
+    {
+        id: 'cyprus-invasion',
+        continent: 'Europe',
+        type: 'war',
+        label: 'Turkish Invasion of Cyprus',
+        img: null, // TODO: e.g. 'https://file.garden/.../cyprus.jpg'
+        body: 'Following a Greek Cypriot coup backed by the Athens junta, Turkey invaded Cyprus in July 1974. The island is now partitioned between Greek and Turkish zones.',
+        country: 'CY',
+        state: () => cyprusInvasion,
+    },
+    {
+        id: 'chad-civil-war',
+        continent: 'Africa',
+        type: 'insurgency',
+        label: 'Chadian Civil War',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9783.jpeg',
+        body: 'Chad has been engulfed in civil conflict since 1965, when northern Muslim populations rose against the southern-dominated government of François Tombalbaye. The rebel FROLINAT movement draws support from Libya\'s Muammar Gaddafi, who has territorial designs on the uranium-rich Aozou Strip. French forces have intervened repeatedly to prop up the Chadian government, but the insurgency continues to expand.',
+        country: 'TD',
+        state: () => chad,
+    },
+    {
+        id: 'guatemala-civil-war',
+        continent: 'North America',
+        type: 'war',
+        label: 'Guatemalan Civil War',
+        img: null, // TODO: e.g. 'https://file.garden/.../guatemala.jpg'
+        body: 'A CIA-backed coup in 1954 overthrew the elected government of Jacobo Árbenz and installed a succession of military regimes, triggering an armed insurgency that has persisted since 1960. Leftist guerrilla groups operating from the highlands have been met with systematic counter-insurgency operations, including US-trained security forces and government-linked death squads. The conflict has claimed tens of thousands of lives and shows no sign of resolution.',
+        country: 'GT',
+        state: () => 1,
+    },
+    {
+        id: 'rhodesia-bush-war',
+        continent: 'Africa',
+        type: 'insurgency',
+        label: 'Rhodesian Bush War',
+        img: null, // TODO: e.g. 'https://file.garden/.../rhodesia.jpg'
+        body: 'Ian Smith\'s white-minority government declared independence from Britain in November 1965, triggering international sanctions and diplomatic isolation. Guerrilla forces backed by Mozambique and Zambia have been conducting cross-border operations since 1972, escalating pressure on Salisbury. Britain refuses to recognise the regime; the United States maintains limited covert contact.',
+        country: 'RH',
+        state: () => 1,
+    },
+    {
+        id: 'eritrean-war',
+        continent: 'Africa',
+        type: 'insurgency',
+        label: 'Eritrean War of Independence',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9784.jpeg',
+        body: 'Eritrea was federated with Ethiopia in 1952 and formally annexed in 1962 by Emperor Haile Selassie, triggering an armed independence movement that has persisted since 1961. The Eritrean Liberation Front now contests large areas of the territory. Ethiopia is a key US ally in the Horn of Africa; Washington has maintained silence on Selassie\'s suppression of the insurgency.',
+        country: 'ET',
+        state: () => eritrea,
+    },
+];
+// ── END WORLD EVENTS ──────────────────────────────────────────────────────────
+
 var Haldeman = 2;
 var Erlichman = 2;
 var Mitchell = 1;
@@ -12379,7 +12513,7 @@ function updateCampaignSign() {
 }
 
 function addInnerCircleButton() {
-    // Rename the electoral map button every time this fires (reliable timing via _gameObserver)
+    // Rename the electoral map button every time this fires (reliable timing via the shared game-window observer)
     const electoralBtn = document.getElementById('view_electoral_map');
     if (electoralBtn && electoralBtn.textContent.trim() !== 'Maps') electoralBtn.textContent = 'Maps';
 
@@ -12399,19 +12533,19 @@ function addInnerCircleButton() {
 
 // ── Legal Pad ─────────────────────────────────────────────────────────────────
 const _LP_CRIMES = [
-    { varName: 'wiretapping',      label: 'Illegal Wiretapping' },
-    { varName: 'Ellsberg',         label: "Break-In at Ellsberg's Psychiatrist" },
-    { varName: 'taxEvasion',       label: 'Presidential Tax Fraud' },
-    { varName: 'homeImprovements', label: 'Federal Funds Used for Private Residences' },
-    { varName: 'Cambodia',         label: 'Secret Bombing of Cambodia' },
-    { varName: 'ratfucking',       label: 'Dirty Tricks' },
-    { varName: 'ITT',              label: 'ITT: Dita Beard' },
-    { varName: 'FakeCables',       label: 'Forged State Dept. Cables' },
-    { varName: 'MilkFund',         label: 'Dairy Industry Bribery' },
-    { varName: 'Vesco',            label: 'Illegal Vesco Campaign Contribution' },
-    { varName: 'oojHush',          label: 'Obstruction of Justice: Hush Money' },
-    { varName: 'oojClemency',      label: 'Obstruction of Justice: Clemency' },
-    { varName: 'dncbreakin',       label: 'Break-In at the Watergate' },
+    { val: () => wiretapping,      label: 'Illegal Wiretapping' },
+    { val: () => Ellsberg,         label: "Break-In at Ellsberg's Psychiatrist" },
+    { val: () => taxEvasion,       label: 'Presidential Tax Fraud' },
+    { val: () => homeImprovements, label: 'Federal Funds Used for Private Residences' },
+    { val: () => Cambodia,         label: 'Secret Bombing of Cambodia' },
+    { val: () => ratfucking,       label: 'Dirty Tricks' },
+    { val: () => ITT,              label: 'ITT: Dita Beard' },
+    { val: () => FakeCables,       label: 'Forged State Dept. Cables' },
+    { val: () => MilkFund,         label: 'Dairy Industry Bribery' },
+    { val: () => Vesco,            label: 'Illegal Vesco Campaign Contribution' },
+    { val: () => oojHush,          label: 'Obstruction of Justice: Hush Money' },
+    { val: () => oojClemency,      label: 'Obstruction of Justice: Clemency' },
+    { val: () => dncbreakin,       label: 'Break-In at the Watergate' },
 ];
 
 var _legalPadScreen = 0; // 0 = High Crimes tab, 1+ = future tabs
@@ -12424,7 +12558,7 @@ function _lpCrimesHTML() {
     ];
     let html = '';
     tiers.forEach(({ level, heading }) => {
-        const items = _LP_CRIMES.filter(c => window[c.varName] === level);
+        const items = _LP_CRIMES.filter(c => c.val() === level);
         if (!items.length) return;
         html += `<div style="margin-bottom:10px;">
             <div style="font-family:'TypewriterDry',monospace;font-size:11px;font-weight:bold;
@@ -13728,13 +13862,58 @@ const _visitAdvisorImages = [
 ].filter(Boolean);
 
 let _lastQuestionPK = null;
-const _gameObserver = new MutationObserver((() => {
+const _newEvents = new Set(); // event ids that became active this question — shown red
+function _markEventNew(id) { _newEvents.add(id); }
+
+// ── MAP EVENT TIMER ───────────────────────────────────────────────────────────
+// Use _scheduleAfterQuestions(n, fn) inside any questionData onShow callback
+// to change a world-event state automatically after n questions have elapsed.
+// Event states: 0 = hidden, 1 = showing, 3 = crossed out (legal pad only).
+//
+// Example — earthquake appears for 2 questions then vanishes (state → 0):
+//   450: { date: "December 1972", onShow: () => {
+//       managua = 1;
+//       _scheduleAfterQuestions(2, () => { managua = 0; });
+//   }, signImg: '...', historical: null },
+//
+// Example — invasion appears, then stays as a crossed-out past event (state → 3):
+//   680: { onShow: () => {
+//       cyprusInvasion = 1;
+//       _scheduleAfterQuestions(3, () => { cyprusInvasion = 3; });
+//   } },
+//
+// Use n=1 for a single-question flash; n=2 for two questions; etc.
+// ─────────────────────────────────────────────────────────────────────────────
+let _questionCount = 0;
+const _questionTimers = [];
+function _scheduleAfterQuestions(n, fn) {
+    _questionTimers.push({ fireAt: _questionCount + n, fn });
+}
+// ── END MAP EVENT TIMER ───────────────────────────────────────────────────────
+// Shared #game_window observer (defined idempotently in Code 1; redefined here
+// so Code 2 works even if loaded first). One MutationObserver, many subscribers.
+window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
+    const subs = [];
     let _pending = false;
-    return () => {
+    const run = () => {
+        _pending = false;
+        for (let i = 0; i < subs.length; i++) { try { subs[i](); } catch (e) {} }
+    };
+    const obs = new MutationObserver(() => {
         if (_pending) return;
         _pending = true;
-        requestAnimationFrame(() => {
-            _pending = false;
+        requestAnimationFrame(run);
+    });
+    (function attach() {
+        const gw = document.getElementById('game_window');
+        if (gw) obs.observe(gw, { childList: true, subtree: true });
+        else requestAnimationFrame(attach);
+    })();
+    return function (cb) { subs.push(cb); try { cb(); } catch (e) {} };
+})();
+
+window.__onGameWindowMutation(() => {
+        {
             updateTypewriterVisibility();
             updateCampaignSign();
             addInnerCircleButton();
@@ -13743,14 +13922,32 @@ const _gameObserver = new MutationObserver((() => {
                 const currentPK = campaignTrail_temp.questions_json?.[e.question_number]?.pk ?? null;
                 if (currentPK !== _lastQuestionPK) {
                     _lastQuestionPK = currentPK;
+                    _questionCount++;
+                    for (let i = _questionTimers.length - 1; i >= 0; i--) {
+                        if (_questionCount >= _questionTimers[i].fireAt) {
+                            _questionTimers[i].fn();
+                            _questionTimers.splice(i, 1);
+                        }
+                    }
                     const qd = (currentPK != null && questionData[currentPK]) || {};
                     if (qd.signImg) changeImage(qd.signImg);
+                    _newEvents.clear();
+                    if (qd.onShow) qd.onShow();
                     if (qd.transition && !_shownTransitions.has(currentPK) && document.getElementById('question_form')) {
                         showSectionTransition(qd.transition, currentPK);
                     }
                     document.querySelectorAll('.game_answer_row').forEach((row, i) => {
                         row.style.setProperty('--answer-i-delay', `${i * 60}ms`);
                     });
+                }
+
+                // Retry: if question_form wasn't in the DOM when the PK first changed, show the
+                // transition now that it's available (e.g. after the outcome screen clears).
+                if (_lastQuestionPK != null) {
+                    const _qd = questionData[_lastQuestionPK] || {};
+                    if (_qd.transition && !_shownTransitions.has(_lastQuestionPK) && document.getElementById('question_form')) {
+                        showSectionTransition(_qd.transition, _lastQuestionPK);
+                    }
                 }
 
                 if (_lastQuestionPK != null) {
@@ -13776,10 +13973,8 @@ const _gameObserver = new MutationObserver((() => {
             if (noFeedbackBtn && !noFeedbackBtn.dataset.historicalHooked) {
                 injectHistoricalButton(noFeedbackBtn, _lastQuestionPK);
             }
-        });
-    };
-})());
-_gameObserver.observe(document.getElementById('game_window'), { childList: true, subtree: true });
+        }
+});
 
 const tooltipList = [
     {
@@ -14565,12 +14760,66 @@ document.body.appendChild(honk);
         return `<p class="fd-head">High Crimes &amp; Misdemeanours</p>` + _lpCrimesHTML();
     }
 
+    function _buildWorld() {
+        const defs = _EVENT_DEFS;
+
+        const continents = ['Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America'];
+        let h = `<p class="fd-head">World Affairs</p>`;
+
+        for (const continent of continents) {
+            const events = defs.filter(d => d.continent === continent);
+            h += `<p style="font-family:Georgia,serif;font-size:12px;font-weight:bold;margin:8px 0 2px 0;color:#3a2000;">${continent}</p>`;
+
+            const visibleEvents = events.filter(d => d.state() !== 0);
+
+            if (visibleEvents.length === 0) {
+                h += `<p style="color:#aaa;font-size:10px;margin:0 0 4px 14px;">—</p>`;
+            } else {
+                for (const def of visibleEvents) {
+                    const st = def.state();
+                    const isNew = _newEvents.has(def.id);
+                    let style = 'font-size:11px;margin:1px 0 1px 14px;';
+                    if (st === 1 && isNew) style += 'color:#cc0000;font-weight:bold;';
+                    else if (st === 3)      style += 'text-decoration:line-through;color:#999;';
+                    h += `<p style="${style}">• ${def.label}</p>`;
+                }
+            }
+        }
+
+        // ── Globe button — opens World Map ────────────────────────────────────
+        h += `<div style="text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid #c8b87a;">
+            <img id="fd-world-globe-btn" src="https://file.garden/aXPgNT-ZRCxxpy0g/globeicon.png" title="Open World Map" style="width:40px;height:40px;cursor:pointer;display:inline-block;">
+        </div>`;
+
+        return h;
+    }
+
     function _refresh() {
         const pad = document.getElementById('fd-pad');
         if (!pad) return;
         const which = document.querySelector('.fd-tab.fd-active')?.dataset.tab;
         if (which === 'nation') pad.innerHTML = _buildNation();
         else if (which === 'crimes') pad.innerHTML = _buildCrimes();
+        else if (which === 'world') {
+            pad.innerHTML = _buildWorld();
+            const gb = pad.querySelector('#fd-world-globe-btn');
+            if (gb) gb.addEventListener('click', () => {
+                _close();
+                const mapsBtn = document.getElementById('view_electoral_map');
+                if (!mapsBtn) { openWorldMap(); return; }
+                const gw = document.getElementById('game_window');
+                gw.style.visibility = 'hidden';
+                let _done = false;
+                const _obs = new MutationObserver(() => {
+                    if (_done) return;
+                    const wmBtn = document.getElementById('world_map_button');
+                    if (wmBtn) { _done = true; _obs.disconnect(); gw.style.visibility = ''; wmBtn.click(); }
+                });
+                _obs.observe(document.body, { childList: true, subtree: true });
+                mapsBtn.click();
+                setTimeout(() => { if (!_done) { _done = true; _obs.disconnect(); gw.style.visibility = ''; openWorldMap(); } }, 3000);
+            });
+        }
     }
 
     /* ── Drag ── */
@@ -14617,6 +14866,7 @@ document.body.appendChild(honk);
         [
             { label: 'State of the Nation',         key: 'nation' },
             { label: 'High Crimes & Misdemeanours', key: 'crimes' },
+            { label: 'World Affairs',               key: 'world'  },
         ].forEach(({ label, key }, i) => {
             const t = document.createElement('button');
             t.className = 'fd-tab' + (i === 0 ? ' fd-active' : '');
@@ -14667,13 +14917,11 @@ document.body.appendChild(honk);
         anchor.insertAdjacentElement('afterend', btn);
     }
 
-    const gw = document.getElementById('game_window');
-    if (gw) {
-        new MutationObserver(() => {
-            _injectBtn();
-            _refresh();
-        }).observe(gw, { childList: true, subtree: true });
-    }
+    // Folded into the shared #game_window observer instead of a 4th observer.
+    window.__onGameWindowMutation(() => {
+        _injectBtn();
+        _refresh();
+    });
 })();
 
 /* ── Electoral map path simplification (Ramer-Douglas-Peucker) ── */
@@ -15241,99 +15489,34 @@ campaignTrail_temp.jet_data = [{
 const PAGES_BASE = 'https://evil-knevil69.github.io/ACOTP';
 const SVG_URL    = PAGES_BASE + '/worldmapNEW_labeledv2.svg';
 
-const COUNTRY_NAMES = {
-  AL:'Albania',AD:'Andorra',AT:'Austria',BE:'Belgium',BG:'Bulgaria',
-  CS:'Czechoslovakia',DD:'East Germany',DE:'West Germany',DK:'Denmark',
-  ES:'Spain',FI:'Finland',FR:'France',GB:'United Kingdom',GR:'Greece',
-  HU:'Hungary',IE:'Ireland',IS:'Iceland',IT:'Italy',LI:'Liechtenstein',
-  LU:'Luxembourg',MC:'Monaco',MT:'Malta',NL:'Netherlands',NO:'Norway',
-  PL:'Poland',PT:'Portugal',RO:'Romania',SM:'San Marino',
-  SU:'Soviet Union',SE:'Sweden',CH:'Switzerland',TR:'Turkey',
-  VA:'Vatican City',YU:'Yugoslavia',BS:'Bahamas',BB:'Barbados',
-  CA:'Canada',CR:'Costa Rica',CU:'Cuba',DO:'Dominican Republic',
-  SV:'El Salvador',GT:'Guatemala',HT:'Haiti',HN:'Honduras',JM:'Jamaica',
-  MX:'Mexico',NI:'Nicaragua',PA:'Panama',TT:'Trinidad and Tobago',
-  GD:'Grenada',US:'United States',AR:'Argentina',BO:'Bolivia',BR:'Brazil',
-  CL:'Chile',CO:'Colombia',EC:'Ecuador',GY:'Guyana',PY:'Paraguay',
-  PE:'Peru',UY:'Uruguay',VE:'Venezuela',DZ:'Algeria',DY:'Dahomey',
-  BW:'Botswana',BI:'Burundi',CM:'Cameroon',CF:'Central African Republic',
-  TD:'Chad',CG:'Congo',ZR:'Zaire',EG:'Egypt',GQ:'Equatorial Guinea',
-  ET:'Ethiopia',GA:'Gabon',GM:'Gambia',GH:'Ghana',GN:'Guinea',
-  HV:'Upper Volta',CI:'Ivory Coast',KE:'Kenya',LS:'Lesotho',LR:'Liberia',
-  LY:'Libya',MG:'Malagasy Republic',MW:'Malawi',ML:'Mali',MR:'Mauritania',
-  MU:'Mauritius',MA:'Morocco',SWA:'South West Africa',NE:'Niger',
-  NG:'Nigeria',RH:'Rhodesia',RW:'Rwanda',SN:'Senegal',SL:'Sierra Leone',
-  SO:'Somalia',ZA:'South Africa',SD:'Sudan',SZ:'Swaziland',TZ:'Tanzania',
-  TG:'Togo',TN:'Tunisia',UG:'Uganda',ZM:'Zambia',BH:'Bahrain',
-  CY:'Cyprus',IR:'Iran',IQ:'Iraq',IL:'Israel',JO:'Jordan',KW:'Kuwait',
-  LB:'Lebanon',OM:'Oman',QA:'Qatar',SA:'Saudi Arabia',SY:'Syria',
-  AE:'United Arab Emirates',YE:'North Yemen',YD:'South Yemen',
-  AF:'Afghanistan',BD:'Bangladesh',BT:'Bhutan',IN:'India',MV:'Maldives',
-  NP:'Nepal',PK:'Pakistan',CE:'Ceylon',SK:'Sikkim',KH:'Cambodia',
-  ID:'Indonesia',LA:'Laos',MY:'Malaysia',BU:'Burma',PH:'Philippines',
-  SG:'Singapore',TH:'Thailand',VD:'North Vietnam',VN:'South Vietnam',
-  CN:'China',JP:'Japan',KP:'North Korea',KR:'South Korea',MN:'Mongolia',
-  TW:'Taiwan',AU:'Australia',FJ:'Fiji',NR:'Nauru',NZ:'New Zealand',
-  WS:'Western Samoa',TO:'Tonga',VU:'New Hebrides',EP:'Little St James'
-};
-
-const CODE_TO_FILE = {
-  AF:'afghanistan',AL:'albania',DZ:'algeria',AD:'andorra',
-  AR:'argentina',AU:'australia',AT:'austria',BH:'bahrain',
-  BS:'bahamas',BD:'bangladesh',BB:'barbados',BE:'belgium',
-  BT:'bhutan',BO:'bolivia',BW:'botswana',BR:'brazil',
-  BG:'bulgaria',BI:'burundi',KH:'cambodia',CM:'cameroon',CA:'canada',
-  CF:'central-african-republic',TD:'chad',CL:'chile',
-  CN:'china-people-s-republic-of',TW:'china-republic-of',
-  CO:'colombia',CG:'congo',CR:'costa-rica',CU:'cuba',CY:'cyprus',
-  CS:'czechoslovakia',DY:'dahomey',DK:'denmark',DO:'dominican-republic',
-  EC:'ecuador',EG:'egypt',SV:'el-salvador',GQ:'equatorial-guinea',
-  ET:'ethiopia',FJ:'fiji',FI:'finland',FR:'france',GA:'gabon',
-  GM:'gambia',GH:'ghana',DE:'germany-west',DD:'germany-east',
-  GR:'greece',GD:'grenada',GT:'guatemala',GN:'guinea',GY:'guyana',
-  HT:'haiti',HN:'honduras',HU:'hungary',IS:'iceland',IN:'india',
-  ID:'indonesia',IR:'iran',IQ:'iraq',IE:'ireland',IL:'israel',
-  IT:'italy',CI:'ivory-coast',JM:'jamaica',JP:'japan',JO:'jordan',
-  KE:'kenya',KP:'korea-north',KR:'korea-south',KW:'kuwait',LA:'laos',
-  LB:'lebanon',LS:'lesotho',LR:'liberia',LY:'libya',LI:'liechtenstein',
-  EP:'little-st-james',LU:'luxembourg',MG:'madagascar',MW:'malawi',
-  MY:'malaysia',MV:'maldives',ML:'mali',MT:'malta',MR:'mauritania',
-  MU:'mauritius',MX:'mexico',MC:'monaco',MN:'mongolia',MA:'morocco',
-  NR:'nauru',NP:'nepal',NL:'netherlands',NZ:'new-zealand',
-  VU:'new-hebrides',NI:'nicaragua',NE:'niger',NG:'nigeria',NO:'norway',
-  OM:'oman',PK:'pakistan',PA:'panama',PY:'paraguay',PE:'peru',
-  PH:'philippines',PL:'poland',PT:'portugal',QA:'qatar',RH:'rhodesia',
-  RO:'romania',RW:'rwanda',SA:'saudi-arabia',SN:'senegal',
-  SL:'sierra-leone',SG:'singapore',SO:'somalia',ZA:'south-africa',
-  SWA:'south-west-africa',ES:'spain',CE:'sri-lanka',SD:'sudan',
-  SZ:'swaziland',SE:'sweden',CH:'switzerland',SY:'syria',TZ:'tanzania',
-  TH:'thailand',TG:'togo',TO:'tonga',TT:'trinidad-and-tobago',
-  TN:'tunisia',TR:'turkey',SU:'u-s-s-r',UG:'uganda',
-  AE:'united-arab-emirates',GB:'united-kingdom',US:'united-states',
-  HV:'upper-volta',UY:'uruguay',VA:'vatican-city',VE:'venezuela',
-  VD:'vietnam-north',VN:'vietnam-south',WS:'western-samoa',
-  YD:'yemen-aden',YE:'yemen-sana',YU:'yugoslavia',ZR:'zaire',
-  ZM:'zambia',SK:'sikkim',BU:'burma',SM:'san-marino',
-};
-
-// Flags stored as .png rather than .svg (embedded raster originals)
-const FLAG_PNG = new Set(['IR','RO']);
-
-// All 154 country flags served from GitHub Pages (flags/*.svg or *.png)
-const FLAG_URLS = Object.fromEntries(
-  ['AD','AE','AF','AL','AR','AT','AU','BB','BD','BE','BG','BH','BI','BO',
-   'BR','BS','BT','BU','BW','CA','CE','CF','CG','CH','CI','CL','CM','CN',
-   'CO','CR','CS','CU','CY','DD','DE','DK','DO','DY','DZ','EC','EG','EP',
-   'ES','ET','FI','FJ','FR','GA','GB','GD','GH','GM','GN','GQ','GR','GT',
-   'GY','HN','HT','HU','HV','ID','IE','IL','IN','IQ','IR','IS','IT','JM',
-   'JO','JP','KE','KH','KP','KR','KW','LA','LB','LI','LR','LS','LU','LY',
-   'MA','MC','MG','ML','MN','MR','MT','MU','MV','MW','MX','MY','NE','NG',
-   'NI','NL','NO','NP','NR','NZ','OM','PA','PE','PH','PK','PL','PT','PY',
-   'QA','RH','RO','RW','SA','SD','SE','SG','SK','SL','SM','SN','SO','SU',
-   'SV','SWA','SY','SZ','TD','TG','TH','TN','TO','TR','TT','TW','TZ','UG',
-   'US','UY','VA','VD','VE','VN','VU','WS','YD','YE','YU','ZA','ZM','ZR']
-  .map(c => [c, PAGES_BASE + '/flags/' + c + (FLAG_PNG.has(c) ? '.png' : '.svg')])
+const COUNTRY_NAMES = Object.fromEntries(
+    Object.entries(COUNTRIES).filter(([, v]) => v.name != null).map(([k, v]) => [k, v.name])
 );
+
+const CODE_TO_FILE = Object.fromEntries(
+    Object.entries(COUNTRIES).filter(([, v]) => v.file != null).map(([k, v]) => [k, v.file])
+);
+
+
+// Flag assets served from GitHub Pages; extension comes from COUNTRIES[code].flag
+const FLAG_URLS = Object.fromEntries(
+    Object.entries(COUNTRIES).filter(([, v]) => v.flag).map(([k, v]) => [k, PAGES_BASE + '/flags/' + k + '.' + v.flag])
+);
+
+// Countries with confirmed .ogg anthem files on GitHub Pages
+const ANTHEM_COUNTRIES = new Set([
+  'AD','AE','AF','AL','AR','AT','AU','BB','BD','BE','BG','BH','BI','BO',
+  'BR','BS','BT','BU','BW','CA','CE','CF','CG','CH','CI','CL','CN','CO',
+  'CR','CS','CU','CY','DD','DE','DK','DO','DY','DZ','EC','EG','ES','ET',
+  'FI','FJ','FR','GA','GB','GD','GH','GM','GN','GQ','GR','GT','GY','HN',
+  'HT','HU','HV','ID','IE','IL','IN','IQ','IR','IS','IT','JM','JO','JP',
+  'KE','KH','KP','KR','KW','LA','LB','LI','LR','LS','LU','LY','MA','MC',
+  'MG','ML','MR','MT','MU','MV','MW','MX','MY','NE','NG','NI','NL','NO',
+  'NP','NR','NZ','OM','PA','PE','PH','PK','PL','PT','PY','QA','RH','RO',
+  'RW','SA','SD','SE','SG','SK','SL','SM','SN','SO','SU','SV','SWA','SY',
+  'SZ','TD','TG','TH','TN','TO','TR','TT','TW','TZ','UG','US','UY','VA',
+  'VD','VE','VN','VU','WS','YD','YE','YU','ZA','ZM','ZR'
+]);
 
 // ── Inject "World Map" button into #map_footer ──────────────────────────────
 function _addWorldMapBtn() {
@@ -15349,7 +15532,7 @@ function _addWorldMapBtn() {
     const btn = document.createElement('button');
     btn.id = 'world_map_button';
     btn.textContent = 'World Map';
-    btn.style.cssText = 'position:absolute;z-index:10;left:' + (naturalLeft - 915) + 'px;top:' + (naturalTop + 41) + 'px;';
+    btn.style.cssText = 'position:absolute;z-index:10;left:' + (naturalLeft - 915) + 'px;top:' + (naturalTop + 6) + 'px;';
     btn.addEventListener('click', openWorldMap);
     gw.appendChild(btn);
 }
@@ -15358,6 +15541,7 @@ function _addWorldMapBtn() {
 function openWorldMap() {
     document.getElementById('world-map-container')?.remove();
     document.getElementById('wm-tooltip')?.remove();
+    document.getElementById('wm-event-tooltip')?.remove();
 
     const gw = document.getElementById('game_window');
 
@@ -15371,6 +15555,22 @@ function openWorldMap() {
     tooltip.style.cssText = 'position:fixed;z-index:9999;background:rgba(255,255,255,0.92);backdrop-filter:blur(6px);padding:4px 10px;border-radius:3px;font-family:TypewriterDry,monospace;font-size:13px;color:#111;pointer-events:none;display:none;white-space:nowrap;box-shadow:1px 2px 6px rgba(0,0,0,0.35);';
     document.body.appendChild(tooltip);
 
+    // Polaroid-style tooltip for map event icons — matches #tooltip-portal at 80% scale
+    const evTooltip = document.createElement('div');
+    evTooltip.id = 'wm-event-tooltip';
+    evTooltip.style.cssText = 'position:fixed;z-index:9999;width:216px;background:rgba(255,255,255,0.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:2px 2px 11px 2px;border-radius:2px;box-shadow:2px 2px 8px rgba(0,0,0,0.4),0 0 1px rgba(0,0,0,0.2);pointer-events:none;display:none;text-align:center;';
+    document.body.appendChild(evTooltip);
+
+    // Shared edge-aware tooltip positioner (used by both the flag and event tooltips)
+    const _placeTip = (tip, ev, pad = 14) => {
+        const tw = tip.offsetWidth, th = tip.offsetHeight;
+        let x = ev.clientX + pad, y = ev.clientY + pad;
+        if (x + tw > window.innerWidth)  x = ev.clientX - tw - pad;
+        if (y + th > window.innerHeight) y = ev.clientY - th - pad;
+        tip.style.left = x + 'px';
+        tip.style.top  = y + 'px';
+    };
+
     // Full-window container
     const container = document.createElement('div');
     container.id = 'world-map-container';
@@ -15379,7 +15579,7 @@ function openWorldMap() {
     // SVG viewport fills all space above control bar
     const viewport = document.createElement('div');
     viewport.id = 'wm-viewport';
-    viewport.style.cssText = 'flex:1;overflow:hidden;position:relative;cursor:default;';
+    viewport.style.cssText = 'flex:1;overflow:hidden;position:relative;cursor:default;user-select:none;';
 
     // Control bar at the bottom
     const bar = document.createElement('div');
@@ -15394,6 +15594,7 @@ function openWorldMap() {
         mapCleanup.forEach(fn => fn());
         container.remove();
         tooltip.remove();
+        evTooltip.remove();
         hiddenEls.forEach(el => { el.style.display = ''; });
     });
     bar.appendChild(backBtn);
@@ -15414,6 +15615,7 @@ function openWorldMap() {
     const smallFlagCodes = new Set();
     let flagOverlayG = null;
     let vScrollTrack, vScrollThumb, hScrollTrack, hScrollThumb;
+    let _updateIconVis = () => {};
 
     function doZoom(factor) {
         const vw = viewport.clientWidth || 989;
@@ -15613,6 +15815,263 @@ function openWorldMap() {
             }
             buildFlagOverlay();
 
+            // ── Map event icons ──────────────────────────────────────────────
+            // SVG shapes, all centred on (0,0), ~22px diameter.
+            const _evNS = 'http://www.w3.org/2000/svg';
+            const _ICON_SHAPES = {
+                // 8-point starburst — war / military conflict
+                war: [
+                    { tag: 'path', attrs: { d: 'M 0,-11 L 1.9,-4.6 L 7.8,-7.8 L 4.6,-1.9 L 11,0 L 4.6,1.9 L 7.8,7.8 L 1.9,4.6 L 0,11 L -1.9,4.6 L -7.8,7.8 L -4.6,1.9 L -11,0 L -4.6,-1.9 L -7.8,-7.8 L -1.9,-4.6 Z', fill: '#CC0000', stroke: '#5a0000', 'stroke-width': '0.8' } },
+                ],
+                // AK-47 silhouette (inlined from ak47.svg, viewBox 0 0 279.98 233.07)
+                insurgency: [
+                    { tag: 'path', attrs: { d: 'm 118.23977,234.20849 c 0.34598,-2.14526 2.87487,-26.14339 5.61975,-53.32918 l 4.99068,-49.42872 -2.17292,-2.31297 -2.17293,-2.31298 -3.0835,2.34741 c -4.92103,3.74629 -11.25418,6.63597 -14.54365,6.63597 h -3.03984 v 10.37756 c 0,8.15493 0.33209,10.65316 1.55056,11.6644 0.8528,0.70777 1.4153,2.41214 1.25,3.7875 -0.25871,2.15243 -1.20572,2.75564 -6.800565,4.33169 -7.966607,2.24418 -11.359217,2.31588 -13.052287,0.27585 -0.86268,-1.03947 -1.44952,-6.05498 -1.752,-14.97373 -0.41643,-12.27847 -0.62217,-13.46385 -2.436779,-14.03978 -1.13582,-0.3605 -2.51336,-0.0515 -3.2267,0.72373 -0.68462,0.74403 -11.4276,13.35476 -23.87329,28.02386 -23.90586,28.1766 -27.86333,32.07185 -30.18238,29.70782 -2.23818,-2.28159 -20.5198912,-34.99979 -20.0139712,-35.81838 0.25798,-0.41741 14.8905112,-9.45305 32.5167512,-20.07919 l 32.0477,-19.32026 -0.58994,-3.14466 c -0.41319,-2.20246 -0.11761,-3.53667 0.98647,-4.45299 0.86704,-0.71957 1.57643,-2.36784 1.57643,-3.66281 0,-2.77579 -0.71629,-2.28102 22.999515,-15.886873 16.332846,-9.370199 18.463986,-10.884489 18.196046,-12.929189 -0.34967,-2.66829 4.75016,-7.58455 7.86775,-7.58455 1.20937,0 2.40812,-1.19201 3.26837,-3.25 1.72302,-4.12201 3.26081,-5.3258 7.86196,-6.15435 2.49473,-0.44923 3.9055,-1.33266 4.34636,-2.72168 0.81775,-2.57649 6.09263,-4.85801 9.65658,-4.17672 1.73892,0.33241 3.69141,-0.1797 5.49974,-1.4425 1.54203,-1.07684 4.24561,-2.23432 6.00796,-2.57218 2.58701,-0.49595 3.55386,-0.16986 5.01899,1.69276 l 1.81471,2.30703 20.24704,-10.95743 20.24704,-10.957424 4.91935,2.116248 c 7.28245,3.132824 9.9798,2.738307 20.03578,-2.930453 4.92388,-2.775686 9.21345,-5.468926 9.53239,-5.984978 0.31894,-0.516052 0.0813,-4.579836 -0.52811,-9.030631 -1.14698,-8.377035 -0.5325,-10.9376891 2.6247,-10.9376891 1.17992,0 5.91079,5.6064151 8.3111,9.8492491 0.9085,1.605867 4.07983,0.135675 18.27625,-8.4726601 5.24319,-3.1793313 9.38344,-5.1157143 9.59312,-4.4866783 0.2092,0.627623 1.38389,0.851898 2.71377,0.51812 1.88464,-0.473014 2.64834,-0.0017 3.8909,2.4011323 1.35995,2.6298361 1.36865,3.1368611 0.0723,4.2126941 -0.81046,0.672668 -1.47361,1.779245 -1.47361,2.459061 0,0.679815 -4.83223,4.084538 -10.73829,7.56605 -5.90606,3.481512 -12.69068,7.820314 -15.07693,9.641784 -2.38626,1.821469 -5.54153,3.593628 -7.01171,3.938132 -3.58116,0.839159 -22.96341,12.236233 -24.47488,14.391613 -1.56711,2.23473 -7.73932,5.973 -9.86982,5.97776 -2.61326,0.006 -24.07825,13.24327 -24.5789,15.15777 -0.24613,0.94119 -2.20312,2.87307 -4.34888,4.29306 l -3.90138,2.58181 3.0004,5.31641 c 1.65021,2.92402 3.00039,6.14364 3.00039,7.15469 0,2.08769 -3.73288,9.027613 -11.69558,21.743642 l -5.47521,8.74365 1.8354,3.70189 c 1.41019,2.84429 2.81998,4.02341 6.08539,5.08969 2.3375,0.76329 4.24017,1.9128 4.22816,2.55446 -0.012,0.64167 -1.0589,5.66667 -2.32643,11.16667 -2.1851,9.48155 -2.44626,10.0167 -5.03722,10.32212 -1.50295,0.17717 -2.93766,0.85642 -3.18825,1.50944 -0.25059,0.65303 1.79091,13.55208 4.53667,28.66456 3.91205,21.53164 4.72666,27.71523 3.76468,28.57714 -2.61041,2.33886 -31.73544,14.35197 -50.72761,20.92345 -5.225,1.8079 -10.33849,3.62845 -11.36332,4.04567 -1.68389,0.68552 -1.80275,0.38298 -1.23427,-3.14191 z m 51.37521,-79.56762 c -0.21398,-0.64194 -4.41398,-2.7832 -9.33334,-4.75837 -9.83724,-3.94975 -16.63767,-7.66294 -23.33808,-12.74314 -4.749,-3.60064 -6.1062,-4.05336 -6.1062,-2.03683 0,3.10823 17.8801,14.09148 29.77415,18.28944 7.55985,2.66822 9.5695,2.94699 9.00347,1.2489 z m 7.22238,-19.76189 c 0,-0.51097 -2.44474,-1.63975 -5.43275,-2.50839 -10.7461,-3.12397 -29.37909,-15.12834 -33.78744,-21.76768 -1.03427,-1.55768 -1.95238,-1.93893 -3.3521,-1.39194 -1.69083,0.66074 -1.14075,1.49574 4.47649,6.7951 7.86979,7.42445 18.03684,14.10128 26.3359,17.29512 6.47055,2.49014 11.7599,3.1998 11.7599,1.57779 z m -63.11803,-6.26817 c 4.89898,-2.97513 5.2604,-3.75019 3.3036,-7.08445 -2.55349,-4.35099 -3.62015,-4.93309 -6.57365,-3.58738 -3.13772,1.42964 -3.18953,1.86501 -0.61192,5.14191 1.1,1.39842 2,2.80911 2,3.13486 0,1.2924 -3.63985,0.43841 -6,-1.40773 -3.42499,-2.67907 -4.33886,-2.48624 -3.52801,0.74441 1.46261,5.82751 5.20042,6.82941 11.40998,3.05838 z m 41.00381,-34.565013 c 1.98782,-1.461289 3.80172,-2.787579 4.03089,-2.947329 0.22916,-0.15975 0.15848,-0.54863 -0.15707,-0.86419 -0.97833,-0.97832 -6.39003,2.34582 -9.14048,5.614549 -1.66588,1.979784 -2.60098,4.267573 -2.56928,6.285923 l 0.0499,3.17327 2.08593,-4.30267 c 1.14727,-2.366469 3.71234,-5.498273 5.70016,-6.959553 z m -24.79007,4.046614 c 1.59736,-0.94358 2.90429,-2.068584 2.90429,-2.500004 0,-0.43141 1.73429,-0.78439 3.85398,-0.78439 2.72489,0 4.64426,-0.73241 6.55152,-2.499999 1.74906,-1.62097 3.86265,-2.5 6.01116,-2.5 1.82249,0 4.45779,-0.9 5.85621,-2 2.97695,-2.34167 7.42078,-2.54628 10.16826,-0.46819 1.06762,0.8075 3.09262,1.45018 4.5,1.42815 l 2.55887,-0.04 -2.75,-1.4919 c -3.07378,-1.66755 -3.49019,-2.93 -1.25,-3.78965 3.405,-1.30662 1.20348,-2.29306 -2.98072,-1.33557 -6.23496,1.42676 -11.98034,-0.35992 -14.05432,-4.37056 -0.85068,-1.64504 -1.31638,-3.36362 -1.0349,-3.81908 0.28149,-0.45546 5.25265,-2.51718 11.04702,-4.58161 10.0591,-3.58387 10.6484,-3.67935 13.03945,-2.11268 1.37732,0.90246 3.51205,3.19683 4.74384,5.0986 1.2318,1.90178 2.80213,3.46334 3.48963,3.47015 1.68158,0.0166 1.57354,-1.05877 -0.40336,-4.01511 -3.58408,-5.35979 -6.72549,-7.97251 -9.58575,-7.97251 -2.28393,0 -3.07693,-0.60814 -3.91032,-2.99881 -1.21272,-3.4788 -3.03222,-3.02589 -2.62664,0.65382 0.23905,2.16889 -0.39439,2.76285 -4.72393,4.42952 -2.75,1.05862 -5.47724,1.74451 -6.06053,1.52421 -0.58328,-0.2203 -1.61385,-2.24739 -2.29014,-4.50464 -1.15717,-3.86229 -2.08245,-4.83765 -3.36888,-3.55121 -0.30409,0.30408 0.0876,2.66658 0.87047,5.25 1.34741,4.44649 1.31466,4.77032 -0.61378,6.06908 -3.19635,2.15268 -2.72918,7.58984 0.96995,11.28897 3.42249,3.42249 3.13814,4.83906 -0.97135,4.83906 -2.66616,0 -3.14859,-0.69592 -7.62539,-11 -4.35334,-10.01988 -6.41035,-13.13881 -6.41035,-9.71964 0,0.7042 1.575,5.01483 3.5,9.57918 1.925,4.56435 3.5,9.35605 3.5,10.64821 0,3.21946 -2.71126,5.66347 -5.87572,5.29654 -2.15861,-0.25029 -3.36177,-1.71832 -6.78034,-8.27297 -3.76379,-7.21657 -6.34394,-10.34667 -6.34394,-7.69614 0,0.55102 1.575,4.28832 3.5,8.30512 4.00718,8.36157 4.27381,10.375199 1.56574,11.824519 -3.98597,2.133224 -5.88318,1.194274 -10.08295,-4.990169 -2.25046,-3.31394 -4.52457,-5.75784 -5.05358,-5.4309 -1.05795,0.65385 -0.87571,1.05529 3.23743,7.13128 5.35753,7.914232 7.47329,8.832172 12.92907,5.609363 z m 72.00969,-37.980373 c 6.17029,-3.68279 10.77104,-6.84521 10.22389,-7.02759 -1.18425,-0.39475 -22.32399,11.88887 -22.32712,12.97357 -0.004,1.23345 0.43803,1.0165 12.10323,-5.94598 z m -4.50628,-7.83673 c 8.6725,-5.10404 11.28651,-7.49329 8.15088,-7.45005 -1.89418,0.0261 -19.04438,10.36591 -19.50989,11.76244 -0.75312,2.25935 1.91161,1.2477 11.35901,-4.31239 z m 36.97844,-11.55923 c 10.03625,-5.866203 12.38992,-7.553122 8.67244,-6.215694 -3.74549,1.347506 -20.25,10.708884 -20.25,11.485814 0,1.3904 0.82436,1.01516 11.57756,-5.27012 z M 256.8153,23.267635 c -1.33989,-2.452788 -2.81115,-4.459614 -3.26947,-4.459614 -0.45831,0 0.39254,2.252255 1.89077,5.005011 1.49824,2.752755 2.9695,4.759582 3.26947,4.459614 0.29997,-0.299968 -0.55088,-2.552223 -1.89077,-5.005011 z m -10.56054,-4.593261 c -1.19963,-1.941044 -3.4174,-0.780285 -3.4174,1.788635 0,2.581086 0.055,2.605201 1.97642,0.866353 1.08703,-0.983749 1.73547,-2.178494 1.44098,-2.654988 z', transform: 'scale(0.0786) translate(-145, -121)', fill: '#CC0000' } },
+                ],
+                // Lightning bolt — natural disaster
+                disaster: [
+                    { tag: 'polygon', attrs: { points: '4,-11 -2,0 2,0 -5,11 1,0 -3,0', fill: '#5AACF0', stroke: '#1A6FAA', 'stroke-width': '0.8' } },
+                ],
+                // Exclamation mark in circle — political crisis
+                crisis: [
+                    { tag: 'circle', attrs: { r: '10.5', fill: 'none', stroke: '#CC0000', 'stroke-width': '2' } },
+                    { tag: 'rect',   attrs: { x: '-1.5', y: '-7', width: '3', height: '9', fill: '#CC0000' } },
+                    { tag: 'rect',   attrs: { x: '-1.5', y: '4', width: '3', height: '3', fill: '#CC0000' } },
+                ],
+                // Tank — coup d'état
+                coup: [
+                    { tag: 'g', attrs: { transform: 'scale(0.046) translate(-225,-225)' }, children: [
+                        { tag: 'path', attrs: { fill: '#000000', d: 'M 152.4 104 C 130.217 104 112.067 122.15 112.067 144.333 L 112.067 176.6 C 112.067 189.87 122.997 200.8 136.267 200.8 L 136.267 208.867 L 74.508 208.867 C 65.782 208.871 57.292 211.701 50.308 216.933 L 26.608 234.583 L 23.333 237.1 L 23.333 264.075 L 23.583 264.075 C 23.93 268.326 25.197 272.706 27.617 276.675 L 53.833 319.025 C 64.123 335.754 82.343 345.961 101.983 346 L 348.017 346 C 367.657 345.961 385.877 335.754 396.167 319.025 L 422.383 276.675 C 424.707 272.854 426.09 268.535 426.417 264.075 L 426.667 264.075 L 426.667 237.1 L 423.392 234.575 L 399.692 216.933 C 392.708 211.701 384.218 208.871 375.492 208.867 L 273.4 208.867 L 273.4 200.8 L 274.658 200.8 C 291.114 200.8 302.803 184.005 297.35 168.533 L 426.667 168.533 L 426.667 128.2 L 282.475 128.2 C 276.13 113.514 261.665 104.004 245.667 104 Z M 152.4 120.133 L 245.675 120.133 C 255.879 120.133 264.857 126.401 268.358 136.017 L 282.225 173.825 C 284.209 179.31 280.523 184.667 274.658 184.667 L 136.267 184.667 C 131.701 184.667 128.2 181.166 128.2 176.6 L 128.2 144.333 C 128.2 130.878 138.945 120.133 152.4 120.133 Z M 288.525 144.333 L 410.533 144.333 L 410.533 152.4 L 291.55 152.4 Z M 152.4 200.8 L 257.267 200.8 L 257.267 208.867 L 152.4 208.867 Z M 74.508 225 L 375.492 225 C 380.727 225 385.922 226.638 390.117 229.792 L 410.533 245.167 L 410.533 247.942 L 39.467 247.942 L 39.467 245.167 L 59.883 229.792 C 64.114 226.659 69.244 224.978 74.508 225 Z M 39.967 264.075 L 410.033 264.075 C 409.711 265.527 409.396 266.939 408.517 268.358 L 382.55 310.708 C 375.135 322.646 362.069 329.894 348.017 329.867 L 101.983 329.867 C 87.931 329.894 74.865 322.646 67.45 310.708 L 41.483 268.358 C 40.596 266.939 40.289 265.519 39.967 264.075 Z M 104 329.867 C 121.747 329.867 136.267 315.347 136.267 297.6 C 136.267 279.853 121.747 265.333 104 265.333 C 86.253 265.333 71.733 279.853 71.733 297.6 C 71.733 315.347 86.253 329.867 104 329.867 Z M 184.667 329.867 C 202.413 329.867 216.933 315.347 216.933 297.6 C 216.933 279.853 202.413 265.333 184.667 265.333 C 166.92 265.333 152.4 279.853 152.4 297.6 C 152.4 315.347 166.92 329.867 184.667 329.867 Z M 265.333 329.867 C 283.08 329.867 297.6 315.347 297.6 297.6 C 297.6 279.853 283.08 265.333 265.333 265.333 C 247.587 265.333 233.067 279.853 233.067 297.6 C 233.067 315.347 247.587 329.867 265.333 329.867 Z M 346 329.867 C 363.747 329.867 378.267 315.347 378.267 297.6 C 378.267 279.853 363.747 265.333 346 265.333 C 328.253 265.333 313.733 279.853 313.733 297.6 C 313.733 315.347 328.253 329.867 346 329.867 Z M 104 281.467 C 113.01 281.467 120.133 288.59 120.133 297.6 C 120.133 306.61 113.01 313.733 104 313.733 C 94.99 313.733 87.867 306.61 87.867 297.6 C 87.867 288.59 94.99 281.467 104 281.467 Z M 184.667 281.467 C 193.677 281.467 200.8 288.59 200.8 297.6 C 200.8 306.61 193.677 313.733 184.667 313.733 C 175.656 313.733 168.533 306.61 168.533 297.6 C 168.533 288.59 175.656 281.467 184.667 281.467 Z M 265.333 281.467 C 274.344 281.467 281.467 288.59 281.467 297.6 C 281.467 306.61 274.344 313.733 265.333 313.733 C 256.323 313.733 249.2 306.61 249.2 297.6 C 249.2 288.59 256.323 281.467 265.333 281.467 Z M 346 281.467 C 355.01 281.467 362.133 288.59 362.133 297.6 C 362.133 306.61 355.01 313.733 346 313.733 C 336.99 313.733 329.867 306.61 329.867 297.6 C 329.867 288.59 336.99 281.467 346 281.467 Z' } },
+                    ] },
+                ],
+                // Mushroom cloud — nuclear attack
+                nuclear: [
+                    { tag: 'g', attrs: { transform: 'scale(0.17) translate(-50,-50)' }, children: [
+                        { tag: 'path', attrs: { fill: '#E8E4E3', d: 'M23.353,34.17c1.168,3.312,4.326,5.688,8.039,5.688c2.765,0,5.222-1.318,6.779-3.359c1.246,1.686,3.118,2.88,5.273,3.241c1.047,4.205,4.848,7.321,9.376,7.321c4.103,0,7.603-2.555,9.008-6.161c1.035,0.411,2.163,0.638,3.343,0.638c4.299,0,7.899-2.99,8.839-7.004c0.979,0.336,2.027,0.522,3.121,0.522c5.305,0,9.606-4.3,9.606-9.604c0-5.269-4.243-9.545-9.498-9.603c-1.336-3.388-4.638-5.788-8.497-5.788c-3.855,0-7.149,2.388-8.491,5.764c-0.797-0.439-1.66-0.767-2.574-0.964c0.002-0.112,0.008-0.223,0.008-0.335C57.685,6.504,51.181,0,43.158,0c-7.814,0-14.185,6.17-14.51,13.905c-1.417-0.695-3.011-1.087-4.697-1.087c-5.902,0-10.685,4.784-10.685,10.685C13.264,29.205,17.729,33.861,23.353,34.17z' } },
+                        { tag: 'path', attrs: { fill: '#E8E4E3', d: 'M65.236,43.64c-0.506,0-1.008-0.031-1.507-0.089c-2.441,3.483-6.43,5.611-10.843,5.611c-5.353,0-10.083-3.18-12.161-7.955c-0.888-0.332-1.73-0.768-2.509-1.298c-1.968,1.327-4.302,2.049-6.758,2.049c-0.299,0-0.596-0.014-0.892-0.036c-0.087,0.403-0.135,0.819-0.135,1.247c0,3.256,2.641,5.896,5.896,5.896c0.036,0,0.071-0.004,0.106-0.005c-0.064,0.388-0.106,0.784-0.106,1.191c0,3.911,3.17,7.081,7.081,7.081c3.307,0,6.078-2.271,6.855-5.335c0.159-0.039,0.318-0.076,0.476-0.124c0.523,3.099,3.212,5.459,6.459,5.459c3.623,0,6.559-2.936,6.559-6.558c0-0.277-0.021-0.55-0.055-0.818c0.59,0.139,1.208,0.22,1.843,0.22c4.444,0,8.051-3.604,8.051-8.049c0-0.512-0.051-1.013-0.142-1.499C71.226,42.521,68.352,43.64,65.236,43.64z' } },
+                        { tag: 'path', attrs: { fill: '#E8E4E3', d: 'M63.196,84.069c-3.962,0.821-8.43,1.26-13.071,1.26c-4.642,0-9.112-0.438-13.072-1.263c-4.092,4.753-9.678,7.29-9.678,7.29c0,4.774,10.186,8.644,22.75,8.644s22.75-3.869,22.75-8.644C72.875,91.356,67.289,88.819,63.196,84.069z' } },
+                        { tag: 'path', attrs: { fill: '#E8E4E3', d: 'M50.125,77.767c3.231,0,6.408-0.243,9.312-0.702c-1.141-4.294-1.927-11.099-2.454-17.401c-0.419,0.062-0.849,0.099-1.286,0.099c-2.06,0-3.971-0.698-5.487-1.889c-1.575,1.196-3.53,1.889-5.619,1.889c-0.449,0-0.89-0.041-1.323-0.103c-0.526,6.302-1.314,13.109-2.456,17.404C43.718,77.523,46.895,77.767,50.125,77.767z' } },
+                        { tag: 'path', attrs: { fill: '#E8E4E3', d: 'M60.051,65.345c0.223,1.481,0.469,2.876,0.733,4.135c1.958,0.353,3.782,0.801,5.421,1.343c4.197,1.389,5.614,2.875,5.863,3.342c-0.249,0.465-1.665,1.954-5.863,3.339c-4.373,1.447-10.081,2.243-16.08,2.243c-5.997,0-11.707-0.796-16.08-2.243c-4.197-1.385-5.616-2.874-5.865-3.339c0.249-0.467,1.667-1.953,5.865-3.342c1.637-0.542,3.462-0.99,5.419-1.343c0.267-1.259,0.512-2.653,0.734-4.135c-9.396,1.435-16.005,4.841-16.005,8.818c0,5.271,11.608,9.543,25.931,9.543c14.322,0,25.931-4.271,25.931-9.543C76.057,70.186,69.447,66.779,60.051,65.345z' } },
+                    ] },
+                ],
+            };
+
+            // ── EVENT DEFINITIONS ────────────────────────────────────────────────────
+            // Add new events here. Fields:
+            //   type        — icon shape key from _ICON_SHAPES
+            //   label       — title shown in the tooltip header
+            //   img         — photo/map URL for the polaroid image (null = placeholder)
+            //   body        — 1–2 sentence description shown below the title
+            //   country     — SVG path id whose centroid is used for placement
+            //   positionFn     — full manual placement fn(svg) → {x,y}; overrides centroid
+            //   positionOffset — {x,y} nudge added after centroid (e.g. positionOffset:{x:5,y:-10})
+            //   state()     — returns 0 (hidden), 1 (visible), or 3 (crossed out in legal pad only)
+            //
+            // ── TOOLTIP CONTENT — update img + body for each event ───────────────────
+            const _EVENT_DEFS = [
+                {
+                    id: 'ni-troubles',
+                    continent: 'Europe',
+                    type: 'insurgency',
+                    label: 'The Troubles — Northern Ireland',
+                    img: null, // TODO: e.g. 'https://file.garden/.../ni_troubles.jpg'
+                    body: 'Rooted in the 1921 partition and systematic discrimination against the Catholic minority under Protestant rule. Civil unrest from 1969 escalated into armed conflict by both sides. British forces killed 14 unarmed civilians on Bloody Sunday, 30 January 1972, sharply accelerating IRA recruitment. Westminster assumed direct rule of the province in March 1972. The security situation is deteriorating.',
+                    positionFn: (s) => {
+                        const ie = s.querySelector('#IE');
+                        if (ie) { try { const b = ie.getBBox(); return { x: b.x + b.width + 2, y: b.y + b.height * 0.2 }; } catch(e) {} }
+                        return { x: 488, y: 196 };
+                    },
+                    state: () => 1,
+                },
+                {
+                    id: 'vietnam-war',
+                    continent: 'Asia',
+                    type: 'war',
+                    label: 'Vietnam War',
+                    img: null, // TODO: e.g. 'https://file.garden/.../vietnam.jpg'
+                    body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. The political cost at home continues to mount.',
+                    country: 'VD',
+                    state: () => (typeof Vietnam !== 'undefined') && Vietnam <= 7 ? 1 : 3,
+                },
+                {
+                    id: 'khmer-civil-war',
+                    continent: 'Asia',
+                    type: 'war',
+                    label: 'Cambodian Civil War',
+                    img: null, // TODO: e.g. 'https://file.garden/.../cambodia.jpg'
+                    body: 'A 1970 coup aided by the US removed Prince Sihanouk and installed the Lon Nol government. Lon Nol, paralysed by a stroke and absorbed by the occult, is losing his grip on reality. The Khmer Rouge, previously a marginal force, now controls large areas of the countryside despite the slaughter of USAF saturation bombing. The government\'s hold on the cities is increasingly precarious.',
+                    country: 'KH',
+                    state: () => khmer,
+                },
+                {
+                    id: 'laotian-civil-war',
+                    continent: 'Asia',
+                    type: 'war',
+                    label: 'Laotian Civil War',
+                    img: null, // TODO: e.g. 'https://file.garden/.../laos.jpg'
+                    body: 'The Royal Lao Government has fought the communist Pathet Lao since 1953, with North Vietnamese forces providing decisive support to the insurgents. The CIA maintains a secret army of Hmong fighters under General Vang Pao, conducting unconventional warfare across the Plain of Jars. US bombing of the Ho Chi Minh Trail has made Laos the most heavily bombed country per capita in history. Congress and the public remain largely unaware of the scale of American involvement.',
+                    country: 'LA',
+                    state: () => laos,
+                },
+                {
+                    id: 'managua-quake',
+                    continent: 'North America',
+                    type: 'disaster',
+                    label: 'Managua Earthquake',
+                    img: null, // TODO: e.g. 'https://file.garden/.../managua.jpg'
+                    body: 'A 6.2-magnitude earthquake struck the Nicaraguan capital on December 23, 1972, killing over 10,000 and levelling much of the city centre.',
+                    country: 'NI',
+                    state: () => managua,
+                },
+                {
+                    id: 'cyprus-invasion',
+                    continent: 'Europe',
+                    type: 'war',
+                    label: 'Turkish Invasion of Cyprus',
+                    img: null, // TODO: e.g. 'https://file.garden/.../cyprus.jpg'
+                    body: 'Following a Greek Cypriot coup backed by the Athens junta, Turkey invaded Cyprus in July 1974. The island is now partitioned between Greek and Turkish zones.',
+                    country: 'CY',
+                    state: () => cyprusInvasion,
+                },
+                {
+                    id: 'chad-civil-war',
+                    continent: 'Africa',
+                    type: 'insurgency',
+                    label: 'Chadian Civil War',
+                    img: null, // TODO: e.g. 'https://file.garden/.../chad.jpg'
+                    body: 'Chad has been engulfed in civil conflict since 1965, when northern Muslim populations rose against the southern-dominated government of François Tombalbaye. The rebel FROLINAT movement draws support from Libya\'s Muammar Gaddafi, who has territorial designs on the uranium-rich Aozou Strip. French forces have intervened repeatedly to prop up the Chadian government, but the insurgency continues to expand.',
+                    country: 'TD',
+                    state: () => chad,
+                },
+                {
+                    id: 'guatemala-civil-war',
+                    continent: 'North America',
+                    type: 'war',
+                    label: 'Guatemalan Civil War',
+                    img: null, // TODO: e.g. 'https://file.garden/.../guatemala.jpg'
+                    body: 'A CIA-backed coup in 1954 overthrew the elected government of Jacobo Árbenz and installed a succession of military regimes, triggering an armed insurgency that has persisted since 1960. Leftist guerrilla groups operating from the highlands have been met with systematic counter-insurgency operations, including US-trained security forces and government-linked death squads. The conflict has claimed tens of thousands of lives and shows no sign of resolution.',
+                    country: 'GT',
+                    state: () => 1,
+                },
+                {
+                    id: 'rhodesia-bush-war',
+                    continent: 'Africa',
+                    type: 'insurgency',
+                    label: 'Rhodesian Bush War',
+                    img: null, // TODO: e.g. 'https://file.garden/.../rhodesia.jpg'
+                    body: 'Ian Smith\'s white-minority government declared independence from Britain in November 1965, triggering international sanctions and diplomatic isolation. Guerrilla forces backed by Mozambique and Zambia have been conducting cross-border operations since 1972, escalating pressure on Salisbury. Britain refuses to recognise the regime; the United States maintains limited covert contact.',
+                    country: 'RH',
+                    state: () => 1,
+                },
+                {
+                    id: 'eritrean-war',
+                    continent: 'Africa',
+                    type: 'insurgency',
+                    label: 'Eritrean War of Independence',
+                    img: null, // TODO: e.g. 'https://file.garden/.../eritrea.jpg'
+                    body: 'Eritrea was federated with Ethiopia in 1952 and formally annexed in 1962 by Emperor Haile Selassie, triggering an armed independence movement that has persisted since 1961. The Eritrean Liberation Front now contests large areas of the territory. Ethiopia is a key US ally in the Horn of Africa; Washington has maintained silence on Selassie\'s suppression of the insurgency.',
+                    country: 'ET',
+                    state: () => eritrea,
+                },
+            ];
+            _worldEventDefs = _EVENT_DEFS;
+            // ── END TOOLTIP CONTENT ──────────────────────────────────────────────────
+
+            const _iconGroup = document.createElementNS(_evNS, 'g');
+            _iconGroup.id = 'wm-events';
+            svg.appendChild(_iconGroup);
+
+            const _iconNodes = [];
+            _EVENT_DEFS.forEach(def => {
+                const specs = _ICON_SHAPES[def.type];
+                if (!specs) return;
+
+                // Position
+                let px = 0, py = 0;
+                try {
+                    if (def.positionFn) {
+                        const pos = def.positionFn(svg);
+                        px = pos.x; py = pos.y;
+                    } else if (def.country) {
+                        const el = svg.querySelector('#' + def.country);
+                        if (el) { const b = el.getBBox(); px = b.x + b.width / 2; py = b.y + b.height / 2; }
+                    }
+                    if (def.positionOffset) { px += def.positionOffset.x || 0; py += def.positionOffset.y || 0; }
+                } catch(e) {}
+
+                const g = document.createElementNS(_evNS, 'g');
+                g.setAttribute('transform', 'translate(' + Math.round(px) + ',' + Math.round(py) + ')');
+
+                const _mkEl = (tag, attrs, children) => {
+                    const el = document.createElementNS(_evNS, tag);
+                    Object.entries(attrs || {}).forEach(([k, v]) => el.setAttribute(k, v));
+                    (children || []).forEach(c => el.appendChild(_mkEl(c.tag, c.attrs, c.children)));
+                    return el;
+                };
+                const shapeG = document.createElementNS(_evNS, 'g');
+                shapeG.setAttribute('transform', 'scale(0.6)');
+                specs.forEach(spec => shapeG.appendChild(_mkEl(spec.tag, spec.attrs, spec.children)));
+                g.appendChild(shapeG);
+
+                // Transparent hit area so hovering anywhere near the icon triggers events.
+                const _hit = document.createElementNS(_evNS, 'circle');
+                _hit.setAttribute('r', '14');
+                _hit.setAttribute('fill', 'transparent');
+                _hit.setAttribute('stroke', 'none');
+                _hit.setAttribute('pointer-events', 'all');
+                g.appendChild(_hit);
+
+                g.style.cursor = 'pointer';
+                g.setAttribute('pointer-events', 'all');
+
+                g.addEventListener('mouseenter', e => {
+                    const imgHtml = def.img
+                        ? `<img src="${def.img}" style="width:auto;max-width:160px;height:auto;display:block;margin:0 auto 2px auto">`
+                        : '';
+                    const labelHtml = `<span style="display:block;font-family:Georgia,serif;font-size:11px;font-weight:bold;color:#333;margin-bottom:2px">${def.label}</span>`;
+                    const bodyHtml = def.body
+                        ? `<span style="display:block;margin-top:2px;padding:3px;background:linear-gradient(135deg,rgba(255,255,255,0.95) 0%,rgba(240,240,240,0.9) 100%);box-shadow:inset 0 1px 2px rgba(255,255,255,0.8),0 1px 3px rgba(0,0,0,0.15);border-radius:2px"><span style="font-family:'PermanentMarker',cursive;font-size:10px;color:rgb(96,115,129);transform:rotate(-1.5deg) skewX(-3deg);display:block;line-height:1.45;letter-spacing:0.05em;text-align:left">${def.body}</span></span>`
+                        : '';
+                    evTooltip.innerHTML = imgHtml + labelHtml + bodyHtml;
+                    evTooltip.style.display = 'block';
+                    const _pad = 16;
+                    let _x = e.clientX + _pad, _y = e.clientY + _pad;
+                    if (_x + 216 > window.innerWidth) _x = e.clientX - 216 - _pad;
+                    evTooltip.style.left = _x + 'px';
+                    evTooltip.style.top  = _y + 'px';
+                });
+                g.addEventListener('mousemove', e => _placeTip(evTooltip, e, 16));
+                g.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
+
+                // Clicks and double-clicks pass through to the country path underneath.
+                const _fwdClick = (type, e) => {
+                    e.stopPropagation();
+                    g.style.pointerEvents = 'none';
+                    const under = document.elementFromPoint(e.clientX, e.clientY);
+                    g.style.pointerEvents = '';
+                    if (under && under !== g) under.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY }));
+                };
+                g.addEventListener('click',    e => _fwdClick('click', e));
+                g.addEventListener('dblclick', e => _fwdClick('dblclick', e));
+
+                g.style.display = 'none';
+                g.style.opacity = '0';
+                g.style.pointerEvents = 'none';
+                _iconGroup.appendChild(g);
+                _iconNodes.push({ g, def });
+            });
+
+            _updateIconVis = () => {
+                _iconNodes.forEach(({ g, def }) => {
+                    const show = def.state() === 1;
+                    try {
+                        g.style.display = show ? '' : 'none';
+                        g.style.opacity = show ? '' : '0';
+                        g.style.pointerEvents = show ? '' : 'none';
+                    } catch(e) {}
+                });
+            };
+            _updateIconVis();
+
             // ── Scrollbars ──────────────────────────────────────────────────
             // Created after innerHTML is set so they aren't wiped by SVG load.
             vScrollTrack = document.createElement('div');
@@ -15758,24 +16217,21 @@ function openWorldMap() {
                                       : v >= 3 ? 'Open Combat'
                                       : v >= 1 ? 'Tanks at the Gates of Saigon'
                                       : 'A Total Loss';
-                        const vColour = v >= 8 ? '#388e3c'
-                                      : v >= 7 ? '#aed581'
-                                      : v >= 6 ? '#ffeb3b'
-                                      : v >= 5 ? '#f9a825'
-                                      : v >= 3 ? '#ff9800'
-                                      : v >= 1 ? '#ffb300'
-                                      : '#f44336';
+                        const vColour = v >= 8 ? '#2e7d32'
+                                      : v >= 7 ? '#558b2f'
+                                      : v >= 6 ? '#b8860b'
+                                      : v >= 5 ? '#c66b00'
+                                      : v >= 3 ? '#d84315'
+                                      : v >= 1 ? '#b71c1c'
+                                      : '#7f0000';
                         extraLine = '<br><span style="color:' + vColour + ';font-weight:bold">Situation: ' + v + ' — ' + vText + '</span>';
                     }
-                    tooltip.innerHTML = flagImg + '<strong>' + COUNTRY_NAMES[code] + '</strong><br>'
+                    tooltip.innerHTML = flagImg + '<strong style="color:#111">' + COUNTRY_NAMES[code] + '</strong><br>'
                         + '<span style="color:' + colour + ';font-weight:bold">' + band + '</span>'
                         + extraLine;
                     tooltip.style.display = 'block';
                 });
-                el.addEventListener('mousemove', e => {
-                    tooltip.style.left = (e.clientX + 14) + 'px';
-                    tooltip.style.top  = (e.clientY - 28) + 'px';
-                });
+                el.addEventListener('mousemove', e => _placeTip(tooltip, e));
                 el.addEventListener('mouseleave', () => {
                     tooltip.style.display = 'none';
                 });
@@ -15818,10 +16274,10 @@ function openCIAProfile(code, mapPanel, tooltip) {
 
     const viewer = document.createElement('div');
     viewer.id = 'cia-profile-viewer';
-    viewer.style.cssText = 'position:absolute;top:0;left:0;width:989px;height:625px;z-index:510;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;';
+    viewer.style.cssText = 'position:absolute;top:0;left:0;width:989px;height:625px;z-index:510;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;user-select:none;';
 
     const bar = document.createElement('div');
-    bar.style.cssText = 'flex-shrink:0;height:44px;background:#000;display:flex;align-items:center;padding:0 12px;gap:12px;';
+    bar.style.cssText = 'flex-shrink:0;height:44px;background:#000;display:flex;align-items:center;padding:0 12px;gap:12px;overflow:hidden;';
 
     const backBtn = document.createElement('button');
     backBtn.textContent = '<- World Map';
@@ -15849,53 +16305,64 @@ function openCIAProfile(code, mapPanel, tooltip) {
     }
 
     const mainAudio = document.getElementById('audio');
-    const antAudio = new Audio(PAGES_BASE + '/anthems/' + code + '.ogg');
-    antAudio.preload = 'none';
-    let antActive = false, antWasPlaying = false;
 
-    const antBtn = document.createElement('button');
-    antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
-    antBtn.style.cssText = 'margin-left:8px;';
+    if (ANTHEM_COUNTRIES.has(code)) {
+        const antAudio = new Audio(PAGES_BASE + '/anthems/' + code + '.ogg');
+        antAudio.preload = 'none';
+        let antActive = false, antWasAudible = false;
 
-    function onAntEnded() { stopAnthem(true); }
-    function onMainResume() { stopAnthem(false); }
-
-    function stopAnthem(resumeMain) {
-        if (!antActive) return;
-        antActive = false;
-        antAudio.pause();
-        antAudio.currentTime = 0;
-        antAudio.removeEventListener('ended', onAntEnded);
-        if (mainAudio) mainAudio.removeEventListener('play', onMainResume);
+        const antBtn = document.createElement('button');
         antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
-        if (resumeMain && antWasPlaying && mainAudio) mainAudio.play().catch(() => {});
-    }
+        antBtn.style.cssText = 'margin:0 0 0 8px;height:28px;padding:0 8px;font-size:12px;line-height:28px;vertical-align:middle;box-sizing:border-box;';
 
-    antBtn.addEventListener('click', () => {
-        if (antActive) {
-            stopAnthem(true);
-        } else {
-            antActive = true;
-            antWasPlaying = !!(mainAudio && !mainAudio.paused);
-            antBtn.innerHTML = '&#9646;&#9646;&nbsp;National Anthem';
-            if (antWasPlaying) mainAudio.pause();
-            if (mainAudio) mainAudio.addEventListener('play', onMainResume);
+        function onAntEnded() { stopAnthem(true); }
+
+        function stopAnthem(resumeMain) {
+            if (!antActive) return;
+            antActive = false;
+            antAudio.pause();
             antAudio.currentTime = 0;
-            antAudio.play().catch(() => {
-                antActive = false;
-                antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
-                if (mainAudio) mainAudio.removeEventListener('play', onMainResume);
-                if (antWasPlaying && mainAudio) mainAudio.play().catch(() => {});
-            });
-            antAudio.addEventListener('ended', onAntEnded, { once: true });
+            antAudio.removeEventListener('ended', onAntEnded);
+            antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
+            if (window.__activeAnthemStop === stopAnthem) window.__activeAnthemStop = null;
+            if (resumeMain && antWasAudible && mainAudio) mainAudio.muted = false;
         }
-    });
 
-    bar.appendChild(antBtn);
+        antBtn.addEventListener('click', () => {
+            if (antActive) {
+                stopAnthem(true);
+            } else {
+                antActive = true;
+                // Stop any other country's anthem first so two never play over each other.
+                const _prevStop = window.__activeAnthemStop;
+                if (_prevStop && _prevStop !== stopAnthem) {
+                    const _prevWasAudible = window.__anthemMainWasAudible;
+                    _prevStop(false);                   // stop the other anthem; we take over main-audio handling
+                    antWasAudible = !!_prevWasAudible;  // inherit whether the tape was audible before anthems began
+                } else {
+                    antWasAudible = !!(mainAudio && !mainAudio.muted && !mainAudio.paused);
+                }
+                window.__activeAnthemStop = stopAnthem;
+                window.__anthemMainWasAudible = antWasAudible;
+                antBtn.innerHTML = '&#9646;&#9646;&nbsp;National Anthem';
+                if (antWasAudible && mainAudio) mainAudio.muted = true;
+                antAudio.currentTime = 0;
+                antAudio.play().catch(() => {
+                    antActive = false;
+                    antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
+                    if (window.__activeAnthemStop === stopAnthem) window.__activeAnthemStop = null;
+                    if (antWasAudible && mainAudio) mainAudio.muted = false;
+                });
+                antAudio.addEventListener('ended', onAntEnded, { once: true });
+            }
+        });
+
+        bar.appendChild(antBtn);
+    }
 
     const iframe = document.createElement('iframe');
     iframe.src = url;
-    iframe.sandbox = 'allow-same-origin';
+    iframe.sandbox = 'allow-same-origin allow-scripts';
     iframe.style.cssText = 'flex:1;border:none;width:100%;';
 
     viewer.appendChild(bar);

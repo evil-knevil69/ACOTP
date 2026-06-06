@@ -1289,21 +1289,19 @@ function replaceButtonText() {
         progressH3.dataset.animated = 'true';
         progressH3.classList.add('typewriter-name');
     }
- if (!document.body.dataset.candMusicHooked) {
-        document.body.dataset.candMusicHooked = 'true';
-        setInterval(() => {
-            const candSelect = document.getElementById('candidate_id');
-            if (candSelect && candSelect.value === '10701' && !candSelect.dataset.played) {
-                candSelect.dataset.played = 'true';
-                if (window.playlist && window.loadAndPlay) {
-                    window.playlist.currentSongIndex = 0;
-                    window.loadAndPlay();
-                }
+    // Play Nixon's theme when his candidate option is chosen. Hooked once, when
+    // the select appears (replaceButtonText runs on every game-window mutation).
+    const candSelect = document.getElementById('candidate_id');
+    if (candSelect && !candSelect.dataset.musicHooked) {
+        candSelect.dataset.musicHooked = 'true';
+        const _playIfNixon = () => {
+            if (candSelect.value === '10701' && window.playlist && window.loadAndPlay) {
+                window.playlist.currentSongIndex = 0;
+                window.loadAndPlay();
             }
-            if (candSelect && candSelect.value !== '10701') {
-                candSelect.dataset.played = '';
-            }
-        }, 200);
+        };
+        candSelect.addEventListener('change', _playIfNixon);
+        _playIfNixon(); // catch a value that is already selected
     }
        const advisorBtn = document.getElementById('AdvisorButton');
         if (advisorBtn && !advisorBtn.dataset.knobReplaced) {
@@ -1504,26 +1502,61 @@ function replaceRadioButtons() {
         }, true); // capture phase so it fires before engine handler
     }
 }
-const observer = new MutationObserver((() => {
+// ── Shared #game_window observer ──────────────────────────────────────────────
+// A single MutationObserver fans out to every subscriber, replacing the several
+// independent { childList, subtree } observers that previously each fired (and
+// each ran their own DOM sweeps) on every mutation. Defined idempotently on
+// window so Code 1 and Code 2 share one observer regardless of load order.
+window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
+    const subs = [];
     let _pending = false;
-    return () => {
+    const run = () => {
+        _pending = false;
+        for (let i = 0; i < subs.length; i++) { try { subs[i](); } catch (e) {} }
+    };
+    const obs = new MutationObserver(() => {
         if (_pending) return;
         _pending = true;
-        requestAnimationFrame(() => {
-            _pending = false;
-            replaceButtonText();
-            replaceRadioButtons();
-        });
-    };
-})());
+        requestAnimationFrame(run);
+    });
+    (function attach() {
+        const gw = document.getElementById('game_window');
+        if (gw) obs.observe(gw, { childList: true, subtree: true });
+        else requestAnimationFrame(attach);
+    })();
+    return function (cb) { subs.push(cb); try { cb(); } catch (e) {} };
+})();
 
 //event listeners, play music add watergate button, adjust image containers
-
-observer.observe(document.getElementById("game_window"), { childList: true, subtree: true });
+window.__onGameWindowMutation(() => {
+    replaceButtonText();
+    replaceRadioButtons();
+});
 
 // Draggable map panels
 let savedOverallLeft = '925px', savedOverallTop = '55px';
 let savedStateLeft = '925px', savedStateTop = '220px';
+
+// Shared drag dispatch: one pair of document listeners for ALL draggable panels
+// (previously each makeDraggable() call added its own document mousemove/mouseup,
+// which were never removed). The active panel is held in __dragState.
+let __dragState = null;
+document.addEventListener('mousemove', (e) => {
+    const d = __dragState;
+    if (!d) return;
+    d.el.style.left = (d.startLeft + e.clientX - d.startX) + 'px';
+    d.el.style.top  = (d.startTop  + e.clientY - d.startY) + 'px';
+    d.updatePin();
+});
+document.addEventListener('mouseup', () => {
+    const d = __dragState;
+    if (!d) return;
+    d.el.style.cursor = 'grab';
+    d.savedPos.left = d.el.style.left;
+    d.savedPos.top  = d.el.style.top;
+    d.updatePin();
+    __dragState = null;
+});
 
 function makeDraggable(elId, savedPos) {
     const el = document.getElementById(elId);
@@ -1549,57 +1582,30 @@ function makeDraggable(elId, savedPos) {
         pin.style.top = (el.offsetTop - 20) + 'px';
     }
 
-    let isDrag = false, startX, startY, startLeft, startTop;
-
     el.addEventListener('mousedown', (e) => {
         if (e.target.tagName === 'BUTTON') return;
-        isDrag = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        startLeft = el.offsetLeft;
-        startTop = el.offsetTop;
+        __dragState = {
+            el, savedPos, updatePin,
+            startX: e.clientX, startY: e.clientY,
+            startLeft: el.offsetLeft, startTop: el.offsetTop,
+        };
         el.style.cursor = 'grabbing';
         e.preventDefault();
-    });
-
-    document.addEventListener('mousemove', (e) => {
-        if (!isDrag) return;
-        el.style.left = (startLeft + e.clientX - startX) + 'px';
-        el.style.top = (startTop + e.clientY - startY) + 'px';
-        updatePin();
-    });
-
-    document.addEventListener('mouseup', () => {
-        if (!isDrag) return;
-        isDrag = false;
-        el.style.cursor = 'grab';
-        savedPos.left = el.style.left;
-        savedPos.top = el.style.top;
-        updatePin();
     });
 
     new MutationObserver(updatePin).observe(el, { attributes: true, attributeFilter: ['style'] });
 }
 
-const mapPanelObserver = new MutationObserver((() => {
-    let _pending = false;
-    return () => {
-        if (_pending) return;
-        _pending = true;
-        requestAnimationFrame(() => {
-            _pending = false;
-            const overall = document.getElementById('overall_result_container');
-            const state = document.getElementById('state_result_container');
-            if (overall && !overall.dataset.dragHooked) {
-                makeDraggable('overall_result_container', { left: savedOverallLeft, top: savedOverallTop });
-            }
-            if (state && !state.dataset.dragHooked) {
-                makeDraggable('state_result_container', { left: savedStateLeft, top: savedStateTop });
-            }
-        });
-    };
-})());
-mapPanelObserver.observe(document.getElementById('game_window'), { childList: true, subtree: true });
+window.__onGameWindowMutation(() => {
+    const overall = document.getElementById('overall_result_container');
+    const state = document.getElementById('state_result_container');
+    if (overall && !overall.dataset.dragHooked) {
+        makeDraggable('overall_result_container', { left: savedOverallLeft, top: savedOverallTop });
+    }
+    if (state && !state.dataset.dragHooked) {
+        makeDraggable('state_result_container', { left: savedStateLeft, top: savedStateTop });
+    }
+});
 
 window.playCreditsMusic = function() {
     if (!window.playlist) {
@@ -1608,7 +1614,11 @@ window.playCreditsMusic = function() {
     window.playlist.currentSongIndex = 2;
     window.loadAndPlay();
 }
-setInterval(() => {
+// Map/visit-screen setup. Was a 50ms setInterval running 20×/sec for the whole
+// session; now driven by the shared #game_window observer. The body is idempotent
+// (every injection is guarded by getElementById/dataset), so running it on DOM
+// mutations instead of a timer is equivalent setup-on-screen-change.
+function __mapVisitTick() {
     const mapVisible = !!document.getElementById('resume_questions_button');
     if (mapVisible) {
         if (!document.getElementById('logo-hide-style')) {
@@ -2315,22 +2325,25 @@ setInterval(() => {
                     if (mapSvg && !mapSvg.dataset.planeHooked) {
                         mapSvg.dataset.planeHooked = 'true';
                         let _flyTimer = null;
+                        let _plopTimer = null;
                         function _planeClickHandler(ev) {
+                            if (ev && ev._synthetic) return; // re-dispatched pass-through click: let the map handle it, don't re-launch
                             const now = Date.now();
                             const lastClick = parseInt(plane.dataset.lastClick || '0');
                             if (plane.dataset.flying === 'true') {
                                 if (now - lastClick < 500) {
                                     clearTimeout(_flyTimer);
+                                    clearTimeout(_plopTimer);
                                     mapSvg.removeEventListener('click', _planeClickHandler, true);
                                     delete mapSvg.dataset.planeHooked;
                                     plane.remove();
                                     ev.stopPropagation();
-                                    ev.target.dispatchEvent(new MouseEvent('click', {
-                                        bubbles: true,
-                                        cancelable: true,
-                                        clientX: ev.clientX,
-                                        clientY: ev.clientY
-                                    }));
+                                    const _passthru = new MouseEvent('click', {
+                                        bubbles: true, cancelable: true,
+                                        clientX: ev.clientX, clientY: ev.clientY
+                                    });
+                                    _passthru._synthetic = true;
+                                    ev.target.dispatchEvent(_passthru);
                                 }
                                 return;
                             }
@@ -2354,7 +2367,7 @@ setInterval(() => {
                             ev.stopPropagation();
                             const originalTarget = ev.target;
                             if (hitEaster) {
-                                setTimeout(() => {
+                                _plopTimer = setTimeout(() => {
                                     const plop = new Audio('https://file.garden/aXPgNT-ZRCxxpy0g/plop2.mp3');
                                     plop.play();
                                 }, 3500);
@@ -2362,12 +2375,12 @@ setInterval(() => {
                             _flyTimer = setTimeout(() => {
                                 mapSvg.removeEventListener('click', _planeClickHandler, true);
                                 plane.remove();
-                                originalTarget.dispatchEvent(new MouseEvent('click', {
-                                    bubbles: true,
-                                    cancelable: true,
-                                    clientX: ev.clientX,
-                                    clientY: ev.clientY
-                                }));
+                                const _passthru = new MouseEvent('click', {
+                                    bubbles: true, cancelable: true,
+                                    clientX: ev.clientX, clientY: ev.clientY
+                                });
+                                _passthru._synthetic = true;
+                                originalTarget.dispatchEvent(_passthru);
                                 delete mapSvg.dataset.planeHooked;
                             }, 5000);
                         }
@@ -2396,7 +2409,8 @@ setInterval(() => {
                                 const easterZone = document.getElementById('visit-easter-zone');
                                 if (easterZone) easterZone.remove();
                             }
-                        }, 50);
+                        }
+window.__onGameWindowMutation(__mapVisitTick);
 
                 document.getElementById("game_start").addEventListener("click", function() {
                 setTimeout(function() {
@@ -2497,9 +2511,9 @@ let tapeRecorder;
 let playerAnchor;
 
 function setupMusicPlayer() {
-    window.playlist = new Playlist();
     if (window._musicPlayerSetup) return;
     window._musicPlayerSetup = true;
+    window.playlist = new Playlist();
 
     const newSong1 = new Song(
         "Victory at Sea", "Nixon",
@@ -2534,6 +2548,7 @@ function setupMusicPlayer() {
     playerAnchor = document.createElement("div");
     playerAnchor.id = "player-anchor";
     const contentSingle = document.querySelector(".content_single");
+    if (!contentSingle) { window._musicPlayerSetup = false; return; } // retry on a later call once it exists
     contentSingle.appendChild(playerAnchor);
     playerAnchor.appendChild(tapeRecorder);
 
@@ -2747,6 +2762,10 @@ playBtn.addEventListener('click', () => {
             playBtn.classList.remove('active');
             stopVisuals();
         } else {
+            if (window._introSound) {
+                window._introSound.pause();
+                window._introSound.currentTime = 0;
+            }
             audio.play();
             playbackState = 'play';
             playBtn.classList.add('active');
@@ -2754,33 +2773,36 @@ playBtn.addEventListener('click', () => {
             showStrips();
         }
     });
-    if (window._introSound) {
-        playBtn.addEventListener('click', () => {
-            window._introSound.pause();
-            window._introSound.currentTime = 0;
-        }, { once: true });
+
+    // Shared seek transport: one interval, stopped on mouseup ANYWHERE. Previously
+    // each press created its own interval cleared only by the button's own mouseup,
+    // so releasing off-button left it seeking forever and rapid presses stacked.
+    let _seekInterval = null;
+    function _stopSeek() {
+        if (!_seekInterval) return;
+        clearInterval(_seekInterval);
+        _seekInterval = null;
+        if (isPlaying) {
+            audio.play();
+            playbackState = 'play';
+            setReelAnimation('play');
+        } else {
+            playbackState = 'pause';
+            setReelAnimation('pause');
+        }
     }
+    document.addEventListener('mouseup', _stopSeek);
 
     rwBtn.addEventListener('mousedown', () => {
         isPlaying = playbackState === 'play';
         audio.pause();
         playbackState = 'rw';
         setReelAnimation('rw');
-        const rwInterval = setInterval(() => {
+        clearInterval(_seekInterval);
+        _seekInterval = setInterval(() => {
             audio.currentTime = Math.max(0, audio.currentTime - 2);
             updateTapeVisuals();
         }, 100);
-        rwBtn.addEventListener('mouseup', () => {
-            clearInterval(rwInterval);
-            if (isPlaying) {
-                audio.play();
-                playbackState = 'play';
-                setReelAnimation('play');
-            } else {
-                playbackState = 'pause';
-                setReelAnimation('pause');
-            }
-        }, { once: true });
     });
 
     ffBtn.addEventListener('mousedown', () => {
@@ -2788,21 +2810,11 @@ playBtn.addEventListener('click', () => {
         audio.pause();
         playbackState = 'ff';
         setReelAnimation('ff');
-        const ffInterval = setInterval(() => {
+        clearInterval(_seekInterval);
+        _seekInterval = setInterval(() => {
             audio.currentTime = Math.min(audio.duration, audio.currentTime + 2);
             updateTapeVisuals();
         }, 100);
-        ffBtn.addEventListener('mouseup', () => {
-            clearInterval(ffInterval);
-            if (isPlaying) {
-                audio.play();
-                playbackState = 'play';
-                setReelAnimation('play');
-            } else {
-                playbackState = 'pause';
-                setReelAnimation('pause');
-            }
-        }, { once: true });
     });
 
     volUpBtn.addEventListener('click', () => {
