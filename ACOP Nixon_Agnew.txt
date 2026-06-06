@@ -13935,6 +13935,15 @@ window.__onGameWindowMutation(() => {
                     });
                 }
 
+                // Retry: if question_form wasn't in the DOM when the PK first changed, show the
+                // transition now that it's available (e.g. after the outcome screen clears).
+                if (_lastQuestionPK != null) {
+                    const _qd = questionData[_lastQuestionPK] || {};
+                    if (_qd.transition && !_shownTransitions.has(_lastQuestionPK) && document.getElementById('question_form')) {
+                        showSectionTransition(_qd.transition, _lastQuestionPK);
+                    }
+                }
+
                 if (_lastQuestionPK != null) {
                     const h3 = document.querySelector('#progress_bar h3');
                     if (h3 && h3.dataset.dateAttached !== String(_lastQuestionPK)) {
@@ -16164,14 +16173,13 @@ function openCIAProfile(code, mapPanel, tooltip) {
     if (ANTHEM_COUNTRIES.has(code)) {
         const antAudio = new Audio(PAGES_BASE + '/anthems/' + code + '.ogg');
         antAudio.preload = 'none';
-        let antActive = false, antWasPlaying = false;
+        let antActive = false, antWasAudible = false;
 
         const antBtn = document.createElement('button');
         antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
         antBtn.style.cssText = 'margin:0 0 0 8px;height:28px;padding:0 8px;font-size:12px;line-height:28px;vertical-align:middle;box-sizing:border-box;';
 
         function onAntEnded() { stopAnthem(true); }
-        function onMainResume() { stopAnthem(false); }
 
         function stopAnthem(resumeMain) {
             if (!antActive) return;
@@ -16179,10 +16187,9 @@ function openCIAProfile(code, mapPanel, tooltip) {
             antAudio.pause();
             antAudio.currentTime = 0;
             antAudio.removeEventListener('ended', onAntEnded);
-            if (mainAudio) mainAudio.removeEventListener('play', onMainResume);
             antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
             if (window.__activeAnthemStop === stopAnthem) window.__activeAnthemStop = null;
-            if (resumeMain && antWasPlaying && mainAudio) mainAudio.play().catch(() => {});
+            if (resumeMain && antWasAudible && mainAudio) mainAudio.muted = false;
         }
 
         antBtn.addEventListener('click', () => {
@@ -16193,24 +16200,22 @@ function openCIAProfile(code, mapPanel, tooltip) {
                 // Stop any other country's anthem first so two never play over each other.
                 const _prevStop = window.__activeAnthemStop;
                 if (_prevStop && _prevStop !== stopAnthem) {
-                    const _prevWasPlaying = window.__anthemMainWasPlaying;
-                    _prevStop(false);                  // pause the other anthem; we take over main-audio handling
-                    antWasPlaying = !!_prevWasPlaying;  // inherit whether the tape was playing before anthems began
+                    const _prevWasAudible = window.__anthemMainWasAudible;
+                    _prevStop(false);                   // stop the other anthem; we take over main-audio handling
+                    antWasAudible = !!_prevWasAudible;  // inherit whether the tape was audible before anthems began
                 } else {
-                    antWasPlaying = !!(mainAudio && !mainAudio.paused);
+                    antWasAudible = !!(mainAudio && !mainAudio.muted && !mainAudio.paused);
                 }
                 window.__activeAnthemStop = stopAnthem;
-                window.__anthemMainWasPlaying = antWasPlaying;
+                window.__anthemMainWasAudible = antWasAudible;
                 antBtn.innerHTML = '&#9646;&#9646;&nbsp;National Anthem';
-                if (antWasPlaying && mainAudio && !mainAudio.paused) mainAudio.pause();
-                if (mainAudio) mainAudio.addEventListener('play', onMainResume);
+                if (antWasAudible && mainAudio) mainAudio.muted = true;
                 antAudio.currentTime = 0;
                 antAudio.play().catch(() => {
                     antActive = false;
                     antBtn.innerHTML = '&#128266;&nbsp;National Anthem';
-                    if (mainAudio) mainAudio.removeEventListener('play', onMainResume);
                     if (window.__activeAnthemStop === stopAnthem) window.__activeAnthemStop = null;
-                    if (antWasPlaying && mainAudio) mainAudio.play().catch(() => {});
+                    if (antWasAudible && mainAudio) mainAudio.muted = false;
                 });
                 antAudio.addEventListener('ended', onAntEnded, { once: true });
             }
