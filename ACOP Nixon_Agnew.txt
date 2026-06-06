@@ -12104,7 +12104,7 @@ const _EVENT_DEFS = [
         continent: 'Africa',
         type: 'insurgency',
         label: 'Chadian Civil War',
-        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9783.jpeg'
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9783.jpeg',
         body: 'Chad has been engulfed in civil conflict since 1965, when northern Muslim populations rose against the southern-dominated government of François Tombalbaye. The rebel FROLINAT movement draws support from Libya\'s Muammar Gaddafi, who has territorial designs on the uranium-rich Aozou Strip. French forces have intervened repeatedly to prop up the Chadian government, but the insurgency continues to expand.',
         country: 'TD',
         active: () => chad >= 1,
@@ -12134,7 +12134,7 @@ const _EVENT_DEFS = [
         continent: 'Africa',
         type: 'insurgency',
         label: 'Eritrean War of Independence',
-        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9784.jpeg'
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9784.jpeg',
         body: 'Eritrea was federated with Ethiopia in 1952 and formally annexed in 1962 by Emperor Haile Selassie, triggering an armed independence movement that has persisted since 1961. The Eritrean Liberation Front now contests large areas of the territory. Ethiopia is a key US ally in the Horn of Africa; Washington has maintained silence on Selassie\'s suppression of the insurgency.',
         country: 'ET',
         active: () => eritrea >= 1,
