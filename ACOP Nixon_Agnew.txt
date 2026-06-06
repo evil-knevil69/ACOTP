@@ -12533,19 +12533,19 @@ function addInnerCircleButton() {
 
 // ── Legal Pad ─────────────────────────────────────────────────────────────────
 const _LP_CRIMES = [
-    { varName: 'wiretapping',      label: 'Illegal Wiretapping' },
-    { varName: 'Ellsberg',         label: "Break-In at Ellsberg's Psychiatrist" },
-    { varName: 'taxEvasion',       label: 'Presidential Tax Fraud' },
-    { varName: 'homeImprovements', label: 'Federal Funds Used for Private Residences' },
-    { varName: 'Cambodia',         label: 'Secret Bombing of Cambodia' },
-    { varName: 'ratfucking',       label: 'Dirty Tricks' },
-    { varName: 'ITT',              label: 'ITT: Dita Beard' },
-    { varName: 'FakeCables',       label: 'Forged State Dept. Cables' },
-    { varName: 'MilkFund',         label: 'Dairy Industry Bribery' },
-    { varName: 'Vesco',            label: 'Illegal Vesco Campaign Contribution' },
-    { varName: 'oojHush',          label: 'Obstruction of Justice: Hush Money' },
-    { varName: 'oojClemency',      label: 'Obstruction of Justice: Clemency' },
-    { varName: 'dncbreakin',       label: 'Break-In at the Watergate' },
+    { val: () => wiretapping,      label: 'Illegal Wiretapping' },
+    { val: () => Ellsberg,         label: "Break-In at Ellsberg's Psychiatrist" },
+    { val: () => taxEvasion,       label: 'Presidential Tax Fraud' },
+    { val: () => homeImprovements, label: 'Federal Funds Used for Private Residences' },
+    { val: () => Cambodia,         label: 'Secret Bombing of Cambodia' },
+    { val: () => ratfucking,       label: 'Dirty Tricks' },
+    { val: () => ITT,              label: 'ITT: Dita Beard' },
+    { val: () => FakeCables,       label: 'Forged State Dept. Cables' },
+    { val: () => MilkFund,         label: 'Dairy Industry Bribery' },
+    { val: () => Vesco,            label: 'Illegal Vesco Campaign Contribution' },
+    { val: () => oojHush,          label: 'Obstruction of Justice: Hush Money' },
+    { val: () => oojClemency,      label: 'Obstruction of Justice: Clemency' },
+    { val: () => dncbreakin,       label: 'Break-In at the Watergate' },
 ];
 
 var _legalPadScreen = 0; // 0 = High Crimes tab, 1+ = future tabs
@@ -12558,7 +12558,7 @@ function _lpCrimesHTML() {
     ];
     let html = '';
     tiers.forEach(({ level, heading }) => {
-        const items = _LP_CRIMES.filter(c => window[c.varName] === level);
+        const items = _LP_CRIMES.filter(c => c.val() === level);
         if (!items.length) return;
         html += `<div style="margin-bottom:10px;">
             <div style="font-family:'TypewriterDry',monospace;font-size:11px;font-weight:bold;
