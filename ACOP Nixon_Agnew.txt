@@ -14755,7 +14755,7 @@ document.body.appendChild(honk);
     }
 
     function _buildWorld() {
-        const defs = _EVENT_DEFS;
+        const defs = _worldEventDefs || [];
 
         const continents = ['Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America'];
         const transientTypes = new Set(['coup', 'disaster']);
@@ -14809,7 +14809,20 @@ document.body.appendChild(honk);
         else if (which === 'world') {
             pad.innerHTML = _buildWorld();
             const gb = pad.querySelector('#fd-world-globe-btn');
-            if (gb) gb.addEventListener('click', () => { _close(); openWorldMap(); });
+            if (gb) gb.addEventListener('click', () => {
+                _close();
+                const mapsBtn = document.getElementById('view_electoral_map');
+                if (!mapsBtn) { openWorldMap(); return; }
+                let _done = false;
+                const _obs = new MutationObserver(() => {
+                    if (_done) return;
+                    const wmBtn = document.getElementById('world_map_button');
+                    if (wmBtn) { _done = true; _obs.disconnect(); wmBtn.click(); }
+                });
+                _obs.observe(document.body, { childList: true, subtree: true });
+                mapsBtn.click();
+                setTimeout(() => { if (!_done) { _done = true; _obs.disconnect(); openWorldMap(); } }, 3000);
+            });
         }
     }
 
