@@ -14813,15 +14813,17 @@ document.body.appendChild(honk);
                 _close();
                 const mapsBtn = document.getElementById('view_electoral_map');
                 if (!mapsBtn) { openWorldMap(); return; }
+                const gw = document.getElementById('game_window');
+                gw.style.visibility = 'hidden';
                 let _done = false;
                 const _obs = new MutationObserver(() => {
                     if (_done) return;
                     const wmBtn = document.getElementById('world_map_button');
-                    if (wmBtn) { _done = true; _obs.disconnect(); wmBtn.click(); }
+                    if (wmBtn) { _done = true; _obs.disconnect(); gw.style.visibility = ''; wmBtn.click(); }
                 });
                 _obs.observe(document.body, { childList: true, subtree: true });
                 mapsBtn.click();
-                setTimeout(() => { if (!_done) { _done = true; _obs.disconnect(); openWorldMap(); } }, 3000);
+                setTimeout(() => { if (!_done) { _done = true; _obs.disconnect(); gw.style.visibility = ''; openWorldMap(); } }, 3000);
             });
         }
     }
