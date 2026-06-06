@@ -12018,7 +12018,7 @@ var CongressionalSupport = 6;
 var RepublicanSupport = 9;
 // ── WORLD EVENTS ─────────────────────────────────────────────────────────────
 // To add a new event:
-//   1. Declare its variable here  (1 = active from start, 0 = triggered by a question)
+//   1. Declare its variable here  (1 = showing, 0 = hidden, 3 = crossed out)
 //   2. Add its entry to _EVENT_DEFS below
 // ─────────────────────────────────────────────────────────────────────────────
 var Vietnam        = 6;  // Vietnam War (also used for other game logic)
@@ -12031,7 +12031,7 @@ var cyprusInvasion = 0;  // Turkish Invasion of Cyprus (triggered by question on
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
 // Add a new entry here whenever you add a variable above.
-// Fields: id, continent, type, label, img, body, country/positionFn, active()
+// Fields: id, continent, type, label, img, body, country/positionFn, state()
 // continent must match exactly: 'Africa' | 'Asia' | 'Europe' | 'North America' | 'Oceania' | 'South America'
 // ─────────────────────────────────────────────────────────────────────────────
 const _EVENT_DEFS = [
@@ -12047,7 +12047,7 @@ const _EVENT_DEFS = [
             if (ie) { try { const b = ie.getBBox(); return { x: b.x + b.width + 2, y: b.y + b.height * 0.2 }; } catch(e) {} }
             return { x: 488, y: 196 };
         },
-        active: () => true,
+        state: () => 1,
     },
     {
         id: 'vietnam-war',
@@ -12057,7 +12057,7 @@ const _EVENT_DEFS = [
         img: null, // TODO: e.g. 'https://file.garden/.../vietnam.jpg'
         body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. The political cost at home continues to mount.',
         country: 'VD',
-        active: () => (typeof Vietnam !== 'undefined') && Vietnam <= 7,
+        state: () => (typeof Vietnam !== 'undefined') && Vietnam <= 7 ? 1 : 3,
     },
     {
         id: 'khmer-civil-war',
@@ -12067,7 +12067,7 @@ const _EVENT_DEFS = [
         img: null, // TODO: e.g. 'https://file.garden/.../cambodia.jpg'
         body: 'A 1970 coup aided by the US removed Prince Sihanouk and installed the Lon Nol government. Lon Nol, paralysed by a stroke and absorbed by the occult, is losing his grip on reality. The Khmer Rouge, previously a marginal force, now controls large areas of the countryside despite the slaughter of USAF saturation bombing. The government\'s hold on the cities is increasingly precarious.',
         country: 'KH',
-        active: () => khmer >= 1,
+        state: () => khmer,
     },
     {
         id: 'laotian-civil-war',
@@ -12077,7 +12077,7 @@ const _EVENT_DEFS = [
         img: null, // TODO: e.g. 'https://file.garden/.../laos.jpg'
         body: 'The Royal Lao Government has fought the communist Pathet Lao since 1953, with North Vietnamese forces providing decisive support to the insurgents. The CIA maintains a secret army of Hmong fighters under General Vang Pao, conducting unconventional warfare across the Plain of Jars. US bombing of the Ho Chi Minh Trail has made Laos the most heavily bombed country per capita in history. Congress and the public remain largely unaware of the scale of American involvement.',
         country: 'LA',
-        active: () => laos >= 1,
+        state: () => laos,
     },
     {
         id: 'managua-quake',
@@ -12087,7 +12087,7 @@ const _EVENT_DEFS = [
         img: null, // TODO: e.g. 'https://file.garden/.../managua.jpg'
         body: 'A 6.2-magnitude earthquake struck the Nicaraguan capital on December 23, 1972, killing over 10,000 and levelled much of the city centre.',
         country: 'NI',
-        active: () => managua >= 1,
+        state: () => managua,
     },
     {
         id: 'cyprus-invasion',
@@ -12097,7 +12097,7 @@ const _EVENT_DEFS = [
         img: null, // TODO: e.g. 'https://file.garden/.../cyprus.jpg'
         body: 'Following a Greek Cypriot coup backed by the Athens junta, Turkey invaded Cyprus in July 1974. The island is now partitioned between Greek and Turkish zones.',
         country: 'CY',
-        active: () => cyprusInvasion >= 1,
+        state: () => cyprusInvasion,
     },
     {
         id: 'chad-civil-war',
@@ -12107,7 +12107,7 @@ const _EVENT_DEFS = [
         img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9783.jpeg',
         body: 'Chad has been engulfed in civil conflict since 1965, when northern Muslim populations rose against the southern-dominated government of François Tombalbaye. The rebel FROLINAT movement draws support from Libya\'s Muammar Gaddafi, who has territorial designs on the uranium-rich Aozou Strip. French forces have intervened repeatedly to prop up the Chadian government, but the insurgency continues to expand.',
         country: 'TD',
-        active: () => chad >= 1,
+        state: () => chad,
     },
     {
         id: 'guatemala-civil-war',
@@ -12117,7 +12117,7 @@ const _EVENT_DEFS = [
         img: null, // TODO: e.g. 'https://file.garden/.../guatemala.jpg'
         body: 'A CIA-backed coup in 1954 overthrew the elected government of Jacobo Árbenz and installed a succession of military regimes, triggering an armed insurgency that has persisted since 1960. Leftist guerrilla groups operating from the highlands have been met with systematic counter-insurgency operations, including US-trained security forces and government-linked death squads. The conflict has claimed tens of thousands of lives and shows no sign of resolution.',
         country: 'GT',
-        active: () => true,
+        state: () => 1,
     },
     {
         id: 'rhodesia-bush-war',
@@ -12127,7 +12127,7 @@ const _EVENT_DEFS = [
         img: null, // TODO: e.g. 'https://file.garden/.../rhodesia.jpg'
         body: 'Ian Smith\'s white-minority government declared independence from Britain in November 1965, triggering international sanctions and diplomatic isolation. Guerrilla forces backed by Mozambique and Zambia have been conducting cross-border operations since 1972, escalating pressure on Salisbury. Britain refuses to recognise the regime; the United States maintains limited covert contact.',
         country: 'RH',
-        active: () => true,
+        state: () => 1,
     },
     {
         id: 'eritrean-war',
@@ -12137,7 +12137,7 @@ const _EVENT_DEFS = [
         img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9784.jpeg',
         body: 'Eritrea was federated with Ethiopia in 1952 and formally annexed in 1962 by Emperor Haile Selassie, triggering an armed independence movement that has persisted since 1961. The Eritrean Liberation Front now contests large areas of the territory. Ethiopia is a key US ally in the Horn of Africa; Washington has maintained silence on Selassie\'s suppression of the insurgency.',
         country: 'ET',
-        active: () => eritrea >= 1,
+        state: () => eritrea,
     },
 ];
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
@@ -13867,15 +13867,21 @@ function _markEventNew(id) { _newEvents.add(id); }
 
 // ── MAP EVENT TIMER ───────────────────────────────────────────────────────────
 // Use _scheduleAfterQuestions(n, fn) inside any questionData onShow callback
-// to make a map icon disappear automatically after n questions have elapsed.
+// to change a world-event state automatically after n questions have elapsed.
+// Event states: 0 = hidden, 1 = showing, 3 = crossed out (legal pad only).
 //
-// Example (in questionData):
+// Example — earthquake appears for 2 questions then vanishes (state → 0):
 //   450: { date: "December 1972", onShow: () => {
 //       managua = 1;
 //       _scheduleAfterQuestions(2, () => { managua = 0; });
 //   }, signImg: '...', historical: null },
 //
-// The icon shows when the question loads and clears n questions later.
+// Example — invasion appears, then stays as a crossed-out past event (state → 3):
+//   680: { onShow: () => {
+//       cyprusInvasion = 1;
+//       _scheduleAfterQuestions(3, () => { cyprusInvasion = 3; });
+//   } },
+//
 // Use n=1 for a single-question flash; n=2 for two questions; etc.
 // ─────────────────────────────────────────────────────────────────────────────
 let _questionCount = 0;
@@ -14755,30 +14761,26 @@ document.body.appendChild(honk);
     }
 
     function _buildWorld() {
-        const defs = _worldEventDefs || [];
+        const defs = _EVENT_DEFS;
 
         const continents = ['Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America'];
-        const transientTypes = new Set(['coup', 'disaster', 'war']);
         let h = `<p class="fd-head">World Affairs</p>`;
 
         for (const continent of continents) {
             const events = defs.filter(d => d.continent === continent);
             h += `<p style="font-family:Georgia,serif;font-size:12px;font-weight:bold;margin:8px 0 2px 0;color:#3a2000;">${continent}</p>`;
 
-            const visibleEvents = events.filter(d => {
-                const isActive = d.active();
-                return isActive || !transientTypes.has(d.type);
-            });
+            const visibleEvents = events.filter(d => d.state() !== 0);
 
             if (visibleEvents.length === 0) {
                 h += `<p style="color:#aaa;font-size:10px;margin:0 0 4px 14px;">—</p>`;
             } else {
                 for (const def of visibleEvents) {
-                    const isActive = def.active();
+                    const st = def.state();
                     const isNew = _newEvents.has(def.id);
                     let style = 'font-size:11px;margin:1px 0 1px 14px;';
-                    if (isActive && isNew)   style += 'color:#cc0000;font-weight:bold;';
-                    else if (!isActive)       style += 'text-decoration:line-through;color:#999;';
+                    if (st === 1 && isNew) style += 'color:#cc0000;font-weight:bold;';
+                    else if (st === 3)      style += 'text-decoration:line-through;color:#999;';
                     h += `<p style="${style}">• ${def.label}</p>`;
                 }
             }
@@ -15869,7 +15871,7 @@ function openWorldMap() {
             //   body        — 1–2 sentence description shown below the title
             //   country     — SVG path id whose centroid is used for placement
             //   positionFn  — manual placement override (e.g. sub-national regions)
-            //   active()    — called on every pan/zoom; return true to show the icon
+            //   state()     — returns 0 (hidden), 1 (visible), or 3 (crossed out in legal pad only)
             //
             // ── END TOOLTIP CONTENT ──────────────────────────────────────────────────
 
@@ -15935,14 +15937,14 @@ function openWorldMap() {
                 g.addEventListener('mousemove', e => _placeTip(evTooltip, e, 16));
                 g.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
 
-                g.style.display = 'none'; // hidden until _updateIconVis() evaluates active()
+                g.style.display = 'none'; // hidden until _updateIconVis() evaluates state()
                 _iconGroup.appendChild(g);
                 _iconNodes.push({ g, def });
             });
 
             _updateIconVis = () => {
                 _iconNodes.forEach(({ g, def }) => {
-                    try { g.style.display = def.active() ? '' : 'none'; } catch(e) {}
+                    try { g.style.display = def.state() === 1 ? '' : 'none'; } catch(e) {}
                 });
             };
             _updateIconVis();
