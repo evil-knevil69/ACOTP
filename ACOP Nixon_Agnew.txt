@@ -12044,6 +12044,7 @@ var chileanCoup        = 0;  // Chilean Coup                 (triggered by quest
 var upperVoltaCoup     = 0;  // Upper Volta Self-Coup        (triggered by question onShow)
 var tacnazo            = 0;  // Tacnazo — Peruvian Coup      (triggered by question onShow)
 var argentineCoup      = 0;  // Argentine Coup               (triggered by question onShow)
+var northYemenCoup     = 0;  // 1974 North Yemen Coup        (triggered by question onShow)
 var _allendeSpeechPlayed = false; // Easter egg: Allende's last speech plays once on first world map open after coup
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
@@ -12338,6 +12339,17 @@ const _EVENT_DEFS = [
         country: 'AR',
         positionOffset: { x: 0, y: 0 },
         state: () => 1, // TEMP: was () => argentineCoup
+    },
+    {
+        id: 'north-yemen-coup',
+        continent: 'Asia',
+        type: 'coup',
+        label: 'The North Yemen Coup',
+        img: null,
+        body: 'Colonel Ibrahim al-Hamdi has overthrown the civilian government of President Abdul Rahman al-Iryani in a swift, largely bloodless coup. A moderniser and nationalist, al-Hamdi moves to dismantle the tribal power structures that have paralysed Yemeni politics. He pivots away from the USSR and one of his first actions is a telegram to you asking for development aid.',
+        country: 'YE',
+        positionOffset: { x: 0, y: 0 },
+        state: () => 1, // TEMP: was () => northYemenCoup
     },
 ];
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
