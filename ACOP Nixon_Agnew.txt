@@ -12297,7 +12297,7 @@ const _EVENT_DEFS = [
         img: null,
         body: 'President Juan María Bordaberry dissolves parliament with military backing, banning political parties, trade unions and the press. The objective is the elimination of the left. Uruguay\'s democratic traditions are shredded and torture becomes institutionalised. The CIA raises no objection. After all, Uruguay is a founding member of Operation Condor.',
         country: 'UY',
-        positionOffset: { x: 0, y: 0 },
+        positionOffset: { x: -10, y: -5 },
         state: () => 1, // TEMP: was () => uruguayCoup
     },
     {
