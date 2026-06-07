@@ -12381,7 +12381,7 @@ const _EVENT_DEFS = [
         type: 'disaster',
         label: 'The Great Sahelian Drought',
         img: null,
-        body: 'Ongoing since 1968 and affecting over 50 million people in Mali, Mauritania, Niger, Upper Volta, Chad and the Sudan, the drought has made pasturage nearly impossible. Half of all livestock are gone. 100,000 dead from starvation. The UN is straining its sinews to provide disaster relief. One theory is that particulate matter from the industrialised nations is disrupting the regular monsoon cycle.',
+        body: 'Ongoing since 1968 and affecting over 50 million people in Mali, Mauritania, Niger, Upper Volta, Chad and the Sudan, the drought has made pasturage nearly impossible. Half of all livestock are gone. 100,000 dead from starvation. The UN is straining its sinews to provide disaster relief. One leading theory is that particulate matter from the industrialised nations is disrupting the regular monsoon cycle.',
         country: 'NE',
         positionOffset: { x: 0, y: 0 },
         state: () => 1,
