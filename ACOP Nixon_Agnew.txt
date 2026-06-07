@@ -12030,6 +12030,7 @@ var managua        = 0;  // Managua Earthquake        (triggered by question onS
 var cyprusInvasion = 0;  // Turkish Invasion of Cyprus (triggered by question onShow)
 var guatemalaQuake = 0;  // 1976 Guatemalan Earthquake (triggered by question onShow)
 var tangshan       = 0;  // 1976 Tangshan Earthquake   (triggered by question onShow)
+var mississippi    = 0;  // Great Mississippi Flood    (triggered by question onShow)
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
 // Add a new entry here whenever you add a variable above.
@@ -12158,6 +12159,17 @@ const _EVENT_DEFS = [
         country: 'ET',
         positionOffset: { x: -10, y: -30 },
         state: () => eritrea,
+    },
+    {
+        id: 'mississippi-flood',
+        continent: 'North America',
+        type: 'disaster',
+        label: 'Great Mississippi Flood',
+        img: null,
+        body: 'Heavy rainfall, snowmelt and a saturated drainage basin triggered the worst Mississippi flooding in 150 years. Sixteen states are affected from Illinois to Louisiana, 17 million acres inundated, hundreds dead and thousands homeless. A federal disaster has been declared.',
+        country: 'US',
+        positionOffset: { x: 30, y: 20 },
+        state: () => mississippi,
     },
     {
         id: 'tangshan-quake',
