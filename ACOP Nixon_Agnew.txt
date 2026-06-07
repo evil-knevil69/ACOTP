@@ -16002,7 +16002,7 @@ function openWorldMap() {
 
             // ── Move Icons tool ──────────────────────────────────────────────
             const offsetPanel = document.createElement('div');
-            offsetPanel.style.cssText = 'position:absolute;bottom:16px;left:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:480px;white-space:pre;display:none;pointer-events:none;';
+            offsetPanel.style.cssText = 'position:absolute;bottom:16px;left:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:480px;white-space:pre;display:none;user-select:text;cursor:text;';
             viewport.appendChild(offsetPanel);
 
             const _refreshOffsets = () => {
@@ -16029,7 +16029,7 @@ function openWorldMap() {
             const _flagMoves = {}; // code → {cx, cy} — paste into FLAG_CENTRES
 
             const flagOffsetPanel = document.createElement('div');
-            flagOffsetPanel.style.cssText = 'position:absolute;bottom:16px;right:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:480px;white-space:pre;display:none;pointer-events:none;';
+            flagOffsetPanel.style.cssText = 'position:absolute;bottom:16px;right:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:480px;white-space:pre;display:none;user-select:text;cursor:text;';
             viewport.appendChild(flagOffsetPanel);
 
             const _refreshFlagPanel = () => {
