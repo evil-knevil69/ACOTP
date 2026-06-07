@@ -12028,6 +12028,7 @@ var laos           = 1;  // Laotian Civil War
 var eritrea        = 1;  // Eritrean War of Independence
 var managua        = 0;  // Managua Earthquake        (triggered by question onShow)
 var cyprusInvasion = 0;  // Turkish Invasion of Cyprus (triggered by question onShow)
+var guatemalaQuake = 0;  // 1976 Guatemalan Earthquake (triggered by question onShow)
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
 // Add a new entry here whenever you add a variable above.
@@ -12123,6 +12124,17 @@ const _EVENT_DEFS = [
         country: 'GT',
         positionOffset: { x: -11, y: -9 },
         state: () => 1,
+    },
+    {
+        id: 'guatemala-quake',
+        continent: 'North America',
+        type: 'disaster',
+        label: '1976 Guatemalan Earthquake',
+        img: null,
+        body: 'In the early hours of February 4th 1976, a magnitude 7.5 earthquake struck Guatemala, killing more than 23,000 people and leaving over a million homeless. Striking while the country slept, it devastated highland towns and shanty districts of Guatemala City alike. The disaster fell disproportionately on indigenous Mayan communities, whose adobe homes offered little resistance. International relief poured in, but the scale of destruction exposed the chronic poverty and state neglect that had made the death toll so catastrophic.',
+        country: 'GT',
+        positionOffset: { x: 5, y: 5 },
+        state: () => guatemalaQuake,
     },
     {
         id: 'rhodesia-bush-war',
