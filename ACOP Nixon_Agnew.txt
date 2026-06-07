@@ -12041,6 +12041,7 @@ var ethiopianRevolution = 0; // Ethiopian Revolution         (triggered by quest
 var dergCoup           = 0;  // Coup of the Derg             (triggered by question onShow)
 var uruguayCoup        = 0;  // Uruguayan Self-Coup          (triggered by question onShow)
 var chileanCoup        = 0;  // Chilean Coup                 (triggered by question onShow)
+var _allendeSpeechPlayed = false; // Easter egg: Allende's last speech plays once on first world map open after coup
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
 // Add a new entry here whenever you add a variable above.
@@ -15706,6 +15707,18 @@ function _addWorldMapBtn() {
 
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
+    // Easter egg: Allende's last speech plays once on first world map open after the Chilean coup
+    if (chileanCoup === 1 && !_allendeSpeechPlayed) {
+        _allendeSpeechPlayed = true;
+        const mainAudio = document.getElementById('audio');
+        const allende = new Audio('ALLENDE_SPEECH_URL_PLACEHOLDER');
+        if (mainAudio) mainAudio.muted = true;
+        allende.play().catch(() => {});
+        allende.addEventListener('ended', () => {
+            if (mainAudio) mainAudio.muted = false;
+        }, { once: true });
+    }
+
     document.getElementById('world-map-container')?.remove();
     document.getElementById('wm-tooltip')?.remove();
     document.getElementById('wm-event-tooltip')?.remove();
