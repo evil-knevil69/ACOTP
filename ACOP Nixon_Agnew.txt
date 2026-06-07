@@ -12045,6 +12045,7 @@ var upperVoltaCoup     = 0;  // Upper Volta Self-Coup        (triggered by quest
 var tacnazo            = 0;  // Tacnazo — Peruvian Coup      (triggered by question onShow)
 var argentineCoup      = 0;  // Argentine Coup               (triggered by question onShow)
 var northYemenCoup     = 0;  // 1974 North Yemen Coup        (triggered by question onShow)
+var oromoUprising      = 0;  // Oromo Uprising               (triggered by question onShow)
 var _allendeSpeechPlayed = false; // Easter egg: Allende's last speech plays once on first world map open after coup
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
@@ -12350,6 +12351,17 @@ const _EVENT_DEFS = [
         country: 'YE',
         positionOffset: { x: 0, y: 0 },
         state: () => 1, // TEMP: was () => northYemenCoup
+    },
+    {
+        id: 'oromo-uprising',
+        continent: 'Africa',
+        type: 'insurgency',
+        label: 'Oromo Uprising',
+        img: null,
+        body: 'Ethiopia\'s largest ethnic group rises in armed resistance against centuries of subjugation. The Oromo Liberation Front, founded as the empire fractures, demands recognition, land and self-determination.',
+        country: 'ET',
+        positionOffset: { x: 0, y: 0 },
+        state: () => 1, // TEMP: was () => oromoUprising
     },
 ];
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
