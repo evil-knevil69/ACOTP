@@ -12046,6 +12046,7 @@ var tacnazo            = 0;  // Tacnazo — Peruvian Coup      (triggered by que
 var argentineCoup      = 0;  // Argentine Coup               (triggered by question onShow)
 var northYemenCoup     = 0;  // 1974 North Yemen Coup        (triggered by question onShow)
 var oromoUprising      = 0;  // Oromo Uprising               (triggered by question onShow)
+var sahrawiInsurgency  = 0;  // Sahrawi Insurgency           (triggered by question onShow)
 var _allendeSpeechPlayed = false; // Easter egg: Allende's last speech plays once on first world map open after coup
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
@@ -12362,6 +12363,17 @@ const _EVENT_DEFS = [
         country: 'ET',
         positionOffset: { x: 0, y: 0 },
         state: () => 1, // TEMP: was () => oromoUprising
+    },
+    {
+        id: 'sahrawi-insurgency',
+        continent: 'Africa',
+        type: 'insurgency',
+        label: 'Sahrawi Insurgency',
+        img: null,
+        body: 'Spain\'s Saharan colony is slipping from its grasp as the Franco regime enters its death throes. The Polisario Front fights for Sahrawi self-determination, but Morocco\'s King Hassan II has designs on the territory and Algeria is watching. When Hassan sends 350,000 civilians marching across the border in the \'Green March\', Spain folds and the Polisario are left fighting Moroccan and Mauritanian annexation across open desert. One of the last decolonisation struggles, almost entirely ignored by Washington.',
+        country: 'MA',
+        positionOffset: { x: 0, y: 30 },
+        state: () => 1, // TEMP: was () => sahrawiInsurgency
     },
 ];
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
