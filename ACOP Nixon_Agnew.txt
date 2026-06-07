@@ -12036,6 +12036,7 @@ var bananagate     = 0;  // 1975 Bananagate / Honduran Coup (triggered by questi
 var rwandaCoup     = 0;  // 1973 Rwandan Coup            (triggered by question onShow)
 var afghanCoup     = 0;  // 1973 Coup of 26 Saratan      (triggered by question onShow)
 var nigerCoup      = 0;  // 1974 Nigerien Coup           (triggered by question onShow)
+var greekCoup      = 0;  // Greek 'corrective revolution' (triggered by question onShow)
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
 // Add a new entry here whenever you add a variable above.
@@ -12241,6 +12242,17 @@ const _EVENT_DEFS = [
         country: 'NE',
         positionOffset: { x: -10, y: -10 },
         state: () => 1, // TEMP: was () => nigerCoup
+    },
+    {
+        id: 'greek-corrective-revolution',
+        continent: 'Europe',
+        type: 'coup',
+        label: 'The Greek \'corrective revolution\'',
+        img: null,
+        body: 'Brigadier Dimitrios Ioannidis, head of the military police, has overthrown George Papadopoulos in a palace coup. Papadopoulos had been cautiously liberalising the regime but Ioannidis wants to tear off the mask, enforcing an ultra nationalist, reactionary regime with torture, mass imprisonment and pervasive censorship. The social base of the Regime of the Colonels grows ever narrower.',
+        country: 'GR',
+        positionOffset: { x: 0, y: 0 },
+        state: () => 1, // TEMP: was () => greekCoup
     },
 ];
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
