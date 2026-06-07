@@ -12029,6 +12029,7 @@ var eritrea        = 1;  // Eritrean War of Independence
 var managua        = 0;  // Managua Earthquake        (triggered by question onShow)
 var cyprusInvasion = 0;  // Turkish Invasion of Cyprus (triggered by question onShow)
 var guatemalaQuake = 0;  // 1976 Guatemalan Earthquake (triggered by question onShow)
+var tangshan       = 0;  // 1976 Tangshan Earthquake   (triggered by question onShow)
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
 // Add a new entry here whenever you add a variable above.
@@ -12157,6 +12158,17 @@ const _EVENT_DEFS = [
         country: 'ET',
         positionOffset: { x: -10, y: -30 },
         state: () => eritrea,
+    },
+    {
+        id: 'tangshan-quake',
+        continent: 'Asia',
+        type: 'disaster',
+        label: '1976 Tangshan Earthquake',
+        img: null,
+        body: 'On July 28th 1976, a magnitude 7.6 earthquake struck the industrial city of Tangshan in northern China at 3:42 in the morning, killing an estimated 240,000 people — though the true toll may be far higher. The city was almost completely levelled. Beijing refused all offers of foreign aid, and the scale of the disaster was concealed from the outside world for years.',
+        country: 'CN',
+        positionOffset: { x: 20, y: -20 },
+        state: () => tangshan,
     },
 ];
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
