@@ -12067,7 +12067,7 @@ const _EVENT_DEFS = [
         body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. The political cost at home continues to mount.',
         country: 'VD',
         positionOffset: { x: 12, y: 25 },
-        state: () => (typeof Vietnam !== 'undefined') && Vietnam <= 7 ? 1 : 3,
+        state: () => 1, // TEMP: was () => (typeof Vietnam !== 'undefined') && Vietnam <= 7 ? 1 : 3
     },
     {
         id: 'khmer-civil-war',
@@ -12078,7 +12078,7 @@ const _EVENT_DEFS = [
         body: 'A 1970 coup aided by the US removed Prince Sihanouk and installed the Lon Nol government. Lon Nol, paralysed by a stroke and absorbed by the occult, is losing his grip on reality. The Khmer Rouge, previously a marginal force, now controls large areas of the countryside despite the slaughter of USAF saturation bombing. The government\'s hold on the cities is increasingly precarious.',
         country: 'KH',
         positionOffset: { x: -10, y: -12 },
-        state: () => khmer,
+        state: () => 1, // TEMP: was () => khmer
     },
     {
         id: 'laotian-civil-war',
@@ -12088,7 +12088,7 @@ const _EVENT_DEFS = [
         img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Laos3.png',
         body: 'The Royal Lao Government has fought the communist Pathet Lao since 1953, with North Vietnamese forces providing decisive support to the insurgents. The CIA maintains a secret army of Hmong fighters under General Vang Pao, conducting unconventional warfare across the Plain of Jars. US bombing of the Ho Chi Minh Trail has made Laos the most heavily bombed country per capita in history. Congress and the public remain largely unaware of the scale of American involvement.',
         country: 'LA',
-        state: () => laos,
+        state: () => 1, // TEMP: was () => laos
     },
     {
         id: 'managua-quake',
@@ -12098,7 +12098,7 @@ const _EVENT_DEFS = [
         img: null, // TODO: e.g. 'https://file.garden/.../managua.jpg'
         body: 'A 6.2-magnitude earthquake struck the Nicaraguan capital on December 23, 1972, killing over 10,000 and levelled much of the city centre.',
         country: 'NI',
-        state: () => managua,
+        state: () => 1, // TEMP: was () => managua
     },
     {
         id: 'cyprus-invasion',
@@ -12108,7 +12108,7 @@ const _EVENT_DEFS = [
         img: null, // TODO: e.g. 'https://file.garden/.../cyprus.jpg'
         body: 'Following a Greek Cypriot coup backed by the Athens junta, Turkey invaded Cyprus in July 1974. The island is now partitioned between Greek and Turkish zones.',
         country: 'CY',
-        state: () => cyprusInvasion,
+        state: () => 1, // TEMP: was () => cyprusInvasion
     },
     {
         id: 'chad-civil-war',
@@ -12119,7 +12119,7 @@ const _EVENT_DEFS = [
         body: 'Chad has been engulfed in civil conflict since 1965, when northern Muslim populations rose against the southern-dominated government of François Tombalbaye. The rebel FROLINAT movement draws support from Libya\'s Muammar Gaddafi, who has territorial designs on the uranium-rich Aozou Strip. French forces have intervened repeatedly to prop up the Chadian government, but the insurgency continues to expand.',
         country: 'TD',
         positionOffset: { x: -11, y: -18 },
-        state: () => chad,
+        state: () => 1, // TEMP: was () => chad
     },
     {
         id: 'guatemala-civil-war',
@@ -12141,7 +12141,7 @@ const _EVENT_DEFS = [
         body: 'In the early hours of February 4th 1976, a magnitude 7.5 earthquake struck Guatemala, killing more than 23,000 people and leaving over a million homeless. Striking while the country slept, it devastated highland towns and shanty districts of Guatemala City alike.',
         country: 'GT',
         positionOffset: { x: 5, y: 5 },
-        state: () => guatemalaQuake,
+        state: () => 1, // TEMP: was () => guatemalaQuake
     },
     {
         id: 'rhodesia-bush-war',
@@ -12163,7 +12163,7 @@ const _EVENT_DEFS = [
         body: 'Eritrea was federated with Ethiopia in 1952 and formally annexed in 1962 by Emperor Haile Selassie, triggering an armed independence movement that has persisted since 1961. The Eritrean Liberation Front now contests large areas of the territory. Ethiopia is a key US ally in the Horn of Africa; Washington has maintained silence on Selassie\'s suppression of the insurgency.',
         country: 'ET',
         positionOffset: { x: -10, y: -30 },
-        state: () => eritrea,
+        state: () => 1, // TEMP: was () => eritrea
     },
     {
         id: 'mississippi-flood',
@@ -12174,7 +12174,7 @@ const _EVENT_DEFS = [
         body: 'Heavy rainfall, snowmelt and a saturated drainage basin triggered the worst Mississippi flooding in 150 years. Sixteen states are affected from Illinois to Louisiana, 17 million acres inundated, hundreds dead and thousands homeless. A federal disaster has been declared.',
         country: 'US',
         positionOffset: { x: 30, y: 20 },
-        state: () => mississippi,
+        state: () => 1, // TEMP: was () => mississippi
     },
     {
         id: 'tangshan-quake',
@@ -12185,7 +12185,7 @@ const _EVENT_DEFS = [
         body: 'A magnitude 7.6 earthquake struck the industrial city of Tangshan in northern China at 3:42 in the morning, killing an estimated 240,000 people. The city was almost completely levelled. Beijing refused all offers of foreign aid, and the CIA struggled to get any meaningful intelligence behind a Great Wall of deliberate concealment.',
         country: 'CN',
         positionOffset: { x: 20, y: -20 },
-        state: () => tangshan,
+        state: () => 1, // TEMP: was () => tangshan
     },
     {
         id: 'honduras-coup-1972',
@@ -12196,7 +12196,7 @@ const _EVENT_DEFS = [
         body: 'The elected president, Ramón Ernesto Cruz is overthrown in a bloodless military coup. A military triumvirate now rules, headed by ex and now president General Oswaldo Enrique López Arellano. This will turn out to be a coup from the left, promising land reform and labor union rights. But, a true banana republic, the position of United Fruit will be protected.',
         country: 'HN',
         positionOffset: { x: -12, y: -8 },
-        state: () => hondurasCoup,
+        state: () => 1, // TEMP: was () => hondurasCoup
     },
     {
         id: 'bananagate',
@@ -12207,7 +12207,7 @@ const _EVENT_DEFS = [
         body: 'Our friend, President López has been overthrown in another coup. This follows in the wake of the chairman of United Brands committing suicide after being caught bribing López $3m to reduce Hondura\'s banana export tax. \'Bananagate\' rumbles on for a few weeks, while United Fruit loosens its grip on Honduras.',
         country: 'HN',
         positionOffset: { x: 4, y: 4 },
-        state: () => bananagate,
+        state: () => 1, // TEMP: was () => bananagate
     },
     {
         id: 'rwanda-coup',
@@ -12218,7 +12218,7 @@ const _EVENT_DEFS = [
         body: 'Led by Major General Juvénal Habyarimana, deposing Rwanda\'s first elected president, Grégoire Kayibanda, and installing a Hutu-dominated totalitarian state. The new regime clamps down on intra-Hutu rivalry at the expense of the marginalised Tutsi minority, laying the structural foundations for the Rwandan genocide after Habyarimana\'s assassination in 1994.',
         country: 'RW',
         positionOffset: { x: -8, y: -8 },
-        state: () => rwandaCoup,
+        state: () => 1, // TEMP: was () => rwandaCoup
     },
     {
         id: 'afghanistan-coup',
@@ -12229,7 +12229,7 @@ const _EVENT_DEFS = [
         body: 'Mohammad Daoud Khan overthrows his cousin, King Mohammad Zahir Shah (the last king of Afghanistan). A one party republic is established with some Marxist leanings. Despite this, Daoud puts feelers out to the US and Pakistan.',
         country: 'AF',
         positionOffset: { x: -10, y: -10 },
-        state: () => afghanCoup,
+        state: () => 1, // TEMP: was () => afghanCoup
     },
     {
         id: 'niger-coup',
@@ -12240,7 +12240,7 @@ const _EVENT_DEFS = [
         body: '15 April 1974. Lieutenant-Colonel Seyni Kountché led a military coup that ended the fourteen-year rule of President Diori. The army effectively distributes food aid hoarded by Diori to a population reeling from a 6 year long drought, winning much popular support.',
         country: 'NE',
         positionOffset: { x: -10, y: -10 },
-        state: () => nigerCoup,
+        state: () => 1, // TEMP: was () => nigerCoup
     },
 ];
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
