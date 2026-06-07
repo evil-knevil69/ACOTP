@@ -12041,6 +12041,9 @@ var ethiopianRevolution = 0; // Ethiopian Revolution         (triggered by quest
 var dergCoup           = 0;  // Coup of the Derg             (triggered by question onShow)
 var uruguayCoup        = 0;  // Uruguayan Self-Coup          (triggered by question onShow)
 var chileanCoup        = 0;  // Chilean Coup                 (triggered by question onShow)
+var upperVoltaCoup     = 0;  // Upper Volta Self-Coup        (triggered by question onShow)
+var tacnazo            = 0;  // Tacnazo — Peruvian Coup      (triggered by question onShow)
+var argentineCoup      = 0;  // Argentine Coup               (triggered by question onShow)
 var _allendeSpeechPlayed = false; // Easter egg: Allende's last speech plays once on first world map open after coup
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
@@ -12302,6 +12305,39 @@ const _EVENT_DEFS = [
         country: 'CL',
         positionOffset: { x: 0, y: 0 },
         state: () => 1, // TEMP: was () => chileanCoup
+    },
+    {
+        id: 'upper-volta-coup',
+        continent: 'Africa',
+        type: 'coup',
+        label: 'Upper Volta Coup',
+        img: null,
+        body: 'President General Sangoulé Lamizana commits a self coup, suspending the constitution and appointing himself as prime minister. The context is the social dislocation of the 6 year long Sahel Famine. Lamizana presents himself as a strongman in a crisis and guards his direct line to you and therefore, aid from Washington.',
+        country: 'HV',
+        positionOffset: { x: 0, y: 0 },
+        state: () => 1, // TEMP: was () => upperVoltaCoup
+    },
+    {
+        id: 'tacnazo',
+        continent: 'South America',
+        type: 'coup',
+        label: 'Tacnazo — The Coup in Peru',
+        img: null,
+        body: 'A general overthrows a general. The ailing President Velasco is overthrown by General Morales Bermúdez. The \'developmentalist\' Peruvian Revolution takes a right turn, stalling social and economic reforms. The other good news is that Peru becomes a fully fledged member of the Condor club.',
+        country: 'PE',
+        positionOffset: { x: 0, y: 0 },
+        state: () => 1, // TEMP: was () => tacnazo
+    },
+    {
+        id: 'argentine-coup',
+        continent: 'South America',
+        type: 'coup',
+        label: 'The Argentine Coup',
+        img: null,
+        body: 'A rampaging military junta takes power, weakly grasped, from Isabel \'Isabelita\' Peron, Juan Peron\'s widow. Argentina is already roiling from the Dirty War, which now becomes fully institutionalised: more than 300 concentration camps sprout like grass in the Pampas. The Department of State aids and abets the generals in their struggle against communism.',
+        country: 'AR',
+        positionOffset: { x: 0, y: 0 },
+        state: () => 1, // TEMP: was () => argentineCoup
     },
 ];
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
