@@ -15886,6 +15886,7 @@ function openWorldMap() {
     let selectedEl = null;
     const origFills = new Map();
     let flagsOn = false;
+    let eventsOn = true;
     const smallFlagCodes = new Set();
     let flagOverlayG = null;
     let vScrollTrack, vScrollThumb, hScrollTrack, hScrollThumb;
@@ -15945,6 +15946,18 @@ function openWorldMap() {
         else         { flagOverlayG.remove(); }
     });
     bar.appendChild(flagBtn);
+
+    const eventBtn = document.createElement('button');
+    eventBtn.textContent = 'Events';
+    eventBtn.style.cssText = 'margin-left:4px;cursor:pointer;padding:0 8px;height:30px;font-weight:bold;outline:2px solid #ccc;';
+    eventBtn.addEventListener('click', () => {
+        eventsOn = !eventsOn;
+        eventBtn.style.outline = eventsOn ? '2px solid #ccc' : '';
+        eventBtn.style.fontWeight = eventsOn ? 'bold' : '';
+        const ig = document.getElementById('wm-events');
+        if (ig) ig.style.display = eventsOn ? '' : 'none';
+    });
+    bar.appendChild(eventBtn);
 
     container.appendChild(viewport);
     container.appendChild(bar);
@@ -16270,12 +16283,15 @@ function openWorldMap() {
                 const _fwdClick = (type, e) => {
                     if (_editMode) return;
                     e.stopPropagation();
+                    // Hide this icon AND the flag overlay so elementFromPoint reaches the country path
                     g.style.display = 'none';
                     g.setAttribute('display', 'none');
+                    if (flagOverlayG) flagOverlayG.style.display = 'none';
                     const under = document.elementFromPoint(e.clientX, e.clientY);
                     g.style.display = '';
                     g.removeAttribute('display');
-                    if (under && under !== g) under.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY }));
+                    if (flagOverlayG) flagOverlayG.style.display = '';
+                    if (under && under !== g) under.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, view: window }));
                 };
                 g.addEventListener('click',    e => _fwdClick('click', e));
                 g.addEventListener('dblclick', e => _fwdClick('dblclick', e));
