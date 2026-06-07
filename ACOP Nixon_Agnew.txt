@@ -12036,7 +12036,9 @@ var bananagate     = 0;  // 1975 Bananagate / Honduran Coup (triggered by questi
 var rwandaCoup     = 0;  // 1973 Rwandan Coup            (triggered by question onShow)
 var afghanCoup     = 0;  // 1973 Coup of 26 Saratan      (triggered by question onShow)
 var nigerCoup      = 0;  // 1974 Nigerien Coup           (triggered by question onShow)
-var greekCoup      = 0;  // Greek 'corrective revolution' (triggered by question onShow)
+var greekCoup          = 0;  // Greek 'corrective revolution' (triggered by question onShow)
+var ethiopianRevolution = 0; // Ethiopian Revolution         (triggered by question onShow)
+var dergCoup           = 0;  // Coup of the Derg             (triggered by question onShow)
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
 // Add a new entry here whenever you add a variable above.
@@ -12253,6 +12255,28 @@ const _EVENT_DEFS = [
         country: 'GR',
         positionOffset: { x: 0, y: 0 },
         state: () => 1, // TEMP: was () => greekCoup
+    },
+    {
+        id: 'ethiopian-revolution',
+        continent: 'Africa',
+        type: 'insurgency',
+        label: 'The Ethiopian Revolution',
+        img: null,
+        body: 'Ethiopia, one of the world\'s oldest nations, may be entering the first modern example of a polycrisis. War in Eritrea, ethnic conflict, famine in the Wollo, peasant uprisings against all of the above and against the anachronistic feudalism of Emperor Haile Selassie. Students burning down campuses and a demoralised and underpaid army, now turning openly to mutiny.',
+        country: 'ET',
+        positionOffset: { x: 10, y: 0 },
+        state: () => 1, // TEMP: was () => ethiopianRevolution
+    },
+    {
+        id: 'derg-coup',
+        continent: 'Africa',
+        type: 'coup',
+        label: 'The Coup of the Derg',
+        img: null,
+        body: 'Taking advantage of the collapsing legitimacy of the Ethiopian Empire, a group of junior officers place Haile Selassie under palace arrest. \'The Committee\', aka the Derg, create a Marxist dictatorship that turns in on itself, initiating a Red Terror akin to its Soviet and Stalinist namesakes.',
+        country: 'ET',
+        positionOffset: { x: 10, y: 15 },
+        state: () => 1, // TEMP: was () => dergCoup
     },
 ];
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
