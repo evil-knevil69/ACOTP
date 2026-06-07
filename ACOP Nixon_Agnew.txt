@@ -12039,6 +12039,7 @@ var nigerCoup      = 0;  // 1974 Nigerien Coup           (triggered by question 
 var greekCoup          = 0;  // Greek 'corrective revolution' (triggered by question onShow)
 var ethiopianRevolution = 0; // Ethiopian Revolution         (triggered by question onShow)
 var dergCoup           = 0;  // Coup of the Derg             (triggered by question onShow)
+var uruguayCoup        = 0;  // Uruguayan Self-Coup          (triggered by question onShow)
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
 // Add a new entry here whenever you add a variable above.
@@ -12277,6 +12278,17 @@ const _EVENT_DEFS = [
         country: 'ET',
         positionOffset: { x: 10, y: 15 },
         state: () => 1, // TEMP: was () => dergCoup
+    },
+    {
+        id: 'uruguay-self-coup',
+        continent: 'South America',
+        type: 'coup',
+        label: 'The Uruguayan Self-Coup',
+        img: null,
+        body: 'President Juan María Bordaberry dissolves parliament with military backing, banning political parties, trade unions and the press. The objective is the elimination of the left. Uruguay\'s democratic traditions are shredded and torture becomes institutionalised. The CIA raises no objection. After all, Uruguay is a founding member of Operation Condor.',
+        country: 'UY',
+        positionOffset: { x: 0, y: 0 },
+        state: () => 1, // TEMP: was () => uruguayCoup
     },
 ];
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
