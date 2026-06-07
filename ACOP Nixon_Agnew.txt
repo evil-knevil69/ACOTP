@@ -12165,7 +12165,7 @@ const _EVENT_DEFS = [
         type: 'disaster',
         label: '1976 Tangshan Earthquake',
         img: null,
-        body: 'On July 28th 1976, a magnitude 7.6 earthquake struck the industrial city of Tangshan in northern China at 3:42 in the morning, killing an estimated 240,000 people — though the true toll may be far higher. The city was almost completely levelled. Beijing refused all offers of foreign aid, and the scale of the disaster was concealed from the outside world for years.',
+        body: 'A magnitude 7.6 earthquake struck the industrial city of Tangshan in northern China at 3:42 in the morning, killing an estimated 240,000 people. The city was almost completely levelled. Beijing refused all offers of foreign aid, and the CIA struggled to get any meaningful intelligence behind a Great Wall of deliberate concealment.',
         country: 'CN',
         positionOffset: { x: 20, y: -20 },
         state: () => tangshan,
