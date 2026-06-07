@@ -12040,6 +12040,7 @@ var greekCoup          = 0;  // Greek 'corrective revolution' (triggered by ques
 var ethiopianRevolution = 0; // Ethiopian Revolution         (triggered by question onShow)
 var dergCoup           = 0;  // Coup of the Derg             (triggered by question onShow)
 var uruguayCoup        = 0;  // Uruguayan Self-Coup          (triggered by question onShow)
+var chileanCoup        = 0;  // Chilean Coup                 (triggered by question onShow)
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
 // Add a new entry here whenever you add a variable above.
@@ -12289,6 +12290,17 @@ const _EVENT_DEFS = [
         country: 'UY',
         positionOffset: { x: 0, y: 0 },
         state: () => 1, // TEMP: was () => uruguayCoup
+    },
+    {
+        id: 'chilean-coup',
+        continent: 'South America',
+        type: 'coup',
+        label: 'The Chilean Coup',
+        img: null,
+        body: '9/11. 1973. A day that will live in infamy. And conspiracy. The narrowly but legitimately elected Socialist Government of Salvador Allende is violently overthrown by the army led by General Augusto Pinochet. At the least, you let this happen. At the worst your hands drip blood like the stands of Santiago Stadium and like the decks of the army\'s helicopters, from which several hundred political prisoners are \'disappeared\'.',
+        country: 'CL',
+        positionOffset: { x: 0, y: 0 },
+        state: () => 1, // TEMP: was () => chileanCoup
     },
 ];
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
