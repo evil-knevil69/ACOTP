@@ -15707,16 +15707,25 @@ function _addWorldMapBtn() {
 
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
-    // Easter egg: Allende's last speech plays once on first world map open after the Chilean coup
-    if (chileanCoup === 1 && !_allendeSpeechPlayed) {
+    // Easter egg: Allende's last speech injected into the music player once,
+    // on the first world map open after the Chilean coup fires.
+    if (chileanCoup === 1 && !_allendeSpeechPlayed && window.Song && window.playlist && window.loadAndPlay) {
         _allendeSpeechPlayed = true;
-        const mainAudio = document.getElementById('audio');
-        const allende = new Audio('ALLENDE_SPEECH_URL_PLACEHOLDER');
-        if (mainAudio) mainAudio.muted = true;
-        allende.play().catch(() => {});
-        allende.addEventListener('ended', () => {
-            if (mainAudio) mainAudio.muted = false;
-        }, { once: true });
+        const allendeTrack = new window.Song(
+            'Last Speech', 'Salvador Allende',
+            '', 'ALLENDE_SPEECH_URL_PLACEHOLDER'
+        );
+        window.playlist.addSong(allendeTrack);
+        const idx = window.playlist.songs.length - 1;
+        const sel = document.getElementById('playlist-select');
+        if (sel) {
+            const opt = document.createElement('option');
+            opt.value = idx;
+            opt.textContent = allendeTrack.getTitle() + ' — ' + allendeTrack.getArtist();
+            sel.appendChild(opt);
+        }
+        window.playlist.currentSongIndex = idx;
+        window.loadAndPlay();
     }
 
     document.getElementById('world-map-container')?.remove();
