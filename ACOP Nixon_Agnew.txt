@@ -12031,6 +12031,11 @@ var cyprusInvasion = 0;  // Turkish Invasion of Cyprus (triggered by question on
 var guatemalaQuake = 0;  // 1976 Guatemalan Earthquake (triggered by question onShow)
 var tangshan       = 0;  // 1976 Tangshan Earthquake   (triggered by question onShow)
 var mississippi    = 0;  // Great Mississippi Flood    (triggered by question onShow)
+var hondurasCoup   = 0;  // 1972 Honduran Coup          (triggered by question onShow)
+var bananagate     = 0;  // 1975 Bananagate / Honduran Coup (triggered by question onShow)
+var rwandaCoup     = 0;  // 1973 Rwandan Coup            (triggered by question onShow)
+var afghanCoup     = 0;  // 1973 Coup of 26 Saratan      (triggered by question onShow)
+var nigerCoup      = 0;  // 1974 Nigerien Coup           (triggered by question onShow)
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
 // Add a new entry here whenever you add a variable above.
@@ -12181,6 +12186,61 @@ const _EVENT_DEFS = [
         country: 'CN',
         positionOffset: { x: 20, y: -20 },
         state: () => tangshan,
+    },
+    {
+        id: 'honduras-coup-1972',
+        continent: 'North America',
+        type: 'coup',
+        label: '1972 Honduran Coup',
+        img: null,
+        body: 'The elected president, Ramón Ernesto Cruz has been overthrown in a bloodless military coup. A military triumvirate now rules, headed by General Oswaldo Enrique López Arellano. A coup from the left in a true banana republic: López promises land reform and labour union rights, but the position of United Fruit will be protected.',
+        country: 'HN',
+        positionOffset: { x: -12, y: -8 },
+        state: () => hondurasCoup,
+    },
+    {
+        id: 'bananagate',
+        continent: 'North America',
+        type: 'coup',
+        label: 'Bananagate',
+        img: null,
+        body: 'General López Arellano has himself been overthrown following the revelation that United Brands bribed him $3m to reduce Honduras\'s banana export tax — a scandal that drove the company\'s chairman to suicide. \'Bananagate\' rumbles on for weeks, while United Fruit begins to loosen its grip on Honduras.',
+        country: 'HN',
+        positionOffset: { x: 4, y: 4 },
+        state: () => bananagate,
+    },
+    {
+        id: 'rwanda-coup',
+        continent: 'Africa',
+        type: 'coup',
+        label: 'Rwandan Coup',
+        img: null,
+        body: 'Major General Juvénal Habyarimana has deposed Rwanda\'s first elected president, Grégoire Kayibanda, installing a Hutu-dominated totalitarian state. The new regime clamps down on intra-Hutu rivalry at the expense of the marginalised Tutsi minority, laying structural foundations whose consequences will not be fully reckoned with for decades.',
+        country: 'RW',
+        positionOffset: { x: -8, y: -8 },
+        state: () => rwandaCoup,
+    },
+    {
+        id: 'afghanistan-coup',
+        continent: 'Asia',
+        type: 'coup',
+        label: 'Coup of 26 Saratan',
+        img: null,
+        body: 'Mohammad Daoud Khan has overthrown his cousin, King Mohammad Zahir Shah — the last king of Afghanistan — and declared a republic with one-party rule and Marxist leanings. Despite this, Daoud puts feelers out to the United States and Pakistan, signalling a pragmatic approach to Cold War alignment.',
+        country: 'AF',
+        positionOffset: { x: -10, y: -10 },
+        state: () => afghanCoup,
+    },
+    {
+        id: 'niger-coup',
+        continent: 'Africa',
+        type: 'coup',
+        label: 'Nigerien Coup',
+        img: null,
+        body: 'Lieutenant-Colonel Seyni Kountché has ended the fourteen-year rule of President Diori in a military coup. The army moved swiftly to distribute food aid that Diori had hoarded from a population reeling from six years of drought, winning immediate popular support.',
+        country: 'NE',
+        positionOffset: { x: -10, y: -10 },
+        state: () => nigerCoup,
     },
 ];
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
