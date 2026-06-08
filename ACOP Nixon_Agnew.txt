@@ -11650,15 +11650,15 @@ const COUNTRIES = {
   DD: { name:'East Germany', loyal:20, file:'germany-east', flag:'svg' }, // East Germany — no US recognition, Soviet satellite
   DE: { name:'West Germany', loyal:85, file:'germany-west', flag:'svg' }, // West Germany — key NATO ally
   DK: { name:'Denmark', loyal:80, file:'denmark', flag:'svg' }, // Denmark — NATO
-  ES: { name:'Spain', loyal:68, file:'spain', flag:'svg' }, // Spain — Franco, US bases, anti-communist
+  ES: { name:'Spain', loyal:75, file:'spain', flag:'svg' }, // Spain — Franco, US bases, anti-communist
   FI: { name:'Finland', loyal:48, file:'finland', flag:'svg' }, // Finland — Finlandization
   FR: { name:'France', loyal:75, file:'france', flag:'svg' }, // France — NATO but independent streak
   GB: { name:'United Kingdom', loyal:90, file:'united-kingdom', flag:'svg' }, // United Kingdom — Special Relationship
-  GR: { name:'Greece', loyal:68, file:'greece', flag:'svg' }, // Greece — military junta but NATO
+  GR: { name:'Greece', loyal:80, file:'greece', flag:'svg' }, // Greece — military junta but NATO
   HU: { name:'Hungary', loyal:18, file:'hungary', flag:'svg' }, // Hungary — Soviet satellite
-  IE: { name:'Ireland', loyal:58, file:'ireland', flag:'svg' }, // Ireland — neutral, not NATO
+  IE: { name:'Ireland', loyal:60, file:'ireland', flag:'svg' }, // Ireland — neutral, not NATO
   IS: { name:'Iceland', loyal:75, file:'iceland', flag:'svg' }, // Iceland — NATO, US Keflavik base
-  IT: { name:'Italy', loyal:72, file:'italy', flag:'svg' }, // Italy — NATO; large Communist Party
+  IT: { name:'Italy', loyal:80, file:'italy', flag:'svg' }, // Italy — NATO; large Communist Party
   LI: { name:'Liechtenstein', loyal:72, file:'liechtenstein', flag:'svg' }, // Liechtenstein
   LU: { name:'Luxembourg', loyal:82, file:'luxembourg', flag:'svg' }, // Luxembourg — NATO
   MC: { name:'Monaco', loyal:72, file:'monaco', flag:'svg' }, // Monaco
@@ -11666,13 +11666,13 @@ const COUNTRIES = {
   NL: { name:'Netherlands', loyal:82, file:'netherlands', flag:'svg' }, // Netherlands — NATO
   NO: { name:'Norway', loyal:80, file:'norway', flag:'svg' }, // Norway — NATO
   PL: { name:'Poland', loyal:18, file:'poland', flag:'svg' }, // Poland — Soviet satellite
-  PT: { name:'Portugal', loyal:72, file:'portugal', flag:'svg' }, // Portugal — NATO (Estado Novo)
-  RO: { name:'Romania', loyal:25, file:'romania', flag:'png' }, // Romania — most independent Soviet bloc state
+  PT: { name:'Portugal', loyal:80, file:'portugal', flag:'svg' }, // Portugal — NATO (Estado Novo)
+  RO: { name:'Romania', loyal:30, file:'romania', flag:'png' }, // Romania — most independent Soviet bloc state
   SM: { name:'San Marino', loyal:55, file:'san-marino', flag:'svg' }, // San Marino — Western but communist coalition govt
   SU: { name:'Soviet Union', loyal:15, file:'u-s-s-r', flag:'svg' }, // Soviet Union — superpower rival
   SE: { name:'Sweden', loyal:52, file:'sweden', flag:'svg' }, // Sweden — neutral, critical of Vietnam War
   CH: { name:'Switzerland', loyal:62, file:'switzerland', flag:'svg' }, // Switzerland — neutral but Western-integrated
-  TR: { name:'Turkey', loyal:72, file:'turkey', flag:'svg' }, // Turkey — NATO
+  TR: { name:'Turkey', loyal:75, file:'turkey', flag:'svg' }, // Turkey — NATO
   VA: { name:'Vatican City', loyal:62, file:'vatican-city', flag:'svg' }, // Vatican City — anti-communist but neutral
   YU: { name:'Yugoslavia', loyal:48, file:'yugoslavia', flag:'svg' }, // Yugoslavia — non-aligned, independent communist
 
@@ -11690,7 +11690,7 @@ const COUNTRIES = {
   JM: { name:'Jamaica', loyal:65, file:'jamaica', flag:'svg' }, // Jamaica — Commonwealth
   MX: { name:'Mexico', loyal:58, file:'mexico', flag:'svg' }, // Mexico — PRI, independent foreign policy
   NI: { name:'Nicaragua', loyal:72, file:'nicaragua', flag:'svg' }, // Nicaragua — Somoza dynasty, pro-US
-  PA: { name:'Panama', loyal:52, file:'panama', flag:'svg' }, // Panama — Canal Zone tensions with Torrijos
+  PA: { name:'Panama', loyal:60, file:'panama', flag:'svg' }, // Panama — Canal Zone tensions with Torrijos
   TT: { name:'Trinidad and Tobago', loyal:65, file:'trinidad-and-tobago', flag:'svg' }, // Trinidad and Tobago — Commonwealth
   GD: { name:'Grenada', loyal:65, file:'grenada', flag:'svg' }, // Grenada — British associated state
   US: { name:'United States', loyal:100, file:'united-states', flag:'svg' }, // United States
@@ -11709,7 +11709,7 @@ const COUNTRIES = {
   VE: { name:'Venezuela', loyal:62, file:'venezuela', flag:'svg' }, // Venezuela — democratic, oil
 
   // ── Africa ───────────────────────────────────────────────────────────────
-  DZ: { name:'Algeria', loyal:25, file:'algeria', flag:'svg' }, // Algeria — FLN socialist, Soviet equipment
+  DZ: { name:'Algeria', loyal:35, file:'algeria', flag:'svg' }, // Algeria — FLN socialist, Soviet equipment
   DY: { name:'Dahomey', loyal:45, file:'dahomey', flag:'svg' }, // Dahomey — unstable, various coups
   BW: { name:'Botswana', loyal:58, file:'botswana', flag:'svg' }, // Botswana — pro-Western democracy
   BI: { name:'Burundi', loyal:40, file:'burundi', flag:'svg' }, // Burundi
@@ -11730,7 +11730,7 @@ const COUNTRIES = {
   KE: { name:'Kenya', loyal:60, file:'kenya', flag:'svg' }, // Kenya — Kenyatta, pro-Western
   LS: { name:'Lesotho', loyal:52, file:'lesotho', flag:'svg' }, // Lesotho
   LR: { name:'Liberia', loyal:68, file:'liberia', flag:'svg' }, // Liberia — historically very pro-US
-  LY: { name:'Libya', loyal:18, file:'libya', flag:'svg' }, // Libya — Gaddafi, anti-Western, nationalised oil
+  LY: { name:'Libya', loyal:30, file:'libya', flag:'svg' }, // Libya — Gaddafi, anti-Western, nationalised oil
   MG: { name:'Malagasy Republic', loyal:45, file:'madagascar', flag:'svg' }, // Malagasy Republic
   MW: { name:'Malawi', loyal:55, file:'malawi', flag:'svg' }, // Malawi — Banda, moderately pro-Western
   ML: { name:'Mali', loyal:25, file:'mali', flag:'svg' }, // Mali — military, Soviet equipment
@@ -11745,10 +11745,10 @@ const COUNTRIES = {
   SN: { name:'Senegal', loyal:58, file:'senegal', flag:'svg' }, // Senegal — Senghor, pro-French/West
   SL: { name:'Sierra Leone', loyal:50, file:'sierra-leone', flag:'svg' }, // Sierra Leone
   SO: { name:'Somalia', loyal:22, file:'somalia', flag:'svg' }, // Somalia — Soviet ally, Siad Barre Marxist
-  ZA: { name:'South Africa', loyal:50, file:'south-africa', flag:'svg' }, // South Africa — anti-communist but apartheid complicates
+  ZA: { name:'South Africa', loyal:70, file:'south-africa', flag:'svg' }, // South Africa — anti-communist but apartheid complicates
   SD: { name:'Sudan', loyal:40, file:'sudan', flag:'svg' }, // Sudan — shifting from USSR toward non-alignment
   SZ: { name:'Swaziland', loyal:55, file:'swaziland', flag:'svg' }, // Swaziland
-  TZ: { name:'Tanzania', loyal:28, file:'tanzania', flag:'svg' }, // Tanzania — Nyerere, socialist, critical of US
+  TZ: { name:'Tanzania', loyal:35, file:'tanzania', flag:'svg' }, // Tanzania — Nyerere, socialist, critical of US
   TG: { name:'Togo', loyal:50, file:'togo', flag:'svg' }, // Togo — French sphere
   TN: { name:'Tunisia', loyal:60, file:'tunisia', flag:'svg' }, // Tunisia — Bourguiba, pro-Western
   UG: { name:'Uganda', loyal:22, file:'uganda', flag:'svg' }, // Uganda — Idi Amin, expelled Asians 1972, erratic
@@ -11758,7 +11758,7 @@ const COUNTRIES = {
   BH: { name:'Bahrain', loyal:65, file:'bahrain', flag:'svg' }, // Bahrain — pro-Western, just independent
   CY: { name:'Cyprus', loyal:55, file:'cyprus', flag:'svg' }, // Cyprus — non-aligned
   IR: { name:'Iran', loyal:82, file:'iran', flag:'png' }, // Iran — Shah, strongly pro-US, CENTO
-  IQ: { name:'Iraq', loyal:18, file:'iraq', flag:'svg' }, // Iraq — Ba'athist, Treaty of Friendship with USSR 1972
+  IQ: { name:'Iraq', loyal:40, file:'iraq', flag:'svg' }, // Iraq — Ba'athist, Treaty of Friendship with USSR 1972
   IL: { name:'Israel', loyal:92, file:'israel', flag:'svg' }, // Israel — very close US ally
   JO: { name:'Jordan', loyal:72, file:'jordan', flag:'svg' }, // Jordan — King Hussein, stable pro-US
   KW: { name:'Kuwait', loyal:65, file:'kuwait', flag:'svg' }, // Kuwait — oil, pro-Western
@@ -11772,10 +11772,10 @@ const COUNTRIES = {
   YD: { name:'South Yemen', loyal:12, file:'yemen-aden', flag:'svg' }, // South Yemen — Marxist PDRY
 
   // ── South Asia ───────────────────────────────────────────────────────────
-  AF: { name:'Afghanistan', loyal:38, file:'afghanistan', flag:'svg' }, // Afghanistan — non-aligned, Soviet influence growing
-  BD: { name:'Bangladesh', loyal:38, file:'bangladesh', flag:'svg' }, // Bangladesh — new country; US backed Pakistan in 1971 war
+  AF: { name:'Afghanistan', loyal:45, file:'afghanistan', flag:'svg' }, // Afghanistan — non-aligned, Soviet influence growing
+  BD: { name:'Bangladesh', loyal:40, file:'bangladesh', flag:'svg' }, // Bangladesh — new country; US backed Pakistan in 1971 war
   BT: { name:'Bhutan', loyal:45, file:'bhutan', flag:'svg' }, // Bhutan — Indian protectorate
-  IN: { name:'India', loyal:38, file:'india', flag:'svg' }, // India — non-aligned but clear Soviet tilt
+  IN: { name:'India', loyal:40, file:'india', flag:'svg' }, // India — non-aligned but clear Soviet tilt
   MV: { name:'Maldives', loyal:50, file:'maldives', flag:'svg' }, // Maldives
   NP: { name:'Nepal', loyal:50, file:'nepal', flag:'svg' }, // Nepal — non-aligned
   PK: { name:'Pakistan', loyal:72, file:'pakistan', flag:'svg' }, // Pakistan — key US ally, Nixon's China backchannel
@@ -11783,36 +11783,36 @@ const COUNTRIES = {
   SK: { name:'Sikkim', loyal:48, file:'sikkim', flag:'svg' }, // Sikkim — Indian protectorate
 
   // ── Southeast Asia ───────────────────────────────────────────────────────
-  KH: { name:'Cambodia', loyal:62, file:'cambodia', flag:'svg' }, // Cambodia — Lon Nol (US-backed after Sihanouk ousted 1970)
+  KH: { name:'Cambodia', loyal:65, file:'cambodia', flag:'svg' }, // Cambodia — Lon Nol (US-backed after Sihanouk ousted 1970)
   ID: { name:'Indonesia', loyal:68, file:'indonesia', flag:'svg' }, // Indonesia — Suharto, anti-communist, US-backed
   LA: { name:'Laos', loyal:55, file:'laos', flag:'svg' }, // Laos — RLG pro-US, complicated civil war
-  MY: { name:'Malaysia', loyal:60, file:'malaysia', flag:'svg' }, // Malaysia — anti-communist, pro-Western
-  BU: { name:'Burma', loyal:35, file:'burma', flag:'svg' }, // Burma — Ne Win, strict neutrality/isolation
+  MY: { name:'Malaysia', loyal:65, file:'malaysia', flag:'svg' }, // Malaysia — anti-communist, pro-Western
+  BU: { name:'Burma', loyal:40, file:'burma', flag:'svg' }, // Burma — Ne Win, strict neutrality/isolation
   PH: { name:'Philippines', loyal:72, file:'philippines', flag:'svg' }, // Philippines — Marcos, US bases (Subic Bay, Clark)
   SG: { name:'Singapore', loyal:65, file:'singapore', flag:'svg' }, // Singapore — Lee Kuan Yew, anti-communist
   TH: { name:'Thailand', loyal:72, file:'thailand', flag:'svg' }, // Thailand — military govt, US Vietnam War staging
   VD: { name:'North Vietnam', loyal:8, file:'vietnam-north', flag:'svg' }, // North Vietnam — at war with the US
-  VN: { name:'South Vietnam', loyal:78, file:'vietnam-south', flag:'svg' }, // South Vietnam — US ally, Thieu government
+  VN: { name:'South Vietnam', loyal:80, file:'vietnam-south', flag:'svg' }, // South Vietnam — US ally, Thieu government
 
   // ── East Asia ────────────────────────────────────────────────────────────
-  CN: { name:'China', loyal:30, file:'china-people-s-republic-of', flag:'svg' }, // China (PRC) — Nixon's Feb 1972 visit; Shanghai Communiqué
+  CN: { name:'China', loyal:35, file:'china-people-s-republic-of', flag:'svg' }, // China (PRC) — Nixon's Feb 1972 visit; Shanghai Communiqué
   JP: { name:'Japan', loyal:85, file:'japan', flag:'svg' }, // Japan — key ally, rebuilt under US umbrella
   KP: { name:'North Korea', loyal:10, file:'korea-north', flag:'svg' }, // North Korea — Kim Il-sung, hostile
-  KR: { name:'South Korea', loyal:82, file:'korea-south', flag:'svg' }, // South Korea — key ally (troops in Vietnam)
+  KR: { name:'South Korea', loyal:85, file:'korea-south', flag:'svg' }, // South Korea — key ally (troops in Vietnam)
   MN: { name:'Mongolia', loyal:18, file:'mongolia', flag:'svg' }, // Mongolia — Soviet satellite
   TW: { name:'Taiwan', loyal:78, file:'china-republic-of', flag:'svg' }, // Taiwan (ROC) — US ally; Shanghai Communiqué complicated things
 
   // ── Oceania ──────────────────────────────────────────────────────────────
   AU: { name:'Australia', loyal:85, file:'australia', flag:'svg' }, // Australia — ANZUS, strong ally
-  FJ: { name:'Fiji', loyal:65, file:'fiji', flag:'svg' }, // Fiji — Commonwealth, pro-Western
+  FJ: { name:'Fiji', loyal:75, file:'fiji', flag:'svg' }, // Fiji — Commonwealth, pro-Western
   NR: { name:'Nauru', loyal:55, file:'nauru', flag:'svg' }, // Nauru — just independent 1968
   NZ: { name:'New Zealand', loyal:80, file:'new-zealand', flag:'svg' }, // New Zealand — ANZUS (though withdrawing from Vietnam)
-  WS: { name:'Western Samoa', loyal:55, file:'western-samoa', flag:'svg' }, // Western Samoa
+  WS: { name:'Western Samoa', loyal:65, file:'western-samoa', flag:'svg' }, // Western Samoa
   TO: { name:'Tonga', loyal:58, file:'tonga', flag:'svg' }, // Tonga
-  VU: { name:'New Hebrides', loyal:58, file:'new-hebrides', flag:'svg' }, // New Hebrides — Anglo-French condominium
+  VU: { name:'New Hebrides', loyal:75, file:'new-hebrides', flag:'svg' }, // New Hebrides — Anglo-French condominium
 
   // ── Easter egg ───────────────────────────────────────────────────────────
-  EP: { name:'Little St James', loyal:1, file:'little-st-james', flag:'svg' }, // Little St James
+  EP: { name:'Little St James', loyal:50, file:'little-st-james', flag:'svg' }, // Little St James
 };
 const COUNTRY_LOYAL = Object.fromEntries(
     Object.entries(COUNTRIES).filter(([, v]) => v.loyal != null).map(([k, v]) => [k, v.loyal])
@@ -12028,6 +12028,26 @@ var laos           = 1;  // Laotian Civil War
 var eritrea        = 1;  // Eritrean War of Independence
 var managua        = 0;  // Managua Earthquake        (triggered by question onShow)
 var cyprusInvasion = 0;  // Turkish Invasion of Cyprus (triggered by question onShow)
+var guatemalaQuake = 0;  // 1976 Guatemalan Earthquake (triggered by question onShow)
+var tangshan       = 0;  // 1976 Tangshan Earthquake   (triggered by question onShow)
+var mississippi    = 0;  // Great Mississippi Flood    (triggered by question onShow)
+var hondurasCoup   = 0;  // 1972 Honduran Coup          (triggered by question onShow)
+var bananagate     = 0;  // 1975 Bananagate / Honduran Coup (triggered by question onShow)
+var rwandaCoup     = 0;  // 1973 Rwandan Coup            (triggered by question onShow)
+var afghanCoup     = 0;  // 1973 Coup of 26 Saratan      (triggered by question onShow)
+var nigerCoup      = 0;  // 1974 Nigerien Coup           (triggered by question onShow)
+var greekCoup          = 0;  // Greek 'corrective revolution' (triggered by question onShow)
+var ethiopianRevolution = 0; // Ethiopian Revolution         (triggered by question onShow)
+var dergCoup           = 0;  // Coup of the Derg             (triggered by question onShow)
+var uruguayCoup        = 0;  // Uruguayan Self-Coup          (triggered by question onShow)
+var chileanCoup        = 0;  // Chilean Coup                 (triggered by question onShow)
+var upperVoltaCoup     = 0;  // Upper Volta Self-Coup        (triggered by question onShow)
+var tacnazo            = 0;  // Tacnazo — Peruvian Coup      (triggered by question onShow)
+var argentineCoup      = 0;  // Argentine Coup               (triggered by question onShow)
+var northYemenCoup     = 0;  // 1974 North Yemen Coup        (triggered by question onShow)
+var oromoUprising      = 0;  // Oromo Uprising               (triggered by question onShow)
+var sahrawiInsurgency  = 0;  // Sahrawi Insurgency           (triggered by question onShow)
+var _allendeSpeechPlayed = false; // Easter egg: Allende's last speech plays once on first world map open after coup
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
 // Add a new entry here whenever you add a variable above.
@@ -12040,13 +12060,14 @@ const _EVENT_DEFS = [
         continent: 'Europe',
         type: 'insurgency',
         label: 'The Troubles — Northern Ireland',
-        img: null, // TODO: e.g. 'https://file.garden/.../ni_troubles.jpg'
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Troubles-ezgif.com-optimize.gif',
         body: 'Rooted in the 1921 partition and systematic discrimination against the Catholic minority under Protestant rule. Civil unrest from 1969 escalated into armed conflict by both sides. British forces killed 14 unarmed civilians on Bloody Sunday, 30 January 1972, sharply accelerating IRA recruitment. Westminster assumed direct rule of the province in March 1972. The security situation is deteriorating.',
         positionFn: (s) => {
             const ie = s.querySelector('#IE');
             if (ie) { try { const b = ie.getBBox(); return { x: b.x + b.width + 2, y: b.y + b.height * 0.2 }; } catch(e) {} }
             return { x: 488, y: 196 };
         },
+        positionOffset: { x: -16, y: -18 },
         state: () => 1,
     },
     {
@@ -12054,30 +12075,32 @@ const _EVENT_DEFS = [
         continent: 'Asia',
         type: 'war',
         label: 'Vietnam War',
-        img: null, // TODO: e.g. 'https://file.garden/.../vietnam.jpg'
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/0331_vietnam9.jpg',
         body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. The political cost at home continues to mount.',
         country: 'VD',
-        state: () => (typeof Vietnam !== 'undefined') && Vietnam <= 7 ? 1 : 3,
+        positionOffset: { x: 12, y: 25 },
+        state: () => 1, // TEMP: was () => (typeof Vietnam !== 'undefined') && Vietnam <= 7 ? 1 : 3
     },
     {
         id: 'khmer-civil-war',
         continent: 'Asia',
         type: 'war',
         label: 'Cambodian Civil War',
-        img: null, // TODO: e.g. 'https://file.garden/.../cambodia.jpg'
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/cambodia.gif',
         body: 'A 1970 coup aided by the US removed Prince Sihanouk and installed the Lon Nol government. Lon Nol, paralysed by a stroke and absorbed by the occult, is losing his grip on reality. The Khmer Rouge, previously a marginal force, now controls large areas of the countryside despite the slaughter of USAF saturation bombing. The government\'s hold on the cities is increasingly precarious.',
         country: 'KH',
-        state: () => khmer,
+        positionOffset: { x: -10, y: -12 },
+        state: () => 1, // TEMP: was () => khmer
     },
     {
         id: 'laotian-civil-war',
         continent: 'Asia',
         type: 'war',
         label: 'Laotian Civil War',
-        img: null, // TODO: e.g. 'https://file.garden/.../laos.jpg'
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Laos3.png',
         body: 'The Royal Lao Government has fought the communist Pathet Lao since 1953, with North Vietnamese forces providing decisive support to the insurgents. The CIA maintains a secret army of Hmong fighters under General Vang Pao, conducting unconventional warfare across the Plain of Jars. US bombing of the Ho Chi Minh Trail has made Laos the most heavily bombed country per capita in history. Congress and the public remain largely unaware of the scale of American involvement.',
         country: 'LA',
-        state: () => laos,
+        state: () => 1, // TEMP: was () => laos
     },
     {
         id: 'managua-quake',
@@ -12087,7 +12110,8 @@ const _EVENT_DEFS = [
         img: null, // TODO: e.g. 'https://file.garden/.../managua.jpg'
         body: 'A 6.2-magnitude earthquake struck the Nicaraguan capital on December 23, 1972, killing over 10,000 and levelled much of the city centre.',
         country: 'NI',
-        state: () => managua,
+        positionOffset: { x: -12, y: -13 },
+        state: () => 1, // TEMP: was () => managua
     },
     {
         id: 'cyprus-invasion',
@@ -12097,7 +12121,8 @@ const _EVENT_DEFS = [
         img: null, // TODO: e.g. 'https://file.garden/.../cyprus.jpg'
         body: 'Following a Greek Cypriot coup backed by the Athens junta, Turkey invaded Cyprus in July 1974. The island is now partitioned between Greek and Turkish zones.',
         country: 'CY',
-        state: () => cyprusInvasion,
+        positionOffset: { x: -11, y: -11 },
+        state: () => 1, // TEMP: was () => cyprusInvasion
     },
     {
         id: 'chad-civil-war',
@@ -12107,26 +12132,40 @@ const _EVENT_DEFS = [
         img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9783.jpeg',
         body: 'Chad has been engulfed in civil conflict since 1965, when northern Muslim populations rose against the southern-dominated government of François Tombalbaye. The rebel FROLINAT movement draws support from Libya\'s Muammar Gaddafi, who has territorial designs on the uranium-rich Aozou Strip. French forces have intervened repeatedly to prop up the Chadian government, but the insurgency continues to expand.',
         country: 'TD',
-        state: () => chad,
+        positionOffset: { x: -11, y: -18 },
+        state: () => 1, // TEMP: was () => chad
     },
     {
         id: 'guatemala-civil-war',
         continent: 'North America',
         type: 'war',
         label: 'Guatemalan Civil War',
-        img: null, // TODO: e.g. 'https://file.garden/.../guatemala.jpg'
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/guatemala.jpeg',
         body: 'A CIA-backed coup in 1954 overthrew the elected government of Jacobo Árbenz and installed a succession of military regimes, triggering an armed insurgency that has persisted since 1960. Leftist guerrilla groups operating from the highlands have been met with systematic counter-insurgency operations, including US-trained security forces and government-linked death squads. The conflict has claimed tens of thousands of lives and shows no sign of resolution.',
         country: 'GT',
+        positionOffset: { x: -11, y: -9 },
         state: () => 1,
+    },
+    {
+        id: 'guatemala-quake',
+        continent: 'North America',
+        type: 'disaster',
+        label: '1976 Guatemalan Earthquake',
+        img: null,
+        body: 'In the early hours of February 4th 1976, a magnitude 7.5 earthquake struck Guatemala, killing more than 23,000 people and leaving over a million homeless. Striking while the country slept, it devastated highland towns and shanty districts of Guatemala City alike.',
+        country: 'GT',
+        positionOffset: { x: -18, y: -8 },
+        state: () => 1, // TEMP: was () => guatemalaQuake
     },
     {
         id: 'rhodesia-bush-war',
         continent: 'Africa',
         type: 'insurgency',
         label: 'Rhodesian Bush War',
-        img: null, // TODO: e.g. 'https://file.garden/.../rhodesia.jpg'
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/rhodesia-ezgif.com-optimize.gif',
         body: 'Ian Smith\'s white-minority government declared independence from Britain in November 1965, triggering international sanctions and diplomatic isolation. Guerrilla forces backed by Mozambique and Zambia have been conducting cross-border operations since 1972, escalating pressure on Salisbury. Britain refuses to recognise the regime; the United States maintains limited covert contact.',
         country: 'RH',
+        positionOffset: { x: -9, y: -26 },
         state: () => 1,
     },
     {
@@ -12137,7 +12176,217 @@ const _EVENT_DEFS = [
         img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9784.jpeg',
         body: 'Eritrea was federated with Ethiopia in 1952 and formally annexed in 1962 by Emperor Haile Selassie, triggering an armed independence movement that has persisted since 1961. The Eritrean Liberation Front now contests large areas of the territory. Ethiopia is a key US ally in the Horn of Africa; Washington has maintained silence on Selassie\'s suppression of the insurgency.',
         country: 'ET',
-        state: () => eritrea,
+        positionOffset: { x: -7, y: -28 },
+        state: () => 1, // TEMP: was () => eritrea
+    },
+    {
+        id: 'mississippi-flood',
+        continent: 'North America',
+        type: 'disaster',
+        label: 'Great Mississippi Flood',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Boat.jpg',
+        body: 'Heavy rainfall, snowmelt and a saturated drainage basin triggered the worst Mississippi flooding in 150 years. Sixteen states are affected from Illinois to Louisiana, 17 million acres inundated, hundreds dead and thousands homeless. A federal disaster has been declared.',
+        country: 'US',
+        positionOffset: { x: 23, y: 57 },
+        state: () => 1, // TEMP: was () => mississippi
+    },
+    {
+        id: 'tangshan-quake',
+        continent: 'Asia',
+        type: 'disaster',
+        label: '1976 Tangshan Earthquake',
+        img: null,
+        body: 'A magnitude 7.6 earthquake struck the industrial city of Tangshan in northern China at 3:42 in the morning, killing an estimated 240,000 people. The city was almost completely levelled. Beijing refused all offers of foreign aid, and the CIA struggled to get any meaningful intelligence behind a Great Wall of deliberate concealment.',
+        country: 'CN',
+        positionOffset: { x: 66, y: -48 },
+        state: () => 1, // TEMP: was () => tangshan
+    },
+    {
+        id: 'honduras-coup-1972',
+        continent: 'North America',
+        type: 'coup',
+        label: '1972 Honduran Coup',
+        img: null,
+        body: 'The elected president, Ramón Ernesto Cruz is overthrown in a bloodless military coup. A military triumvirate now rules, headed by ex and now president General Oswaldo Enrique López Arellano. This will turn out to be a coup from the left, promising land reform and labor union rights. But, a true banana republic, the position of United Fruit will be protected.',
+        country: 'HN',
+        positionOffset: { x: -16, y: -15 },
+        state: () => 1, // TEMP: was () => hondurasCoup
+    },
+    {
+        id: 'bananagate',
+        continent: 'North America',
+        type: 'coup',
+        label: 'Bananagate',
+        img: null,
+        body: 'Our friend, President López has been overthrown in another coup. This follows in the wake of the chairman of United Brands committing suicide after being caught bribing López $3m to reduce Hondura\'s banana export tax. \'Bananagate\' rumbles on for a few weeks, while United Fruit loosens its grip on Honduras.',
+        country: 'HN',
+        positionOffset: { x: -15, y: -15 },
+        state: () => 1, // TEMP: was () => bananagate
+    },
+    {
+        id: 'rwanda-coup',
+        continent: 'Africa',
+        type: 'coup',
+        label: 'Rwandan Coup',
+        img: null,
+        body: 'Led by Major General Juvénal Habyarimana, deposing Rwanda\'s first elected president, Grégoire Kayibanda, and installing a Hutu-dominated totalitarian state. The new regime clamps down on intra-Hutu rivalry at the expense of the marginalised Tutsi minority, laying the structural foundations for the Rwandan genocide after Habyarimana\'s assassination in 1994.',
+        country: 'RW',
+        positionOffset: { x: -12, y: -13 },
+        state: () => 1, // TEMP: was () => rwandaCoup
+    },
+    {
+        id: 'afghanistan-coup',
+        continent: 'Asia',
+        type: 'coup',
+        label: 'Coup of 26 Saratan',
+        img: null,
+        body: 'Mohammad Daoud Khan overthrows his cousin, King Mohammad Zahir Shah (the last king of Afghanistan). A one party republic is established with some Marxist leanings. Despite this, Daoud puts feelers out to the US and Pakistan.',
+        country: 'AF',
+        positionOffset: { x: -4, y: -13 },
+        state: () => 1, // TEMP: was () => afghanCoup
+    },
+    {
+        id: 'niger-coup',
+        continent: 'Africa',
+        type: 'coup',
+        label: 'Nigerien Coup',
+        img: null,
+        body: '15 April 1974. Lieutenant-Colonel Seyni Kountché led a military coup that ended the fourteen-year rule of President Diori. The army effectively distributes food aid hoarded by Diori to a population reeling from a 6 year long drought, winning much popular support.',
+        country: 'NE',
+        positionOffset: { x: -41, y: 9 },
+        state: () => 1, // TEMP: was () => nigerCoup
+    },
+    {
+        id: 'greek-corrective-revolution',
+        continent: 'Europe',
+        type: 'coup',
+        label: 'The Greek \'corrective revolution\'',
+        img: null,
+        body: 'Brigadier Dimitrios Ioannidis, head of the military police, has overthrown George Papadopoulos in a palace coup. Papadopoulos had been cautiously liberalising the regime but Ioannidis wants to tear off the mask, enforcing an ultra nationalist, reactionary regime with torture, mass imprisonment and pervasive censorship. The social base of the Regime of the Colonels grows ever narrower.',
+        country: 'GR',
+        positionOffset: { x: -22, y: -22 },
+        state: () => 1, // TEMP: was () => greekCoup
+    },
+    {
+        id: 'ethiopian-revolution',
+        continent: 'Africa',
+        type: 'insurgency',
+        label: 'The Ethiopian Revolution',
+        img: null,
+        body: 'Ethiopia, one of the world\'s oldest nations, may be entering the first modern example of a polycrisis. War in Eritrea, ethnic conflict, famine in the Wollo, peasant uprisings against all of the above and against the anachronistic feudalism of Emperor Haile Selassie. Students burning down campuses and a demoralised and underpaid army, now turning openly to mutiny.',
+        country: 'ET',
+        positionOffset: { x: -2, y: 17 },
+        state: () => 1, // TEMP: was () => ethiopianRevolution
+    },
+    {
+        id: 'derg-coup',
+        continent: 'Africa',
+        type: 'coup',
+        label: 'The Coup of the Derg',
+        img: null,
+        body: 'Taking advantage of the collapsing legitimacy of the Ethiopian Empire, a group of junior officers place Haile Selassie under palace arrest. \'The Committee\', aka the Derg, create a Marxist dictatorship that turns in on itself, initiating a Red Terror akin to its Soviet and Stalinist namesakes.',
+        country: 'ET',
+        positionOffset: { x: -21, y: -6 },
+        state: () => 1, // TEMP: was () => dergCoup
+    },
+    {
+        id: 'uruguay-self-coup',
+        continent: 'South America',
+        type: 'coup',
+        label: 'The Uruguayan Self-Coup',
+        img: null,
+        body: 'President Juan María Bordaberry dissolves parliament with military backing, banning political parties, trade unions and the press. The objective is the elimination of the left. Uruguay\'s democratic traditions are shredded and torture becomes institutionalised. The CIA raises no objection. After all, Uruguay is a founding member of Operation Condor.',
+        country: 'UY',
+        positionOffset: { x: -10, y: -5 },
+        state: () => 1, // TEMP: was () => uruguayCoup
+    },
+    {
+        id: 'chilean-coup',
+        continent: 'South America',
+        type: 'coup',
+        label: 'The Chilean Coup',
+        img: null,
+        body: '9/11. 1973. A day that will live in infamy. And conspiracy. The narrowly but legitimately elected Socialist Government of Salvador Allende is violently overthrown by the army led by General Augusto Pinochet. At the least, you let this happen. At the worst your hands drip blood like the stands of Santiago Stadium and like the decks of the army\'s helicopters, from which several hundred political prisoners are \'disappeared\'.',
+        country: 'CL',
+        positionOffset: { x: -35, y: -17 },
+        state: () => 1, // TEMP: was () => chileanCoup
+    },
+    {
+        id: 'upper-volta-coup',
+        continent: 'Africa',
+        type: 'coup',
+        label: 'Upper Volta Coup',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9811.JPG',
+        body: 'President General Sangoulé Lamizana commits a self coup, suspending the constitution and appointing himself as prime minister. The context is the social dislocation of the 6 year long Sahel Famine. Lamizana presents himself as a strongman in a crisis and guards his direct line to you and therefore, aid from Washington.',
+        country: 'HV',
+        positionOffset: { x: -12, y: -12 },
+        state: () => 1, // TEMP: was () => upperVoltaCoup
+    },
+    {
+        id: 'tacnazo',
+        continent: 'South America',
+        type: 'coup',
+        label: 'Tacnazo — The Coup in Peru',
+        img: null,
+        body: 'A general overthrows a general. The ailing President Velasco is overthrown by General Morales Bermúdez. The \'developmentalist\' Peruvian Revolution takes a right turn, stalling social and economic reforms. The other good news is that Peru becomes a fully fledged member of the Condor club.',
+        country: 'PE',
+        positionOffset: { x: -16, y: 4 },
+        state: () => 1, // TEMP: was () => tacnazo
+    },
+    {
+        id: 'argentine-coup',
+        continent: 'South America',
+        type: 'coup',
+        label: 'The Argentine Coup',
+        img: null,
+        body: 'A rampaging military junta takes power, weakly grasped, from Isabel \'Isabelita\' Peron, Juan Peron\'s widow. Argentina is already roiling from the Dirty War, which now becomes fully institutionalised: more than 300 concentration camps sprout like grass in the Pampas. The Department of State aids and abets the generals in their struggle against communism.',
+        country: 'AR',
+        positionOffset: { x: 8, y: -36 },
+        state: () => 1, // TEMP: was () => argentineCoup
+    },
+    {
+        id: 'north-yemen-coup',
+        continent: 'Asia',
+        type: 'coup',
+        label: 'The North Yemen Coup',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9809.PNG',
+        body: 'Colonel Ibrahim al-Hamdi has overthrown the civilian government of President Abdul Rahman al-Iryani in a swift, largely bloodless coup. A moderniser and nationalist, al-Hamdi moves to dismantle the tribal power structures that have paralysed Yemeni politics. He pivots away from the USSR and one of his first actions is a telegram to you asking for development aid.',
+        country: 'YE',
+        positionOffset: { x: -14, y: -14 },
+        state: () => 1, // TEMP: was () => northYemenCoup
+    },
+    {
+        id: 'oromo-uprising',
+        continent: 'Africa',
+        type: 'insurgency',
+        label: 'Oromo Uprising',
+        img: null,
+        body: 'Ethiopia\'s largest ethnic group rises in armed resistance against centuries of subjugation. The Oromo Liberation Front, founded as the empire fractures, demands recognition, land and self-determination.',
+        country: 'ET',
+        positionOffset: { x: -18, y: 18 },
+        state: () => 1, // TEMP: was () => oromoUprising
+    },
+    {
+        id: 'sahrawi-insurgency',
+        continent: 'Africa',
+        type: 'insurgency',
+        label: 'Sahrawi Insurgency',
+        img: null,
+        body: 'Spain\'s Saharan colony is slipping from its grasp as the Franco regime enters its death throes. The Polisario Front fights for Sahrawi self-determination, but Morocco\'s King Hassan II has designs on the territory and Algeria is watching. When Hassan sends 350,000 civilians marching across the border in the \'Green March\', Spain folds and the Polisario are left fighting Moroccan and Mauritanian annexation across open desert. One of the last decolonisation struggles, almost entirely ignored by Washington.',
+        country: 'MA',
+        positionOffset: { x: -46, y: 23 },
+        state: () => 1, // TEMP: was () => sahrawiInsurgency
+    },
+    {
+        id: 'sahel-drought',
+        continent: 'Africa',
+        type: 'disaster',
+        label: 'The Great Sahelian Drought',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9808.JPG',
+        body: 'Ongoing since 1968 and affecting over 50 million people in Mali, Mauritania, Niger, Upper Volta, Chad and the Sudan, the drought has made pasturage nearly impossible. Half of all livestock are gone. 100,000 dead from starvation. The UN is straining its sinews to provide disaster relief. One leading theory is that particulate matter from the industrialised nations is disrupting the regular monsoon cycle.',
+        country: 'NE',
+        positionOffset: { x: 0, y: 6 },
+        state: () => 1,
     },
 ];
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
@@ -12533,19 +12782,19 @@ function addInnerCircleButton() {
 
 // ── Legal Pad ─────────────────────────────────────────────────────────────────
 const _LP_CRIMES = [
-    { varName: 'wiretapping',      label: 'Illegal Wiretapping' },
-    { varName: 'Ellsberg',         label: "Break-In at Ellsberg's Psychiatrist" },
-    { varName: 'taxEvasion',       label: 'Presidential Tax Fraud' },
-    { varName: 'homeImprovements', label: 'Federal Funds Used for Private Residences' },
-    { varName: 'Cambodia',         label: 'Secret Bombing of Cambodia' },
-    { varName: 'ratfucking',       label: 'Dirty Tricks' },
-    { varName: 'ITT',              label: 'ITT: Dita Beard' },
-    { varName: 'FakeCables',       label: 'Forged State Dept. Cables' },
-    { varName: 'MilkFund',         label: 'Dairy Industry Bribery' },
-    { varName: 'Vesco',            label: 'Illegal Vesco Campaign Contribution' },
-    { varName: 'oojHush',          label: 'Obstruction of Justice: Hush Money' },
-    { varName: 'oojClemency',      label: 'Obstruction of Justice: Clemency' },
-    { varName: 'dncbreakin',       label: 'Break-In at the Watergate' },
+    { val: () => wiretapping,      label: 'Illegal Wiretapping' },
+    { val: () => Ellsberg,         label: "Break-In at Ellsberg's Psychiatrist" },
+    { val: () => taxEvasion,       label: 'Presidential Tax Fraud' },
+    { val: () => homeImprovements, label: 'Federal Funds Used for Private Residences' },
+    { val: () => Cambodia,         label: 'Secret Bombing of Cambodia' },
+    { val: () => ratfucking,       label: 'Dirty Tricks' },
+    { val: () => ITT,              label: 'ITT: Dita Beard' },
+    { val: () => FakeCables,       label: 'Forged State Dept. Cables' },
+    { val: () => MilkFund,         label: 'Dairy Industry Bribery' },
+    { val: () => Vesco,            label: 'Illegal Vesco Campaign Contribution' },
+    { val: () => oojHush,          label: 'Obstruction of Justice: Hush Money' },
+    { val: () => oojClemency,      label: 'Obstruction of Justice: Clemency' },
+    { val: () => dncbreakin,       label: 'Break-In at the Watergate' },
 ];
 
 var _legalPadScreen = 0; // 0 = High Crimes tab, 1+ = future tabs
@@ -12558,7 +12807,7 @@ function _lpCrimesHTML() {
     ];
     let html = '';
     tiers.forEach(({ level, heading }) => {
-        const items = _LP_CRIMES.filter(c => window[c.varName] === level);
+        const items = _LP_CRIMES.filter(c => c.val() === level);
         if (!items.length) return;
         html += `<div style="margin-bottom:10px;">
             <div style="font-family:'TypewriterDry',monospace;font-size:11px;font-weight:bold;
@@ -14682,9 +14931,12 @@ document.body.appendChild(honk);
             getValue: () => MentalState,
             label: 'Mental State',
             tiers: [
-                [2,        "Prefers to have the blinds closed", "#c0392b"],
-                [7,        "Talking to paintings",              "#555555"],
-                [Infinity, "No longer the madman 'theory'",    "#1a7340"],
+                [2,        "Prefers to have the blinds closed", "#1a7340"],
+                [3,        "Roaring fireplace in a DC summer",  "#3feb89"],
+                [4,        "Drinking more than usual",          "#555555"],
+                [6,        "Refusing to get out of bed",        "#eed815"]
+                [7,        "Talking to paintings",              "#e18f0b"],
+                [Infinity, "No longer the madman 'theory'",    "#c0392b"],
             ],
         },
         {
@@ -14788,16 +15040,8 @@ document.body.appendChild(honk);
 
         // ── Globe button — opens World Map ────────────────────────────────────
         h += `<div style="text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid #c8b87a;">
-            <button id="fd-world-globe-btn" title="Open World Map" style="background:none;border:1px solid #a07028;border-radius:4px;padding:5px 12px;cursor:pointer;color:#5a3a0a;font-size:10px;display:inline-flex;align-items:center;gap:5px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a07028" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="2" y1="12" x2="22" y2="12"/>
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                </svg>
-                World Map
-            </button>
+            <img id="fd-world-globe-btn" src="https://file.garden/aXPgNT-ZRCxxpy0g/globeicon.png" title="Open World Map" style="width:40px;height:40px;cursor:pointer;display:inline-block;">
         </div>`;
-        // ── TODO: replace SVG globe above with custom icon when available ──────
 
         return h;
     }
@@ -15496,6 +15740,7 @@ campaignTrail_temp.jet_data = [{
 ;
 const PAGES_BASE = 'https://evil-knevil69.github.io/ACOTP';
 const SVG_URL    = PAGES_BASE + '/worldmapNEW_labeledv2.svg';
+let _svgTextCache = null;
 
 const COUNTRY_NAMES = Object.fromEntries(
     Object.entries(COUNTRIES).filter(([, v]) => v.name != null).map(([k, v]) => [k, v.name])
@@ -15540,16 +15785,44 @@ function _addWorldMapBtn() {
     const btn = document.createElement('button');
     btn.id = 'world_map_button';
     btn.textContent = 'World Map';
-    btn.style.cssText = 'position:absolute;z-index:10;left:' + (naturalLeft - 915) + 'px;top:' + (naturalTop + 21) + 'px;';
+    btn.style.cssText = 'position:absolute;z-index:10;left:' + (naturalLeft - 915) + 'px;top:' + (naturalTop + 6) + 'px;';
     btn.addEventListener('click', openWorldMap);
     gw.appendChild(btn);
 }
 
+// ── World Map toggle state — persists across openWorldMap() calls ─────────────
+var _wmFlagsOn     = false;
+var _wmEventsOn    = true;
+var _wmCapitalsOn  = false;
+var _wmAllegiance  = false;
+
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
+    // Easter egg: Allende's last speech injected into the music player once,
+    // on the first world map open after the Chilean coup fires.
+    if (chileanCoup === 1 && !_allendeSpeechPlayed && window.Song && window.playlist && window.loadAndPlay) {
+        _allendeSpeechPlayed = true;
+        const allendeTrack = new window.Song(
+            'Last Speech', 'Salvador Allende',
+            '', 'ALLENDE_SPEECH_URL_PLACEHOLDER'
+        );
+        window.playlist.addSong(allendeTrack);
+        const idx = window.playlist.songs.length - 1;
+        const sel = document.getElementById('playlist-select');
+        if (sel) {
+            const opt = document.createElement('option');
+            opt.value = idx;
+            opt.textContent = allendeTrack.getTitle() + ' — ' + allendeTrack.getArtist();
+            sel.appendChild(opt);
+        }
+        window.playlist.currentSongIndex = idx;
+        window.loadAndPlay();
+    }
+
     document.getElementById('world-map-container')?.remove();
     document.getElementById('wm-tooltip')?.remove();
     document.getElementById('wm-event-tooltip')?.remove();
+    document.getElementById('wm-capital-tooltip')?.remove();
 
     const gw = document.getElementById('game_window');
 
@@ -15563,11 +15836,17 @@ function openWorldMap() {
     tooltip.style.cssText = 'position:fixed;z-index:9999;background:rgba(255,255,255,0.92);backdrop-filter:blur(6px);padding:4px 10px;border-radius:3px;font-family:TypewriterDry,monospace;font-size:13px;color:#111;pointer-events:none;display:none;white-space:nowrap;box-shadow:1px 2px 6px rgba(0,0,0,0.35);';
     document.body.appendChild(tooltip);
 
-    // Polaroid-style tooltip for map event icons — matches #tooltip-portal at 80% scale
+    // Polaroid-style tooltip for map event icons
     const evTooltip = document.createElement('div');
     evTooltip.id = 'wm-event-tooltip';
-    evTooltip.style.cssText = 'position:fixed;z-index:9999;width:216px;background:rgba(255,255,255,0.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:2px 2px 11px 2px;border-radius:2px;box-shadow:2px 2px 8px rgba(0,0,0,0.4),0 0 1px rgba(0,0,0,0.2);pointer-events:none;display:none;text-align:center;';
+    evTooltip.style.cssText = 'position:fixed;z-index:9999;width:270px;background:rgba(255,255,255,0.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:2px 2px 14px 2px;border-radius:2px;box-shadow:2px 2px 8px rgba(0,0,0,0.4),0 0 1px rgba(0,0,0,0.2);pointer-events:none;display:none;text-align:center;';
     document.body.appendChild(evTooltip);
+
+    // Capital city label pill — TypewriterDry, all-caps, dark red pill
+    const capTooltip = document.createElement('div');
+    capTooltip.id = 'wm-capital-tooltip';
+    capTooltip.style.cssText = 'position:fixed;z-index:9998;background:rgba(25,0,0,0.82);color:#fff;padding:2px 8px 3px;border-radius:10px;font-family:TypewriterDry,monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;pointer-events:none;display:none;white-space:nowrap;box-shadow:1px 1px 4px rgba(0,0,0,0.4);';
+    document.body.appendChild(capTooltip);
 
     // Shared edge-aware tooltip positioner (used by both the flag and event tooltips)
     const _placeTip = (tip, ev, pad = 14) => {
@@ -15603,6 +15882,7 @@ function openWorldMap() {
         container.remove();
         tooltip.remove();
         evTooltip.remove();
+        capTooltip.remove();
         hiddenEls.forEach(el => { el.style.display = ''; });
     });
     bar.appendChild(backBtn);
@@ -15615,11 +15895,14 @@ function openWorldMap() {
     // Pan/zoom state — declared here so nav buttons can close over them
     let tx = 0, ty = 0, scale = 0.55;
     let applyT = () => {};
-    let allegiance = false;
+    let allegiance = _wmAllegiance;
     let svgEl = null;
     let selectedEl = null;
     const origFills = new Map();
-    let flagsOn = false;
+    let flagsOn = _wmFlagsOn;
+    let eventsOn = _wmEventsOn;
+    let capitalsOn = _wmCapitalsOn;
+    let _capEditMode = false;
     const smallFlagCodes = new Set();
     let flagOverlayG = null;
     let vScrollTrack, vScrollThumb, hScrollTrack, hScrollThumb;
@@ -15655,9 +15938,11 @@ function openWorldMap() {
     const allegBtn = document.createElement('button');
     allegBtn.textContent = 'Allegiance';
     allegBtn.style.cssText = 'margin-left:8px;cursor:pointer;padding:0 8px;height:30px;';
+    allegBtn.style.outline = allegiance ? '2px solid #ccc' : '';
+    allegBtn.style.fontWeight = allegiance ? 'bold' : '';
     allegBtn.addEventListener('click', () => {
         if (!svgEl) return;
-        allegiance = !allegiance;
+        allegiance = !allegiance; _wmAllegiance = allegiance;
         allegBtn.style.outline = allegiance ? '2px solid #ccc' : '';
         allegBtn.style.fontWeight = allegiance ? 'bold' : '';
         svgEl.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
@@ -15670,9 +15955,11 @@ function openWorldMap() {
     const flagBtn = document.createElement('button');
     flagBtn.textContent = 'Flags';
     flagBtn.style.cssText = 'margin-left:4px;cursor:pointer;padding:0 8px;height:30px;';
+    flagBtn.style.outline = flagsOn ? '2px solid #ccc' : '';
+    flagBtn.style.fontWeight = flagsOn ? 'bold' : '';
     flagBtn.addEventListener('click', () => {
         if (!svgEl || !flagOverlayG) return;
-        flagsOn = !flagsOn;
+        flagsOn = !flagsOn; _wmFlagsOn = flagsOn;
         flagBtn.style.outline = flagsOn ? '2px solid #ccc' : '';
         flagBtn.style.fontWeight = flagsOn ? 'bold' : '';
         if (flagsOn) { svgEl.appendChild(flagOverlayG); }
@@ -15680,13 +15967,39 @@ function openWorldMap() {
     });
     bar.appendChild(flagBtn);
 
+    const eventBtn = document.createElement('button');
+    eventBtn.textContent = 'Events';
+    eventBtn.style.cssText = 'margin-left:4px;cursor:pointer;padding:0 8px;height:30px;';
+    eventBtn.style.outline = eventsOn ? '2px solid #ccc' : '';
+    eventBtn.style.fontWeight = eventsOn ? 'bold' : '';
+    eventBtn.addEventListener('click', () => {
+        eventsOn = !eventsOn; _wmEventsOn = eventsOn;
+        eventBtn.style.outline = eventsOn ? '2px solid #ccc' : '';
+        eventBtn.style.fontWeight = eventsOn ? 'bold' : '';
+        const ig = document.getElementById('wm-events');
+        if (ig) ig.style.display = eventsOn ? '' : 'none';
+    });
+    bar.appendChild(eventBtn);
+
+    const capBtn = document.createElement('button');
+    capBtn.textContent = 'Capitals';
+    capBtn.style.cssText = 'margin-left:4px;cursor:pointer;padding:0 8px;height:30px;';
+    capBtn.style.outline = capitalsOn ? '2px solid #ccc' : '';
+    capBtn.style.fontWeight = capitalsOn ? 'bold' : '';
+    capBtn.addEventListener('click', () => {
+        capitalsOn = !capitalsOn; _wmCapitalsOn = capitalsOn;
+        capBtn.style.outline = capitalsOn ? '2px solid #ccc' : '';
+        capBtn.style.fontWeight = capitalsOn ? 'bold' : '';
+        applyT();
+    });
+    bar.appendChild(capBtn);
+
     container.appendChild(viewport);
     container.appendChild(bar);
     gw.appendChild(container);
 
     // Load SVG
-    fetch(SVG_URL)
-        .then(r => r.text())
+    (_svgTextCache ? Promise.resolve(_svgTextCache) : fetch(SVG_URL).then(r => r.text()).then(t => (_svgTextCache = t, t)))
         .then(svgText => {
             viewport.innerHTML = svgText;
             const svg = viewport.querySelector('svg');
@@ -15720,6 +16033,10 @@ function openWorldMap() {
                 }
                 svg.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
 
+                // Capital pins: only render when zoomed in sufficiently (or in edit mode)
+                const _cg = document.getElementById('wm-capitals');
+                if (_cg) _cg.style.display = (capitalsOn && (scale >= 1.2 || _capEditMode)) ? '' : 'none';
+
                 // Sync scrollbar thumbs
                 if (vScrollTrack && hScrollTrack) {
                     const trackH = vScrollTrack.clientHeight || vh;
@@ -15751,13 +16068,134 @@ function openWorldMap() {
             // Manual centroid overrides for countries whose bounding box spans
             // overseas territories, placing the flag over the wrong location.
             // Coordinates are in SVG units (map is 1800x900).
-            // Fill in after visual testing: FLAG_CENTRES['XX'] = {cx:NNN, cy:NNN};
             const FLAG_CENTRES = {
-                FR: {cx: 500, cy: 245},   // metropolitan France
-                GB: {cx: 490, cy: 210},   // Great Britain
-                NL: {cx: 510, cy: 225},   // Netherlands
-                PT: {cx: 472, cy: 272},   // Portugal
-                ES: {cx: 485, cy: 268},   // Spain (mainland)
+                GB:  {cx: 730, cy: 158},  FR:  {cx: 747, cy: 184},  DE:  {cx: 779, cy: 168},
+                PT:  {cx: 683, cy: 229},  ES:  {cx: 716, cy: 229},  NL:  {cx: 758, cy: 153},
+                US:  {cx: 226, cy: 231},  MX:  {cx: 176, cy: 332},  CA:  {cx: 238, cy: 132},
+                HT:  {cx: 328, cy: 356},  CU:  {cx: 301, cy: 341},  BR:  {cx: 452, cy: 531},
+                CL:  {cx: 330, cy: 673},  AR:  {cx: 393, cy: 666},  UY:  {cx: 440, cy: 670},
+                PY:  {cx: 414, cy: 612},  BO:  {cx: 376, cy: 572},  PE:  {cx: 305, cy: 534},
+                EC:  {cx: 288, cy: 477},  CO:  {cx: 319, cy: 448},  VE:  {cx: 369, cy: 422},
+                ZA:  {cx: 854, cy: 657},  SWA: {cx: 822, cy: 594},  ZR:  {cx: 859, cy: 485},
+                UG:  {cx: 909, cy: 463},  KE:  {cx: 940, cy: 469},  TZ:  {cx: 921, cy: 505},
+                SD:  {cx: 890, cy: 385},  ET:  {cx: 943, cy: 415},  EG:  {cx: 889, cy: 305},
+                LY:  {cx: 826, cy: 305},  DZ:  {cx: 745, cy: 297},  ML:  {cx: 720, cy: 360},
+                NE:  {cx: 781, cy: 366},  MR:  {cx: 670, cy: 355},  NO:  {cx: 779, cy: 108},
+                DK:  {cx: 784, cy: 133},  IS:  {cx: 665, cy:  88},  FI:  {cx: 854, cy:  96},
+                RO:  {cx: 859, cy: 195},  BG:  {cx: 862, cy: 213},  GR:  {cx: 853, cy: 237},
+                TR:  {cx: 912, cy: 237},  YU:  {cx: 830, cy: 204},  AT:  {cx: 804, cy: 185},
+                DD:  {cx: 800, cy: 157},  PL:  {cx: 827, cy: 156},  MA:  {cx: 698, cy: 273},
+                SN:  {cx: 647, cy: 377},  GN:  {cx: 669, cy: 402},  LR:  {cx: 675, cy: 431},
+                CI:  {cx: 701, cy: 426},  HV:  {cx: 722, cy: 396},  GH:  {cx: 723, cy: 423},
+                NG:  {cx: 773, cy: 412},  CM:  {cx: 795, cy: 441},  TD:  {cx: 832, cy: 378},
+                GA:  {cx: 792, cy: 474},  CG:  {cx: 816, cy: 475},  ZM:  {cx: 872, cy: 557},
+                RH:  {cx: 893, cy: 585},  BW:  {cx: 861, cy: 602},  SO:  {cx: 994, cy: 447},
+                YD:  {cx:1002, cy: 371},  SA:  {cx: 970, cy: 318},  YE:  {cx: 974, cy: 375},
+                IR:  {cx:1019, cy: 272},  PK:  {cx:1100, cy: 293},  AF:  {cx:1078, cy: 265},
+                IN:  {cx:1159, cy: 332},  ID:  {cx:1357, cy: 496},  MY:  {cx:1328, cy: 442},
+                PH:  {cx:1405, cy: 395},  JP:  {cx:1448, cy: 243},  KR:  {cx:1399, cy: 252},
+                AU:  {cx:1456, cy: 618},  NZ:  {cx:1610, cy: 720},  MN:  {cx:1245, cy: 189},
+                CN:  {cx:1312, cy: 255},  SU:  {cx:1105, cy: 116},  IT:  {cx: 796, cy: 214},
+                CS:  {cx: 815, cy: 171},  HU:  {cx: 832, cy: 188},  NP:  {cx:1185, cy: 300},
+                BD:  {cx:1223, cy: 328},  BU:  {cx:1254, cy: 340},  TH:  {cx:1275, cy: 419},
+                VD:  {cx:1304, cy: 341},  VN:  {cx:1330, cy: 401},  KH:  {cx:1307, cy: 393},
+                LA:  {cx:1291, cy: 354},  HN:  {cx: 256, cy: 379},  CR:  {cx: 261, cy: 394},
+                PA:  {cx: 288, cy: 421},  BS:  {cx: 315, cy: 323},  GY:  {cx: 403, cy: 432},
+                SY:  {cx: 934, cy: 258},  IQ:  {cx: 960, cy: 270},  JO:  {cx: 932, cy: 282},
+                AE:  {cx:1023, cy: 324},  OM:  {cx:1045, cy: 343},
+            };
+
+            // Per-country width overrides (bypasses bbox formula):
+            // Colonial powers have huge bboxes (overseas territories) → cap to ~Morocco size.
+            // Superpowers already hit the 50px cap → bump 25% to 63px.
+            const _flagWidthOverride = {
+                GB: 24, FR: 24, NL: 22, ES: 24, PT: 22, DK: 22, NO: 22,
+                US: 63, SU: 63, CA: 63, CN: 63,
+            };
+
+            // Capital cities as at end of 1972
+            const CAPITAL_DATA = {
+                // North America
+                US: 'Washington D.C.', CA: 'Ottawa',         MX: 'Mexico City',
+                GT: 'Guatemala City',  BZ: 'Belmopan',       SV: 'San Salvador',
+                HN: 'Tegucigalpa',     NI: 'Managua',        CR: 'San José',
+                PA: 'Panama City',     CU: 'Havana',         JM: 'Kingston',
+                HT: 'Port-au-Prince',  DO: 'Santo Domingo',  TT: 'Port of Spain',
+                BS: 'Nassau',          BB: 'Bridgetown',     GY: 'Georgetown',
+                SR: 'Paramaribo',
+                // South America
+                CO: 'Bogotá',          VE: 'Caracas',        BR: 'Brasília',
+                EC: 'Quito',           PE: 'Lima',           BO: 'La Paz',
+                PY: 'Asunción',        AR: 'Buenos Aires',   CL: 'Santiago',
+                UY: 'Montevideo',
+                // Europe
+                GB: 'London',          IE: 'Dublin',         IS: 'Reykjavik',
+                FR: 'Paris',           ES: 'Madrid',         PT: 'Lisbon',
+                NL: 'Amsterdam',       BE: 'Brussels',       LU: 'Luxembourg',
+                DE: 'Bonn',            DD: 'East Berlin',    AT: 'Vienna',
+                CH: 'Bern',            IT: 'Rome',           MT: 'Valletta',
+                NO: 'Oslo',            SE: 'Stockholm',      DK: 'Copenhagen',
+                FI: 'Helsinki',        PL: 'Warsaw',         CS: 'Prague',
+                HU: 'Budapest',        RO: 'Bucharest',      YU: 'Belgrade',
+                BG: 'Sofia',           AL: 'Tirana',         GR: 'Athens',
+                TR: 'Ankara',          CY: 'Nicosia',
+                SU: 'Moscow',
+                // Africa
+                MA: 'Rabat',           TN: 'Tunis',          DZ: 'Algiers',
+                LY: 'Tripoli',         EG: 'Cairo',          SD: 'Khartoum',
+                MR: 'Nouakchott',      SN: 'Dakar',          GM: 'Banjul',
+                GW: 'Bissau',          GN: 'Conakry',        SL: 'Freetown',
+                LR: 'Monrovia',        CI: 'Abidjan',        HV: 'Ouagadougou',
+                GH: 'Accra',           TG: 'Lomé',           BJ: 'Cotonou',
+                NG: 'Lagos',           ML: 'Bamako',         NE: 'Niamey',
+                BF: 'Ouagadougou',     TD: 'Fort-Lamy',      CM: 'Yaoundé',
+                CF: 'Bangui',          CG: 'Brazzaville',    GA: 'Libreville',
+                GQ: 'Santa Isabel',    ZR: 'Kinshasa',       RW: 'Kigali',
+                BI: 'Bujumbura',       UG: 'Kampala',        KE: 'Nairobi',
+                TZ: 'Dar es Salaam',   AO: 'Luanda',         ZM: 'Lusaka',
+                MW: 'Lilongwe',        MZ: 'Lourenço Marques', RH: 'Salisbury',
+                ZA: 'Pretoria',        LS: 'Maseru',         SZ: 'Mbabane',
+                BW: 'Gaborone',        SWA: 'Windhoek',      ET: 'Addis Ababa',
+                DJ: 'Djibouti',        SO: 'Mogadishu',      MG: 'Antananarivo',
+                // Middle East
+                SY: 'Damascus',        LB: 'Beirut',         IL: 'Jerusalem',
+                JO: 'Amman',           IQ: 'Baghdad',        KW: 'Kuwait City',
+                SA: 'Riyadh',          YE: "Sana'a",         YD: 'Aden',
+                OM: 'Muscat',          AE: 'Abu Dhabi',      QA: 'Doha',
+                BH: 'Manama',          IR: 'Tehran',
+                // Asia
+                AF: 'Kabul',           PK: 'Islamabad',      IN: 'New Delhi',
+                BD: 'Dhaka',           NP: 'Kathmandu',      BT: 'Thimphu',
+                LK: 'Colombo',         BU: 'Rangoon',        TH: 'Bangkok',
+                KH: 'Phnom Penh',      LA: 'Vientiane',      VN: 'Hanoi',
+                VD: 'Saigon',          MY: 'Kuala Lumpur',   SG: 'Singapore',
+                ID: 'Jakarta',         PH: 'Manila',         CN: 'Beijing',
+                MN: 'Ulaanbaatar',     KP: 'Pyongyang',      KR: 'Seoul',
+                JP: 'Tokyo',           TW: 'Taipei',
+                // Oceania
+                AU: 'Canberra',        NZ: 'Wellington',     PG: 'Port Moresby',
+                FJ: 'Suva',
+            };
+            const CAPITAL_OFFSETS = {
+                KP: { x: -14, y: -2  },
+                KR: { x: -20, y: -20 },
+                IE: { x:  -6, y: -13 },
+                FI: { x:  -4, y:   8 },
+                AF: { x:  -4, y: -13 },
+                JP: { x:   6, y:   4 },
+                DD: { x:  -8, y: -14 },
+                DK: { x: 133, y:  55 },
+                IS: { x: -16, y:  -8 },
+                TR: { x: -22, y: -13 },
+                ES: { x:  20, y: -57 },
+                EG: { x: -11, y: -24 },
+                ZA: { x:   0, y:   0 },
+                KH: { x: -14, y:  -9 },
+                TH: { x: -23, y:  16 },
+                VN: { x: -15, y:   5 },
+                TW: { x: -11, y: -12 },
+                IT: { x: -15, y: -12 },
+                AT: { x: -11, y: -11 },
             };
 
             // Build SVG flag overlay (flags as <image> elements inside the SVG)
@@ -15795,7 +16233,9 @@ function openWorldMap() {
 
                     // Large countries 25% of bbox area; all others 15% (2:3 aspect ratio)
                     const _areaPct = _bigFlagCodes.has(code) ? 0.375 : 0.225;
-                    const flagW = Math.min(Math.max(Math.round(Math.sqrt(bb.width * bb.height * _areaPct)), 20), 50);
+                    const flagW = _flagWidthOverride[code] !== undefined
+                        ? _flagWidthOverride[code]
+                        : Math.min(Math.max(Math.round(Math.sqrt(bb.width * bb.height * _areaPct)), 20), 50);
                     const flagH = Math.round(flagW * 2 / 3);
                     const override = FLAG_CENTRES[code];
                     const bcx = Math.round(bb.x + bb.width / 2);
@@ -15814,6 +16254,7 @@ function openWorldMap() {
                     img.setAttribute('height', flagH);
                     img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
                     img.setAttribute('transform', 'translate(' + tx + ',' + ty + ')');
+                    img.dataset.code = code;
                     img.style.opacity = '0.9';
                     g.appendChild(img);
                 });
@@ -15822,6 +16263,8 @@ function openWorldMap() {
                 flagOverlayG = g;
             }
             buildFlagOverlay();
+            // Restore flags toggle state from previous visit
+            if (flagsOn && flagOverlayG) svgEl.appendChild(flagOverlayG);
 
             // ── Map event icons ──────────────────────────────────────────────
             // SVG shapes, all centred on (0,0), ~22px diameter.
@@ -15849,6 +16292,7 @@ function openWorldMap() {
                 coup: [
                     { tag: 'g', attrs: { transform: 'scale(0.046) translate(-225,-225)' }, children: [
                         { tag: 'path', attrs: { fill: '#000000', d: 'M 152.4 104 C 130.217 104 112.067 122.15 112.067 144.333 L 112.067 176.6 C 112.067 189.87 122.997 200.8 136.267 200.8 L 136.267 208.867 L 74.508 208.867 C 65.782 208.871 57.292 211.701 50.308 216.933 L 26.608 234.583 L 23.333 237.1 L 23.333 264.075 L 23.583 264.075 C 23.93 268.326 25.197 272.706 27.617 276.675 L 53.833 319.025 C 64.123 335.754 82.343 345.961 101.983 346 L 348.017 346 C 367.657 345.961 385.877 335.754 396.167 319.025 L 422.383 276.675 C 424.707 272.854 426.09 268.535 426.417 264.075 L 426.667 264.075 L 426.667 237.1 L 423.392 234.575 L 399.692 216.933 C 392.708 211.701 384.218 208.871 375.492 208.867 L 273.4 208.867 L 273.4 200.8 L 274.658 200.8 C 291.114 200.8 302.803 184.005 297.35 168.533 L 426.667 168.533 L 426.667 128.2 L 282.475 128.2 C 276.13 113.514 261.665 104.004 245.667 104 Z M 152.4 120.133 L 245.675 120.133 C 255.879 120.133 264.857 126.401 268.358 136.017 L 282.225 173.825 C 284.209 179.31 280.523 184.667 274.658 184.667 L 136.267 184.667 C 131.701 184.667 128.2 181.166 128.2 176.6 L 128.2 144.333 C 128.2 130.878 138.945 120.133 152.4 120.133 Z M 288.525 144.333 L 410.533 144.333 L 410.533 152.4 L 291.55 152.4 Z M 152.4 200.8 L 257.267 200.8 L 257.267 208.867 L 152.4 208.867 Z M 74.508 225 L 375.492 225 C 380.727 225 385.922 226.638 390.117 229.792 L 410.533 245.167 L 410.533 247.942 L 39.467 247.942 L 39.467 245.167 L 59.883 229.792 C 64.114 226.659 69.244 224.978 74.508 225 Z M 39.967 264.075 L 410.033 264.075 C 409.711 265.527 409.396 266.939 408.517 268.358 L 382.55 310.708 C 375.135 322.646 362.069 329.894 348.017 329.867 L 101.983 329.867 C 87.931 329.894 74.865 322.646 67.45 310.708 L 41.483 268.358 C 40.596 266.939 40.289 265.519 39.967 264.075 Z M 104 329.867 C 121.747 329.867 136.267 315.347 136.267 297.6 C 136.267 279.853 121.747 265.333 104 265.333 C 86.253 265.333 71.733 279.853 71.733 297.6 C 71.733 315.347 86.253 329.867 104 329.867 Z M 184.667 329.867 C 202.413 329.867 216.933 315.347 216.933 297.6 C 216.933 279.853 202.413 265.333 184.667 265.333 C 166.92 265.333 152.4 279.853 152.4 297.6 C 152.4 315.347 166.92 329.867 184.667 329.867 Z M 265.333 329.867 C 283.08 329.867 297.6 315.347 297.6 297.6 C 297.6 279.853 283.08 265.333 265.333 265.333 C 247.587 265.333 233.067 279.853 233.067 297.6 C 233.067 315.347 247.587 329.867 265.333 329.867 Z M 346 329.867 C 363.747 329.867 378.267 315.347 378.267 297.6 C 378.267 279.853 363.747 265.333 346 265.333 C 328.253 265.333 313.733 279.853 313.733 297.6 C 313.733 315.347 328.253 329.867 346 329.867 Z M 104 281.467 C 113.01 281.467 120.133 288.59 120.133 297.6 C 120.133 306.61 113.01 313.733 104 313.733 C 94.99 313.733 87.867 306.61 87.867 297.6 C 87.867 288.59 94.99 281.467 104 281.467 Z M 184.667 281.467 C 193.677 281.467 200.8 288.59 200.8 297.6 C 200.8 306.61 193.677 313.733 184.667 313.733 C 175.656 313.733 168.533 306.61 168.533 297.6 C 168.533 288.59 175.656 281.467 184.667 281.467 Z M 265.333 281.467 C 274.344 281.467 281.467 288.59 281.467 297.6 C 281.467 306.61 274.344 313.733 265.333 313.733 C 256.323 313.733 249.2 306.61 249.2 297.6 C 249.2 288.59 256.323 281.467 265.333 281.467 Z M 346 281.467 C 355.01 281.467 362.133 288.59 362.133 297.6 C 362.133 306.61 355.01 313.733 346 313.733 C 336.99 313.733 329.867 306.61 329.867 297.6 C 329.867 288.59 336.99 281.467 346 281.467 Z' } },
+                        { tag: 'path', attrs: { fill: '#1F9823', d: 'M 152.4 120.133 L 245.675 120.133 C 255.879 120.133 264.857 126.401 268.358 136.017 L 282.225 173.825 C 284.209 179.31 280.523 184.667 274.658 184.667 L 136.267 184.667 C 131.701 184.667 128.2 181.166 128.2 176.6 L 128.2 144.333 C 128.2 130.878 138.945 120.133 152.4 120.133 Z M 288.525 144.333 L 410.533 144.333 L 410.533 152.4 L 291.55 152.4 Z M 152.4 200.8 L 257.267 200.8 L 257.267 208.867 L 152.4 208.867 Z M 104 281.467 C 113.01 281.467 120.133 288.59 120.133 297.6 C 120.133 306.61 113.01 313.733 104 313.733 C 94.99 313.733 87.867 306.61 87.867 297.6 C 87.867 288.59 94.99 281.467 104 281.467 Z M 184.667 281.467 C 193.677 281.467 200.8 288.59 200.8 297.6 C 200.8 306.61 193.677 313.733 184.667 313.733 C 175.656 313.733 168.533 306.61 168.533 297.6 C 168.533 288.59 175.656 281.467 184.667 281.467 Z M 265.333 281.467 C 274.344 281.467 281.467 288.59 281.467 297.6 C 281.467 306.61 274.344 313.733 265.333 313.733 C 256.323 313.733 249.2 306.61 249.2 297.6 C 249.2 288.59 256.323 281.467 265.333 281.467 Z M 346 281.467 C 355.01 281.467 362.133 288.59 362.133 297.6 C 362.133 306.61 355.01 313.733 346 313.733 C 336.99 313.733 329.867 306.61 329.867 297.6 C 329.867 288.59 336.99 281.467 346 281.467 Z' } },
                     ] },
                 ],
                 // Mushroom cloud — nuclear attack
@@ -15863,129 +16307,112 @@ function openWorldMap() {
                 ],
             };
 
-            // ── EVENT DEFINITIONS ────────────────────────────────────────────────────
-            // Add new events here. Fields:
-            //   type        — icon shape key from _ICON_SHAPES
-            //   label       — title shown in the tooltip header
-            //   img         — photo/map URL for the polaroid image (null = placeholder)
-            //   body        — 1–2 sentence description shown below the title
-            //   country     — SVG path id whose centroid is used for placement
-            //   positionFn  — manual placement override (e.g. sub-national regions)
-            //   state()     — returns 0 (hidden), 1 (visible), or 3 (crossed out in legal pad only)
-            //
-            // ── TOOLTIP CONTENT — update img + body for each event ───────────────────
-            const _EVENT_DEFS = [
-                {
-                    id: 'ni-troubles',
-                    continent: 'Europe',
-                    type: 'insurgency',
-                    label: 'The Troubles — Northern Ireland',
-                    img: null, // TODO: e.g. 'https://file.garden/.../ni_troubles.jpg'
-                    body: 'Rooted in the 1921 partition and systematic discrimination against the Catholic minority under Protestant rule. Civil unrest from 1969 escalated into armed conflict by both sides. British forces killed 14 unarmed civilians on Bloody Sunday, 30 January 1972, sharply accelerating IRA recruitment. Westminster assumed direct rule of the province in March 1972. The security situation is deteriorating.',
-                    positionFn: (s) => {
-                        const ie = s.querySelector('#IE');
-                        if (ie) { try { const b = ie.getBBox(); return { x: b.x + b.width + 2, y: b.y + b.height * 0.2 }; } catch(e) {} }
-                        return { x: 488, y: 196 };
-                    },
-                    state: () => 1,
-                },
-                {
-                    id: 'vietnam-war',
-                    continent: 'Asia',
-                    type: 'war',
-                    label: 'Vietnam War',
-                    img: null, // TODO: e.g. 'https://file.garden/.../vietnam.jpg'
-                    body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. The political cost at home continues to mount.',
-                    country: 'VD',
-                    state: () => (typeof Vietnam !== 'undefined') && Vietnam <= 7 ? 1 : 3,
-                },
-                {
-                    id: 'khmer-civil-war',
-                    continent: 'Asia',
-                    type: 'war',
-                    label: 'Cambodian Civil War',
-                    img: null, // TODO: e.g. 'https://file.garden/.../cambodia.jpg'
-                    body: 'A 1970 coup aided by the US removed Prince Sihanouk and installed the Lon Nol government. Lon Nol, paralysed by a stroke and absorbed by the occult, is losing his grip on reality. The Khmer Rouge, previously a marginal force, now controls large areas of the countryside despite the slaughter of USAF saturation bombing. The government\'s hold on the cities is increasingly precarious.',
-                    country: 'KH',
-                    state: () => khmer,
-                },
-                {
-                    id: 'laotian-civil-war',
-                    continent: 'Asia',
-                    type: 'war',
-                    label: 'Laotian Civil War',
-                    img: null, // TODO: e.g. 'https://file.garden/.../laos.jpg'
-                    body: 'The Royal Lao Government has fought the communist Pathet Lao since 1953, with North Vietnamese forces providing decisive support to the insurgents. The CIA maintains a secret army of Hmong fighters under General Vang Pao, conducting unconventional warfare across the Plain of Jars. US bombing of the Ho Chi Minh Trail has made Laos the most heavily bombed country per capita in history. Congress and the public remain largely unaware of the scale of American involvement.',
-                    country: 'LA',
-                    state: () => laos,
-                },
-                {
-                    id: 'managua-quake',
-                    continent: 'North America',
-                    type: 'disaster',
-                    label: 'Managua Earthquake',
-                    img: null, // TODO: e.g. 'https://file.garden/.../managua.jpg'
-                    body: 'A 6.2-magnitude earthquake struck the Nicaraguan capital on December 23, 1972, killing over 10,000 and levelling much of the city centre.',
-                    country: 'NI',
-                    state: () => managua,
-                },
-                {
-                    id: 'cyprus-invasion',
-                    continent: 'Europe',
-                    type: 'war',
-                    label: 'Turkish Invasion of Cyprus',
-                    img: null, // TODO: e.g. 'https://file.garden/.../cyprus.jpg'
-                    body: 'Following a Greek Cypriot coup backed by the Athens junta, Turkey invaded Cyprus in July 1974. The island is now partitioned between Greek and Turkish zones.',
-                    country: 'CY',
-                    state: () => cyprusInvasion,
-                },
-                {
-                    id: 'chad-civil-war',
-                    continent: 'Africa',
-                    type: 'insurgency',
-                    label: 'Chadian Civil War',
-                    img: null, // TODO: e.g. 'https://file.garden/.../chad.jpg'
-                    body: 'Chad has been engulfed in civil conflict since 1965, when northern Muslim populations rose against the southern-dominated government of François Tombalbaye. The rebel FROLINAT movement draws support from Libya\'s Muammar Gaddafi, who has territorial designs on the uranium-rich Aozou Strip. French forces have intervened repeatedly to prop up the Chadian government, but the insurgency continues to expand.',
-                    country: 'TD',
-                    state: () => chad,
-                },
-                {
-                    id: 'guatemala-civil-war',
-                    continent: 'North America',
-                    type: 'war',
-                    label: 'Guatemalan Civil War',
-                    img: null, // TODO: e.g. 'https://file.garden/.../guatemala.jpg'
-                    body: 'A CIA-backed coup in 1954 overthrew the elected government of Jacobo Árbenz and installed a succession of military regimes, triggering an armed insurgency that has persisted since 1960. Leftist guerrilla groups operating from the highlands have been met with systematic counter-insurgency operations, including US-trained security forces and government-linked death squads. The conflict has claimed tens of thousands of lives and shows no sign of resolution.',
-                    country: 'GT',
-                    state: () => 1,
-                },
-                {
-                    id: 'rhodesia-bush-war',
-                    continent: 'Africa',
-                    type: 'insurgency',
-                    label: 'Rhodesian Bush War',
-                    img: null, // TODO: e.g. 'https://file.garden/.../rhodesia.jpg'
-                    body: 'Ian Smith\'s white-minority government declared independence from Britain in November 1965, triggering international sanctions and diplomatic isolation. Guerrilla forces backed by Mozambique and Zambia have been conducting cross-border operations since 1972, escalating pressure on Salisbury. Britain refuses to recognise the regime; the United States maintains limited covert contact.',
-                    country: 'RH',
-                    state: () => 1,
-                },
-                {
-                    id: 'eritrean-war',
-                    continent: 'Africa',
-                    type: 'insurgency',
-                    label: 'Eritrean War of Independence',
-                    img: null, // TODO: e.g. 'https://file.garden/.../eritrea.jpg'
-                    body: 'Eritrea was federated with Ethiopia in 1952 and formally annexed in 1962 by Emperor Haile Selassie, triggering an armed independence movement that has persisted since 1961. The Eritrean Liberation Front now contests large areas of the territory. Ethiopia is a key US ally in the Horn of Africa; Washington has maintained silence on Selassie\'s suppression of the insurgency.',
-                    country: 'ET',
-                    state: () => eritrea,
-                },
-            ];
-            _worldEventDefs = _EVENT_DEFS;
-            // ── END TOOLTIP CONTENT ──────────────────────────────────────────────────
+
+            // Capital pin group — appended AFTER events so pointer events aren't blocked
+            const _capMovedOffsets = {};
+            const _capDots = [];
+            const capGroup = document.createElementNS(_evNS, 'g');
+            capGroup.id = 'wm-capitals';
+            capGroup.style.display = 'none'; // hidden until toggle on + zoom >= 1.2
+            // svg.appendChild deferred — done after _iconGroup so capitals render above events
+
+            Object.entries(CAPITAL_DATA).forEach(([code, cityName]) => {
+                const paths = Array.from(svg.querySelectorAll('[id="' + code + '"]'));
+                if (!paths.length) return;
+                let best = null, bestArea = 0;
+                paths.forEach(el => {
+                    try { const b = el.getBBox(); const a = b.width * b.height; if (a > bestArea) { bestArea = a; best = el; } } catch (ignore) {}
+                });
+                if (!best) return;
+                const bb = best.getBBox();
+                const off = CAPITAL_OFFSETS[code] || { x: 0, y: 0 };
+                const baseCx = bb.x + bb.width / 2;
+                const baseCy = bb.y + bb.height / 2;
+
+                const dot = document.createElementNS(_evNS, 'circle');
+                dot.setAttribute('cx', baseCx + off.x);
+                dot.setAttribute('cy', baseCy + off.y);
+                dot.setAttribute('r', '2.25');
+                dot.setAttribute('fill', '#cc0000');
+                dot.setAttribute('stroke', 'rgba(255,255,255,0.9)');
+                dot.setAttribute('stroke-width', '0.6');
+                dot.setAttribute('pointer-events', 'all');
+                dot.style.cursor = 'crosshair';
+
+                dot.addEventListener('mouseenter', e => {
+                    if (_capEditMode) return;
+                    capTooltip.textContent = cityName;
+                    capTooltip.style.display = 'block';
+                    _placeTip(capTooltip, e, 10);
+                });
+                dot.addEventListener('mousemove', e => { if (!_capEditMode) _placeTip(capTooltip, e, 10); });
+                dot.addEventListener('mouseleave', () => { capTooltip.style.display = 'none'; });
+
+                dot.addEventListener('mousedown', ev => {
+                    if (!_capEditMode) return;
+                    ev.stopPropagation(); ev.preventDefault();
+                    capTooltip.style.display = 'none';
+                    dot.style.cursor = 'grabbing';
+                    const startCx = parseFloat(dot.getAttribute('cx'));
+                    const startCy = parseFloat(dot.getAttribute('cy'));
+                    const sx = ev.clientX, sy = ev.clientY;
+                    const onMove = mv => {
+                        dot.setAttribute('cx', startCx + (mv.clientX - sx) / scale);
+                        dot.setAttribute('cy', startCy + (mv.clientY - sy) / scale);
+                    };
+                    const onUp = () => {
+                        document.removeEventListener('mousemove', onMove);
+                        document.removeEventListener('mouseup', onUp);
+                        dot.style.cursor = 'grab';
+                        const finalCx = parseFloat(dot.getAttribute('cx'));
+                        const finalCy = parseFloat(dot.getAttribute('cy'));
+                        _capMovedOffsets[code] = { x: Math.round(finalCx - baseCx), y: Math.round(finalCy - baseCy) };
+                        _capRefreshOffsets();
+                    };
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                });
+
+                capGroup.appendChild(dot);
+                _capDots.push({ dot, code });
+            });
+
+            const capOffsetPanel = document.createElement('div');
+            capOffsetPanel.style.cssText = 'position:absolute;bottom:16px;right:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:520px;white-space:pre;display:none;user-select:text;cursor:text;';
+            viewport.appendChild(capOffsetPanel);
+
+            const _capRefreshOffsets = () => {
+                const lines = Object.entries(_capMovedOffsets).map(([code, o]) =>
+                    `${code}: { x: ${o.x}, y: ${o.y} }`);
+                capOffsetPanel.textContent = lines.length
+                    ? lines.join('\n')
+                    : '(drag a capital dot to see its offset)';
+            };
+
+            const moveCapBtn = document.createElement('button');
+            moveCapBtn.textContent = 'Move Capitals';
+            moveCapBtn.style.cssText = 'margin-left:8px;cursor:pointer;padding:0 10px;height:30px;font-size:11px;';
+            moveCapBtn.addEventListener('click', () => {
+                _capEditMode = !_capEditMode;
+                moveCapBtn.style.background = _capEditMode ? '#f90' : '';
+                moveCapBtn.style.color      = _capEditMode ? '#000' : '';
+                capOffsetPanel.style.display = _capEditMode ? 'block' : 'none';
+                _capDots.forEach(({ dot }) => { dot.style.cursor = _capEditMode ? 'grab' : 'crosshair'; });
+                if (_capEditMode) {
+                    capGroup.style.display = ''; // force visible regardless of zoom
+                    _capRefreshOffsets();
+                } else {
+                    applyT(); // restore zoom-based visibility
+                }
+            });
 
             const _iconGroup = document.createElementNS(_evNS, 'g');
             _iconGroup.id = 'wm-events';
             svg.appendChild(_iconGroup);
+            svg.appendChild(capGroup); // capitals above events so pointer events reach the dots
+
+            let _editMode = false;
+            const _movedOffsets = {}; // id → {x,y} accumulated via drag tool
 
             const _iconNodes = [];
             _EVENT_DEFS.forEach(def => {
@@ -16002,7 +16429,11 @@ function openWorldMap() {
                         const el = svg.querySelector('#' + def.country);
                         if (el) { const b = el.getBBox(); px = b.x + b.width / 2; py = b.y + b.height / 2; }
                     }
+                    if (def.positionOffset) { px += def.positionOffset.x || 0; py += def.positionOffset.y || 0; }
                 } catch(e) {}
+                // base position before any positionOffset (used by drag tool to compute the offset)
+                const _basePx = Math.round(px - (def.positionOffset ? (def.positionOffset.x || 0) : 0));
+                const _basePy = Math.round(py - (def.positionOffset ? (def.positionOffset.y || 0) : 0));
 
                 const g = document.createElementNS(_evNS, 'g');
                 g.setAttribute('transform', 'translate(' + Math.round(px) + ',' + Math.round(py) + ')');
@@ -16018,47 +16449,219 @@ function openWorldMap() {
                 specs.forEach(spec => shapeG.appendChild(_mkEl(spec.tag, spec.attrs, spec.children)));
                 g.appendChild(shapeG);
 
-                // Transparent hit area so hovering anywhere near the icon triggers events.
-                const _hit = document.createElementNS(_evNS, 'circle');
-                _hit.setAttribute('r', '14');
-                _hit.setAttribute('fill', 'transparent');
-                _hit.setAttribute('stroke', 'none');
-                _hit.setAttribute('pointer-events', 'all');
-                g.appendChild(_hit);
 
+                // Country path clone as hit area for small-country icons (falls back to circle r=8).
+                const _hitPaths = def.country
+                    ? Array.from(svg.querySelectorAll('[id="' + def.country + '"]'))
+                    : [];
+                if (_hitPaths.length) {
+                    _hitPaths.forEach(cp => {
+                        const clone = cp.cloneNode(false);
+                        clone.removeAttribute('class');
+                        clone.removeAttribute('style');
+                        clone.setAttribute('fill', 'transparent');
+                        clone.setAttribute('stroke', 'none');
+                        clone.setAttribute('pointer-events', 'all');
+                        const existing = clone.getAttribute('transform') || '';
+                        clone.setAttribute('transform',
+                            ('translate(' + (-Math.round(px)) + ',' + (-Math.round(py)) + ')' + (existing ? ' ' + existing : '')).trim());
+                        g.appendChild(clone);
+                    });
+                } else {
+                    const _hit = document.createElementNS(_evNS, 'circle');
+                    _hit.setAttribute('r', '8');
+                    _hit.setAttribute('fill', 'transparent');
+                    _hit.setAttribute('stroke', 'none');
+                    _hit.setAttribute('pointer-events', 'all');
+                    g.appendChild(_hit);
+                }
                 g.style.cursor = 'pointer';
                 g.setAttribute('pointer-events', 'all');
 
                 g.addEventListener('mouseenter', e => {
+                    if (def.state() !== 1) return;
                     const imgHtml = def.img
-                        ? `<img src="${def.img}" style="width:auto;max-width:160px;height:auto;display:block;margin:0 auto 2px auto">`
-                        : `<div style="width:160px;height:90px;background:#e0dbd5;display:flex;align-items:center;justify-content:center;color:#a09080;font-size:9px;margin:0 auto 2px auto">[image]</div>`;
-                    const labelHtml = `<span style="display:block;font-family:Georgia,serif;font-size:11px;font-weight:bold;color:#333;margin-bottom:2px">${def.label}</span>`;
+                        ? `<img src="${def.img}" style="width:auto;max-width:200px;height:auto;display:block;margin:0 auto 2px auto">`
+                        : '';
+                    const labelHtml = `<span style="display:block;font-family:Georgia,serif;font-size:14px;font-weight:bold;color:#333;margin-bottom:2px">${def.label}</span>`;
                     const bodyHtml = def.body
-                        ? `<span style="display:block;margin-top:2px;padding:3px;background:linear-gradient(135deg,rgba(255,255,255,0.95) 0%,rgba(240,240,240,0.9) 100%);box-shadow:inset 0 1px 2px rgba(255,255,255,0.8),0 1px 3px rgba(0,0,0,0.15);border-radius:2px"><span style="font-family:'PermanentMarker',cursive;font-size:10px;color:rgb(96,115,129);transform:rotate(-1.5deg) skewX(-3deg);display:block;line-height:1.45;letter-spacing:0.05em;text-align:left">${def.body}</span></span>`
+                        ? `<span style="display:block;margin-top:2px;padding:3px;background:linear-gradient(135deg,rgba(255,255,255,0.95) 0%,rgba(240,240,240,0.9) 100%);box-shadow:inset 0 1px 2px rgba(255,255,255,0.8),0 1px 3px rgba(0,0,0,0.15);border-radius:2px"><span style="font-family:'PermanentMarker',cursive;font-size:12px;color:rgb(96,115,129);transform:rotate(-1.5deg) skewX(-3deg);display:block;line-height:1.45;letter-spacing:0.05em;text-align:left">${def.body}</span></span>`
                         : '';
                     evTooltip.innerHTML = imgHtml + labelHtml + bodyHtml;
                     evTooltip.style.display = 'block';
                     const _pad = 16;
                     let _x = e.clientX + _pad, _y = e.clientY + _pad;
-                    if (_x + 216 > window.innerWidth) _x = e.clientX - 216 - _pad;
+                    if (_x + 270 > window.innerWidth) _x = e.clientX - 270 - _pad;
                     evTooltip.style.left = _x + 'px';
                     evTooltip.style.top  = _y + 'px';
                 });
                 g.addEventListener('mousemove', e => _placeTip(evTooltip, e, 16));
                 g.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
 
-                g.style.display = 'none'; // hidden until _updateIconVis() evaluates state()
+                // Drag handler for "Move Icons" edit mode.
+                g.addEventListener('mousedown', ev => {
+                    if (!_editMode) return;
+                    ev.stopPropagation(); ev.preventDefault();
+                    const m = (g.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+                    const cx = m ? parseFloat(m[1]) : 0, cy = m ? parseFloat(m[2]) : 0;
+                    const sx = ev.clientX, sy = ev.clientY;
+                    const onMove = mv => {
+                        g.setAttribute('transform', `translate(${cx + (mv.clientX - sx) / scale},${cy + (mv.clientY - sy) / scale})`);
+                    };
+                    const onUp = () => {
+                        document.removeEventListener('mousemove', onMove);
+                        document.removeEventListener('mouseup', onUp);
+                        const fm = (g.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+                        if (fm) {
+                            _movedOffsets[def.id] = { x: Math.round(parseFloat(fm[1]) - _basePx), y: Math.round(parseFloat(fm[2]) - _basePy) };
+                            _refreshOffsets();
+                        }
+                    };
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                });
+
+                // Clicks and double-clicks pass through to the country path underneath.
+                // Temporarily set display:none (CSS + SVG attribute) so elementFromPoint
+                // ignores this element and all its children (including the hit-area circle).
+                const _fwdClick = (type, e) => {
+                    if (_editMode) return;
+                    e.stopPropagation();
+                    // Hide this icon AND the flag overlay so elementFromPoint reaches the country path
+                    g.style.display = 'none';
+                    g.setAttribute('display', 'none');
+                    if (flagOverlayG) flagOverlayG.style.display = 'none';
+                    const _capGEl = document.getElementById('wm-capitals');
+                    if (_capGEl) _capGEl.style.display = 'none';
+                    const under = document.elementFromPoint(e.clientX, e.clientY);
+                    g.style.display = '';
+                    g.removeAttribute('display');
+                    if (flagOverlayG) flagOverlayG.style.display = '';
+                    if (_capGEl) _capGEl.style.display = (capitalsOn && (scale >= 1.2 || _capEditMode)) ? '' : 'none';
+                    if (under && under !== g) under.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, view: window }));
+                };
+                g.addEventListener('click',    e => _fwdClick('click', e));
+                g.addEventListener('dblclick', e => _fwdClick('dblclick', e));
+
+                g.style.display = 'none';
+                g.setAttribute('display', 'none');
+                g.style.opacity = '0';
+                g.style.pointerEvents = 'none';
                 _iconGroup.appendChild(g);
                 _iconNodes.push({ g, def });
             });
 
             _updateIconVis = () => {
                 _iconNodes.forEach(({ g, def }) => {
-                    try { g.style.display = def.state() === 1 ? '' : 'none'; } catch(e) {}
+                    const show = def.state() === 1;
+                    try {
+                        g.style.display = show ? '' : 'none';
+                        if (show) g.removeAttribute('display'); else g.setAttribute('display', 'none');
+                        g.style.opacity = show ? '' : '0';
+                        g.style.pointerEvents = show ? '' : 'none';
+                    } catch(e) {}
                 });
             };
             _updateIconVis();
+            // Restore events/allegiance toggle state from previous visit
+            if (!eventsOn) _iconGroup.style.display = 'none';
+            if (allegiance) {
+                svg.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
+                    if (!el.id || !COUNTRY_NAMES[el.id]) return;
+                    origFills.set(el, el.style.fill || '');
+                    el.style.fill = _loyalColour(COUNTRY_LOYAL[el.id] || 0);
+                });
+            }
+
+            // ── Move Icons tool ──────────────────────────────────────────────
+            const offsetPanel = document.createElement('div');
+            offsetPanel.style.cssText = 'position:absolute;bottom:16px;left:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:480px;white-space:pre;display:none;user-select:text;cursor:text;';
+            viewport.appendChild(offsetPanel);
+
+            const _refreshOffsets = () => {
+                const lines = Object.entries(_movedOffsets).map(([id, o]) =>
+                    `${id}:\n  positionOffset: { x: ${o.x}, y: ${o.y} }`);
+                offsetPanel.textContent = lines.length ? lines.join('\n\n') : '(drag a visible icon to see its offset)';
+            };
+
+            const moveBtn = document.createElement('button');
+            moveBtn.textContent = 'Move Icons';
+            moveBtn.style.cssText = 'margin-left:8px;cursor:pointer;padding:0 10px;height:30px;font-size:11px;';
+            moveBtn.addEventListener('click', () => {
+                _editMode = !_editMode;
+                moveBtn.style.background = _editMode ? '#f90' : '';
+                moveBtn.style.color      = _editMode ? '#000' : '';
+                offsetPanel.style.display = _editMode ? 'block' : 'none';
+                _iconNodes.forEach(({ g }) => { g.style.cursor = _editMode ? 'grab' : 'pointer'; });
+                if (_editMode) _refreshOffsets();
+            });
+            bar.appendChild(moveBtn);
+            bar.appendChild(moveCapBtn);
+
+            // ── Move Flags tool ──────────────────────────────────────────────
+            let _flagEditMode = false;
+            const _flagMoves = {}; // code → {cx, cy} — paste into FLAG_CENTRES
+
+            const flagOffsetPanel = document.createElement('div');
+            flagOffsetPanel.style.cssText = 'position:absolute;bottom:16px;right:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:480px;white-space:pre;display:none;user-select:text;cursor:text;';
+            viewport.appendChild(flagOffsetPanel);
+
+            const _refreshFlagPanel = () => {
+                const lines = Object.entries(_flagMoves).map(([code, p]) =>
+                    `${code}: { cx: ${p.cx}, cy: ${p.cy} }`);
+                flagOffsetPanel.textContent = lines.length ? lines.join('\n') : '(drag a flag to see its position)';
+            };
+
+            // Delegate mousedown on the group so we don't rely on per-image listeners.
+            if (flagOverlayG) {
+                flagOverlayG.addEventListener('mousedown', ev => {
+                    if (!_flagEditMode) return;
+                    // Walk up to the <image> element
+                    let img = ev.target;
+                    while (img && img !== flagOverlayG && img.tagName.toLowerCase() !== 'image') img = img.parentElement;
+                    if (!img || img.tagName.toLowerCase() !== 'image') return;
+                    ev.stopPropagation(); ev.preventDefault();
+                    const m = (img.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+                    const cx = m ? parseFloat(m[1]) : 0, cy = m ? parseFloat(m[2]) : 0;
+                    const sx = ev.clientX, sy = ev.clientY;
+                    const onMove = mv => {
+                        img.setAttribute('transform', `translate(${cx + (mv.clientX - sx) / scale},${cy + (mv.clientY - sy) / scale})`);
+                    };
+                    const onUp = () => {
+                        document.removeEventListener('mousemove', onMove);
+                        document.removeEventListener('mouseup', onUp);
+                        const fm = (img.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+                        if (fm && img.dataset.code) {
+                            _flagMoves[img.dataset.code] = { cx: Math.round(parseFloat(fm[1])), cy: Math.round(parseFloat(fm[2])) };
+                            _refreshFlagPanel();
+                        }
+                    };
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                });
+            }
+
+            const moveFlagsBtn = document.createElement('button');
+            moveFlagsBtn.textContent = 'Move Flags';
+            moveFlagsBtn.style.cssText = 'margin-left:8px;cursor:pointer;padding:0 10px;height:30px;font-size:11px;';
+            moveFlagsBtn.addEventListener('click', () => {
+                _flagEditMode = !_flagEditMode;
+                moveFlagsBtn.style.background = _flagEditMode ? '#f90' : '';
+                moveFlagsBtn.style.color      = _flagEditMode ? '#000' : '';
+                flagOffsetPanel.style.display  = _flagEditMode ? 'block' : 'none';
+                if (flagOverlayG) {
+                    // Auto-show flags when entering edit mode
+                    if (_flagEditMode && !flagsOn) { flagsOn = true; svgEl.appendChild(flagOverlayG); }
+                    // Set pointer-events on the group AND explicitly on each image
+                    flagOverlayG.style.pointerEvents = _flagEditMode ? 'all' : 'none';
+                    flagOverlayG.querySelectorAll('image').forEach(img => {
+                        img.style.pointerEvents = _flagEditMode ? 'all' : '';
+                        img.style.cursor = _flagEditMode ? 'grab' : '';
+                    });
+                }
+                if (_flagEditMode) _refreshFlagPanel();
+            });
+            bar.appendChild(moveFlagsBtn);
 
             // ── Scrollbars ──────────────────────────────────────────────────
             // Created after innerHTML is set so they aren't wiped by SVG load.
