@@ -12184,7 +12184,7 @@ const _EVENT_DEFS = [
         continent: 'North America',
         type: 'disaster',
         label: 'Great Mississippi Flood',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Boat.jpg',
         body: 'Heavy rainfall, snowmelt and a saturated drainage basin triggered the worst Mississippi flooding in 150 years. Sixteen states are affected from Illinois to Louisiana, 17 million acres inundated, hundreds dead and thousands homeless. A federal disaster has been declared.',
         country: 'US',
         positionOffset: { x: 23, y: 57 },
@@ -12316,7 +12316,7 @@ const _EVENT_DEFS = [
         continent: 'Africa',
         type: 'coup',
         label: 'Upper Volta Coup',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9811.JPG',
         body: 'President General Sangoulé Lamizana commits a self coup, suspending the constitution and appointing himself as prime minister. The context is the social dislocation of the 6 year long Sahel Famine. Lamizana presents himself as a strongman in a crisis and guards his direct line to you and therefore, aid from Washington.',
         country: 'HV',
         positionOffset: { x: -12, y: -12 },
@@ -12349,7 +12349,7 @@ const _EVENT_DEFS = [
         continent: 'Asia',
         type: 'coup',
         label: 'The North Yemen Coup',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9809.PNG',
         body: 'Colonel Ibrahim al-Hamdi has overthrown the civilian government of President Abdul Rahman al-Iryani in a swift, largely bloodless coup. A moderniser and nationalist, al-Hamdi moves to dismantle the tribal power structures that have paralysed Yemeni politics. He pivots away from the USSR and one of his first actions is a telegram to you asking for development aid.',
         country: 'YE',
         positionOffset: { x: -14, y: -14 },
@@ -12382,7 +12382,7 @@ const _EVENT_DEFS = [
         continent: 'Africa',
         type: 'disaster',
         label: 'The Great Sahelian Drought',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9808.JPG',
         body: 'Ongoing since 1968 and affecting over 50 million people in Mali, Mauritania, Niger, Upper Volta, Chad and the Sudan, the drought has made pasturage nearly impossible. Half of all livestock are gone. 100,000 dead from starvation. The UN is straining its sinews to provide disaster relief. One leading theory is that particulate matter from the industrialised nations is disrupting the regular monsoon cycle.',
         country: 'NE',
         positionOffset: { x: 0, y: 6 },
@@ -15790,6 +15790,12 @@ function _addWorldMapBtn() {
     gw.appendChild(btn);
 }
 
+// ── World Map toggle state — persists across openWorldMap() calls ─────────────
+var _wmFlagsOn     = false;
+var _wmEventsOn    = true;
+var _wmCapitalsOn  = false;
+var _wmAllegiance  = false;
+
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
     // Easter egg: Allende's last speech injected into the music player once,
@@ -15816,6 +15822,7 @@ function openWorldMap() {
     document.getElementById('world-map-container')?.remove();
     document.getElementById('wm-tooltip')?.remove();
     document.getElementById('wm-event-tooltip')?.remove();
+    document.getElementById('wm-capital-tooltip')?.remove();
 
     const gw = document.getElementById('game_window');
 
@@ -15829,11 +15836,17 @@ function openWorldMap() {
     tooltip.style.cssText = 'position:fixed;z-index:9999;background:rgba(255,255,255,0.92);backdrop-filter:blur(6px);padding:4px 10px;border-radius:3px;font-family:TypewriterDry,monospace;font-size:13px;color:#111;pointer-events:none;display:none;white-space:nowrap;box-shadow:1px 2px 6px rgba(0,0,0,0.35);';
     document.body.appendChild(tooltip);
 
-    // Polaroid-style tooltip for map event icons — matches #tooltip-portal at 80% scale
+    // Polaroid-style tooltip for map event icons
     const evTooltip = document.createElement('div');
     evTooltip.id = 'wm-event-tooltip';
-    evTooltip.style.cssText = 'position:fixed;z-index:9999;width:216px;background:rgba(255,255,255,0.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:2px 2px 11px 2px;border-radius:2px;box-shadow:2px 2px 8px rgba(0,0,0,0.4),0 0 1px rgba(0,0,0,0.2);pointer-events:none;display:none;text-align:center;';
+    evTooltip.style.cssText = 'position:fixed;z-index:9999;width:270px;background:rgba(255,255,255,0.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:2px 2px 14px 2px;border-radius:2px;box-shadow:2px 2px 8px rgba(0,0,0,0.4),0 0 1px rgba(0,0,0,0.2);pointer-events:none;display:none;text-align:center;';
     document.body.appendChild(evTooltip);
+
+    // Capital city label pill — TypewriterDry, all-caps, dark red pill
+    const capTooltip = document.createElement('div');
+    capTooltip.id = 'wm-capital-tooltip';
+    capTooltip.style.cssText = 'position:fixed;z-index:9998;background:rgba(25,0,0,0.82);color:#fff;padding:2px 8px 3px;border-radius:10px;font-family:TypewriterDry,monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;pointer-events:none;display:none;white-space:nowrap;box-shadow:1px 1px 4px rgba(0,0,0,0.4);';
+    document.body.appendChild(capTooltip);
 
     // Shared edge-aware tooltip positioner (used by both the flag and event tooltips)
     const _placeTip = (tip, ev, pad = 14) => {
@@ -15869,6 +15882,7 @@ function openWorldMap() {
         container.remove();
         tooltip.remove();
         evTooltip.remove();
+        capTooltip.remove();
         hiddenEls.forEach(el => { el.style.display = ''; });
     });
     bar.appendChild(backBtn);
@@ -15881,12 +15895,14 @@ function openWorldMap() {
     // Pan/zoom state — declared here so nav buttons can close over them
     let tx = 0, ty = 0, scale = 0.55;
     let applyT = () => {};
-    let allegiance = false;
+    let allegiance = _wmAllegiance;
     let svgEl = null;
     let selectedEl = null;
     const origFills = new Map();
-    let flagsOn = false;
-    let eventsOn = true;
+    let flagsOn = _wmFlagsOn;
+    let eventsOn = _wmEventsOn;
+    let capitalsOn = _wmCapitalsOn;
+    let _capEditMode = false;
     const smallFlagCodes = new Set();
     let flagOverlayG = null;
     let vScrollTrack, vScrollThumb, hScrollTrack, hScrollThumb;
@@ -15922,9 +15938,11 @@ function openWorldMap() {
     const allegBtn = document.createElement('button');
     allegBtn.textContent = 'Allegiance';
     allegBtn.style.cssText = 'margin-left:8px;cursor:pointer;padding:0 8px;height:30px;';
+    allegBtn.style.outline = allegiance ? '2px solid #ccc' : '';
+    allegBtn.style.fontWeight = allegiance ? 'bold' : '';
     allegBtn.addEventListener('click', () => {
         if (!svgEl) return;
-        allegiance = !allegiance;
+        allegiance = !allegiance; _wmAllegiance = allegiance;
         allegBtn.style.outline = allegiance ? '2px solid #ccc' : '';
         allegBtn.style.fontWeight = allegiance ? 'bold' : '';
         svgEl.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
@@ -15937,9 +15955,11 @@ function openWorldMap() {
     const flagBtn = document.createElement('button');
     flagBtn.textContent = 'Flags';
     flagBtn.style.cssText = 'margin-left:4px;cursor:pointer;padding:0 8px;height:30px;';
+    flagBtn.style.outline = flagsOn ? '2px solid #ccc' : '';
+    flagBtn.style.fontWeight = flagsOn ? 'bold' : '';
     flagBtn.addEventListener('click', () => {
         if (!svgEl || !flagOverlayG) return;
-        flagsOn = !flagsOn;
+        flagsOn = !flagsOn; _wmFlagsOn = flagsOn;
         flagBtn.style.outline = flagsOn ? '2px solid #ccc' : '';
         flagBtn.style.fontWeight = flagsOn ? 'bold' : '';
         if (flagsOn) { svgEl.appendChild(flagOverlayG); }
@@ -15949,15 +15969,30 @@ function openWorldMap() {
 
     const eventBtn = document.createElement('button');
     eventBtn.textContent = 'Events';
-    eventBtn.style.cssText = 'margin-left:4px;cursor:pointer;padding:0 8px;height:30px;font-weight:bold;outline:2px solid #ccc;';
+    eventBtn.style.cssText = 'margin-left:4px;cursor:pointer;padding:0 8px;height:30px;';
+    eventBtn.style.outline = eventsOn ? '2px solid #ccc' : '';
+    eventBtn.style.fontWeight = eventsOn ? 'bold' : '';
     eventBtn.addEventListener('click', () => {
-        eventsOn = !eventsOn;
+        eventsOn = !eventsOn; _wmEventsOn = eventsOn;
         eventBtn.style.outline = eventsOn ? '2px solid #ccc' : '';
         eventBtn.style.fontWeight = eventsOn ? 'bold' : '';
         const ig = document.getElementById('wm-events');
         if (ig) ig.style.display = eventsOn ? '' : 'none';
     });
     bar.appendChild(eventBtn);
+
+    const capBtn = document.createElement('button');
+    capBtn.textContent = 'Capitals';
+    capBtn.style.cssText = 'margin-left:4px;cursor:pointer;padding:0 8px;height:30px;';
+    capBtn.style.outline = capitalsOn ? '2px solid #ccc' : '';
+    capBtn.style.fontWeight = capitalsOn ? 'bold' : '';
+    capBtn.addEventListener('click', () => {
+        capitalsOn = !capitalsOn; _wmCapitalsOn = capitalsOn;
+        capBtn.style.outline = capitalsOn ? '2px solid #ccc' : '';
+        capBtn.style.fontWeight = capitalsOn ? 'bold' : '';
+        applyT();
+    });
+    bar.appendChild(capBtn);
 
     container.appendChild(viewport);
     container.appendChild(bar);
@@ -15997,6 +16032,10 @@ function openWorldMap() {
                     ty = Math.round((vh - H) / 2);
                 }
                 svg.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+
+                // Capital pins: only render when zoomed in sufficiently (or in edit mode)
+                const _cg = document.getElementById('wm-capitals');
+                if (_cg) _cg.style.display = (capitalsOn && (scale >= 1.2 || _capEditMode)) ? '' : 'none';
 
                 // Sync scrollbar thumbs
                 if (vScrollTrack && hScrollTrack) {
@@ -16074,6 +16113,71 @@ function openWorldMap() {
                 US: 63, SU: 63, CA: 63, CN: 63,
             };
 
+            // Capital cities as at end of 1972
+            const CAPITAL_DATA = {
+                // North America
+                US: 'Washington D.C.', CA: 'Ottawa',         MX: 'Mexico City',
+                GT: 'Guatemala City',  BZ: 'Belmopan',       SV: 'San Salvador',
+                HN: 'Tegucigalpa',     NI: 'Managua',        CR: 'San José',
+                PA: 'Panama City',     CU: 'Havana',         JM: 'Kingston',
+                HT: 'Port-au-Prince',  DO: 'Santo Domingo',  TT: 'Port of Spain',
+                BS: 'Nassau',          BB: 'Bridgetown',     GY: 'Georgetown',
+                SR: 'Paramaribo',
+                // South America
+                CO: 'Bogotá',          VE: 'Caracas',        BR: 'Brasília',
+                EC: 'Quito',           PE: 'Lima',           BO: 'La Paz',
+                PY: 'Asunción',        AR: 'Buenos Aires',   CL: 'Santiago',
+                UY: 'Montevideo',
+                // Europe
+                GB: 'London',          IE: 'Dublin',         IS: 'Reykjavik',
+                FR: 'Paris',           ES: 'Madrid',         PT: 'Lisbon',
+                NL: 'Amsterdam',       BE: 'Brussels',       LU: 'Luxembourg',
+                DE: 'Bonn',            DD: 'East Berlin',    AT: 'Vienna',
+                CH: 'Bern',            IT: 'Rome',           MT: 'Valletta',
+                NO: 'Oslo',            SE: 'Stockholm',      DK: 'Copenhagen',
+                FI: 'Helsinki',        PL: 'Warsaw',         CS: 'Prague',
+                HU: 'Budapest',        RO: 'Bucharest',      YU: 'Belgrade',
+                BG: 'Sofia',           AL: 'Tirana',         GR: 'Athens',
+                TR: 'Ankara',          CY: 'Nicosia',
+                SU: 'Moscow',
+                // Africa
+                MA: 'Rabat',           TN: 'Tunis',          DZ: 'Algiers',
+                LY: 'Tripoli',         EG: 'Cairo',          SD: 'Khartoum',
+                MR: 'Nouakchott',      SN: 'Dakar',          GM: 'Banjul',
+                GW: 'Bissau',          GN: 'Conakry',        SL: 'Freetown',
+                LR: 'Monrovia',        CI: 'Abidjan',        HV: 'Ouagadougou',
+                GH: 'Accra',           TG: 'Lomé',           BJ: 'Cotonou',
+                NG: 'Lagos',           ML: 'Bamako',         NE: 'Niamey',
+                BF: 'Ouagadougou',     TD: 'Fort-Lamy',      CM: 'Yaoundé',
+                CF: 'Bangui',          CG: 'Brazzaville',    GA: 'Libreville',
+                GQ: 'Santa Isabel',    ZR: 'Kinshasa',       RW: 'Kigali',
+                BI: 'Bujumbura',       UG: 'Kampala',        KE: 'Nairobi',
+                TZ: 'Dar es Salaam',   AO: 'Luanda',         ZM: 'Lusaka',
+                MW: 'Lilongwe',        MZ: 'Lourenço Marques', RH: 'Salisbury',
+                ZA: 'Pretoria',        LS: 'Maseru',         SZ: 'Mbabane',
+                BW: 'Gaborone',        SWA: 'Windhoek',      ET: 'Addis Ababa',
+                DJ: 'Djibouti',        SO: 'Mogadishu',      MG: 'Antananarivo',
+                // Middle East
+                SY: 'Damascus',        LB: 'Beirut',         IL: 'Jerusalem',
+                JO: 'Amman',           IQ: 'Baghdad',        KW: 'Kuwait City',
+                SA: 'Riyadh',          YE: "Sana'a",         YD: 'Aden',
+                OM: 'Muscat',          AE: 'Abu Dhabi',      QA: 'Doha',
+                BH: 'Manama',          IR: 'Tehran',
+                // Asia
+                AF: 'Kabul',           PK: 'Islamabad',      IN: 'New Delhi',
+                BD: 'Dhaka',           NP: 'Kathmandu',      BT: 'Thimphu',
+                LK: 'Colombo',         BU: 'Rangoon',        TH: 'Bangkok',
+                KH: 'Phnom Penh',      LA: 'Vientiane',      VN: 'Hanoi',
+                VD: 'Saigon',          MY: 'Kuala Lumpur',   SG: 'Singapore',
+                ID: 'Jakarta',         PH: 'Manila',         CN: 'Beijing',
+                MN: 'Ulaanbaatar',     KP: 'Pyongyang',      KR: 'Seoul',
+                JP: 'Tokyo',           TW: 'Taipei',
+                // Oceania
+                AU: 'Canberra',        NZ: 'Wellington',     PG: 'Port Moresby',
+                FJ: 'Suva',
+            };
+            const CAPITAL_OFFSETS = {}; // manual fine-tuning after placement pass
+
             // Build SVG flag overlay (flags as <image> elements inside the SVG)
             function buildFlagOverlay() {
                 if (flagOverlayG) { flagOverlayG.remove(); flagOverlayG = null; }
@@ -16139,6 +16243,8 @@ function openWorldMap() {
                 flagOverlayG = g;
             }
             buildFlagOverlay();
+            // Restore flags toggle state from previous visit
+            if (flagsOn && flagOverlayG) svgEl.appendChild(flagOverlayG);
 
             // ── Map event icons ──────────────────────────────────────────────
             // SVG shapes, all centred on (0,0), ~22px diameter.
@@ -16181,9 +16287,108 @@ function openWorldMap() {
             };
 
 
+            // Capital pin group — appended AFTER events so pointer events aren't blocked
+            const _capMovedOffsets = {};
+            const _capDots = [];
+            const capGroup = document.createElementNS(_evNS, 'g');
+            capGroup.id = 'wm-capitals';
+            capGroup.style.display = 'none'; // hidden until toggle on + zoom >= 1.2
+            // svg.appendChild deferred — done after _iconGroup so capitals render above events
+
+            Object.entries(CAPITAL_DATA).forEach(([code, cityName]) => {
+                const paths = Array.from(svg.querySelectorAll('[id="' + code + '"]'));
+                if (!paths.length) return;
+                let best = null, bestArea = 0;
+                paths.forEach(el => {
+                    try { const b = el.getBBox(); const a = b.width * b.height; if (a > bestArea) { bestArea = a; best = el; } } catch (ignore) {}
+                });
+                if (!best) return;
+                const bb = best.getBBox();
+                const off = CAPITAL_OFFSETS[code] || { x: 0, y: 0 };
+                const baseCx = bb.x + bb.width / 2;
+                const baseCy = bb.y + bb.height / 2;
+
+                const dot = document.createElementNS(_evNS, 'circle');
+                dot.setAttribute('cx', baseCx + off.x);
+                dot.setAttribute('cy', baseCy + off.y);
+                dot.setAttribute('r', '2.25');
+                dot.setAttribute('fill', '#cc0000');
+                dot.setAttribute('stroke', 'rgba(255,255,255,0.9)');
+                dot.setAttribute('stroke-width', '0.6');
+                dot.setAttribute('pointer-events', 'all');
+                dot.style.cursor = 'crosshair';
+
+                dot.addEventListener('mouseenter', e => {
+                    if (_capEditMode) return;
+                    capTooltip.textContent = cityName;
+                    capTooltip.style.display = 'block';
+                    _placeTip(capTooltip, e, 10);
+                });
+                dot.addEventListener('mousemove', e => { if (!_capEditMode) _placeTip(capTooltip, e, 10); });
+                dot.addEventListener('mouseleave', () => { capTooltip.style.display = 'none'; });
+
+                dot.addEventListener('mousedown', ev => {
+                    if (!_capEditMode) return;
+                    ev.stopPropagation(); ev.preventDefault();
+                    capTooltip.style.display = 'none';
+                    dot.style.cursor = 'grabbing';
+                    const startCx = parseFloat(dot.getAttribute('cx'));
+                    const startCy = parseFloat(dot.getAttribute('cy'));
+                    const sx = ev.clientX, sy = ev.clientY;
+                    const onMove = mv => {
+                        dot.setAttribute('cx', startCx + (mv.clientX - sx) / scale);
+                        dot.setAttribute('cy', startCy + (mv.clientY - sy) / scale);
+                    };
+                    const onUp = () => {
+                        document.removeEventListener('mousemove', onMove);
+                        document.removeEventListener('mouseup', onUp);
+                        dot.style.cursor = 'grab';
+                        const finalCx = parseFloat(dot.getAttribute('cx'));
+                        const finalCy = parseFloat(dot.getAttribute('cy'));
+                        _capMovedOffsets[code] = { x: Math.round(finalCx - baseCx), y: Math.round(finalCy - baseCy) };
+                        _capRefreshOffsets();
+                    };
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                });
+
+                capGroup.appendChild(dot);
+                _capDots.push({ dot, code });
+            });
+
+            const capOffsetPanel = document.createElement('div');
+            capOffsetPanel.style.cssText = 'position:absolute;bottom:16px;right:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:520px;white-space:pre;display:none;user-select:text;cursor:text;';
+            viewport.appendChild(capOffsetPanel);
+
+            const _capRefreshOffsets = () => {
+                const lines = Object.entries(_capMovedOffsets).map(([code, o]) =>
+                    `${code}: { x: ${o.x}, y: ${o.y} }`);
+                capOffsetPanel.textContent = lines.length
+                    ? lines.join('\n')
+                    : '(drag a capital dot to see its offset)';
+            };
+
+            const moveCapBtn = document.createElement('button');
+            moveCapBtn.textContent = 'Move Capitals';
+            moveCapBtn.style.cssText = 'margin-left:8px;cursor:pointer;padding:0 10px;height:30px;font-size:11px;';
+            moveCapBtn.addEventListener('click', () => {
+                _capEditMode = !_capEditMode;
+                moveCapBtn.style.background = _capEditMode ? '#f90' : '';
+                moveCapBtn.style.color      = _capEditMode ? '#000' : '';
+                capOffsetPanel.style.display = _capEditMode ? 'block' : 'none';
+                _capDots.forEach(({ dot }) => { dot.style.cursor = _capEditMode ? 'grab' : 'crosshair'; });
+                if (_capEditMode) {
+                    capGroup.style.display = ''; // force visible regardless of zoom
+                    _capRefreshOffsets();
+                } else {
+                    applyT(); // restore zoom-based visibility
+                }
+            });
+
             const _iconGroup = document.createElementNS(_evNS, 'g');
             _iconGroup.id = 'wm-events';
             svg.appendChild(_iconGroup);
+            svg.appendChild(capGroup); // capitals above events so pointer events reach the dots
 
             let _editMode = false;
             const _movedOffsets = {}; // id → {x,y} accumulated via drag tool
@@ -16237,17 +16442,17 @@ function openWorldMap() {
                 g.addEventListener('mouseenter', e => {
                     if (def.state() !== 1) return;
                     const imgHtml = def.img
-                        ? `<img src="${def.img}" style="width:auto;max-width:160px;height:auto;display:block;margin:0 auto 2px auto">`
+                        ? `<img src="${def.img}" style="width:auto;max-width:200px;height:auto;display:block;margin:0 auto 2px auto">`
                         : '';
-                    const labelHtml = `<span style="display:block;font-family:Georgia,serif;font-size:11px;font-weight:bold;color:#333;margin-bottom:2px">${def.label}</span>`;
+                    const labelHtml = `<span style="display:block;font-family:Georgia,serif;font-size:14px;font-weight:bold;color:#333;margin-bottom:2px">${def.label}</span>`;
                     const bodyHtml = def.body
-                        ? `<span style="display:block;margin-top:2px;padding:3px;background:linear-gradient(135deg,rgba(255,255,255,0.95) 0%,rgba(240,240,240,0.9) 100%);box-shadow:inset 0 1px 2px rgba(255,255,255,0.8),0 1px 3px rgba(0,0,0,0.15);border-radius:2px"><span style="font-family:'PermanentMarker',cursive;font-size:10px;color:rgb(96,115,129);transform:rotate(-1.5deg) skewX(-3deg);display:block;line-height:1.45;letter-spacing:0.05em;text-align:left">${def.body}</span></span>`
+                        ? `<span style="display:block;margin-top:2px;padding:3px;background:linear-gradient(135deg,rgba(255,255,255,0.95) 0%,rgba(240,240,240,0.9) 100%);box-shadow:inset 0 1px 2px rgba(255,255,255,0.8),0 1px 3px rgba(0,0,0,0.15);border-radius:2px"><span style="font-family:'PermanentMarker',cursive;font-size:12px;color:rgb(96,115,129);transform:rotate(-1.5deg) skewX(-3deg);display:block;line-height:1.45;letter-spacing:0.05em;text-align:left">${def.body}</span></span>`
                         : '';
                     evTooltip.innerHTML = imgHtml + labelHtml + bodyHtml;
                     evTooltip.style.display = 'block';
                     const _pad = 16;
                     let _x = e.clientX + _pad, _y = e.clientY + _pad;
-                    if (_x + 216 > window.innerWidth) _x = e.clientX - 216 - _pad;
+                    if (_x + 270 > window.innerWidth) _x = e.clientX - 270 - _pad;
                     evTooltip.style.left = _x + 'px';
                     evTooltip.style.top  = _y + 'px';
                 });
@@ -16287,10 +16492,13 @@ function openWorldMap() {
                     g.style.display = 'none';
                     g.setAttribute('display', 'none');
                     if (flagOverlayG) flagOverlayG.style.display = 'none';
+                    const _capGEl = document.getElementById('wm-capitals');
+                    if (_capGEl) _capGEl.style.display = 'none';
                     const under = document.elementFromPoint(e.clientX, e.clientY);
                     g.style.display = '';
                     g.removeAttribute('display');
                     if (flagOverlayG) flagOverlayG.style.display = '';
+                    if (_capGEl) _capGEl.style.display = (capitalsOn && (scale >= 1.2 || _capEditMode)) ? '' : 'none';
                     if (under && under !== g) under.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, view: window }));
                 };
                 g.addEventListener('click',    e => _fwdClick('click', e));
@@ -16316,6 +16524,15 @@ function openWorldMap() {
                 });
             };
             _updateIconVis();
+            // Restore events/allegiance toggle state from previous visit
+            if (!eventsOn) _iconGroup.style.display = 'none';
+            if (allegiance) {
+                svg.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
+                    if (!el.id || !COUNTRY_NAMES[el.id]) return;
+                    origFills.set(el, el.style.fill || '');
+                    el.style.fill = _loyalColour(COUNTRY_LOYAL[el.id] || 0);
+                });
+            }
 
             // ── Move Icons tool ──────────────────────────────────────────────
             const offsetPanel = document.createElement('div');
@@ -16340,6 +16557,7 @@ function openWorldMap() {
                 if (_editMode) _refreshOffsets();
             });
             bar.appendChild(moveBtn);
+            bar.appendChild(moveCapBtn);
 
             // ── Move Flags tool ──────────────────────────────────────────────
             let _flagEditMode = false;
