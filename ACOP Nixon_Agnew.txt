@@ -15795,6 +15795,8 @@ var _wmFlagsOn     = false;
 var _wmEventsOn    = true;
 var _wmCapitalsOn  = false;
 var _wmAllegiance  = false;
+var _wmIconGroup   = null;
+var _wmCapGroup    = null;
 
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
@@ -15976,8 +15978,7 @@ function openWorldMap() {
         eventsOn = !eventsOn; _wmEventsOn = eventsOn;
         eventBtn.style.outline = eventsOn ? '2px solid #ccc' : '';
         eventBtn.style.fontWeight = eventsOn ? 'bold' : '';
-        const ig = document.getElementById('wm-events');
-        if (ig) ig.style.display = eventsOn ? '' : 'none';
+        if (_wmIconGroup) _wmIconGroup.style.display = eventsOn ? '' : 'none';
     });
     bar.appendChild(eventBtn);
 
@@ -15990,7 +15991,7 @@ function openWorldMap() {
         capitalsOn = !capitalsOn; _wmCapitalsOn = capitalsOn;
         capBtn.style.outline = capitalsOn ? '2px solid #ccc' : '';
         capBtn.style.fontWeight = capitalsOn ? 'bold' : '';
-        applyT();
+        if (_wmCapGroup) _wmCapGroup.style.display = capitalsOn ? '' : 'none';
     });
     bar.appendChild(capBtn);
 
@@ -16033,9 +16034,8 @@ function openWorldMap() {
                 }
                 svg.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
 
-                // Capital pins: only render when zoomed in sufficiently (or in edit mode)
-                const _cg = document.getElementById('wm-capitals');
-                if (_cg) _cg.style.display = (capitalsOn && (scale >= 1.2 || _capEditMode)) ? '' : 'none';
+                // Capital pins: hide when zoomed out (unless toggle is off entirely)
+                if (_wmCapGroup) _wmCapGroup.style.display = (capitalsOn && (scale >= 1.2 || _capEditMode)) ? '' : 'none';
 
                 // Sync scrollbar thumbs
                 if (vScrollTrack && hScrollTrack) {
@@ -16436,7 +16436,9 @@ function openWorldMap() {
 
             const _iconGroup = document.createElementNS(_evNS, 'g');
             _iconGroup.id = 'wm-events';
+            _wmIconGroup = _iconGroup;
             svg.appendChild(_iconGroup);
+            _wmCapGroup = capGroup;
             svg.appendChild(capGroup); // capitals above events so pointer events reach the dots
 
             let _editMode = false;
@@ -16559,13 +16561,12 @@ function openWorldMap() {
                     g.style.display = 'none';
                     g.setAttribute('display', 'none');
                     if (flagOverlayG) flagOverlayG.style.display = 'none';
-                    const _capGEl = document.getElementById('wm-capitals');
-                    if (_capGEl) _capGEl.style.display = 'none';
+                    if (_wmCapGroup) _wmCapGroup.style.display = 'none';
                     const under = document.elementFromPoint(e.clientX, e.clientY);
                     g.style.display = '';
                     g.removeAttribute('display');
                     if (flagOverlayG) flagOverlayG.style.display = '';
-                    if (_capGEl) _capGEl.style.display = (capitalsOn && (scale >= 1.2 || _capEditMode)) ? '' : 'none';
+                    if (_wmCapGroup) _wmCapGroup.style.display = (capitalsOn && (scale >= 1.2 || _capEditMode)) ? '' : 'none';
                     if (under && under !== g) under.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, view: window }));
                 };
                 g.addEventListener('click',    e => _fwdClick('click', e));
