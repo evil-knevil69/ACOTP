@@ -15964,8 +15964,11 @@ function openWorldMap() {
         flagsOn = !flagsOn; _wmFlagsOn = flagsOn;
         flagBtn.style.outline = flagsOn ? '2px solid #ccc' : '';
         flagBtn.style.fontWeight = flagsOn ? 'bold' : '';
-        if (flagsOn) { svgEl.appendChild(flagOverlayG); }
-        else         { flagOverlayG.remove(); }
+        if (flagsOn) {
+            // Insert below events and capitals so z-order is: flags → events → capitals
+            if (_wmIconGroup) svgEl.insertBefore(flagOverlayG, _wmIconGroup);
+            else svgEl.appendChild(flagOverlayG);
+        } else { flagOverlayG.remove(); }
     });
     bar.appendChild(flagBtn);
 
@@ -16291,7 +16294,9 @@ function openWorldMap() {
                 flagOverlayG = g;
             }
             buildFlagOverlay();
+            if (flagOverlayG) flagOverlayG.setAttribute('pointer-events', 'none');
             // Restore flags toggle state from previous visit
+            // Initial append is fine here — events/caps haven't been appended yet so flags land below them
             if (flagsOn && flagOverlayG) svgEl.appendChild(flagOverlayG);
 
             // ── Map event icons ──────────────────────────────────────────────
@@ -16680,7 +16685,11 @@ function openWorldMap() {
                 flagOffsetPanel.style.display  = _flagEditMode ? 'block' : 'none';
                 if (flagOverlayG) {
                     // Auto-show flags when entering edit mode
-                    if (_flagEditMode && !flagsOn) { flagsOn = true; svgEl.appendChild(flagOverlayG); }
+                    if (_flagEditMode && !flagsOn) {
+                        flagsOn = true;
+                        if (_wmIconGroup) svgEl.insertBefore(flagOverlayG, _wmIconGroup);
+                        else svgEl.appendChild(flagOverlayG);
+                    }
                     // Set pointer-events on the group AND explicitly on each image
                     flagOverlayG.style.pointerEvents = _flagEditMode ? 'all' : 'none';
                     flagOverlayG.querySelectorAll('image').forEach(img => {
