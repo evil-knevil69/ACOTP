@@ -16370,7 +16370,18 @@ function openWorldMap() {
                 dot.setAttribute('stroke', 'rgba(255,255,255,0.9)');
                 dot.setAttribute('stroke-width', '0.6');
                 dot.setAttribute('pointer-events', 'all');
-                dot.style.cursor = 'crosshair';
+
+                const label = document.createElementNS(_evNS, 'text');
+                label.setAttribute('x', baseCx + off.x + 3);
+                label.setAttribute('y', baseCy + off.y - 3);
+                label.setAttribute('font-size', '4');
+                label.setAttribute('fill', '#111');
+                label.setAttribute('stroke', 'rgba(255,255,255,0.85)');
+                label.setAttribute('stroke-width', '1');
+                label.setAttribute('paint-order', 'stroke');
+                label.setAttribute('pointer-events', 'none');
+                label.textContent = cityName;
+                label.style.display = 'none';
 
                 dot.addEventListener('mouseenter', e => {
                     if (_capEditMode) return;
@@ -16390,8 +16401,12 @@ function openWorldMap() {
                     const startCy = parseFloat(dot.getAttribute('cy'));
                     const sx = ev.clientX, sy = ev.clientY;
                     const onMove = mv => {
-                        dot.setAttribute('cx', startCx + (mv.clientX - sx) / scale);
-                        dot.setAttribute('cy', startCy + (mv.clientY - sy) / scale);
+                        const nx = startCx + (mv.clientX - sx) / scale;
+                        const ny = startCy + (mv.clientY - sy) / scale;
+                        dot.setAttribute('cx', nx);
+                        dot.setAttribute('cy', ny);
+                        label.setAttribute('x', nx + 3);
+                        label.setAttribute('y', ny - 3);
                     };
                     const onUp = () => {
                         document.removeEventListener('mousemove', onMove);
@@ -16407,7 +16422,8 @@ function openWorldMap() {
                 });
 
                 capGroup.appendChild(dot);
-                _capDots.push({ dot, code });
+                capGroup.appendChild(label);
+                _capDots.push({ dot, code, label });
             });
 
             const capOffsetPanel = document.createElement('div');
@@ -16430,7 +16446,10 @@ function openWorldMap() {
                 moveCapBtn.style.background = _capEditMode ? '#f90' : '';
                 moveCapBtn.style.color      = _capEditMode ? '#000' : '';
                 capOffsetPanel.style.display = _capEditMode ? 'block' : 'none';
-                _capDots.forEach(({ dot }) => { dot.style.cursor = _capEditMode ? 'grab' : 'crosshair'; });
+                _capDots.forEach(({ dot, label }) => {
+                    dot.style.cursor = _capEditMode ? 'grab' : '';
+                    if (label) label.style.display = _capEditMode ? '' : 'none';
+                });
                 if (_capEditMode) {
                     capGroup.style.display = ''; // force visible regardless of zoom
                     _capRefreshOffsets();
