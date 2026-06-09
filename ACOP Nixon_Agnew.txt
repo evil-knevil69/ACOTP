@@ -16485,37 +16485,9 @@ function openWorldMap() {
                 g.appendChild(shapeG);
 
 
-                // Circle hit area sized to the icon's visual footprint (~22px diameter at scale 0.6).
-                const _hit = document.createElementNS(_evNS, 'circle');
-                _hit.setAttribute('r', '11');
-                _hit.setAttribute('fill', 'transparent');
-                _hit.setAttribute('stroke', 'none');
-                _hit.setAttribute('pointer-events', 'all');
-                g.appendChild(_hit);
-                g.style.cursor = 'pointer';
-                g.setAttribute('pointer-events', 'all');
-
-                g.addEventListener('mouseenter', e => {
-                    if (def.state() !== 1) return;
-                    const imgHtml = def.img
-                        ? `<img src="${def.img}" style="width:auto;max-width:200px;height:auto;display:block;margin:0 auto 2px auto">`
-                        : '';
-                    const labelHtml = `<span style="display:block;font-family:Georgia,serif;font-size:14px;font-weight:bold;color:#333;margin-bottom:2px">${def.label}</span>`;
-                    const bodyHtml = def.body
-                        ? `<span style="display:block;margin-top:2px;padding:3px;background:linear-gradient(135deg,rgba(255,255,255,0.95) 0%,rgba(240,240,240,0.9) 100%);box-shadow:inset 0 1px 2px rgba(255,255,255,0.8),0 1px 3px rgba(0,0,0,0.15);border-radius:2px"><span style="font-family:'PermanentMarker',cursive;font-size:12px;color:rgb(96,115,129);transform:rotate(-1.5deg) skewX(-3deg);display:block;line-height:1.45;letter-spacing:0.05em;text-align:left">${def.body}</span></span>`
-                        : '';
-                    evTooltip.innerHTML = imgHtml + labelHtml + bodyHtml;
-                    evTooltip.style.display = 'block';
-                    const _pad = 16;
-                    let _x = e.clientX + _pad, _y = e.clientY + _pad;
-                    if (_x + 270 > window.innerWidth) _x = e.clientX - 270 - _pad;
-                    evTooltip.style.left = _x + 'px';
-                    evTooltip.style.top  = _y + 'px';
-                });
-                g.addEventListener('mousemove', e => _placeTip(evTooltip, e, 16));
-                g.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
-
-                // Drag handler for "Move Icons" edit mode.
+                // Icons are pointer-events:none by default — hover and clicks pass straight
+                // through to the country path below. Pointer-events are re-enabled only
+                // while Move Icons edit mode is active (see _updateIconVis).
                 g.addEventListener('mousedown', ev => {
                     if (!_editMode) return;
                     ev.stopPropagation(); ev.preventDefault();
@@ -16538,27 +16510,6 @@ function openWorldMap() {
                     document.addEventListener('mouseup', onUp);
                 });
 
-                // Clicks and double-clicks pass through to the country path underneath.
-                // Temporarily set display:none (CSS + SVG attribute) so elementFromPoint
-                // ignores this element and all its children (including the hit-area circle).
-                const _fwdClick = (type, e) => {
-                    if (_editMode) return;
-                    e.stopPropagation();
-                    // Hide this icon AND the flag overlay so elementFromPoint reaches the country path
-                    g.style.display = 'none';
-                    g.setAttribute('display', 'none');
-                    if (flagOverlayG) flagOverlayG.style.display = 'none';
-                    if (_wmCapGroup) _wmCapGroup.style.display = 'none';
-                    const under = document.elementFromPoint(e.clientX, e.clientY);
-                    g.style.display = '';
-                    g.removeAttribute('display');
-                    if (flagOverlayG) flagOverlayG.style.display = '';
-                    if (_wmCapGroup) _wmCapGroup.style.display = (capitalsOn && (scale >= 1.2 || _capEditMode)) ? '' : 'none';
-                    if (under && under !== g) under.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, view: window }));
-                };
-                g.addEventListener('click',    e => _fwdClick('click', e));
-                g.addEventListener('dblclick', e => _fwdClick('dblclick', e));
-
                 g.style.display = 'none';
                 g.setAttribute('display', 'none');
                 g.style.opacity = '0';
@@ -16574,7 +16525,7 @@ function openWorldMap() {
                         g.style.display = show ? '' : 'none';
                         if (show) g.removeAttribute('display'); else g.setAttribute('display', 'none');
                         g.style.opacity = show ? '' : '0';
-                        g.style.pointerEvents = show ? '' : 'none';
+                        g.style.pointerEvents = (show && _editMode) ? 'all' : 'none';
                     } catch(e) {}
                 });
             };
@@ -16608,7 +16559,8 @@ function openWorldMap() {
                 moveBtn.style.background = _editMode ? '#f90' : '';
                 moveBtn.style.color      = _editMode ? '#000' : '';
                 offsetPanel.style.display = _editMode ? 'block' : 'none';
-                _iconNodes.forEach(({ g }) => { g.style.cursor = _editMode ? 'grab' : 'pointer'; });
+                _iconNodes.forEach(({ g }) => { g.style.cursor = _editMode ? 'grab' : ''; });
+                _updateIconVis();
                 if (_editMode) _refreshOffsets();
             });
             bar.appendChild(moveBtn);
