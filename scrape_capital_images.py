@@ -78,7 +78,6 @@ CAPITALS = {
 }
 
 LOC_SEARCH  = 'https://www.loc.gov/search/'
-LOC_COLL    = 'https://www.loc.gov/collections/united-states-information-agency-photographs/'
 COMMONS_API = 'https://commons.wikimedia.org/w/api.php'
 
 # Both APIs require a descriptive User-Agent
@@ -90,17 +89,26 @@ HEADERS = {
 IMAGE_EXTS = ('.jpg', '.jpeg', '.png', '.gif')
 
 
-def search_loc(city: str, n: int = 5) -> list[dict]:
-    """Search the LoC USIA photograph collection for a capital city."""
-    endpoints = [
-        (LOC_COLL,   {'q': city,           'fo': 'json', 'c': n}),
-        (LOC_SEARCH, {'q': f'USIA {city}', 'fo': 'json', 'c': n,
-                      'fa': 'online-format:image'}),
-    ]
-    for url, params in endpoints:
-        try:
-            r = requests.get(url, params=params, headers=HEADERS, timeout=15)
+def _get(url: str, params: dict, timeout: int = 15) -> requests.Response:
+    """GET with automatic retry on 429 (back off 8 s then 20 s before giving up)."""
+    for wait in (0, 8, 20):
+        if wait:
+            print(f'    rate-limited, waiting {wait}s…', file=sys.stderr)
+            time.sleep(wait)
+        r = requests.get(url, params=params, headers=HEADERS, timeout=timeout)
+        if r.status_code != 429:
             r.raise_for_status()
+            return r
+    raise requests.HTTPError(f'429 persists after retries: {url}')
+
+
+def search_loc(city: str, n: int = 5) -> list[dict]:
+    """Search LoC for USIA photographs of a capital city."""
+    queries = [f'USIA "{city}"', f'USIA {city}']
+    for q in queries:
+        try:
+            r = _get(LOC_SEARCH, {'q': q, 'fo': 'json', 'c': n,
+                                  'fa': 'online-format:image'})
             results = []
             for item in r.json().get('results', []):
                 img_urls = item.get('image_url') or []
@@ -119,6 +127,7 @@ def search_loc(city: str, n: int = 5) -> list[dict]:
                 })
             if results:
                 return results[:n]
+            time.sleep(1.0)
         except Exception as e:
             print(f'    LoC error: {e}', file=sys.stderr)
     return []
@@ -127,12 +136,11 @@ def search_loc(city: str, n: int = 5) -> list[dict]:
 def get_commons_thumb(title: str) -> str | None:
     """Resolve a Wikimedia Commons File: title to a ~500px thumbnail URL."""
     try:
-        r = requests.get(COMMONS_API, params={
+        r = _get(COMMONS_API, {
             'action': 'query', 'titles': title,
             'prop': 'imageinfo', 'iiprop': 'url', 'iiurlwidth': 500,
             'format': 'json',
-        }, headers=HEADERS, timeout=10)
-        r.raise_for_status()
+        }, timeout=10)
         for page in r.json().get('query', {}).get('pages', {}).values():
             ii = (page.get('imageinfo') or [{}])[0]
             return ii.get('thumburl') or ii.get('url')
@@ -147,11 +155,11 @@ def search_wikimedia(city: str, n: int = 3) -> list[dict]:
     results = []
     for query in queries:
         try:
-            r = requests.get(COMMONS_API, params={
+            r = _get(COMMONS_API, {
                 'action': 'query', 'list': 'search', 'srsearch': query,
                 'srnamespace': 6, 'srlimit': n * 2, 'format': 'json',
-            }, headers=HEADERS, timeout=10)
-            r.raise_for_status()
+            }, timeout=10)
+            time.sleep(1.5)   # Wikimedia asks for ≥1s between requests
             for hit in r.json().get('query', {}).get('search', []):
                 title = hit['title']
                 if not any(title.lower().endswith(e) for e in IMAGE_EXTS):
@@ -165,11 +173,12 @@ def search_wikimedia(city: str, n: int = 3) -> list[dict]:
                         'page':   'https://commons.wikimedia.org/wiki/' + title.replace(' ', '_'),
                         'source': 'wikimedia',
                     })
-                    time.sleep(0.15)
+                time.sleep(1.5)
                 if len(results) >= n:
                     return results
         except Exception as e:
             print(f'    Wikimedia error: {e}', file=sys.stderr)
+            time.sleep(3.0)
     return results
 
 
@@ -184,7 +193,7 @@ def scrape(codes: list[str], skip_loc: bool) -> dict:
             loc = search_loc(city)
             print(f'  LoC:       {len(loc)} result(s)' if loc else '  LoC:       none')
             candidates.extend(loc)
-            time.sleep(0.4)   # be polite to loc.gov
+            time.sleep(1.5)   # be polite to loc.gov
 
         if len(candidates) < 2:
             wiki = search_wikimedia(city)
@@ -196,7 +205,7 @@ def scrape(codes: list[str], skip_loc: bool) -> dict:
             'candidates': candidates,
             'best':       candidates[0]['url'] if candidates else None,
         }
-        time.sleep(0.2)
+        time.sleep(1.0)
     return all_results
 
 
