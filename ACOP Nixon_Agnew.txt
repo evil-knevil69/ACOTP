@@ -15850,6 +15850,11 @@ function openWorldMap() {
     capTooltip.style.cssText = 'position:fixed;z-index:9998;background:rgba(25,0,0,0.82);color:#fff;padding:2px 8px 3px;border-radius:10px;font-family:TypewriterDry,monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;pointer-events:none;display:none;white-space:nowrap;box-shadow:1px 1px 4px rgba(0,0,0,0.4);';
     document.body.appendChild(capTooltip);
 
+    const capImgPanel = document.createElement('div');
+    capImgPanel.style.cssText = 'position:fixed;z-index:9999;background:rgba(15,10,5,0.9);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:6px;display:none;box-shadow:2px 3px 10px rgba(0,0,0,0.6);pointer-events:auto;';
+    capImgPanel.addEventListener('click', e => e.stopPropagation());
+    document.body.appendChild(capImgPanel);
+
     // Shared edge-aware tooltip positioner (used by both the flag and event tooltips)
     const _placeTip = (tip, ev, pad = 14) => {
         const tw = tip.offsetWidth, th = tip.offsetHeight;
@@ -15885,6 +15890,7 @@ function openWorldMap() {
         tooltip.remove();
         evTooltip.remove();
         capTooltip.remove();
+        capImgPanel.remove();
         hiddenEls.forEach(el => { el.style.display = ''; });
     });
     bar.appendChild(backBtn);
@@ -16229,6 +16235,12 @@ function openWorldMap() {
                 SN: { x: -25, y: -15 },
             };
 
+            // Capital city flavour images — populate with URLs as research is done.
+            // Format: { US: 'https://...', GB: 'https://...', ... }
+            // Clicking a capital roundel shows the image if a URL is present.
+            const CAPITAL_IMAGES = {
+            };
+
             // Build SVG flag overlay (flags as <image> elements inside the SVG)
             function buildFlagOverlay() {
                 if (flagOverlayG) { flagOverlayG.remove(); flagOverlayG = null; }
@@ -16391,6 +16403,27 @@ function openWorldMap() {
                 });
                 dot.addEventListener('mousemove', e => { if (!_capEditMode) _placeTip(capTooltip, e, 10); });
                 dot.addEventListener('mouseleave', () => { capTooltip.style.display = 'none'; });
+
+                dot.addEventListener('click', e => {
+                    if (_capEditMode) return;
+                    const url = CAPITAL_IMAGES[code];
+                    if (!url) return;
+                    e.stopPropagation();
+                    capTooltip.style.display = 'none';
+                    if (capImgPanel.dataset.code === code && capImgPanel.style.display !== 'none') {
+                        capImgPanel.style.display = 'none';
+                        return;
+                    }
+                    capImgPanel.dataset.code = code;
+                    capImgPanel.innerHTML = `<div style="font-family:TypewriterDry,monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:4px">${cityName}</div><img src="${url}" style="display:block;max-width:200px;width:auto;height:auto;border-radius:2px">`;
+                    capImgPanel.style.display = 'block';
+                    const pad = 12;
+                    let x = e.clientX + pad, y = e.clientY + pad;
+                    if (x + 220 > window.innerWidth) x = e.clientX - 220 - pad;
+                    if (y + 160 > window.innerHeight) y = e.clientY - 160 - pad;
+                    capImgPanel.style.left = x + 'px';
+                    capImgPanel.style.top  = y + 'px';
+                });
 
                 dot.addEventListener('mousedown', ev => {
                     if (!_capEditMode) return;
@@ -16751,6 +16784,10 @@ function openWorldMap() {
             };
             document.addEventListener('keydown', onMapKey);
             mapCleanup.push(() => document.removeEventListener('keydown', onMapKey));
+
+            const _dismissCapImg = () => { capImgPanel.style.display = 'none'; };
+            document.addEventListener('click', _dismissCapImg);
+            mapCleanup.push(() => document.removeEventListener('click', _dismissCapImg));
 
             // Hover, click & double-click per country path
             svg.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
