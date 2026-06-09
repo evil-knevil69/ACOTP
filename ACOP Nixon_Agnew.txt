@@ -16158,7 +16158,7 @@ function openWorldMap() {
                 BW: 'Gaborone',        SWA: 'Windhoek',      ET: 'Addis Ababa',
                 DJ: 'Djibouti',        SO: 'Mogadishu',      MG: 'Antananarivo',
                 // Middle East
-                SY: 'Damascus',        LB: 'Beirut',         IL: 'Jerusalem',
+                SY: 'Damascus',        LB: 'Beirut',         IL: 'Tel Aviv',
                 JO: 'Amman',           IQ: 'Baghdad',        KW: 'Kuwait City',
                 SA: 'Riyadh',          YE: "Sana'a",         YD: 'Aden',
                 OM: 'Muscat',          AE: 'Abu Dhabi',      QA: 'Doha',
