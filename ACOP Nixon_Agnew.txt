@@ -16485,31 +16485,13 @@ function openWorldMap() {
                 g.appendChild(shapeG);
 
 
-                // Country path clone as hit area for small-country icons (falls back to circle r=8).
-                const _hitPaths = def.country
-                    ? Array.from(svg.querySelectorAll('[id="' + def.country + '"]'))
-                    : [];
-                if (_hitPaths.length) {
-                    _hitPaths.forEach(cp => {
-                        const clone = cp.cloneNode(false);
-                        clone.removeAttribute('class');
-                        clone.removeAttribute('style');
-                        clone.setAttribute('fill', 'transparent');
-                        clone.setAttribute('stroke', 'none');
-                        clone.setAttribute('pointer-events', 'all');
-                        const existing = clone.getAttribute('transform') || '';
-                        clone.setAttribute('transform',
-                            ('translate(' + (-Math.round(px)) + ',' + (-Math.round(py)) + ')' + (existing ? ' ' + existing : '')).trim());
-                        g.appendChild(clone);
-                    });
-                } else {
-                    const _hit = document.createElementNS(_evNS, 'circle');
-                    _hit.setAttribute('r', '8');
-                    _hit.setAttribute('fill', 'transparent');
-                    _hit.setAttribute('stroke', 'none');
-                    _hit.setAttribute('pointer-events', 'all');
-                    g.appendChild(_hit);
-                }
+                // Circle hit area sized to the icon's visual footprint (~22px diameter at scale 0.6).
+                const _hit = document.createElementNS(_evNS, 'circle');
+                _hit.setAttribute('r', '11');
+                _hit.setAttribute('fill', 'transparent');
+                _hit.setAttribute('stroke', 'none');
+                _hit.setAttribute('pointer-events', 'all');
+                g.appendChild(_hit);
                 g.style.cursor = 'pointer';
                 g.setAttribute('pointer-events', 'all');
 
