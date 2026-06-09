@@ -16239,6 +16239,18 @@ function openWorldMap() {
             // Format: { US: 'https://...', GB: 'https://...', ... }
             // Clicking a capital roundel shows the image if a URL is present.
             const CAPITAL_IMAGES = {
+                CA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ottawaC.jpeg',
+                CU: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/havanaC.jpg',
+                PE: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/LimaC.jpg',
+                FR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ParisC.jpg',
+                YU: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/belgradec.jpeg',
+                IQ: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/baghdadC.png',
+                LY: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/tripoliC.jpeg',
+                CD: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/kinshasaC.jpg',
+                ZW: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/salisburyc.jpg',
+                KP: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/PyongyangC.jpeg',
+                KR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/seoulC.jpeg',
+                PH: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/manilaC.jpg',
             };
 
             // Build SVG flag overlay (flags as <image> elements inside the SVG)
