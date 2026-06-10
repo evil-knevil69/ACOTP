@@ -15486,6 +15486,11 @@ campaignTrail_temp.jet_data = [{
             "name": "KleindienstSTATUS",
             "defaultValue": 2
         },
+        "1781000000101": {
+            "id": 1781000000101,
+            "name": "ColsonSTATUS",
+            "defaultValue": 4
+        },
         "1778185297476": {
             "id": 1778185297476,
             "name": "Command",
@@ -15571,6 +15576,11 @@ campaignTrail_temp.jet_data = [{
             "name": "Huntloyalty",
             "defaultValue": 4
         },
+        "1781000000102": {
+            "id": 1781000000102,
+            "name": "Kroghloyalty",
+            "defaultValue": 7
+        },
         "1779575604702": {
             "id": 1779575604702,
             "name": "Haldemanexposure",
@@ -15646,6 +15656,11 @@ campaignTrail_temp.jet_data = [{
             "name": "Huntexposure",
             "defaultValue": 8
         },
+        "1781000000103": {
+            "id": 1781000000103,
+            "name": "Kroghexposure",
+            "defaultValue": 5
+        },
         "1779575613677": {
             "id": 1779575613677,
             "name": "Watergateburglarsstatus",
@@ -15658,7 +15673,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1779575614124": {
             "id": 1779575614124,
-            "name": "watergateburglarsexposure",
+            "name": "Watergateburglarsexposure",
             "defaultValue": 9
         }
     },
