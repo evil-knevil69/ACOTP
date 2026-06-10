@@ -14934,7 +14934,7 @@ document.body.appendChild(honk);
                 [2,        "Prefers to have the blinds closed", "#1a7340"],
                 [3,        "Roaring fireplace in a DC summer",  "#3feb89"],
                 [4,        "Drinking more than usual",          "#555555"],
-                [6,        "Refusing to get out of bed",        "#eed815"]
+                [6,        "Refusing to get out of bed",        "#eed815"],
                 [7,        "Talking to paintings",              "#e18f0b"],
                 [Infinity, "No longer the madman 'theory'",    "#c0392b"],
             ],
@@ -16284,8 +16284,8 @@ function openWorldMap() {
                 YU: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/belgradec.jpeg',
                 IQ: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/baghdadC.png',
                 LY: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/tripoliC.jpeg',
-                CD: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/kinshasaC.jpg',
-                ZW: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/salisburyc.jpg',
+                ZR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/kinshasaC.jpg',
+                RH: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/salisburyc.jpg',
                 KP: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/PyongyangC.jpeg',
                 KR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/seoulC.jpeg',
                 PH: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/manilaC.jpg',
@@ -16686,7 +16686,9 @@ function openWorldMap() {
             if (allegiance) {
                 svg.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
                     if (!el.id || !COUNTRY_NAMES[el.id]) return;
-                    origFills.set(el, el.style.fill || '');
+                    // Capture the TRUE original (computed) fill before overpainting,
+                    // so the later country-setup loop won't snapshot the loyal colour.
+                    origFills.set(el, window.getComputedStyle(el).fill);
                     el.style.fill = _loyalColour(COUNTRY_LOYAL[el.id] || 0);
                 });
             }
@@ -16892,8 +16894,10 @@ function openWorldMap() {
                 const code = el.id;
                 if (!code || !COUNTRY_NAMES[code]) return;
 
-                // Save computed fill (not just attribute) so allegiance toggle can restore exactly
-                origFills.set(el, window.getComputedStyle(el).fill);
+                // Save computed fill (not just attribute) so allegiance toggle can restore exactly.
+                // Don't overwrite a snapshot already taken by the allegiance-restore block above,
+                // or we'd capture the loyal colour as the "original".
+                if (!origFills.has(el)) origFills.set(el, window.getComputedStyle(el).fill);
 
                 el.style.cursor = 'pointer';
                 el.style.pointerEvents = 'all';
