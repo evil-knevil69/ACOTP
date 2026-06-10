@@ -12968,7 +12968,7 @@ function openEnemiesPanel(questions) {
 // ── Officials panel data ──────────────────────────────────────────────────────
 // Maps person name -> { image, bio }.  image is '' until a URL is supplied.
 // When a position variable changes (e.g. ChiefOfStaff = 'Haig'), re-opening
-// the panel will automatically show the new entry via window[varName] lookup.
+// the panel will automatically show the new occupant.
 const OFFICIALS_ROSTER = {
     'Haldeman': {
         image: '',
@@ -13019,6 +13019,18 @@ const OFFICIALS_LAYOUT = [
     },
     { varName: 'CIA', role: 'CIA Director' }
 ];
+
+// Direct closure getters — window[varName] is unreliable inside new Function() scope
+const OFFICIALS_VARS = {
+    ChiefOfStaff:    () => ChiefOfStaff,
+    NSA:             () => NSA,
+    SOS:             () => SOS,
+    SOD:             () => SOD,
+    AttorneyGeneral: () => AttorneyGeneral,
+    SP:              () => SP,
+    FBI:             () => FBI,
+    CIA:             () => CIA,
+};
 
 ;(() => {
     const _ocStyle = document.createElement('style');
@@ -13163,7 +13175,7 @@ function openOfficialsPanel(questions) {
     grid.className = 'oc-grid';
 
     function makeCard(varName, role) {
-        const person = window[varName];
+        const person = OFFICIALS_VARS[varName] ? OFFICIALS_VARS[varName]() : null;
         const data = OFFICIALS_ROSTER[person] || { image: '', bio: 'No information available.' };
         const isVacant = (person === 'none' || person == null);
 
