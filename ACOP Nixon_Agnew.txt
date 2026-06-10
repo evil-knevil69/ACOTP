@@ -15795,8 +15795,6 @@ var _wmFlagsOn     = false;
 var _wmEventsOn    = true;
 var _wmCapitalsOn  = false;
 var _wmAllegiance  = false;
-var _wmIconGroup   = null;
-var _wmCapGroup    = null;
 
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
@@ -15881,6 +15879,11 @@ function openWorldMap() {
 
     // Cleanup hooks registered during SVG load (keyboard, drag, wheel listeners)
     const mapCleanup = [];
+    // If a Move-tool drag is in progress when the map closes, its document-level
+    // mousemove/mouseup listeners must still be removed. Each drag sets this to
+    // its own finish function; the cleanup below invokes it if still pending.
+    let _activeDragEnd = null;
+    mapCleanup.push(() => { if (_activeDragEnd) _activeDragEnd(); });
 
     const backBtn = document.createElement('button');
     backBtn.textContent = '<- Electoral Map';
@@ -15912,9 +15915,9 @@ function openWorldMap() {
     let capitalsOn = _wmCapitalsOn;
     let _capEditMode = false;
     // Live references to the events / capitals <g> layers. Assigned in the SVG
-    // .then() below and closed over by the toggle buttons. Using LOCAL closure
-    // vars here (the same pattern the working Flags toggle uses) rather than the
-    // module-level _wmIconGroup/_wmCapGroup, which could go stale across map opens.
+    // .then() below and closed over by the toggle buttons. LOCAL closure vars
+    // (the same pattern the working Flags toggle uses) — module-level refs went
+    // stale across map opens and broke the toggles.
     let iconGroupEl = null;
     let capGroupEl  = null;
     // Single source of truth for layer visibility. Called by the toggles, by the
@@ -16407,8 +16410,8 @@ function openWorldMap() {
             const _capDots = [];
             const capGroup = document.createElementNS(_evNS, 'g');
             capGroup.id = 'wm-capitals';
-            capGroup.style.display = 'none'; // hidden until toggle on + zoom >= 1.2
-            // svg.appendChild deferred — done after _iconGroup so capitals render above events
+            capGroup.style.display = 'none'; // initial state; _applyCapVis() decides visibility
+            // svg.appendChild deferred — appended below, before _iconGroup, so events render above capitals
 
             Object.entries(CAPITAL_DATA).forEach(([code, cityName]) => {
                 const paths = Array.from(svg.querySelectorAll('[id="' + code + '"]'));
@@ -16493,6 +16496,7 @@ function openWorldMap() {
                     const onUp = () => {
                         document.removeEventListener('mousemove', onMove);
                         document.removeEventListener('mouseup', onUp);
+                        _activeDragEnd = null;
                         dot.style.cursor = 'grab';
                         const finalCx = parseFloat(dot.getAttribute('cx'));
                         const finalCy = parseFloat(dot.getAttribute('cy'));
@@ -16501,6 +16505,7 @@ function openWorldMap() {
                     };
                     document.addEventListener('mousemove', onMove);
                     document.addEventListener('mouseup', onUp);
+                    _activeDragEnd = onUp;
                 });
 
                 capGroup.appendChild(dot);
@@ -16546,9 +16551,9 @@ function openWorldMap() {
             // Capitals at the bottom; events above them (so dots never cover icons
             // and events win hover priority); flags appended last, on top — they are
             // pointer-events:none so being on top does not block hover.
-            _wmCapGroup = capGroup;  capGroupEl  = capGroup;
+            capGroupEl = capGroup;
             svg.appendChild(capGroup);
-            _wmIconGroup = _iconGroup;  iconGroupEl = _iconGroup;
+            iconGroupEl = _iconGroup;
             svg.appendChild(_iconGroup);
             // Restore flags-on-top if the toggle was left on from a previous visit
             if (flagsOn && flagOverlayG) svg.appendChild(flagOverlayG);
@@ -16627,6 +16632,7 @@ function openWorldMap() {
                     const onUp = () => {
                         document.removeEventListener('mousemove', onMove);
                         document.removeEventListener('mouseup', onUp);
+                        _activeDragEnd = null;
                         const fm = (g.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
                         if (fm) {
                             _movedOffsets[def.id] = { x: Math.round(parseFloat(fm[1]) - _basePx), y: Math.round(parseFloat(fm[2]) - _basePy) };
@@ -16635,6 +16641,7 @@ function openWorldMap() {
                     };
                     document.addEventListener('mousemove', onMove);
                     document.addEventListener('mouseup', onUp);
+                    _activeDragEnd = onUp;
                 });
 
                 // Click is "transparent": it forwards to the country path underneath
@@ -16751,6 +16758,7 @@ function openWorldMap() {
                     const onUp = () => {
                         document.removeEventListener('mousemove', onMove);
                         document.removeEventListener('mouseup', onUp);
+                        _activeDragEnd = null;
                         const fm = (img.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
                         if (fm && img.dataset.code) {
                             _flagMoves[img.dataset.code] = { cx: Math.round(parseFloat(fm[1])), cy: Math.round(parseFloat(fm[2])) };
@@ -16759,6 +16767,7 @@ function openWorldMap() {
                     };
                     document.addEventListener('mousemove', onMove);
                     document.addEventListener('mouseup', onUp);
+                    _activeDragEnd = onUp;
                 });
             }
 
