@@ -14093,7 +14093,7 @@ function openOfficialsPanel(questions) {
             ['Segretti',  SegrettiSTATUS],  ['Strachan',  StrachanSTATUS],  ['Hunt',     HuntSTATUS],
             ['McCord',    McCordSTATUS],    ['Liddy',     LiddySTATUS],     ['Larue',    LarueSTATUS],
             ['Stans',     StansSTATUS],     ['Klambach',  KlambachSTATUS],  ['Dean',     DeanSTATUS],
-            ['Colson',    ColsonSTATUS],
+            ['Colson',    ColsonSTATUS],    ['WatergateBurglars', Watergateburglarsstatus],
         ].forEach(([id, val]) => window._setOrgState(id, toState(val)));
     };
 })();
@@ -15643,7 +15643,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1779575611309": {
             "id": 1779575611309,
-            "name": "Hunt",
+            "name": "Huntexposure",
             "defaultValue": 8
         },
         "1779575613677": {
