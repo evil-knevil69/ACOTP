@@ -12026,7 +12026,9 @@ var chad           = 1;  // Chadian Civil War
 var khmer          = 1;  // Cambodian Civil War
 var laos           = 1;  // Laotian Civil War
 var eritrea        = 1;  // Eritrean War of Independence
-var managua        = 0;  // Managua Earthquake        (triggered by question onShow)
+var managua        = 1;  // Managua Earthquake — DEMO: starts active so the 3-turn
+                         // lifespan is visible from question 1; set back to 0 and
+                         // trigger via a question onShow once wired to the story
 var cyprusInvasion = 0;  // Turkish Invasion of Cyprus (triggered by question onShow)
 var guatemalaQuake = 0;  // 1976 Guatemalan Earthquake (triggered by question onShow)
 var tangshan       = 0;  // 1976 Tangshan Earthquake   (triggered by question onShow)
@@ -12111,7 +12113,15 @@ const _EVENT_DEFS = [
         body: 'A 6.2-magnitude earthquake struck the Nicaraguan capital on December 23, 1972, killing over 10,000 and levelled much of the city centre.',
         country: 'NI',
         positionOffset: { x: -12, y: -13 },
-        state: () => 1, // TEMP: was () => managua
+        // ── EVENT LIFESPAN worked example ──
+        // state() reads the live variable; set() lets the turn engine write it.
+        // The event vanishes (state -> 0) 3 turns after the engine first sees
+        // it active. To trigger from a question instead, set managua = 0 below
+        // and add `onShow: () => { managua = 1; }` to the right questionData pk.
+        state: () => managua,
+        set: v => { managua = v; },
+        duration: 3,
+        expireTo: 0,
     },
     {
         id: 'cyprus-invasion',
@@ -14122,31 +14132,193 @@ let _lastQuestionPK = null;
 const _newEvents = new Set(); // event ids that became active this question — shown red
 function _markEventNew(id) { _newEvents.add(id); }
 
-// ── MAP EVENT TIMER ───────────────────────────────────────────────────────────
-// Use _scheduleAfterQuestions(n, fn) inside any questionData onShow callback
-// to change a world-event state automatically after n questions have elapsed.
-// Event states: 0 = hidden, 1 = showing, 3 = crossed out (legal pad only).
-//
-// Example — earthquake appears for 2 questions then vanishes (state → 0):
-//   450: { date: "December 1972", onShow: () => {
-//       managua = 1;
-//       _scheduleAfterQuestions(2, () => { managua = 0; });
-//   }, signImg: '...', historical: null },
-//
-// Example — invasion appears, then stays as a crossed-out past event (state → 3):
-//   680: { onShow: () => {
-//       cyprusInvasion = 1;
-//       _scheduleAfterQuestions(3, () => { cyprusInvasion = 3; });
-//   } },
-//
-// Use n=1 for a single-question flash; n=2 for two questions; etc.
-// ─────────────────────────────────────────────────────────────────────────────
+// ── TURN ENGINE ───────────────────────────────────────────────────────────────
+// One turn = one question. Callbacks registered with _everyTurn(fn) run once
+// per turn, in registration order, BEFORE the new question's onShow — so a
+// question's text can react to anything that just happened (a flip, an expiry).
 let _questionCount = 0;
-const _questionTimers = [];
-function _scheduleAfterQuestions(n, fn) {
-    _questionTimers.push({ fireAt: _questionCount + n, fn });
+const _turnTicks = [];
+function _everyTurn(fn) { _turnTicks.push(fn); }
+function _runTurnTicks() {
+    for (let i = 0; i < _turnTicks.length; i++) {
+        try { _turnTicks[i](_questionCount); } catch (e) {}
+    }
 }
-// ── END MAP EVENT TIMER ───────────────────────────────────────────────────────
+
+// ── EVENT LIFESPANS ───────────────────────────────────────────────────────────
+// Timed world events declare three extra fields on their _EVENT_DEFS entry:
+//   duration: n     — expires n turns after state() is first seen at 1
+//   expireTo: 0|3   — state written on expiry (0 = vanishes, 3 = crossed out)
+//   set: v => {...} — setter closure for the def's state variable (required:
+//                     plain vars can't be written generically in this scope)
+// Activation is detected automatically — a question onShow just sets the
+// variable (e.g. managua = 1) and the tick below notices it. The world map
+// re-evaluates state() on every open, so an expiry shows up the next time
+// the player looks at the map. See the managua-quake def for a worked example.
+_everyTurn(turn => {
+    _EVENT_DEFS.forEach(def => {
+        if (!def.duration || !def.set) return;
+        if (def.state() !== 1) return;
+        if (def._activatedAt == null) { def._activatedAt = turn; return; }
+        if (turn - def._activatedAt >= def.duration) {
+            def.set(def.expireTo != null ? def.expireTo : 0);
+            def._activatedAt = null; // a later re-activation starts a fresh lifespan
+        }
+    });
+});
+
+// ── WATERGATE PRESSURE ENGINE ─────────────────────────────────────────────────
+// Per-turn cover-up mechanics. The rules:
+//  RADIATION  a man's exposure leaks +1 to each man above/beside him on the
+//             org chart: every 2 turns at exposure 8-10, every 4 at 5-7,
+//             every 6 at 2-4, never at 0-1. Cut Loose (STATUS 4) doubles his
+//             intervals (half impact). Receivers at exposure <=2 are
+//             firewalled — they absorb nothing from below.
+//  EXP DECAY  exposure below 3 fades -1 every 3 turns (down to 0) unless the
+//             man is indicted or imprisoned (STATUS <=3), which keeps him in
+//             the papers. Exposure 3+ never fades.
+//  LOY DECAY  loyalty drops by the man's own exposure: -1 every 2 turns at
+//             exposure 9-10, every 4 at 7-8, every 6 at 5-6, never at <=4.
+//             Loyalty 10 is immune (true believers don't crack from
+//             pressure). Indictment (STATUS <=3) halves the interval.
+//  FLIP       loyalty 0 + exposure >=8 for 3 consecutive turns, then a 33%
+//             chance per turn until he flips (STATUS -> 1, state's witness).
+//             Leaving the danger zone resets the count.
+//  CONTAGION  a flip gives +2 exposure (minimum result 3 — testimony puts
+//             you on the radar) along the flipper's edges. The inner circle
+//             (Haldeman, Erlichman, Colson, Mitchell, Dean) has no edges;
+//             their flips are recorded in _innerCircleFlips for the Nixon
+//             mechanic (TBD) — Dean's also drives question swaps (TBD).
+//  PAY-OFF    call _payOff('Hunt') from a question effect for hush money or
+//             a clemency offer: +1 loyalty and a 4-turn pause on his loyalty
+//             decay and outbound radiation.
+const _ORG_PRESSURE = {
+    Haldeman:  { inner: true,  loy: () => Haldemanloyalty,  setLoy: v => { Haldemanloyalty = v; },  exp: () => Haldemanexposure,  setExp: v => { Haldemanexposure = v; },  st: () => HaldemanSTATUS,  setSt: v => { HaldemanSTATUS = v; } },
+    Erlichman: { inner: true,  loy: () => Erlichmanloyalty, setLoy: v => { Erlichmanloyalty = v; }, exp: () => Erlichmanexposure, setExp: v => { Erlichmanexposure = v; }, st: () => ErlichmanSTATUS, setSt: v => { ErlichmanSTATUS = v; } },
+    Dean:      { inner: true,  loy: () => Deanloyalty,      setLoy: v => { Deanloyalty = v; },      exp: () => Deanexposure,      setExp: v => { Deanexposure = v; },      st: () => DeanSTATUS,      setSt: v => { DeanSTATUS = v; } },
+    Colson:    { inner: true,  loy: () => Colsonloyalty,    setLoy: v => { Colsonloyalty = v; },    exp: () => Colsonexposure,    setExp: v => { Colsonexposure = v; },    st: () => ColsonSTATUS,    setSt: v => { ColsonSTATUS = v; } },
+    Mitchell:  { inner: true,  loy: () => Mitchellloyalty,  setLoy: v => { Mitchellloyalty = v; },  exp: () => Mitchellexposure,  setExp: v => { Mitchellexposure = v; },  st: () => MitchellSTATUS,  setSt: v => { MitchellSTATUS = v; } },
+    Chapin:    { loy: () => Chapinloyalty,   setLoy: v => { Chapinloyalty = v; },   exp: () => Chapinexposure,   setExp: v => { Chapinexposure = v; },   st: () => ChapinSTATUS,   setSt: v => { ChapinSTATUS = v; } },
+    Segretti:  { loy: () => Segrettiloyalty, setLoy: v => { Segrettiloyalty = v; }, exp: () => Segrettiexposure, setExp: v => { Segrettiexposure = v; }, st: () => SegrettiSTATUS, setSt: v => { SegrettiSTATUS = v; } },
+    Strachan:  { loy: () => Strachanloyalty, setLoy: v => { Strachanloyalty = v; }, exp: () => Strachanexposure, setExp: v => { Strachanexposure = v; }, st: () => StrachanSTATUS, setSt: v => { StrachanSTATUS = v; } },
+    Krogh:     { loy: () => Kroghloyalty,    setLoy: v => { Kroghloyalty = v; },    exp: () => Kroghexposure,    setExp: v => { Kroghexposure = v; },    st: () => KroghSTATUS,    setSt: v => { KroghSTATUS = v; } },
+    Hunt:      { loy: () => Huntloyalty,     setLoy: v => { Huntloyalty = v; },     exp: () => Huntexposure,     setExp: v => { Huntexposure = v; },     st: () => HuntSTATUS,     setSt: v => { HuntSTATUS = v; } },
+    Liddy:     { loy: () => Liddyloyalty,    setLoy: v => { Liddyloyalty = v; },    exp: () => Liddyexposure,    setExp: v => { Liddyexposure = v; },    st: () => LiddySTATUS,    setSt: v => { LiddySTATUS = v; } },
+    Magruder:  { loy: () => Magruderloyalty, setLoy: v => { Magruderloyalty = v; }, exp: () => Magruderexposure, setExp: v => { Magruderexposure = v; }, st: () => MagruderSTATUS, setSt: v => { MagruderSTATUS = v; } },
+    Larue:     { loy: () => Larueloyalty,    setLoy: v => { Larueloyalty = v; },    exp: () => Larueexposure,    setExp: v => { Larueexposure = v; },    st: () => LarueSTATUS,    setSt: v => { LarueSTATUS = v; } },
+    Stans:     { loy: () => Stansloyalty,    setLoy: v => { Stansloyalty = v; },    exp: () => Stansexposure,    setExp: v => { Stansexposure = v; },    st: () => StansSTATUS,    setSt: v => { StansSTATUS = v; } },
+    Klambach:  { loy: () => Klambachloyalty, setLoy: v => { Klambachloyalty = v; }, exp: () => Klambachexposure, setExp: v => { Klambachexposure = v; }, st: () => KlambachSTATUS, setSt: v => { KlambachSTATUS = v; } },
+    McCord:    { loy: () => McCordloyalty,   setLoy: v => { McCordloyalty = v; },   exp: () => McCordexposure,   setExp: v => { McCordexposure = v; },   st: () => McCordSTATUS,   setSt: v => { McCordSTATUS = v; } },
+    Burglars:  { loy: () => Watergateburglarsloyalty, setLoy: v => { Watergateburglarsloyalty = v; }, exp: () => Watergateburglarsexposure, setExp: v => { Watergateburglarsexposure = v; }, st: () => Watergateburglarsstatus, setSt: v => { Watergateburglarsstatus = v; } },
+};
+
+// Exposure spreads upward/sideways only — source -> [receivers]
+const _ORG_EDGES = {
+    Segretti: ['Chapin'],
+    Chapin:   ['Haldeman'],
+    Strachan: ['Haldeman', 'Mitchell'],
+    Krogh:    ['Erlichman'],
+    Hunt:     ['Colson', 'Krogh', 'Liddy'],
+    Magruder: ['Mitchell'],
+    Larue:    ['Mitchell', 'Klambach'],
+    Klambach: ['Stans', 'Larue'],
+    Stans:    ['Mitchell', 'Larue'],
+    McCord:   ['Mitchell'],
+    Burglars: ['McCord', 'Hunt', 'Liddy'],
+};
+
+const _edgeClocks     = {}; // 'src>tgt' -> turns accumulated toward the next +1
+const _expDecayClocks = {}; // name -> turns toward the next -1 exposure
+const _loyDecayClocks = {}; // name -> turns toward the next -1 loyalty
+const _flipDanger     = {}; // name -> consecutive turns at loyalty 0 / exposure >=8
+const _pausedUntil    = {}; // name -> turn number a pay-off pause expires
+const _flipped        = new Set();
+const _innerCircleFlips = []; // inner-circle witnesses, consumed by the Nixon mechanic (TBD)
+
+// Hush money / clemency — call from a question effect, e.g. _payOff('Hunt')
+function _payOff(name) {
+    const p = _ORG_PRESSURE[name];
+    if (!p || _flipped.has(name)) return;
+    p.setLoy(Math.min(10, p.loy() + 1));
+    _pausedUntil[name] = _questionCount + 4;
+}
+
+function _flipWitness(name) {
+    const p = _ORG_PRESSURE[name];
+    _flipped.add(name);
+    p.setSt(1); // state's witness
+    (_ORG_EDGES[name] || []).forEach(tgt => {
+        const t = _ORG_PRESSURE[tgt];
+        t.setExp(Math.min(10, Math.max(3, t.exp() + 2)));
+    });
+    if (p.inner) _innerCircleFlips.push(name);
+}
+
+_everyTurn(() => {
+    const paused = name => (_pausedUntil[name] || 0) >= _questionCount;
+
+    // 1. Radiation — exposure leaks upward along the edges, per-edge clocks
+    Object.keys(_ORG_EDGES).forEach(src => {
+        if (_flipped.has(src) || paused(src)) return;
+        const s = _ORG_PRESSURE[src];
+        const e = s.exp();
+        let interval = e >= 8 ? 2 : e >= 5 ? 4 : e >= 2 ? 6 : 0;
+        if (!interval) return;
+        if (s.st() === 4) interval *= 2; // cut loose: half impact upward
+        _ORG_EDGES[src].forEach(tgt => {
+            const t = _ORG_PRESSURE[tgt];
+            if (_flipped.has(tgt) || t.exp() <= 2) return; // firewall
+            const key = src + '>' + tgt;
+            _edgeClocks[key] = (_edgeClocks[key] || 0) + 1;
+            if (_edgeClocks[key] >= interval) {
+                _edgeClocks[key] = 0;
+                t.setExp(Math.min(10, t.exp() + 1));
+            }
+        });
+    });
+
+    Object.keys(_ORG_PRESSURE).forEach(name => {
+        if (_flipped.has(name)) return;
+        const p = _ORG_PRESSURE[name];
+
+        // 2. Exposure decay — the press moves on from fringe figures
+        if (p.exp() > 0 && p.exp() < 3 && p.st() >= 4) {
+            _expDecayClocks[name] = (_expDecayClocks[name] || 0) + 1;
+            if (_expDecayClocks[name] >= 3) {
+                _expDecayClocks[name] = 0;
+                p.setExp(p.exp() - 1);
+            }
+        } else {
+            _expDecayClocks[name] = 0;
+        }
+
+        // 3. Loyalty decay — nerve goes as exposure climbs; loyalty 10 immune
+        if (!paused(name) && p.loy() > 0 && p.loy() < 10) {
+            const e = p.exp();
+            let interval = e >= 9 ? 2 : e >= 7 ? 4 : e >= 5 ? 6 : 0;
+            if (interval && p.st() <= 3) interval = Math.max(1, interval / 2);
+            if (interval) {
+                _loyDecayClocks[name] = (_loyDecayClocks[name] || 0) + 1;
+                if (_loyDecayClocks[name] >= interval) {
+                    _loyDecayClocks[name] = 0;
+                    p.setLoy(p.loy() - 1);
+                }
+            }
+        }
+
+        // 4. The breaking point — 3-turn grace, then 33% per turn
+        if (p.loy() === 0 && p.exp() >= 8) {
+            _flipDanger[name] = (_flipDanger[name] || 0) + 1;
+            if (_flipDanger[name] > 3 && Math.random() < 1 / 3) _flipWitness(name);
+        } else {
+            _flipDanger[name] = 0;
+        }
+    });
+
+    // 5. Repaint the org chart status pills if the chart is on screen
+    if (typeof window._syncOrgStates === 'function') window._syncOrgStates();
+});
+// ── END WATERGATE PRESSURE ENGINE ─────────────────────────────────────────────
 // Shared #game_window observer (defined idempotently in Code 1; redefined here
 // so Code 2 works even if loaded first). One MutationObserver, many subscribers.
 window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
@@ -14236,12 +14408,7 @@ window.__onGameWindowMutation(() => {
                 if (currentPK !== _lastQuestionPK) {
                     _lastQuestionPK = currentPK;
                     _questionCount++;
-                    for (let i = _questionTimers.length - 1; i >= 0; i--) {
-                        if (_questionCount >= _questionTimers[i].fireAt) {
-                            _questionTimers[i].fn();
-                            _questionTimers.splice(i, 1);
-                        }
-                    }
+                    _runTurnTicks();
                     const qd = (currentPK != null && questionData[currentPK]) || {};
                     if (qd.signImg) changeImage(qd.signImg);
                     _newEvents.clear();
