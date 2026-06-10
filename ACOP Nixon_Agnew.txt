@@ -14192,6 +14192,11 @@ _everyTurn(turn => {
 //  PAY-OFF    call _payOff('Hunt') from a question effect for hush money or
 //             a clemency offer: +1 loyalty and a 4-turn pause on his loyalty
 //             decay and outbound radiation.
+//  PART II    the engine sleeps until pk 430's onShow ("PART II: Fulmination")
+//             sets _pressureOn — during Part I the stats only move via
+//             question effects. No clocks accumulate while it sleeps, so the
+//             machine starts cold from whatever the board looks like at 430.
+var _pressureOn = false;
 const _ORG_PRESSURE = {
     Haldeman:  { inner: true,  loy: () => Haldemanloyalty,  setLoy: v => { Haldemanloyalty = v; },  exp: () => Haldemanexposure,  setExp: v => { Haldemanexposure = v; },  st: () => HaldemanSTATUS,  setSt: v => { HaldemanSTATUS = v; } },
     Erlichman: { inner: true,  loy: () => Erlichmanloyalty, setLoy: v => { Erlichmanloyalty = v; }, exp: () => Erlichmanexposure, setExp: v => { Erlichmanexposure = v; }, st: () => ErlichmanSTATUS, setSt: v => { ErlichmanSTATUS = v; } },
@@ -14255,6 +14260,7 @@ function _flipWitness(name) {
 }
 
 _everyTurn(() => {
+    if (!_pressureOn) return; // dormant until PART II: Fulmination (pk 430)
     const paused = name => (_pausedUntil[name] || 0) >= _questionCount;
 
     // 1. Radiation — exposure leaks upward along the edges, per-edge clocks
@@ -14363,6 +14369,7 @@ const questionData = {
             body: "We are embarking here today on an era that presents challenges great as those any nation, or any generation, has ever faced. We shall answer to God, to history, and to our conscience for the way in which we use these years.",
             img: null
         },
+        onShow: () => { _pressureOn = true; }, // the Watergate pressure engine wakes here
         historical: null
     },
     431: { date: "September 1976",     historical: null },
