@@ -1374,8 +1374,12 @@ if (!screen) {
 }
 
 const mapContainer = document.getElementById('map_container');
-const mapRect = mapContainer.getBoundingClientRect();
-const gameWindowRect = document.getElementById('game_window').getBoundingClientRect();
+const gameWindowEl = document.getElementById('game_window');
+// Fall back to a zero rect if either element is missing so the transition
+// still runs (anchored at 0,0) instead of throwing and killing the script.
+const _zeroRect = { left: 0, top: 0 };
+const mapRect = mapContainer ? mapContainer.getBoundingClientRect() : _zeroRect;
+const gameWindowRect = gameWindowEl ? gameWindowEl.getBoundingClientRect() : _zeroRect;
 
 screen.style.position = 'absolute';
 screen.style.left = (mapRect.left - gameWindowRect.left) + 'px';
@@ -1608,9 +1612,11 @@ window.__onGameWindowMutation(() => {
 });
 
 window.playCreditsMusic = function() {
-    if (!window.playlist) {
+    if (!window.playlist || !window.loadAndPlay) {
         setupMusicPlayer();
     }
+    // Still not ready (e.g. .content_single not in the DOM yet) — bail quietly
+    if (!window.playlist || !window.loadAndPlay) return;
     window.playlist.currentSongIndex = 2;
     window.loadAndPlay();
 }
@@ -2412,7 +2418,8 @@ function __mapVisitTick() {
                         }
 window.__onGameWindowMutation(__mapVisitTick);
 
-                document.getElementById("game_start").addEventListener("click", function() {
+                const _gameStartBtn = document.getElementById("game_start");
+                if (_gameStartBtn) _gameStartBtn.addEventListener("click", function() {
                 setTimeout(function() {
                     const credits = document.getElementById("credits");
                     if (credits) {
@@ -2512,6 +2519,11 @@ let playerAnchor;
 
 function setupMusicPlayer() {
     if (window._musicPlayerSetup) return;
+    // Bail BEFORE touching window.playlist if the anchor element isn't in the
+    // DOM yet — otherwise we leave a half-built player (playlist set, but
+    // loadAndPlay still undefined) and playCreditsMusic would never retry.
+    const contentSingle = document.querySelector(".content_single");
+    if (!contentSingle) return; // retry on a later call once it exists
     window._musicPlayerSetup = true;
     window.playlist = new Playlist();
 
@@ -2547,9 +2559,7 @@ function setupMusicPlayer() {
     // Build tape recorder DOM
     playerAnchor = document.createElement("div");
     playerAnchor.id = "player-anchor";
-    const contentSingle = document.querySelector(".content_single");
-    if (!contentSingle) { window._musicPlayerSetup = false; return; } // retry on a later call once it exists
-    contentSingle.appendChild(playerAnchor);
+    contentSingle.appendChild(playerAnchor); // contentSingle verified at top of function
     playerAnchor.appendChild(tapeRecorder);
 
     // Reel body

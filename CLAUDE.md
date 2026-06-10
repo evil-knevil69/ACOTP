@@ -1,0 +1,105 @@
+# ACOP Nixon/Agnew — Campaign Trail Mod
+
+## Session startup (ALWAYS do this first)
+
+The remote git server resets between sessions. At the start of every session, run:
+
+```bash
+git fetch origin claude/document-claude-capabilities-7p897
+```
+
+Then check divergence:
+
+```bash
+git status
+```
+
+If the output says "Your branch and 'origin/...' have diverged" **with local ahead**, immediately force-push:
+
+```bash
+git push --force-with-lease -u origin claude/document-claude-capabilities-7p897
+```
+
+Do this before any other work. This keeps the remote in sync so the user can test the mod.
+
+## Branch
+
+Development branch: `claude/document-claude-capabilities-7p897`
+
+Always push here. Never push to main/master.
+
+## Project
+
+`ACOP Nixon_Agnew.txt` is the single mod file loaded by Campaign Trail. It runs inside `new Function()`, so:
+- Use `var` for module-level declarations (not `const`/`let` at the top scope)
+- Never declare the same `const`/`let` name twice in the same block scope — it causes a parse-time `SyntaxError` that prevents the mod from loading
+
+---
+
+## Change log — session starting ~23:30 BST 7 Jun 2026
+
+### ACOP Nixon_Agnew.txt
+
+**1. Toggle persistence (module-level vars)**
+Four `var` declarations added immediately before `function openWorldMap()`:
+```js
+var _wmFlagsOn     = false;
+var _wmEventsOn    = true;
+var _wmCapitalsOn  = false;
+var _wmAllegiance  = false;
+```
+Write-backs added in all four toggle button click handlers (Events, Capitals, Flags, Allegiance) so state survives the map being closed and reopened. Initial button visual state (bold + outline) set on open.
+
+**2. Capital pins feature**
+- `CAPITAL_DATA`: object mapping ~90 country codes to capital city names
+- `CAPITAL_OFFSETS`: manual pixel offsets for countries where the geographic centroid is wrong (19 entries as of 8 Jun — see item 7 below)
+- Capital dots rendered as SVG circles on a `capGroup` `<g>` element
+- Visible only when zoom scale ≥ 1.2, or when Move Capitals edit mode is active
+- Tooltip on hover showing capital name
+- "Move Capitals" button in the world map toolbar — enter drag-to-reposition mode; offsets saved to `_capMovedOffsets` in memory
+
+**3. Move Icons tool**
+Drag-to-reposition mode for event icons. Orange button in toolbar. Offset panel shows `positionOffset` values to paste back into `_EVENT_DEFS`.
+
+**4. Move Flags tool**
+Drag-to-reposition mode for flag overlay images. Auto-shows flags when entering mode. Offset panel shows `FLAG_CENTRES` values.
+
+**5. Event icon click-through (small countries)**
+For each event icon, a transparent clone of the underlying country `<path>` is appended to the icon group as a hit area (falls back to r=8 circle if no country path found). `_fwdClick` handler: temporarily hides the icon group, `flagOverlayG`, and capital group → calls `elementFromPoint` → restores visibility → re-dispatches the mouse event to whatever is underneath. Skips if `_editMode` is active.
+
+**6. Coup (tank) icon green fill**
+Transparent internal areas of the tank SVG (turret interior, gun barrel, body connector strip, 4 wheel axle holes) filled with `#1F9823`. Implemented as a second `<path>` in the coup icon definition rendered on top of the black path.
+
+**7. Capital offsets — batch 1 (8 Jun)**
+Added to `CAPITAL_OFFSETS`:
+```
+KP: { x: -14, y: -2  }   KR: { x: -20, y: -20 }   IE: { x:  -6, y: -13 }   FI: { x:  -4, y:   8 }
+AF: { x:  -4, y: -13 }   JP: { x:   6, y:   4 }   DD: { x:  -8, y: -14 }   DK: { x: 133, y:  55 }
+IS: { x: -16, y:  -8 }   TR: { x: -22, y: -13 }   ES: { x:  20, y: -57 }   EG: { x: -11, y: -24 }
+ZA: { x:   0, y:   0 }   KH: { x: -14, y:  -9 }   TH: { x: -23, y:  16 }   VN: { x: -15, y:   5 }
+TW: { x: -11, y: -12 }   IT: { x: -15, y: -12 }   AT: { x: -11, y: -11 }
+```
+
+**8. Expanded FLAG_CENTRES**
+Many more countries added with accurate SVG centroids (GB, FR, DE, PT, ES, NL, US, MX, CA, HT, CU, BR, CL, AR, and ~40 others).
+
+**9. New event variables and events**
+Many new `var` declarations and `_EVENT_DEFS` entries added (guatemalaQuake, tangshan, mississippi, hondurasCoup, bananagate, rwandaCoup, afghanCoup, nigerCoup, greekCoup, ethiopianRevolution, dergCoup, uruguayCoup, chileanCoup, upperVoltaCoup, tacnazo, argentineCoup, northYemenCoup, oromoUprising, sahrawiInsurgency, _allendeSpeechPlayed).
+
+**10. Allende Easter egg**
+On first world map open after `chileanCoup === 1`, Allende's last speech is injected into the music playlist. URL is placeholder `'ALLENDE_SPEECH_URL_PLACEHOLDER'`.
+
+**11. SVG cache**
+`_svgTextCache` prevents re-fetching the SVG on every `openWorldMap()` call.
+
+**12. Tooltip improvements**
+Width 270px (was 216px), font sizes increased, image placeholder removed when `def.img` is null.
+
+### A Cancer on the Presidency_init (draft).txt
+
+No changes from this session — both Sandinista! and feature branch versions are identical.
+
+### Infrastructure
+
+- `.gitignore`: excludes `__pycache__/` and `.claude/` (worktree directories)
+- `CLAUDE.md`: session-startup force-push instructions to prevent lost work from remote resets
