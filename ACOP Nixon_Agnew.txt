@@ -11650,15 +11650,15 @@ const COUNTRIES = {
   DD: { name:'East Germany', loyal:20, file:'germany-east', flag:'svg' }, // East Germany — no US recognition, Soviet satellite
   DE: { name:'West Germany', loyal:85, file:'germany-west', flag:'svg' }, // West Germany — key NATO ally
   DK: { name:'Denmark', loyal:80, file:'denmark', flag:'svg' }, // Denmark — NATO
-  ES: { name:'Spain', loyal:75, file:'spain', flag:'svg' }, // Spain — Franco, US bases, anti-communist
+  ES: { name:'Spain', loyal:68, file:'spain', flag:'svg' }, // Spain — Franco, US bases, anti-communist
   FI: { name:'Finland', loyal:48, file:'finland', flag:'svg' }, // Finland — Finlandization
   FR: { name:'France', loyal:75, file:'france', flag:'svg' }, // France — NATO but independent streak
   GB: { name:'United Kingdom', loyal:90, file:'united-kingdom', flag:'svg' }, // United Kingdom — Special Relationship
-  GR: { name:'Greece', loyal:80, file:'greece', flag:'svg' }, // Greece — military junta but NATO
+  GR: { name:'Greece', loyal:68, file:'greece', flag:'svg' }, // Greece — military junta but NATO
   HU: { name:'Hungary', loyal:18, file:'hungary', flag:'svg' }, // Hungary — Soviet satellite
-  IE: { name:'Ireland', loyal:60, file:'ireland', flag:'svg' }, // Ireland — neutral, not NATO
+  IE: { name:'Ireland', loyal:58, file:'ireland', flag:'svg' }, // Ireland — neutral, not NATO
   IS: { name:'Iceland', loyal:75, file:'iceland', flag:'svg' }, // Iceland — NATO, US Keflavik base
-  IT: { name:'Italy', loyal:80, file:'italy', flag:'svg' }, // Italy — NATO; large Communist Party
+  IT: { name:'Italy', loyal:72, file:'italy', flag:'svg' }, // Italy — NATO; large Communist Party
   LI: { name:'Liechtenstein', loyal:72, file:'liechtenstein', flag:'svg' }, // Liechtenstein
   LU: { name:'Luxembourg', loyal:82, file:'luxembourg', flag:'svg' }, // Luxembourg — NATO
   MC: { name:'Monaco', loyal:72, file:'monaco', flag:'svg' }, // Monaco
@@ -11666,13 +11666,13 @@ const COUNTRIES = {
   NL: { name:'Netherlands', loyal:82, file:'netherlands', flag:'svg' }, // Netherlands — NATO
   NO: { name:'Norway', loyal:80, file:'norway', flag:'svg' }, // Norway — NATO
   PL: { name:'Poland', loyal:18, file:'poland', flag:'svg' }, // Poland — Soviet satellite
-  PT: { name:'Portugal', loyal:80, file:'portugal', flag:'svg' }, // Portugal — NATO (Estado Novo)
-  RO: { name:'Romania', loyal:30, file:'romania', flag:'png' }, // Romania — most independent Soviet bloc state
+  PT: { name:'Portugal', loyal:72, file:'portugal', flag:'svg' }, // Portugal — NATO (Estado Novo)
+  RO: { name:'Romania', loyal:25, file:'romania', flag:'png' }, // Romania — most independent Soviet bloc state
   SM: { name:'San Marino', loyal:55, file:'san-marino', flag:'svg' }, // San Marino — Western but communist coalition govt
   SU: { name:'Soviet Union', loyal:15, file:'u-s-s-r', flag:'svg' }, // Soviet Union — superpower rival
   SE: { name:'Sweden', loyal:52, file:'sweden', flag:'svg' }, // Sweden — neutral, critical of Vietnam War
   CH: { name:'Switzerland', loyal:62, file:'switzerland', flag:'svg' }, // Switzerland — neutral but Western-integrated
-  TR: { name:'Turkey', loyal:75, file:'turkey', flag:'svg' }, // Turkey — NATO
+  TR: { name:'Turkey', loyal:72, file:'turkey', flag:'svg' }, // Turkey — NATO
   VA: { name:'Vatican City', loyal:62, file:'vatican-city', flag:'svg' }, // Vatican City — anti-communist but neutral
   YU: { name:'Yugoslavia', loyal:48, file:'yugoslavia', flag:'svg' }, // Yugoslavia — non-aligned, independent communist
 
@@ -11690,7 +11690,7 @@ const COUNTRIES = {
   JM: { name:'Jamaica', loyal:65, file:'jamaica', flag:'svg' }, // Jamaica — Commonwealth
   MX: { name:'Mexico', loyal:58, file:'mexico', flag:'svg' }, // Mexico — PRI, independent foreign policy
   NI: { name:'Nicaragua', loyal:72, file:'nicaragua', flag:'svg' }, // Nicaragua — Somoza dynasty, pro-US
-  PA: { name:'Panama', loyal:60, file:'panama', flag:'svg' }, // Panama — Canal Zone tensions with Torrijos
+  PA: { name:'Panama', loyal:52, file:'panama', flag:'svg' }, // Panama — Canal Zone tensions with Torrijos
   TT: { name:'Trinidad and Tobago', loyal:65, file:'trinidad-and-tobago', flag:'svg' }, // Trinidad and Tobago — Commonwealth
   GD: { name:'Grenada', loyal:65, file:'grenada', flag:'svg' }, // Grenada — British associated state
   US: { name:'United States', loyal:100, file:'united-states', flag:'svg' }, // United States
@@ -11709,7 +11709,7 @@ const COUNTRIES = {
   VE: { name:'Venezuela', loyal:62, file:'venezuela', flag:'svg' }, // Venezuela — democratic, oil
 
   // ── Africa ───────────────────────────────────────────────────────────────
-  DZ: { name:'Algeria', loyal:35, file:'algeria', flag:'svg' }, // Algeria — FLN socialist, Soviet equipment
+  DZ: { name:'Algeria', loyal:25, file:'algeria', flag:'svg' }, // Algeria — FLN socialist, Soviet equipment
   DY: { name:'Dahomey', loyal:45, file:'dahomey', flag:'svg' }, // Dahomey — unstable, various coups
   BW: { name:'Botswana', loyal:58, file:'botswana', flag:'svg' }, // Botswana — pro-Western democracy
   BI: { name:'Burundi', loyal:40, file:'burundi', flag:'svg' }, // Burundi
@@ -11730,7 +11730,7 @@ const COUNTRIES = {
   KE: { name:'Kenya', loyal:60, file:'kenya', flag:'svg' }, // Kenya — Kenyatta, pro-Western
   LS: { name:'Lesotho', loyal:52, file:'lesotho', flag:'svg' }, // Lesotho
   LR: { name:'Liberia', loyal:68, file:'liberia', flag:'svg' }, // Liberia — historically very pro-US
-  LY: { name:'Libya', loyal:30, file:'libya', flag:'svg' }, // Libya — Gaddafi, anti-Western, nationalised oil
+  LY: { name:'Libya', loyal:18, file:'libya', flag:'svg' }, // Libya — Gaddafi, anti-Western, nationalised oil
   MG: { name:'Malagasy Republic', loyal:45, file:'madagascar', flag:'svg' }, // Malagasy Republic
   MW: { name:'Malawi', loyal:55, file:'malawi', flag:'svg' }, // Malawi — Banda, moderately pro-Western
   ML: { name:'Mali', loyal:25, file:'mali', flag:'svg' }, // Mali — military, Soviet equipment
@@ -11745,10 +11745,10 @@ const COUNTRIES = {
   SN: { name:'Senegal', loyal:58, file:'senegal', flag:'svg' }, // Senegal — Senghor, pro-French/West
   SL: { name:'Sierra Leone', loyal:50, file:'sierra-leone', flag:'svg' }, // Sierra Leone
   SO: { name:'Somalia', loyal:22, file:'somalia', flag:'svg' }, // Somalia — Soviet ally, Siad Barre Marxist
-  ZA: { name:'South Africa', loyal:70, file:'south-africa', flag:'svg' }, // South Africa — anti-communist but apartheid complicates
+  ZA: { name:'South Africa', loyal:50, file:'south-africa', flag:'svg' }, // South Africa — anti-communist but apartheid complicates
   SD: { name:'Sudan', loyal:40, file:'sudan', flag:'svg' }, // Sudan — shifting from USSR toward non-alignment
   SZ: { name:'Swaziland', loyal:55, file:'swaziland', flag:'svg' }, // Swaziland
-  TZ: { name:'Tanzania', loyal:35, file:'tanzania', flag:'svg' }, // Tanzania — Nyerere, socialist, critical of US
+  TZ: { name:'Tanzania', loyal:28, file:'tanzania', flag:'svg' }, // Tanzania — Nyerere, socialist, critical of US
   TG: { name:'Togo', loyal:50, file:'togo', flag:'svg' }, // Togo — French sphere
   TN: { name:'Tunisia', loyal:60, file:'tunisia', flag:'svg' }, // Tunisia — Bourguiba, pro-Western
   UG: { name:'Uganda', loyal:22, file:'uganda', flag:'svg' }, // Uganda — Idi Amin, expelled Asians 1972, erratic
@@ -11758,7 +11758,7 @@ const COUNTRIES = {
   BH: { name:'Bahrain', loyal:65, file:'bahrain', flag:'svg' }, // Bahrain — pro-Western, just independent
   CY: { name:'Cyprus', loyal:55, file:'cyprus', flag:'svg' }, // Cyprus — non-aligned
   IR: { name:'Iran', loyal:82, file:'iran', flag:'png' }, // Iran — Shah, strongly pro-US, CENTO
-  IQ: { name:'Iraq', loyal:40, file:'iraq', flag:'svg' }, // Iraq — Ba'athist, Treaty of Friendship with USSR 1972
+  IQ: { name:'Iraq', loyal:18, file:'iraq', flag:'svg' }, // Iraq — Ba'athist, Treaty of Friendship with USSR 1972
   IL: { name:'Israel', loyal:92, file:'israel', flag:'svg' }, // Israel — very close US ally
   JO: { name:'Jordan', loyal:72, file:'jordan', flag:'svg' }, // Jordan — King Hussein, stable pro-US
   KW: { name:'Kuwait', loyal:65, file:'kuwait', flag:'svg' }, // Kuwait — oil, pro-Western
@@ -11772,10 +11772,10 @@ const COUNTRIES = {
   YD: { name:'South Yemen', loyal:12, file:'yemen-aden', flag:'svg' }, // South Yemen — Marxist PDRY
 
   // ── South Asia ───────────────────────────────────────────────────────────
-  AF: { name:'Afghanistan', loyal:45, file:'afghanistan', flag:'svg' }, // Afghanistan — non-aligned, Soviet influence growing
-  BD: { name:'Bangladesh', loyal:40, file:'bangladesh', flag:'svg' }, // Bangladesh — new country; US backed Pakistan in 1971 war
+  AF: { name:'Afghanistan', loyal:38, file:'afghanistan', flag:'svg' }, // Afghanistan — non-aligned, Soviet influence growing
+  BD: { name:'Bangladesh', loyal:38, file:'bangladesh', flag:'svg' }, // Bangladesh — new country; US backed Pakistan in 1971 war
   BT: { name:'Bhutan', loyal:45, file:'bhutan', flag:'svg' }, // Bhutan — Indian protectorate
-  IN: { name:'India', loyal:40, file:'india', flag:'svg' }, // India — non-aligned but clear Soviet tilt
+  IN: { name:'India', loyal:38, file:'india', flag:'svg' }, // India — non-aligned but clear Soviet tilt
   MV: { name:'Maldives', loyal:50, file:'maldives', flag:'svg' }, // Maldives
   NP: { name:'Nepal', loyal:50, file:'nepal', flag:'svg' }, // Nepal — non-aligned
   PK: { name:'Pakistan', loyal:72, file:'pakistan', flag:'svg' }, // Pakistan — key US ally, Nixon's China backchannel
@@ -11783,36 +11783,36 @@ const COUNTRIES = {
   SK: { name:'Sikkim', loyal:48, file:'sikkim', flag:'svg' }, // Sikkim — Indian protectorate
 
   // ── Southeast Asia ───────────────────────────────────────────────────────
-  KH: { name:'Cambodia', loyal:65, file:'cambodia', flag:'svg' }, // Cambodia — Lon Nol (US-backed after Sihanouk ousted 1970)
+  KH: { name:'Cambodia', loyal:62, file:'cambodia', flag:'svg' }, // Cambodia — Lon Nol (US-backed after Sihanouk ousted 1970)
   ID: { name:'Indonesia', loyal:68, file:'indonesia', flag:'svg' }, // Indonesia — Suharto, anti-communist, US-backed
   LA: { name:'Laos', loyal:55, file:'laos', flag:'svg' }, // Laos — RLG pro-US, complicated civil war
-  MY: { name:'Malaysia', loyal:65, file:'malaysia', flag:'svg' }, // Malaysia — anti-communist, pro-Western
-  BU: { name:'Burma', loyal:40, file:'burma', flag:'svg' }, // Burma — Ne Win, strict neutrality/isolation
+  MY: { name:'Malaysia', loyal:60, file:'malaysia', flag:'svg' }, // Malaysia — anti-communist, pro-Western
+  BU: { name:'Burma', loyal:35, file:'burma', flag:'svg' }, // Burma — Ne Win, strict neutrality/isolation
   PH: { name:'Philippines', loyal:72, file:'philippines', flag:'svg' }, // Philippines — Marcos, US bases (Subic Bay, Clark)
   SG: { name:'Singapore', loyal:65, file:'singapore', flag:'svg' }, // Singapore — Lee Kuan Yew, anti-communist
   TH: { name:'Thailand', loyal:72, file:'thailand', flag:'svg' }, // Thailand — military govt, US Vietnam War staging
   VD: { name:'North Vietnam', loyal:8, file:'vietnam-north', flag:'svg' }, // North Vietnam — at war with the US
-  VN: { name:'South Vietnam', loyal:80, file:'vietnam-south', flag:'svg' }, // South Vietnam — US ally, Thieu government
+  VN: { name:'South Vietnam', loyal:78, file:'vietnam-south', flag:'svg' }, // South Vietnam — US ally, Thieu government
 
   // ── East Asia ────────────────────────────────────────────────────────────
-  CN: { name:'China', loyal:35, file:'china-people-s-republic-of', flag:'svg' }, // China (PRC) — Nixon's Feb 1972 visit; Shanghai Communiqué
+  CN: { name:'China', loyal:30, file:'china-people-s-republic-of', flag:'svg' }, // China (PRC) — Nixon's Feb 1972 visit; Shanghai Communiqué
   JP: { name:'Japan', loyal:85, file:'japan', flag:'svg' }, // Japan — key ally, rebuilt under US umbrella
   KP: { name:'North Korea', loyal:10, file:'korea-north', flag:'svg' }, // North Korea — Kim Il-sung, hostile
-  KR: { name:'South Korea', loyal:85, file:'korea-south', flag:'svg' }, // South Korea — key ally (troops in Vietnam)
+  KR: { name:'South Korea', loyal:82, file:'korea-south', flag:'svg' }, // South Korea — key ally (troops in Vietnam)
   MN: { name:'Mongolia', loyal:18, file:'mongolia', flag:'svg' }, // Mongolia — Soviet satellite
   TW: { name:'Taiwan', loyal:78, file:'china-republic-of', flag:'svg' }, // Taiwan (ROC) — US ally; Shanghai Communiqué complicated things
 
   // ── Oceania ──────────────────────────────────────────────────────────────
   AU: { name:'Australia', loyal:85, file:'australia', flag:'svg' }, // Australia — ANZUS, strong ally
-  FJ: { name:'Fiji', loyal:75, file:'fiji', flag:'svg' }, // Fiji — Commonwealth, pro-Western
+  FJ: { name:'Fiji', loyal:65, file:'fiji', flag:'svg' }, // Fiji — Commonwealth, pro-Western
   NR: { name:'Nauru', loyal:55, file:'nauru', flag:'svg' }, // Nauru — just independent 1968
   NZ: { name:'New Zealand', loyal:80, file:'new-zealand', flag:'svg' }, // New Zealand — ANZUS (though withdrawing from Vietnam)
-  WS: { name:'Western Samoa', loyal:65, file:'western-samoa', flag:'svg' }, // Western Samoa
+  WS: { name:'Western Samoa', loyal:55, file:'western-samoa', flag:'svg' }, // Western Samoa
   TO: { name:'Tonga', loyal:58, file:'tonga', flag:'svg' }, // Tonga
-  VU: { name:'New Hebrides', loyal:75, file:'new-hebrides', flag:'svg' }, // New Hebrides — Anglo-French condominium
+  VU: { name:'New Hebrides', loyal:58, file:'new-hebrides', flag:'svg' }, // New Hebrides — Anglo-French condominium
 
   // ── Easter egg ───────────────────────────────────────────────────────────
-  EP: { name:'Little St James', loyal:50, file:'little-st-james', flag:'svg' }, // Little St James
+  EP: { name:'Little St James', loyal:1, file:'little-st-james', flag:'svg' }, // Little St James
 };
 const COUNTRY_LOYAL = Object.fromEntries(
     Object.entries(COUNTRIES).filter(([, v]) => v.loyal != null).map(([k, v]) => [k, v.loyal])
