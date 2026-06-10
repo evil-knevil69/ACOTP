@@ -15987,11 +15987,9 @@ function openWorldMap() {
         flagBtn.style.outline = flagsOn ? '2px solid #ccc' : '';
         flagBtn.style.fontWeight = flagsOn ? 'bold' : '';
         if (flagsOn) {
-            // Insert below both overlays so z-order is: flags → capitals → events.
-            // capGroupEl is the lowest overlay (appended first), so insert before it.
-            const _ref = capGroupEl || iconGroupEl;
-            if (_ref) svgEl.insertBefore(flagOverlayG, _ref);
-            else svgEl.appendChild(flagOverlayG);
+            // Append last so flags sit on top — z-order is capitals → events → flags.
+            // Flags are pointer-events:none, so being on top does not block hover.
+            svgEl.appendChild(flagOverlayG);
         } else { flagOverlayG.remove(); }
     });
     bar.appendChild(flagBtn);
@@ -16359,9 +16357,8 @@ function openWorldMap() {
             }
             buildFlagOverlay();
             if (flagOverlayG) flagOverlayG.setAttribute('pointer-events', 'none');
-            // Restore flags toggle state from previous visit
-            // Initial append is fine here — events/caps haven't been appended yet so flags land below them
-            if (flagsOn && flagOverlayG) svgEl.appendChild(flagOverlayG);
+            // Flags toggle state is restored AFTER the capital/event groups are
+            // appended (see below) so flags land on top — z-order capitals → events → flags.
 
             // ── Map event icons ──────────────────────────────────────────────
             // SVG shapes, all centred on (0,0), ~22px diameter.
@@ -16545,13 +16542,16 @@ function openWorldMap() {
 
             const _iconGroup = document.createElementNS(_evNS, 'g');
             _iconGroup.id = 'wm-events';
-            // Layer order (bottom → top): capitals, then events on top.
-            // Events on top means: (a) capital dots never cover event icons, and
-            // (b) events win hover priority over capitals. Append capitals first.
+            // Layer order (bottom → top): capitals, then events, then flags.
+            // Capitals at the bottom; events above them (so dots never cover icons
+            // and events win hover priority); flags appended last, on top — they are
+            // pointer-events:none so being on top does not block hover.
             _wmCapGroup = capGroup;  capGroupEl  = capGroup;
             svg.appendChild(capGroup);
             _wmIconGroup = _iconGroup;  iconGroupEl = _iconGroup;
             svg.appendChild(_iconGroup);
+            // Restore flags-on-top if the toggle was left on from a previous visit
+            if (flagsOn && flagOverlayG) svg.appendChild(flagOverlayG);
 
             let _editMode = false;
             const _movedOffsets = {}; // id → {x,y} accumulated via drag tool
@@ -16772,9 +16772,7 @@ function openWorldMap() {
                     // Auto-show flags when entering edit mode
                     if (_flagEditMode && !flagsOn) {
                         flagsOn = true;
-                        const _ref = capGroupEl || iconGroupEl;
-                        if (_ref) svgEl.insertBefore(flagOverlayG, _ref);
-                        else svgEl.appendChild(flagOverlayG);
+                        svgEl.appendChild(flagOverlayG); // flags on top
                     }
                     // Set pointer-events on the group AND explicitly on each image
                     flagOverlayG.style.pointerEvents = _flagEditMode ? 'all' : 'none';
