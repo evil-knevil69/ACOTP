@@ -14161,6 +14161,62 @@ window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
     return function (cb) { subs.push(cb); try { cb(); } catch (e) {} };
 })();
 
+// Per-question metadata (dates, sign images, section transitions, historical
+// notes). MUST be declared before the __onGameWindowMutation registration
+// below: that registrar invokes the callback once synchronously, and the
+// callback reads questionData/_shownTransitions — as `const`s they would be
+// in the temporal dead zone if declared after this point (TDZ hazard).
+const questionData = {
+    401: { date: "8 November 1972", transition: {
+            title: "PART I: Remission",
+            body: "During the first term we stopped their revolution. Now we can move forward with our own.",
+            img: "https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif" },
+            signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk401.jpg", historical: null },
+    402: { date: "11 November 1972",  signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk402.jpg", historical: null },
+    409: { date: "20 November 1972", signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/PK409.jpg",
+            historical: `<p>This interview really happened, and Nixon did debate cutting Henry loose.</p><p>In the end, Kissinger had to make a grovelling apology to Nixon but not before calling her a bitch, a liar and worse. He backed down when she offered to release the tape transcripts from their interview.</p><p>A copy of the interview is available <a href="https://scrapsfromtheloft.com/history/oriana-fallaci-henry-kissinger-interview/" target="_blank">here</a>.</p>` },
+    429: { date: "October 1975",       historical: null },
+    430: {
+        date: "September 1976",
+        transition: {
+            title: "PART II: Fulmination",
+            body: "We are embarking here today on an era that presents challenges great as those any nation, or any generation, has ever faced. We shall answer to God, to history, and to our conscience for the way in which we use these years.",
+            img: null
+        },
+        historical: null
+    },
+    431: { date: "September 1976",     historical: null },
+    432: {
+        date: "September 1976",
+        transition: {
+            title: "PART III: Metastasis",
+            body: "One day we will get them on the ground where we want them, and will stick our heels in, step on them hard and twist… crush them, show them no mercy.",
+            img: null
+        },
+        historical: null
+    },
+    433: { date: "September 1976",     historical: null },
+    434: { date: "September 1976",     historical: null },
+    444: { date: "September 1976",     historical: null },
+    445: { date: "September 1976",     historical: null },
+    408: { date: "September 1976",     historical: null },
+    404: { date: "August 1976",        historical: null },
+    403: { date: "September 1976",     historical: null },
+    406: { date: "September 1976",     historical: null },
+    407: { date: "September 1976",     historical: null },
+    405: { date: "October 1976",       historical: null },
+    410: { date: "October 1976",       historical: null },
+    435: { date: "September 1976",     historical: null },
+    436: { date: "September 1976",     historical: null },
+    438: { date: "September 1976",     historical: null },
+    440: { date: "September 1976",     historical: null },
+    443: { date: "September 1976",     historical: null },
+    446: { date: "October 1976",       historical: null },
+    447: { date: "November 2, 1976",   historical: null },
+};
+
+const _shownTransitions = new Set();
+
 window.__onGameWindowMutation(() => {
         {
             updateTypewriterVisibility();
@@ -14505,57 +14561,6 @@ document.addEventListener('mouseleave', () => {
     _tooltipPortal.style.display = 'none';
     _hoveredTooltip = null;
 }, true);
-
-const questionData = {
-    401: { date: "8 November 1972", transition: {
-            title: "PART I: Remission",
-            body: "During the first term we stopped their revolution. Now we can move forward with our own.",
-            img: "https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif" },
-            signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk401.jpg", historical: null },
-    402: { date: "11 November 1972",  signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk402.jpg", historical: null },
-    409: { date: "20 November 1972", signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/PK409.jpg",
-            historical: `<p>This interview really happened, and Nixon did debate cutting Henry loose.</p><p>In the end, Kissinger had to make a grovelling apology to Nixon but not before calling her a bitch, a liar and worse. He backed down when she offered to release the tape transcripts from their interview.</p><p>A copy of the interview is available <a href="https://scrapsfromtheloft.com/history/oriana-fallaci-henry-kissinger-interview/" target="_blank">here</a>.</p>` },
-    429: { date: "October 1975",       historical: null },
-    430: {
-        date: "September 1976",
-        transition: {
-            title: "PART II: Fulmination",
-            body: "We are embarking here today on an era that presents challenges great as those any nation, or any generation, has ever faced. We shall answer to God, to history, and to our conscience for the way in which we use these years.",
-            img: null
-        },
-        historical: null
-    },
-    431: { date: "September 1976",     historical: null },
-    432: {
-        date: "September 1976",
-        transition: {
-            title: "PART III: Metastasis",
-            body: "One day we will get them on the ground where we want them, and will stick our heels in, step on them hard and twist… crush them, show them no mercy.",
-            img: null
-        },
-        historical: null
-    },
-    433: { date: "September 1976",     historical: null },
-    434: { date: "September 1976",     historical: null },
-    444: { date: "September 1976",     historical: null },
-    445: { date: "September 1976",     historical: null },
-    408: { date: "September 1976",     historical: null },
-    404: { date: "August 1976",        historical: null },
-    403: { date: "September 1976",     historical: null },
-    406: { date: "September 1976",     historical: null },
-    407: { date: "September 1976",     historical: null },
-    405: { date: "October 1976",       historical: null },
-    410: { date: "October 1976",       historical: null },
-    435: { date: "September 1976",     historical: null },
-    436: { date: "September 1976",     historical: null },
-    438: { date: "September 1976",     historical: null },
-    440: { date: "September 1976",     historical: null },
-    443: { date: "September 1976",     historical: null },
-    446: { date: "October 1976",       historical: null },
-    447: { date: "November 2, 1976",   historical: null },
-};
-
-const _shownTransitions = new Set();
 
 function showSectionTransition(t, pk) {
     if (_shownTransitions.has(pk)) return;
