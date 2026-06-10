@@ -15911,6 +15911,22 @@ function openWorldMap() {
     let eventsOn = _wmEventsOn;
     let capitalsOn = _wmCapitalsOn;
     let _capEditMode = false;
+    // Live references to the events / capitals <g> layers. Assigned in the SVG
+    // .then() below and closed over by the toggle buttons. Using LOCAL closure
+    // vars here (the same pattern the working Flags toggle uses) rather than the
+    // module-level _wmIconGroup/_wmCapGroup, which could go stale across map opens.
+    let iconGroupEl = null;
+    let capGroupEl  = null;
+    // Single source of truth for layer visibility. Called by the toggles, by the
+    // initial build, and by the capitals edit-mode button. NB: capitals are no
+    // longer gated on zoom — the toggle alone decides visibility, so clicking
+    // "Capitals" always shows them (they are simply small when zoomed out).
+    const _applyEventVis = () => {
+        if (iconGroupEl) iconGroupEl.style.display = eventsOn ? '' : 'none';
+    };
+    const _applyCapVis = () => {
+        if (capGroupEl) capGroupEl.style.display = (capitalsOn || _capEditMode) ? '' : 'none';
+    };
     const smallFlagCodes = new Set();
     let flagOverlayG = null;
     let vScrollTrack, vScrollThumb, hScrollTrack, hScrollThumb;
@@ -15971,8 +15987,10 @@ function openWorldMap() {
         flagBtn.style.outline = flagsOn ? '2px solid #ccc' : '';
         flagBtn.style.fontWeight = flagsOn ? 'bold' : '';
         if (flagsOn) {
-            // Insert below events and capitals so z-order is: flags → events → capitals
-            if (_wmIconGroup) svgEl.insertBefore(flagOverlayG, _wmIconGroup);
+            // Insert below both overlays so z-order is: flags → capitals → events.
+            // capGroupEl is the lowest overlay (appended first), so insert before it.
+            const _ref = capGroupEl || iconGroupEl;
+            if (_ref) svgEl.insertBefore(flagOverlayG, _ref);
             else svgEl.appendChild(flagOverlayG);
         } else { flagOverlayG.remove(); }
     });
@@ -15987,7 +16005,7 @@ function openWorldMap() {
         eventsOn = !eventsOn; _wmEventsOn = eventsOn;
         eventBtn.style.outline = eventsOn ? '2px solid #ccc' : '';
         eventBtn.style.fontWeight = eventsOn ? 'bold' : '';
-        if (_wmIconGroup) _wmIconGroup.style.display = eventsOn ? '' : 'none';
+        _applyEventVis();
     });
     bar.appendChild(eventBtn);
 
@@ -16000,7 +16018,7 @@ function openWorldMap() {
         capitalsOn = !capitalsOn; _wmCapitalsOn = capitalsOn;
         capBtn.style.outline = capitalsOn ? '2px solid #ccc' : '';
         capBtn.style.fontWeight = capitalsOn ? 'bold' : '';
-        if (_wmCapGroup) _wmCapGroup.style.display = capitalsOn ? '' : 'none';
+        _applyCapVis();
     });
     bar.appendChild(capBtn);
 
@@ -16042,9 +16060,6 @@ function openWorldMap() {
                     ty = Math.round((vh - H) / 2);
                 }
                 svg.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
-
-                // Capital pins: hide when zoomed out (unless toggle is off entirely)
-                if (_wmCapGroup) _wmCapGroup.style.display = (capitalsOn && (scale >= 1.2 || _capEditMode)) ? '' : 'none';
 
                 // Sync scrollbar thumbs
                 if (vScrollTrack && hScrollTrack) {
@@ -16521,19 +16536,22 @@ function openWorldMap() {
                     if (label) label.style.display = _capEditMode ? '' : 'none';
                 });
                 if (_capEditMode) {
-                    capGroup.style.display = ''; // force visible regardless of zoom
+                    capGroup.style.display = ''; // force visible while editing
                     _capRefreshOffsets();
                 } else {
-                    applyT(); // restore zoom-based visibility
+                    _applyCapVis(); // restore visibility based on the Capitals toggle
                 }
             });
 
             const _iconGroup = document.createElementNS(_evNS, 'g');
             _iconGroup.id = 'wm-events';
-            _wmIconGroup = _iconGroup;
+            // Layer order (bottom → top): capitals, then events on top.
+            // Events on top means: (a) capital dots never cover event icons, and
+            // (b) events win hover priority over capitals. Append capitals first.
+            _wmCapGroup = capGroup;  capGroupEl  = capGroup;
+            svg.appendChild(capGroup);
+            _wmIconGroup = _iconGroup;  iconGroupEl = _iconGroup;
             svg.appendChild(_iconGroup);
-            _wmCapGroup = capGroup;
-            svg.appendChild(capGroup); // capitals above events so pointer events reach the dots
 
             let _editMode = false;
             const _movedOffsets = {}; // id → {x,y} accumulated via drag tool
@@ -16574,9 +16592,29 @@ function openWorldMap() {
                 g.appendChild(shapeG);
 
 
-                // Icons are pointer-events:none by default — hover and clicks pass straight
-                // through to the country path below. Pointer-events are re-enabled only
-                // while Move Icons edit mode is active (see _updateIconVis).
+                // Hover shows the rich event tooltip (events win hover priority — they
+                // sit on top of the capitals layer).
+                g.addEventListener('mouseenter', e => {
+                    if (_editMode || def.state() !== 1) return;
+                    const imgHtml = def.img
+                        ? `<img src="${def.img}" style="width:auto;max-width:200px;height:auto;display:block;margin:0 auto 2px auto">`
+                        : '';
+                    const labelHtml = `<span style="display:block;font-family:Georgia,serif;font-size:14px;font-weight:bold;color:#333;margin-bottom:2px">${def.label}</span>`;
+                    const bodyHtml = def.body
+                        ? `<span style="display:block;margin-top:2px;padding:3px;background:linear-gradient(135deg,rgba(255,255,255,0.95) 0%,rgba(240,240,240,0.9) 100%);box-shadow:inset 0 1px 2px rgba(255,255,255,0.8),0 1px 3px rgba(0,0,0,0.15);border-radius:2px"><span style="font-family:'PermanentMarker',cursive;font-size:12px;color:rgb(96,115,129);transform:rotate(-1.5deg) skewX(-3deg);display:block;line-height:1.45;letter-spacing:0.05em;text-align:left">${def.body}</span></span>`
+                        : '';
+                    evTooltip.innerHTML = imgHtml + labelHtml + bodyHtml;
+                    evTooltip.style.display = 'block';
+                    const _pad = 16;
+                    let _x = e.clientX + _pad, _y = e.clientY + _pad;
+                    if (_x + 270 > window.innerWidth) _x = e.clientX - 270 - _pad;
+                    evTooltip.style.left = _x + 'px';
+                    evTooltip.style.top  = _y + 'px';
+                });
+                g.addEventListener('mousemove', e => { if (!_editMode) _placeTip(evTooltip, e, 16); });
+                g.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
+
+                // Drag handler for "Move Icons" edit mode.
                 g.addEventListener('mousedown', ev => {
                     if (!_editMode) return;
                     ev.stopPropagation(); ev.preventDefault();
@@ -16599,6 +16637,27 @@ function openWorldMap() {
                     document.addEventListener('mouseup', onUp);
                 });
 
+                // Click is "transparent": it forwards to the country path underneath
+                // (so clicking an event highlights/selects the country). We momentarily
+                // hide this icon + flags + capitals so elementFromPoint reaches the path.
+                const _fwdClick = (type, e) => {
+                    if (_editMode) return;
+                    e.stopPropagation();
+                    evTooltip.style.display = 'none';
+                    g.style.display = 'none';
+                    g.setAttribute('display', 'none');
+                    if (flagOverlayG) flagOverlayG.style.display = 'none';
+                    if (capGroupEl) capGroupEl.style.display = 'none';
+                    const under = document.elementFromPoint(e.clientX, e.clientY);
+                    g.style.display = '';
+                    g.removeAttribute('display');
+                    if (flagOverlayG) flagOverlayG.style.display = '';
+                    if (capGroupEl) capGroupEl.style.display = (capitalsOn || _capEditMode) ? '' : 'none';
+                    if (under && under !== g) under.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, view: window }));
+                };
+                g.addEventListener('click',    e => _fwdClick('click', e));
+                g.addEventListener('dblclick', e => _fwdClick('dblclick', e));
+
                 g.style.display = 'none';
                 g.setAttribute('display', 'none');
                 g.style.opacity = '0';
@@ -16614,13 +16673,16 @@ function openWorldMap() {
                         g.style.display = show ? '' : 'none';
                         if (show) g.removeAttribute('display'); else g.setAttribute('display', 'none');
                         g.style.opacity = show ? '' : '0';
-                        g.style.pointerEvents = (show && _editMode) ? 'all' : 'none';
+                        // Shown icons are interactive: hover shows the event tooltip,
+                        // click forwards to the country underneath (see _fwdClick).
+                        g.style.pointerEvents = show ? 'all' : 'none';
                     } catch(e) {}
                 });
             };
             _updateIconVis();
-            // Restore events/allegiance toggle state from previous visit
-            if (!eventsOn) _iconGroup.style.display = 'none';
+            // Apply restored toggle state from a previous visit (single source of truth)
+            _applyEventVis();
+            _applyCapVis();
             if (allegiance) {
                 svg.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
                     if (!el.id || !COUNTRY_NAMES[el.id]) return;
@@ -16710,7 +16772,8 @@ function openWorldMap() {
                     // Auto-show flags when entering edit mode
                     if (_flagEditMode && !flagsOn) {
                         flagsOn = true;
-                        if (_wmIconGroup) svgEl.insertBefore(flagOverlayG, _wmIconGroup);
+                        const _ref = capGroupEl || iconGroupEl;
+                        if (_ref) svgEl.insertBefore(flagOverlayG, _ref);
                         else svgEl.appendChild(flagOverlayG);
                     }
                     // Set pointer-events on the group AND explicitly on each image
