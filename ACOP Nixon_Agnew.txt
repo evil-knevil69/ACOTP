@@ -16455,7 +16455,7 @@ function openWorldMap() {
                 JP: { x:   8, y:   3 },
                 DD: { x:  -8, y: -14 },
                 IS: { x: -23, y:  -9 },
-                ZA: { x:   0, y:   0 },
+                ZA: { x:   7, y: -23 },
                 KH: { x: -12, y:  -8 },
                 TH: { x: -18, y: -16 },
                 VN: { x: -28, y: -63 },
@@ -16490,7 +16490,7 @@ function openWorldMap() {
                 US: { x: 120, y:  20 },
                 CA: { x:  12, y:  79 },
                 MX: { x:  -6, y:  10 },
-                MR: { x: -37, y:   0 },
+                MR: { x: -37, y:   2 },
                 NE: { x: -42, y:  11 },
                 ML: { x: -35, y:  20 },
                 SN: { x: -25, y: -15 },
@@ -16498,7 +16498,7 @@ function openWorldMap() {
                 ET: { x: -21, y:  -5 },
                 SO: { x: -16, y:   3 },
                 PT: { x:-338, y:-199 },
-                MG: { x:  -8, y: -16 },
+                MG: { x:  -7, y: -16 },
                 AU: { x:  29, y:  55 },
                 NZ: { x:   6, y:  -9 },
                 ID: { x: -76, y:  14 },
@@ -16534,6 +16534,16 @@ function openWorldMap() {
                 BO: { x: -37, y:  -8 },   NO: { x: -16, y:  30 },   SE: { x: -10, y:   3 },
                 SU: { x:-291, y:  -7 },   MN: { x:   1, y: -17 },   PH: { x: -21, y: -28 },
                 FJ: { x: -16, y:  -9 },   SA: { x:  -9, y: -14 },   BB: { x: -12, y: -12 },
+                // Batch 4 (Jun 2026) — Africa
+                LS: { x: -15, y: -13 },   SZ: { x: -13, y: -12 },   SWA: { x: -19, y: -10 },
+                BW: { x:  -6, y:  -1 },   RH: { x:  -4, y: -20 },   MW: { x: -14, y:  -6 },
+                ZM: { x:  -4, y:   0 },   TZ: { x:   7, y:  -9 },   RW: { x: -12, y: -12 },
+                BI: { x: -14, y: -11 },   UG: { x: -11, y:  -6 },   ZR: { x: -47, y:  -8 },
+                CG: { x: -12, y:   6 },   GA: { x: -23, y: -16 },   GQ: { x: -35, y: -20 },
+                CM: { x: -21, y:   5 },   CF: { x: -27, y:   3 },   TG: { x: -11, y:   1 },
+                GH: { x: -10, y:   1 },   NG: { x: -41, y:   2 },   HV: { x: -13, y: -11 },
+                CI: { x:  -4, y:   0 },   LR: { x: -18, y: -12 },   SL: { x: -18, y: -13 },
+                GN: { x: -26, y: -12 },   GM: { x: -16, y: -11 },   TD: { x: -30, y:  11 },
             };
 
             // Capital city flavour images — populate with URLs as research is done.
