@@ -16416,7 +16416,7 @@ function openWorldMap() {
                 MR: 'Nouakchott',      SN: 'Dakar',          GM: 'Banjul',
                 GW: 'Bissau',          GN: 'Conakry',        SL: 'Freetown',
                 LR: 'Monrovia',        CI: 'Abidjan',        HV: 'Ouagadougou',
-                GH: 'Accra',           TG: 'Lomé',           BJ: 'Cotonou',
+                GH: 'Accra',           TG: 'Lomé',           DY: 'Cotonou',
                 NG: 'Lagos',           ML: 'Bamako',         NE: 'Niamey',
                 BF: 'Ouagadougou',     TD: 'Fort-Lamy',      CM: 'Yaoundé',
                 CF: 'Bangui',          CG: 'Brazzaville',    GA: 'Libreville',
@@ -16436,7 +16436,7 @@ function openWorldMap() {
                 // Asia
                 AF: 'Kabul',           PK: 'Islamabad',      IN: 'New Delhi',
                 BD: 'Dhaka',           NP: 'Kathmandu',      BT: 'Thimphu',
-                LK: 'Colombo',         BU: 'Rangoon',        TH: 'Bangkok',
+                CE: 'Colombo',         BU: 'Rangoon',        TH: 'Bangkok',
                 KH: 'Phnom Penh',      LA: 'Vientiane',      VN: 'Hanoi',
                 VD: 'Saigon',          MY: 'Kuala Lumpur',   SG: 'Singapore',
                 ID: 'Jakarta',         PH: 'Manila',         CN: 'Beijing',
