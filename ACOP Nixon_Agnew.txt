@@ -16616,6 +16616,12 @@ function openWorldMap() {
                 CO: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/bogotaC.jpg',
                 NO: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/osloC.jpg',
                 CF: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/banguiC.jpg',
+                TN: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/TunisC.jpeg',
+                AT: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ViennaC.jpg',
+                AL: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/TiranaC.jpg',
+                IR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/TehranC.jpg',
+                JO: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ammanC.jpg',
+                MA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/RabatC.jpg',
             };
 
             // Build SVG flag overlay (flags as <image> elements inside the SVG)
