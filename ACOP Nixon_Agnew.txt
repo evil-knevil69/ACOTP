@@ -11680,7 +11680,7 @@ const COUNTRIES = {
   BS: { name:'Bahamas', loyal:72, file:'bahamas', flag:'svg' }, // Bahamas — British colony (ind. 1973), Western
   BB: { name:'Barbados', loyal:70, file:'barbados', flag:'svg' }, // Barbados — Commonwealth
   CA: { name:'Canada', loyal:88, file:'canada', flag:'svg' }, // Canada — NORAD, NATO, close partner
-  CR: { name:'Costa Rica', loyal:72, file:'costa-rica', flag:'svg' }, // Costa Rica — stable democracy, pro-US
+  CR: { name:'Nicaragua', loyal:72, file:'nicaragua', flag:'svg' }, // NB: SVG path id 'CR' is the NORTHERN shape = Nicaragua (ids are swapped vs geography)
   CU: { name:'Cuba', loyal:12, file:'cuba', flag:'svg' }, // Cuba — Soviet ally
   DO: { name:'Dominican Republic', loyal:75, file:'dominican-republic', flag:'svg' }, // Dominican Republic — US intervened 1965, Balaguer
   SV: { name:'El Salvador', loyal:68, file:'el-salvador', flag:'svg' }, // El Salvador
@@ -11689,7 +11689,7 @@ const COUNTRIES = {
   HN: { name:'Honduras', loyal:68, file:'honduras', flag:'svg' }, // Honduras
   JM: { name:'Jamaica', loyal:65, file:'jamaica', flag:'svg' }, // Jamaica — Commonwealth
   MX: { name:'Mexico', loyal:58, file:'mexico', flag:'svg' }, // Mexico — PRI, independent foreign policy
-  NI: { name:'Nicaragua', loyal:72, file:'nicaragua', flag:'svg' }, // Nicaragua — Somoza dynasty, pro-US
+  NI: { name:'Costa Rica', loyal:72, file:'costa-rica', flag:'svg' }, // NB: SVG path id 'NI' is the SOUTHERN shape = Costa Rica (ids are swapped vs geography)
   PA: { name:'Panama', loyal:52, file:'panama', flag:'svg' }, // Panama — Canal Zone tensions with Torrijos
   TT: { name:'Trinidad and Tobago', loyal:65, file:'trinidad-and-tobago', flag:'svg' }, // Trinidad and Tobago — Commonwealth
   GD: { name:'Grenada', loyal:65, file:'grenada', flag:'svg' }, // Grenada — British associated state
@@ -12111,7 +12111,7 @@ const _EVENT_DEFS = [
         label: 'Managua Earthquake',
         img: null, // TODO: e.g. 'https://file.garden/.../managua.jpg'
         body: 'A 6.2-magnitude earthquake struck the Nicaraguan capital on December 23, 1972, killing over 10,000 and levelled much of the city centre.',
-        country: 'NI',
+        country: 'CR', // SVG id 'CR' is the northern shape = physical Nicaragua (ids swapped vs geography)
         positionOffset: { x: -12, y: -13 },
         // ── EVENT LIFESPAN worked example ──
         // state() reads the live variable; set() lets the turn engine write it.
@@ -15951,6 +15951,10 @@ const CODE_TO_FILE = Object.fromEntries(
 const FLAG_URLS = Object.fromEntries(
     Object.entries(COUNTRIES).filter(([, v]) => v.flag).map(([k, v]) => [k, PAGES_BASE + '/flags/' + k + '.' + v.flag])
 );
+// CR/NI SVG path ids are swapped relative to geography (id 'CR' is the northern
+// shape = Nicaragua). Flag URLs are built from the code, so unlike the rest of
+// the country data they don't follow the name swap — fix them up by hand.
+{ const _t = FLAG_URLS.CR; FLAG_URLS.CR = FLAG_URLS.NI; FLAG_URLS.NI = _t; }
 
 // Countries with confirmed .ogg anthem files on GitHub Pages
 const ANTHEM_COUNTRIES = new Set([
@@ -16155,6 +16159,26 @@ function openWorldMap() {
     let flagOverlayG = null;
     let vScrollTrack, vScrollThumb, hScrollTrack, hScrollThumb;
     let _updateIconVis = () => {};
+
+    // Shared country-selection toggle (yellow outline). Called by both the country
+    // path click handler and by an event icon click (events forward selection to
+    // the country they sit on, so the country stays clickable "through" the icon).
+    const selectCountry = (el) => {
+        if (!el) return;
+        if (selectedEl && selectedEl !== el) {
+            selectedEl.style.stroke = '';
+            selectedEl.style.strokeWidth = '';
+        }
+        if (selectedEl === el) {
+            el.style.stroke = '';
+            el.style.strokeWidth = '';
+            selectedEl = null;
+        } else {
+            el.style.stroke = '#ffff00';
+            el.style.strokeWidth = '3px';
+            selectedEl = el;
+        }
+    };
 
     function doZoom(factor) {
         const vw = viewport.clientWidth || 989;
@@ -16364,7 +16388,7 @@ function openWorldMap() {
                 // North America
                 US: 'Washington D.C.', CA: 'Ottawa',         MX: 'Mexico City',
                 GT: 'Guatemala City',  BZ: 'Belmopan',       SV: 'San Salvador',
-                HN: 'Tegucigalpa',     NI: 'Managua',        CR: 'San José',
+                HN: 'Tegucigalpa',     NI: 'San José',       CR: 'Managua',
                 PA: 'Panama City',     CU: 'Havana',         JM: 'Kingston',
                 HT: 'Port-au-Prince',  DO: 'Santo Domingo',  TT: 'Port of Spain',
                 BS: 'Nassau',          BB: 'Bridgetown',     GY: 'Georgetown',
@@ -16883,26 +16907,39 @@ function openWorldMap() {
                     _activeDragEnd = onUp;
                 });
 
-                // Click is "transparent": it forwards to the country path underneath
-                // (so clicking an event highlights/selects the country). We momentarily
-                // hide this icon + flags + capitals so elementFromPoint reaches the path.
-                const _fwdClick = (type, e) => {
+                // Click is "transparent": the event hover wins, but a click selects
+                // the country the event sits on (yellow outline), exactly as if the
+                // icon weren't there. We resolve the country directly from def.country
+                // (largest path with that id); if the event has no country we fall
+                // back to whatever path is under the cursor via elementFromPoint.
+                const _countryElForEvent = (clientX, clientY) => {
+                    if (def.country) {
+                        const paths = Array.from(svg.querySelectorAll('[id="' + def.country + '"]'));
+                        let best = null, bestArea = -1;
+                        paths.forEach(p => {
+                            try { const b = p.getBBox(); const a = b.width * b.height; if (a > bestArea) { bestArea = a; best = p; } } catch (ignore) {}
+                        });
+                        if (best) return best;
+                    }
+                    // Fallback: hide this icon momentarily so elementFromPoint reaches the path.
+                    g.style.display = 'none';
+                    const under = document.elementFromPoint(clientX, clientY);
+                    g.style.display = '';
+                    return (under && under.id && COUNTRY_NAMES[under.id]) ? under : null;
+                };
+                g.addEventListener('click', e => {
+                    if (_editMode) return;
+                    e.stopPropagation();
+                    selectCountry(_countryElForEvent(e.clientX, e.clientY));
+                });
+                g.addEventListener('dblclick', e => {
                     if (_editMode) return;
                     e.stopPropagation();
                     evTooltip.style.display = 'none';
-                    g.style.display = 'none';
-                    g.setAttribute('display', 'none');
-                    if (flagOverlayG) flagOverlayG.style.display = 'none';
-                    if (capGroupEl) capGroupEl.style.display = 'none';
-                    const under = document.elementFromPoint(e.clientX, e.clientY);
-                    g.style.display = '';
-                    g.removeAttribute('display');
-                    if (flagOverlayG) flagOverlayG.style.display = '';
-                    if (capGroupEl) capGroupEl.style.display = (capitalsOn || _capEditMode) ? '' : 'none';
-                    if (under && under !== g) under.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, view: window }));
-                };
-                g.addEventListener('click',    e => _fwdClick('click', e));
-                g.addEventListener('dblclick', e => _fwdClick('dblclick', e));
+                    const cel = _countryElForEvent(e.clientX, e.clientY);
+                    const code = cel && cel.id;
+                    if (code && COUNTRY_NAMES[code]) openCIAProfile(code, container, tooltip);
+                });
 
                 g.style.display = 'none';
                 g.setAttribute('display', 'none');
@@ -16920,7 +16957,7 @@ function openWorldMap() {
                         if (show) g.removeAttribute('display'); else g.setAttribute('display', 'none');
                         g.style.opacity = show ? '' : '0';
                         // Shown icons are interactive: hover shows the event tooltip,
-                        // click forwards to the country underneath (see _fwdClick).
+                        // click selects the country underneath (see _countryElForEvent).
                         g.style.pointerEvents = show ? 'all' : 'none';
                     } catch(e) {}
                 });
@@ -17206,22 +17243,7 @@ function openWorldMap() {
                 });
                 el.addEventListener('click', e => {
                     e.stopPropagation();
-                    // Deselect the previously highlighted country
-                    if (selectedEl && selectedEl !== el) {
-                        selectedEl.style.stroke = '';
-                        selectedEl.style.strokeWidth = '';
-                    }
-                    if (selectedEl === el) {
-                        // Click again to deselect
-                        el.style.stroke = '';
-                        el.style.strokeWidth = '';
-                        selectedEl = null;
-                    } else {
-                        // Highlight this country with yellow outline
-                        el.style.stroke = '#ffff00';
-                        el.style.strokeWidth = '3px';
-                        selectedEl = el;
-                    }
+                    selectCountry(el);
                 });
                 el.addEventListener('dblclick', e => {
                     e.stopPropagation();
