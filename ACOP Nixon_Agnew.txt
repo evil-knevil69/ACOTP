@@ -16592,6 +16592,21 @@ function openWorldMap() {
                 OM: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/MuscatC.jpeg',
                 SU: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/MoscowC.JPG',
                 TD: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/FortLamy.JPG',
+                MG: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/Atananarivo.JPG',
+                HT: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/portauprinceC.JPG',
+                HU: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/BudapestC.JPG',
+                LR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/monroviaC.JPG',
+                BG: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/sofia.jpeg',
+                DD: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/eastberlin.jpg',
+                NL: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/amsterdamC.jpg',
+                PT: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/lisbonC.jpg',
+                DZ: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/algiersC.jpg',
+                YD: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/adenC.jpg',
+                TR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ankaraC.jpg',
+                SD: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/KhartoumC.jpg',
+                SA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/RiyadhC.jpg',
+                PK: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/islambadC.png',
+                RO: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/bucharest.jpg',
             };
 
             // Build SVG flag overlay (flags as <image> elements inside the SVG)
