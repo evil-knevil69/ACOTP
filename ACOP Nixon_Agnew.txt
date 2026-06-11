@@ -15960,11 +15960,11 @@ const FLAG_URLS = Object.fromEntries(
 const ANTHEM_COUNTRIES = new Set([
   'AD','AE','AF','AL','AR','AT','AU','BB','BD','BE','BG','BH','BI','BO',
   'BR','BS','BT','BU','BW','CA','CE','CF','CG','CH','CI','CL','CN','CO',
-  'CR','CS','CU','CY','DD','DE','DK','DO','DY','DZ','EC','EG','EP','ES','ET',
+  'CM','CR','CS','CU','CY','DD','DE','DK','DO','DY','DZ','EC','EG','EP','ES','ET',
   'FI','FJ','FR','GA','GB','GD','GH','GM','GN','GQ','GR','GT','GY','HN',
   'HT','HU','HV','ID','IE','IL','IN','IQ','IR','IS','IT','JM','JO','JP',
   'KE','KH','KP','KR','KW','LA','LB','LI','LR','LS','LU','LY','MA','MC',
-  'MG','ML','MR','MT','MU','MV','MW','MX','MY','NE','NG','NI','NL','NO',
+  'MG','ML','MN','MR','MT','MU','MV','MW','MX','MY','NE','NG','NI','NL','NO',
   'NP','NR','NZ','OM','PA','PE','PH','PK','PL','PT','PY','QA','RH','RO',
   'RW','SA','SD','SE','SG','SK','SL','SM','SN','SO','SU','SV','SWA','SY',
   'SZ','TD','TG','TH','TN','TO','TR','TT','TW','TZ','UG','US','UY','VA',
