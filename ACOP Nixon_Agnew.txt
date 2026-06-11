@@ -16387,12 +16387,11 @@ function openWorldMap() {
             const CAPITAL_DATA = {
                 // North America
                 US: 'Washington D.C.', CA: 'Ottawa',         MX: 'Mexico City',
-                GT: 'Guatemala City',  BZ: 'Belmopan',       SV: 'San Salvador',
+                GT: 'Guatemala City',  SV: 'San Salvador',
                 HN: 'Tegucigalpa',     NI: 'San José',       CR: 'Managua',
                 PA: 'Panama City',     CU: 'Havana',         JM: 'Kingston',
                 HT: 'Port-au-Prince',  DO: 'Santo Domingo',  TT: 'Port of Spain',
                 BS: 'Nassau',          BB: 'Bridgetown',     GY: 'Georgetown',
-                SR: 'Paramaribo',
                 // South America
                 CO: 'Bogotá',          VE: 'Caracas',        BR: 'Brasília',
                 EC: 'Quito',           PE: 'Lima',           BO: 'La Paz',
@@ -16403,7 +16402,7 @@ function openWorldMap() {
                 FR: 'Paris',           ES: 'Madrid',         PT: 'Lisbon',
                 NL: 'Amsterdam',       BE: 'Brussels',       LU: 'Luxembourg',
                 DE: 'Bonn',            DD: 'East Berlin',    AT: 'Vienna',
-                CH: 'Bern',            IT: 'Rome',           MT: 'Valletta',
+                CH: 'Bern',            IT: 'Rome',
                 NO: 'Oslo',            SE: 'Stockholm',      DK: 'Copenhagen',
                 FI: 'Helsinki',        PL: 'Warsaw',         CS: 'Prague',
                 HU: 'Budapest',        RO: 'Bucharest',      YU: 'Belgrade',
@@ -16414,19 +16413,19 @@ function openWorldMap() {
                 MA: 'Rabat',           TN: 'Tunis',          DZ: 'Algiers',
                 LY: 'Tripoli',         EG: 'Cairo',          SD: 'Khartoum',
                 MR: 'Nouakchott',      SN: 'Dakar',          GM: 'Banjul',
-                GW: 'Bissau',          GN: 'Conakry',        SL: 'Freetown',
+                GN: 'Conakry',        SL: 'Freetown',
                 LR: 'Monrovia',        CI: 'Abidjan',        HV: 'Ouagadougou',
                 GH: 'Accra',           TG: 'Lomé',           DY: 'Cotonou',
                 NG: 'Lagos',           ML: 'Bamako',         NE: 'Niamey',
-                BF: 'Ouagadougou',     TD: 'Fort-Lamy',      CM: 'Yaoundé',
+                TD: 'Fort-Lamy',      CM: 'Yaoundé',
                 CF: 'Bangui',          CG: 'Brazzaville',    GA: 'Libreville',
                 GQ: 'Santa Isabel',    ZR: 'Kinshasa',       RW: 'Kigali',
                 BI: 'Bujumbura',       UG: 'Kampala',        KE: 'Nairobi',
-                TZ: 'Dar es Salaam',   AO: 'Luanda',         ZM: 'Lusaka',
-                MW: 'Lilongwe',        MZ: 'Lourenço Marques', RH: 'Salisbury',
+                TZ: 'Dar es Salaam',   ZM: 'Lusaka',
+                MW: 'Lilongwe',        RH: 'Salisbury',
                 ZA: 'Pretoria',        LS: 'Maseru',         SZ: 'Mbabane',
                 BW: 'Gaborone',        SWA: 'Windhoek',      ET: 'Addis Ababa',
-                DJ: 'Djibouti',        SO: 'Mogadishu',      MG: 'Antananarivo',
+                SO: 'Mogadishu',      MG: 'Antananarivo',
                 // Middle East
                 SY: 'Damascus',        LB: 'Beirut',         IL: 'Tel Aviv',
                 JO: 'Amman',           IQ: 'Baghdad',        KW: 'Kuwait City',
@@ -16443,7 +16442,7 @@ function openWorldMap() {
                 MN: 'Ulaanbaatar',     KP: 'Pyongyang',      KR: 'Seoul',
                 JP: 'Tokyo',           TW: 'Taipei',
                 // Oceania
-                AU: 'Canberra',        NZ: 'Wellington',     PG: 'Port Moresby',
+                AU: 'Canberra',        NZ: 'Wellington',
                 FJ: 'Suva',
             };
             const CAPITAL_OFFSETS = {
