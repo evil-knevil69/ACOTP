@@ -15960,7 +15960,7 @@ const FLAG_URLS = Object.fromEntries(
 const ANTHEM_COUNTRIES = new Set([
   'AD','AE','AF','AL','AR','AT','AU','BB','BD','BE','BG','BH','BI','BO',
   'BR','BS','BT','BU','BW','CA','CE','CF','CG','CH','CI','CL','CN','CO',
-  'CR','CS','CU','CY','DD','DE','DK','DO','DY','DZ','EC','EG','ES','ET',
+  'CR','CS','CU','CY','DD','DE','DK','DO','DY','DZ','EC','EG','EP','ES','ET',
   'FI','FJ','FR','GA','GB','GD','GH','GM','GN','GQ','GR','GT','GY','HN',
   'HT','HU','HV','ID','IE','IL','IN','IQ','IR','IS','IT','JM','JO','JP',
   'KE','KH','KP','KR','KW','LA','LB','LI','LR','LS','LU','LY','MA','MC',
