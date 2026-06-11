@@ -16766,7 +16766,7 @@ function openWorldMap() {
                         return;
                     }
                     capImgPanel.dataset.code = code;
-                    capImgPanel.innerHTML = `<div style="font-family:TypewriterDry,monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:4px">${cityName}</div><img src="${url}" style="display:block;max-width:200px;width:auto;height:auto;border-radius:2px">`;
+                    capImgPanel.innerHTML = `<div style="font-family:TypewriterDry,monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:4px;text-align:center">${cityName}</div><img src="${url}" style="display:block;max-width:200px;width:auto;height:auto;border-radius:2px">`;
                     capImgPanel.style.display = 'block';
                     const pad = 12;
                     let x = e.clientX + pad, y = e.clientY + pad;
@@ -16892,7 +16892,7 @@ function openWorldMap() {
                 };
                 // Transparent hit area so hover fires before the cursor is pixel-perfect on the small icon path.
                 const hitCircle = document.createElementNS(_evNS, 'circle');
-                hitCircle.setAttribute('r', '14');
+                hitCircle.setAttribute('r', '9');
                 hitCircle.setAttribute('fill', 'none');
                 hitCircle.setAttribute('stroke', 'none');
                 hitCircle.style.pointerEvents = 'all';
