@@ -16120,11 +16120,36 @@ function openWorldMap() {
     // initial build, and by the capitals edit-mode button. NB: capitals are no
     // longer gated on zoom — the toggle alone decides visibility, so clicking
     // "Capitals" always shows them (they are simply small when zoomed out).
+    // Visibility controlled by append/remove (same proven pattern as Flags).
+    // style.display on SVG <g> is unreliable across browsers; DOM membership is not.
     const _applyEventVis = () => {
-        if (iconGroupEl) iconGroupEl.style.display = eventsOn ? '' : 'none';
+        if (!iconGroupEl || !svgEl) return;
+        if (eventsOn) {
+            if (!iconGroupEl.parentNode) {
+                if (flagOverlayG && flagOverlayG.parentNode === svgEl)
+                    svgEl.insertBefore(iconGroupEl, flagOverlayG);
+                else
+                    svgEl.appendChild(iconGroupEl);
+            }
+        } else {
+            iconGroupEl.remove();
+        }
     };
     const _applyCapVis = () => {
-        if (capGroupEl) capGroupEl.style.display = (capitalsOn || _capEditMode) ? '' : 'none';
+        if (!capGroupEl || !svgEl) return;
+        const show = capitalsOn || _capEditMode;
+        if (show) {
+            if (!capGroupEl.parentNode) {
+                if (iconGroupEl && iconGroupEl.parentNode === svgEl)
+                    svgEl.insertBefore(capGroupEl, iconGroupEl);
+                else if (flagOverlayG && flagOverlayG.parentNode === svgEl)
+                    svgEl.insertBefore(capGroupEl, flagOverlayG);
+                else
+                    svgEl.appendChild(capGroupEl);
+            }
+        } else {
+            capGroupEl.remove();
+        }
     };
     const smallFlagCodes = new Set();
     let flagOverlayG = null;
@@ -16424,8 +16449,8 @@ function openWorldMap() {
                 TN: { x: -11, y: -29 },
                 CY: { x: -12, y: -10 },
                 LB: { x: -13, y: -11 },
-                IL: { x: -11, y: -13 },
-                JO: { x: -18, y: -15 },
+                IL: { x: -14, y: -15 },
+                JO: { x: -18, y: -12 },
                 SY: { x: -21, y:  -3 },
                 IQ: { x: -15, y: -12 },
                 BE: { x: -15, y: -14 },
@@ -16457,7 +16482,7 @@ function openWorldMap() {
                 MY: { x: -56, y: -11 },
                 LA: { x: -21, y: -13 },
                 BU: { x: -10, y:   1 },
-                BD: { x: -11, y: -11 },
+                BD: { x: -11, y: -12 },
                 IN: { x: -44, y: -40 },
                 PK: { x:   3, y: -27 },
                 IR: { x: -24, y: -29 },
@@ -16470,6 +16495,17 @@ function openWorldMap() {
                 YD: { x: -26, y:   2 },
                 VD: { x:   6, y:  43 },
                 GB: { x:-209, y:-184 },
+                // Batch 2 (Jun 2026)
+                PL: { x:  -5, y: -13 },   DE: { x: -24, y:  -9 },   FR: { x:-337, y:-218 },
+                NP: { x:  -4, y: -10 },   BT: { x: -15, y: -12 },   CN: { x:  70, y: -41 },
+                CU: { x: -28, y: -20 },   BS: { x: -18, y: -20 },   JM: { x: -12, y: -11 },
+                HT: { x:  -9, y: -12 },   DO: { x: -13, y:  -8 },   VE: { x: -16, y: -35 },
+                CR: { x:  -7, y:   4 },   SV: { x: -13, y: -10 },   HN: { x: -17, y: -12 },
+                NI: { x: -20, y: -27 },   PA: { x: -10, y: -14 },   GT: { x: -15, y:  -2 },
+                PE: { x: -18, y:   5 },   CL: { x: -36, y: -16 },   AR: { x:  10, y: -35 },
+                UY: { x:  -9, y:   1 },   PY: { x:  -5, y:   0 },   BR: { x:  18, y:  -9 },
+                EC: { x:  10, y: -21 },   CO: { x: -21, y: -24 },   TT: { x: -13, y: -12 },
+                GY: { x: -14, y: -26 },
             };
 
             // Capital city flavour images — populate with URLs as research is done.
@@ -16606,7 +16642,6 @@ function openWorldMap() {
             const _capDots = [];
             const capGroup = document.createElementNS(_evNS, 'g');
             capGroup.id = 'wm-capitals';
-            capGroup.style.display = 'none'; // initial state; _applyCapVis() decides visibility
             // svg.appendChild deferred — appended below, before _iconGroup, so events render above capitals
 
             Object.entries(CAPITAL_DATA).forEach(([code, cityName]) => {
@@ -16734,7 +16769,7 @@ function openWorldMap() {
                     if (label) label.style.display = _capEditMode ? '' : 'none';
                 });
                 if (_capEditMode) {
-                    capGroup.style.display = ''; // force visible while editing
+                    _applyCapVis(); // _capEditMode now true → always shows
                     _capRefreshOffsets();
                 } else {
                     _applyCapVis(); // restore visibility based on the Capitals toggle
@@ -16787,6 +16822,14 @@ function openWorldMap() {
                     (children || []).forEach(c => el.appendChild(_mkEl(c.tag, c.attrs, c.children)));
                     return el;
                 };
+                // Transparent hit area so hover fires before the cursor is pixel-perfect on the small icon path.
+                const hitCircle = document.createElementNS(_evNS, 'circle');
+                hitCircle.setAttribute('r', '14');
+                hitCircle.setAttribute('fill', 'none');
+                hitCircle.setAttribute('stroke', 'none');
+                hitCircle.style.pointerEvents = 'all';
+                g.appendChild(hitCircle);
+
                 const shapeG = document.createElementNS(_evNS, 'g');
                 shapeG.setAttribute('transform', 'scale(0.6)');
                 specs.forEach(spec => shapeG.appendChild(_mkEl(spec.tag, spec.attrs, spec.children)));
