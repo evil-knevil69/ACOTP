@@ -14404,14 +14404,28 @@ const questionData = {
 
 const _shownTransitions = new Set();
 
+// The engine advances the question index on the page-global `e`
+// (campaign_trail.js: `e.question_number++`). The mod's `campaignTrail_temp`
+// parameter is bound once at mod load; if the loader rebinds the global between
+// games, top-level primitives like question_number never appear on our binding
+// (object/array fields keep working — Object.assign copies their references).
+// Bare `e` here resolves up the scope chain to the page global — destructuring
+// it out of the new Function parameters only removes the local, not the global.
+const _liveGameState = () => {
+    if (typeof e !== 'undefined' && e && e.question_number != null) return e;
+    if (campaignTrail_temp && campaignTrail_temp.question_number != null) return campaignTrail_temp;
+    return null;
+};
+
 window.__onGameWindowMutation(() => {
         {
             updateTypewriterVisibility();
             updateCampaignSign();
             addInnerCircleButton();
 
-            if (campaignTrail_temp && campaignTrail_temp.question_number != null) {
-                const currentPK = campaignTrail_temp.questions_json?.[campaignTrail_temp.question_number]?.pk ?? null;
+            const _gs = _liveGameState();
+            if (_gs) {
+                const currentPK = _gs.questions_json?.[_gs.question_number]?.pk ?? null;
                 if (currentPK !== _lastQuestionPK) {
                     _lastQuestionPK = currentPK;
                     _questionCount++;
@@ -14441,7 +14455,7 @@ window.__onGameWindowMutation(() => {
                     const h3 = document.querySelector('#progress_bar h3');
                     if (h3 && h3.dataset.dateAttached !== String(_lastQuestionPK)) {
                         const qd = questionData[_lastQuestionPK] || {};
-                        attachDateToProgressBar(qd.date || '', campaignTrail_temp.question_number, _lastQuestionPK);
+                        attachDateToProgressBar(qd.date || '', _gs.question_number, _lastQuestionPK);
                     }
                 }
             }
