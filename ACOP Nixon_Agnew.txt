@@ -12498,7 +12498,7 @@ function _shiftStateIssue(issueId, delta) {
 
 cyoAdventure = function (a) {
     const ans = campaignTrail_temp.player_answers[campaignTrail_temp.player_answers.length - 1];
-    e.noCounter = campaignTrail_temp.player_answers.length;
+    campaignTrail_temp.noCounter = campaignTrail_temp.player_answers.length;
 
     // Tier 1: random image from nominee pool
     updateAdvisorImage();
@@ -14410,8 +14410,8 @@ window.__onGameWindowMutation(() => {
             updateCampaignSign();
             addInnerCircleButton();
 
-            if (typeof e !== 'undefined' && e.question_number != null) {
-                const currentPK = campaignTrail_temp.questions_json?.[e.question_number]?.pk ?? null;
+            if (campaignTrail_temp && campaignTrail_temp.question_number != null) {
+                const currentPK = campaignTrail_temp.questions_json?.[campaignTrail_temp.question_number]?.pk ?? null;
                 if (currentPK !== _lastQuestionPK) {
                     _lastQuestionPK = currentPK;
                     _questionCount++;
@@ -14441,7 +14441,7 @@ window.__onGameWindowMutation(() => {
                     const h3 = document.querySelector('#progress_bar h3');
                     if (h3 && h3.dataset.dateAttached !== String(_lastQuestionPK)) {
                         const qd = questionData[_lastQuestionPK] || {};
-                        attachDateToProgressBar(qd.date || '', e.question_number, _lastQuestionPK);
+                        attachDateToProgressBar(qd.date || '', campaignTrail_temp.question_number, _lastQuestionPK);
                     }
                 }
             }
