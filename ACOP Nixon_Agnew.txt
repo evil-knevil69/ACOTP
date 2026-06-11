@@ -16623,6 +16623,7 @@ function openWorldMap() {
                 JO: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ammanC.jpg',
                 MA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/RabatC.jpg',
                 LA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/vientianeC.jpeg',
+                NE: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/Niamey.jpg',
             };
 
             // Build SVG flag overlay (flags as <image> elements inside the SVG)
