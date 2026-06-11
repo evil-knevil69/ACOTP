@@ -16537,8 +16537,8 @@ function openWorldMap() {
                 NP: { x:  -4, y: -10 },   BT: { x: -15, y: -12 },   CN: { x:  70, y: -41 },
                 CU: { x: -28, y: -20 },   BS: { x: -18, y: -20 },   JM: { x: -12, y: -11 },
                 HT: { x:  -9, y: -12 },   DO: { x: -13, y:  -8 },   VE: { x: -16, y: -35 },
-                CR: { x:  -7, y:   4 },   SV: { x: -13, y: -10 },   HN: { x: -17, y: -12 },
-                NI: { x: -20, y: -27 },   PA: { x: -10, y: -14 },   GT: { x: -15, y:  -2 },
+                SV: { x: -13, y: -10 },   HN: { x: -17, y: -12 },
+                PA: { x: -10, y: -14 },   GT: { x: -15, y:  -2 },
                 PE: { x: -18, y:   5 },   CL: { x: -36, y: -16 },   AR: { x:  10, y: -35 },
                 UY: { x:  -9, y:   1 },   PY: { x:  -5, y:   0 },   BR: { x:  32, y:   2 },
                 EC: { x:  10, y: -21 },   CO: { x: -21, y: -24 },   TT: { x: -13, y: -12 },
@@ -16557,6 +16557,9 @@ function openWorldMap() {
                 GH: { x: -10, y:   1 },   NG: { x: -41, y:   2 },   HV: { x: -13, y: -11 },
                 CI: { x:  -4, y:   0 },   LR: { x: -18, y: -12 },   SL: { x: -18, y: -13 },
                 GN: { x: -26, y: -12 },   GM: { x: -16, y: -11 },   TD: { x: -30, y:  11 },
+                // Batch 5 (Jun 2026)
+                DY: { x: -13, y:   3 },   CE: { x: -16, y:  -8 },
+                CR: { x: -17, y:  -7 },   NI: { x: -11, y: -13 },
             };
 
             // Capital city flavour images — populate with URLs as research is done.
