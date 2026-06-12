@@ -16673,6 +16673,20 @@ function openWorldMap() {
                 GA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/LibrevilleC.jpg',
                 UG: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/kampalaC.jpg',
                 ML: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/bamakoC.jpg',
+                GH: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/accraC.jpg',
+                PY: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/asuncionC.jpg',
+                GT: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/guatemalaC.jpg',
+                ZM: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/lusakaC.jpg',
+                SN: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/dakarC.jpg',
+                CI: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/abidjanC.jpg',
+                BB: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/bridgetownC.jpg',
+                LS: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/maseruC.jpg',
+                IN: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/newdelhiC.jpeg',
+                HV: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ouagadougouC.jpg',
+                JP: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/tokyoC.jpg',
+                NG: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/lagosc.jpg',
+                GY: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/georgetownC.jpg',
+                NZ: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/wellingtonC.jpg',
             };
 
             // Build SVG flag overlay (flags as <image> elements inside the SVG)
