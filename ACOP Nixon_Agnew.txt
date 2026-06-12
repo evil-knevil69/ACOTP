@@ -16696,6 +16696,7 @@ function openWorldMap() {
                 SWA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/windhoekC.jpg',
                 CR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/managuaC.jpg',
                 BW: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/gabaroneC.jpg',
+                KH: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/PhnomPenh-ezgif.com-optimize.gif',
             };
 
             // Build SVG flag overlay (flags as <image> elements inside the SVG)
