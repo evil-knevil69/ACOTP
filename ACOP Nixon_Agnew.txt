@@ -14753,8 +14753,16 @@ document.addEventListener('mouseleave', () => {
 }, true);
 
 function showSectionTransition(t, pk) {
-    if (_shownTransitions.has(pk)) return;
-    _shownTransitions.add(pk);
+    // _shownTransitions tracks DISMISSED transitions (set on the Continue click),
+    // not merely "attempted". The engine wipes every direct child of #game_window
+    // on each question render (campaign_trail.js: querySelectorAll(...).remove()),
+    // which destroys this overlay. By keying off dismissal — and re-attaching
+    // whenever the overlay is missing — the retry tick restores it after a wipe
+    // instead of marking it gone forever.
+    if (_shownTransitions.has(pk)) return;                       // user already dismissed it
+    if (document.getElementById('section-transition-' + pk)) return; // already on screen
+    const target = document.getElementById('game_window');
+    if (!target) return;                                          // no host yet — retry next tick
 
     const overlay = document.createElement('div');
     overlay.id = 'section-transition-' + pk;
@@ -14789,14 +14797,19 @@ function showSectionTransition(t, pk) {
         <p style="font-family:'TypewriterDry',sans-serif;font-size:14px;max-width:600px;
                   line-height:1.5;margin-bottom:${t.img ? '24px' : '36px'};">${t.body}</p>
         ${t.img ? `<img src="${t.img}" style="display:block;max-width:400px;height:auto;margin:0 auto 36px auto;">` : ''}
-        <button onclick="document.getElementById('${dismissId}').remove();">Continue</button>
+        <button class="section-transition-continue">Continue</button>
     `;
 
-    const target = document.getElementById('game_window');
-    if (target) {
-        target.style.position = 'relative';
-        target.appendChild(overlay);
-    }
+    target.style.position = 'relative';
+    target.appendChild(overlay);
+
+    // Mark dismissed only on the explicit Continue click, so an engine re-render
+    // that wipes the overlay before the player acts simply re-shows it next tick.
+    const continueBtn = overlay.querySelector('.section-transition-continue');
+    if (continueBtn) continueBtn.addEventListener('click', () => {
+        _shownTransitions.add(pk);
+        overlay.remove();
+    });
 }
 
 function fadeText(el, newText) {
@@ -16084,7 +16097,56 @@ function openWorldMap() {
     container.id = 'world-map-container';
     container.style.cssText = 'width:989px;height:625px;background:#111;position:relative;left:60px;box-sizing:border-box;display:flex;flex-direction:column;';
 
-    // Top bar — display / intelligence layer toggles
+    // SVG viewport fills all space between bars
+    const viewport = document.createElement('div');
+    viewport.id = 'wm-viewport';
+    viewport.style.cssText = 'flex:1;overflow:hidden;position:relative;cursor:default;user-select:none;';
+
+    // Control bar at the bottom
+    const bar = document.createElement('div');
+    bar.style.cssText = 'flex-shrink:0;height:44px;background:#000;display:flex;align-items:center;gap:6px;padding:0 12px;';
+
+    // Cleanup hooks registered during SVG load (keyboard, drag, wheel listeners)
+    const mapCleanup = [];
+    // If a Move-tool drag is in progress when the map closes, its document-level
+    // mousemove/mouseup listeners must still be removed. Each drag sets this to
+    // its own finish function; the cleanup below invokes it if still pending.
+    let _activeDragEnd = null;
+    mapCleanup.push(() => { if (_activeDragEnd) _activeDragEnd(); });
+
+    const backBtn = document.createElement('button');
+    backBtn.textContent = '<- Electoral Map';
+    backBtn.addEventListener('click', () => {
+        mapCleanup.forEach(fn => fn());
+        container.remove();
+        tooltip.remove();
+        evTooltip.remove();
+        capTooltip.remove();
+        capImgPanel.remove();
+        hiddenEls.forEach(el => { el.style.display = ''; });
+    });
+    bar.appendChild(backBtn);
+
+    // Spacer
+    const spacer = document.createElement('span');
+    spacer.style.cssText = 'flex:1;';
+    bar.appendChild(spacer);
+
+    // Pan/zoom state — declared here so nav buttons can close over them
+    let tx = 0, ty = 0, scale = 0.55;
+    let applyT = () => {};
+    let allegiance = _wmAllegiance;
+    let nightOn = _wmNightOn;
+    let sigintOn = _wmSigintOn;
+    let svgEl = null;
+    let selectedEl = null;
+    const origFills = new Map();
+    let flagsOn = _wmFlagsOn;
+    let eventsOn = _wmEventsOn;
+    let capitalsOn = _wmCapitalsOn;
+
+    // Top bar — display / intelligence layer toggles. Built after the toggle
+    // state vars above so the buttons can read their initial on/off values.
     const topBar = document.createElement('div');
     topBar.style.cssText = 'flex-shrink:0;height:34px;background:#0a0a0a;border-bottom:1px solid #222;display:flex;align-items:center;gap:6px;padding:0 12px;font-family:TypewriterDry,monospace;font-size:11px;letter-spacing:1px;color:#555;';
     const topBarLabel = document.createElement('span');
@@ -16153,55 +16215,8 @@ function openWorldMap() {
         _applySigint(sigintOn);
     });
     topBar.appendChild(sigintBtn);
-    // SVG viewport fills all space between bars
-    const viewport = document.createElement('div');
-    viewport.id = 'wm-viewport';
-    viewport.style.cssText = 'flex:1;overflow:hidden;position:relative;cursor:default;user-select:none;';
-
-    // Control bar at the bottom
-    const bar = document.createElement('div');
-    bar.style.cssText = 'flex-shrink:0;height:44px;background:#000;display:flex;align-items:center;gap:6px;padding:0 12px;';
-
-    // Cleanup hooks registered during SVG load (keyboard, drag, wheel listeners)
-    const mapCleanup = [];
-    // If a Move-tool drag is in progress when the map closes, its document-level
-    // mousemove/mouseup listeners must still be removed. Each drag sets this to
-    // its own finish function; the cleanup below invokes it if still pending.
-    let _activeDragEnd = null;
-    mapCleanup.push(() => { if (_activeDragEnd) _activeDragEnd(); });
     if (sigintOn) _applySigint(true);
     mapCleanup.push(() => { const st = document.getElementById('wm-sigint-css'); if (st) st.remove(); viewport.style.filter = ''; });
-
-    const backBtn = document.createElement('button');
-    backBtn.textContent = '<- Electoral Map';
-    backBtn.addEventListener('click', () => {
-        mapCleanup.forEach(fn => fn());
-        container.remove();
-        tooltip.remove();
-        evTooltip.remove();
-        capTooltip.remove();
-        capImgPanel.remove();
-        hiddenEls.forEach(el => { el.style.display = ''; });
-    });
-    bar.appendChild(backBtn);
-
-    // Spacer
-    const spacer = document.createElement('span');
-    spacer.style.cssText = 'flex:1;';
-    bar.appendChild(spacer);
-
-    // Pan/zoom state — declared here so nav buttons can close over them
-    let tx = 0, ty = 0, scale = 0.55;
-    let applyT = () => {};
-    let allegiance = _wmAllegiance;
-    let nightOn = _wmNightOn;
-    let sigintOn = _wmSigintOn;
-    let svgEl = null;
-    let selectedEl = null;
-    const origFills = new Map();
-    let flagsOn = _wmFlagsOn;
-    let eventsOn = _wmEventsOn;
-    let capitalsOn = _wmCapitalsOn;
     let _capEditMode = false;
     // Live references to the events / capitals <g> layers. Assigned in the SVG
     // .then() below and closed over by the toggle buttons. LOCAL closure vars
