@@ -16534,6 +16534,47 @@ function openWorldMap() {
             mapCleanup.push(() => clearInterval(_nightInterval));
             // ── End terminator ────────────────────────────────────────────────
 
+            // Manual centroid overrides for countries whose bounding box spans
+            // overseas territories, placing the flag over the wrong location.
+            // Coordinates are in SVG units (map is 1800x900). Declared before the
+            // SIGINT block because _dispCentroid spreads from it.
+            const FLAG_CENTRES = {
+                GB:  {cx: 730, cy: 158},  FR:  {cx: 747, cy: 184},  DE:  {cx: 779, cy: 168},
+                PT:  {cx: 683, cy: 229},  ES:  {cx: 716, cy: 229},  NL:  {cx: 758, cy: 153},
+                US:  {cx: 226, cy: 231},  MX:  {cx: 176, cy: 332},  CA:  {cx: 238, cy: 132},
+                HT:  {cx: 328, cy: 356},  CU:  {cx: 301, cy: 341},  BR:  {cx: 452, cy: 531},
+                CL:  {cx: 330, cy: 673},  AR:  {cx: 393, cy: 666},  UY:  {cx: 440, cy: 670},
+                PY:  {cx: 414, cy: 612},  BO:  {cx: 376, cy: 572},  PE:  {cx: 305, cy: 534},
+                EC:  {cx: 288, cy: 477},  CO:  {cx: 319, cy: 448},  VE:  {cx: 369, cy: 422},
+                ZA:  {cx: 854, cy: 657},  SWA: {cx: 822, cy: 594},  ZR:  {cx: 859, cy: 485},
+                UG:  {cx: 909, cy: 463},  KE:  {cx: 940, cy: 469},  TZ:  {cx: 921, cy: 505},
+                SD:  {cx: 890, cy: 385},  ET:  {cx: 943, cy: 415},  EG:  {cx: 889, cy: 305},
+                LY:  {cx: 826, cy: 305},  DZ:  {cx: 745, cy: 297},  ML:  {cx: 720, cy: 360},
+                NE:  {cx: 781, cy: 366},  MR:  {cx: 670, cy: 355},  NO:  {cx: 779, cy: 108},
+                DK:  {cx: 784, cy: 133},  IS:  {cx: 665, cy:  88},  FI:  {cx: 854, cy:  96},
+                RO:  {cx: 859, cy: 195},  BG:  {cx: 862, cy: 213},  GR:  {cx: 853, cy: 237},
+                TR:  {cx: 912, cy: 237},  YU:  {cx: 830, cy: 204},  AT:  {cx: 804, cy: 185},
+                DD:  {cx: 800, cy: 157},  PL:  {cx: 827, cy: 156},  MA:  {cx: 698, cy: 273},
+                SN:  {cx: 647, cy: 377},  GN:  {cx: 669, cy: 402},  LR:  {cx: 675, cy: 431},
+                CI:  {cx: 701, cy: 426},  HV:  {cx: 722, cy: 396},  GH:  {cx: 723, cy: 423},
+                NG:  {cx: 773, cy: 412},  CM:  {cx: 795, cy: 441},  TD:  {cx: 832, cy: 378},
+                GA:  {cx: 792, cy: 474},  CG:  {cx: 816, cy: 475},  ZM:  {cx: 872, cy: 557},
+                RH:  {cx: 893, cy: 585},  BW:  {cx: 861, cy: 602},  SO:  {cx: 994, cy: 447},
+                YD:  {cx:1002, cy: 371},  SA:  {cx: 970, cy: 318},  YE:  {cx: 974, cy: 375},
+                IR:  {cx:1019, cy: 272},  PK:  {cx:1100, cy: 293},  AF:  {cx:1078, cy: 265},
+                IN:  {cx:1159, cy: 332},  ID:  {cx:1357, cy: 496},  MY:  {cx:1328, cy: 442},
+                PH:  {cx:1405, cy: 395},  JP:  {cx:1448, cy: 243},  KR:  {cx:1399, cy: 252},
+                AU:  {cx:1456, cy: 618},  NZ:  {cx:1610, cy: 720},  MN:  {cx:1245, cy: 189},
+                CN:  {cx:1312, cy: 255},  SU:  {cx:1105, cy: 116},  IT:  {cx: 796, cy: 214},
+                CS:  {cx: 815, cy: 171},  HU:  {cx: 832, cy: 188},  NP:  {cx:1185, cy: 300},
+                BD:  {cx:1223, cy: 328},  BU:  {cx:1254, cy: 340},  TH:  {cx:1275, cy: 419},
+                VD:  {cx:1304, cy: 341},  VN:  {cx:1330, cy: 401},  KH:  {cx:1307, cy: 393},
+                LA:  {cx:1291, cy: 354},  HN:  {cx: 256, cy: 379},  CR:  {cx: 261, cy: 394},
+                PA:  {cx: 288, cy: 421},  BS:  {cx: 315, cy: 323},  GY:  {cx: 403, cy: 432},
+                SY:  {cx: 934, cy: 258},  IQ:  {cx: 960, cy: 270},  JO:  {cx: 932, cy: 282},
+                AE:  {cx:1023, cy: 324},  OM:  {cx:1045, cy: 343},
+            };
+
             // ── SIGINT force-disposition layer ────────────────────────────────
             // Figures from IISS Military Balance 1972-73 (knowledge-sourced;
             // verify against the print edition). Nuclear: confirmed programmes
@@ -16751,46 +16792,6 @@ function openWorldMap() {
             });
             if (sigintOn) sigintLayer.style.display = '';
             // ── End SIGINT layer ──────────────────────────────────────────────
-
-            // Manual centroid overrides for countries whose bounding box spans
-            // overseas territories, placing the flag over the wrong location.
-            // Coordinates are in SVG units (map is 1800x900).
-            const FLAG_CENTRES = {
-                GB:  {cx: 730, cy: 158},  FR:  {cx: 747, cy: 184},  DE:  {cx: 779, cy: 168},
-                PT:  {cx: 683, cy: 229},  ES:  {cx: 716, cy: 229},  NL:  {cx: 758, cy: 153},
-                US:  {cx: 226, cy: 231},  MX:  {cx: 176, cy: 332},  CA:  {cx: 238, cy: 132},
-                HT:  {cx: 328, cy: 356},  CU:  {cx: 301, cy: 341},  BR:  {cx: 452, cy: 531},
-                CL:  {cx: 330, cy: 673},  AR:  {cx: 393, cy: 666},  UY:  {cx: 440, cy: 670},
-                PY:  {cx: 414, cy: 612},  BO:  {cx: 376, cy: 572},  PE:  {cx: 305, cy: 534},
-                EC:  {cx: 288, cy: 477},  CO:  {cx: 319, cy: 448},  VE:  {cx: 369, cy: 422},
-                ZA:  {cx: 854, cy: 657},  SWA: {cx: 822, cy: 594},  ZR:  {cx: 859, cy: 485},
-                UG:  {cx: 909, cy: 463},  KE:  {cx: 940, cy: 469},  TZ:  {cx: 921, cy: 505},
-                SD:  {cx: 890, cy: 385},  ET:  {cx: 943, cy: 415},  EG:  {cx: 889, cy: 305},
-                LY:  {cx: 826, cy: 305},  DZ:  {cx: 745, cy: 297},  ML:  {cx: 720, cy: 360},
-                NE:  {cx: 781, cy: 366},  MR:  {cx: 670, cy: 355},  NO:  {cx: 779, cy: 108},
-                DK:  {cx: 784, cy: 133},  IS:  {cx: 665, cy:  88},  FI:  {cx: 854, cy:  96},
-                RO:  {cx: 859, cy: 195},  BG:  {cx: 862, cy: 213},  GR:  {cx: 853, cy: 237},
-                TR:  {cx: 912, cy: 237},  YU:  {cx: 830, cy: 204},  AT:  {cx: 804, cy: 185},
-                DD:  {cx: 800, cy: 157},  PL:  {cx: 827, cy: 156},  MA:  {cx: 698, cy: 273},
-                SN:  {cx: 647, cy: 377},  GN:  {cx: 669, cy: 402},  LR:  {cx: 675, cy: 431},
-                CI:  {cx: 701, cy: 426},  HV:  {cx: 722, cy: 396},  GH:  {cx: 723, cy: 423},
-                NG:  {cx: 773, cy: 412},  CM:  {cx: 795, cy: 441},  TD:  {cx: 832, cy: 378},
-                GA:  {cx: 792, cy: 474},  CG:  {cx: 816, cy: 475},  ZM:  {cx: 872, cy: 557},
-                RH:  {cx: 893, cy: 585},  BW:  {cx: 861, cy: 602},  SO:  {cx: 994, cy: 447},
-                YD:  {cx:1002, cy: 371},  SA:  {cx: 970, cy: 318},  YE:  {cx: 974, cy: 375},
-                IR:  {cx:1019, cy: 272},  PK:  {cx:1100, cy: 293},  AF:  {cx:1078, cy: 265},
-                IN:  {cx:1159, cy: 332},  ID:  {cx:1357, cy: 496},  MY:  {cx:1328, cy: 442},
-                PH:  {cx:1405, cy: 395},  JP:  {cx:1448, cy: 243},  KR:  {cx:1399, cy: 252},
-                AU:  {cx:1456, cy: 618},  NZ:  {cx:1610, cy: 720},  MN:  {cx:1245, cy: 189},
-                CN:  {cx:1312, cy: 255},  SU:  {cx:1105, cy: 116},  IT:  {cx: 796, cy: 214},
-                CS:  {cx: 815, cy: 171},  HU:  {cx: 832, cy: 188},  NP:  {cx:1185, cy: 300},
-                BD:  {cx:1223, cy: 328},  BU:  {cx:1254, cy: 340},  TH:  {cx:1275, cy: 419},
-                VD:  {cx:1304, cy: 341},  VN:  {cx:1330, cy: 401},  KH:  {cx:1307, cy: 393},
-                LA:  {cx:1291, cy: 354},  HN:  {cx: 256, cy: 379},  CR:  {cx: 261, cy: 394},
-                PA:  {cx: 288, cy: 421},  BS:  {cx: 315, cy: 323},  GY:  {cx: 403, cy: 432},
-                SY:  {cx: 934, cy: 258},  IQ:  {cx: 960, cy: 270},  JO:  {cx: 932, cy: 282},
-                AE:  {cx:1023, cy: 324},  OM:  {cx:1045, cy: 343},
-            };
 
             // Per-country width overrides (bypasses bbox formula):
             // Colonial powers have huge bboxes (overseas territories) → cap to ~Morocco size.
@@ -17853,8 +17854,12 @@ function openWorldMap() {
                 });
             });
         })
-        .catch(() => {
-            viewport.innerHTML = '<p style="color:#fff;padding:40px;font-family:monospace">Failed to load map SVG.<br>Enable GitHub Pages and ensure SVG is published at:<br>' + SVG_URL + '</p>';
+        .catch((err) => {
+            // This fires for BOTH a real fetch failure AND any exception thrown
+            // while building the map (chips, layers, etc.). Log the real error so
+            // a code bug is not misdiagnosed as a GitHub Pages problem.
+            console.error('World map load/build error:', err);
+            viewport.innerHTML = '<p style="color:#fff;padding:40px;font-family:monospace">Failed to load map SVG.<br>Enable GitHub Pages and ensure SVG is published at:<br>' + SVG_URL + '<br><br>(If the SVG URL works in a browser, this is a script error — see console.)</p>';
         });
 }
 
