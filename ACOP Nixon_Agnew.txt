@@ -16009,6 +16009,7 @@ var _wmFlagsOn     = false;
 var _wmEventsOn    = true;
 var _wmCapitalsOn  = false;
 var _wmAllegiance  = false;
+var _wmNightOn     = true;
 
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
@@ -16121,6 +16122,7 @@ function openWorldMap() {
     let tx = 0, ty = 0, scale = 0.55;
     let applyT = () => {};
     let allegiance = _wmAllegiance;
+    let nightOn = _wmNightOn;
     let svgEl = null;
     let selectedEl = null;
     const origFills = new Map();
@@ -16282,6 +16284,20 @@ function openWorldMap() {
     });
     bar.appendChild(capBtn);
 
+    const nightBtn = document.createElement('button');
+    nightBtn.textContent = 'Night';
+    nightBtn.style.cssText = 'margin-left:4px;cursor:pointer;padding:0 8px;height:30px;';
+    nightBtn.style.outline = nightOn ? '2px solid #ccc' : '';
+    nightBtn.style.fontWeight = nightOn ? 'bold' : '';
+    nightBtn.addEventListener('click', () => {
+        nightOn = !nightOn; _wmNightOn = nightOn;
+        nightBtn.style.outline = nightOn ? '2px solid #ccc' : '';
+        nightBtn.style.fontWeight = nightOn ? 'bold' : '';
+        const ng = svgEl && svgEl.querySelector('#wm-night-layer');
+        if (ng) ng.style.display = nightOn ? '' : 'none';
+    });
+    bar.appendChild(nightBtn);
+
     container.appendChild(viewport);
     container.appendChild(bar);
     gw.appendChild(container);
@@ -16348,6 +16364,100 @@ function openWorldMap() {
                 }
             };
             applyT();
+
+            // ── Day/Night terminator ──────────────────────────────────────────
+            // Solar declination from the current in-game question date.
+            // Subsolar longitude (hour angle) from the player's real-time UTC clock.
+            const _parseDeclination = () => {
+                const months = { january:1,february:2,march:3,april:4,may:5,june:6,
+                                 july:7,august:8,september:9,october:10,november:11,december:12 };
+                let dayOfYear = 355; // default: mid-December (Nixon's era start)
+                const qd = questionData[_lastQuestionPK];
+                if (qd && qd.date) {
+                    const parts = qd.date.toLowerCase().split(/\s+/);
+                    let day = 15, month = 0;
+                    parts.forEach(p => {
+                        const n = parseInt(p);
+                        if (!isNaN(n) && n >= 1 && n <= 31) day = n;
+                        if (months[p]) month = months[p];
+                    });
+                    if (month) {
+                        const daysInMonth = [0,31,28,31,30,31,30,31,31,30,31,30,31];
+                        dayOfYear = day;
+                        for (let m = 1; m < month; m++) dayOfYear += daysInMonth[m];
+                    }
+                }
+                return -23.45 * Math.cos(2 * Math.PI * (dayOfYear + 10) / 365);
+            };
+            const _subSolarLon = () => {
+                const now = new Date();
+                const utcH = now.getUTCHours() + now.getUTCMinutes()/60 + now.getUTCSeconds()/3600;
+                return -(utcH - 12) * 15;
+            };
+            const _buildNightPath = (decDeg, subLonDeg) => {
+                const W = 1800, H = 900;
+                const dec = decDeg * Math.PI / 180;
+                const tanDec = Math.tan(dec);
+                const N = 720;
+                let d = '';
+                for (let i = 0; i <= N; i++) {
+                    const lon = -180 + i * 360 / N;
+                    const dLon = (lon - subLonDeg) * Math.PI / 180;
+                    const lat = (Math.abs(tanDec) < 1e-6)
+                        ? (Math.cos(dLon) >= 0 ? -89.9 : 89.9)
+                        : Math.atan(-Math.cos(dLon) / tanDec) * 180 / Math.PI;
+                    const x = (lon + 180) / 360 * W;
+                    const y = (90 - lat) / 180 * H;
+                    d += (i === 0 ? `M ${x},${y}` : ` L ${x},${y}`);
+                }
+                // Close with the dark-pole edge:
+                // dec > 0 → southern summer → south pole dark → close at y=H
+                // dec < 0 → northern summer → north pole dark → close at y=0
+                // dec ≈ 0 → equinox → close at y=H (arbitrary, effect is same)
+                const edgeY = dec < 0 ? 0 : H;
+                d += ` L ${W},${edgeY} L 0,${edgeY} Z`;
+                return d;
+            };
+
+            const nightNS = 'http://www.w3.org/2000/svg';
+            const nightLayer = document.createElementNS(nightNS, 'g');
+            nightLayer.id = 'wm-night-layer';
+            nightLayer.style.pointerEvents = 'none';
+            if (!nightOn) nightLayer.style.display = 'none';
+
+            // Gradient: darker at anti-solar pole, fades to transparent at terminator
+            const defs = document.createElementNS(nightNS, 'defs');
+            const grad = document.createElementNS(nightNS, 'linearGradient');
+            grad.id = 'wm-night-grad';
+            grad.setAttribute('x1', '0'); grad.setAttribute('y1', '0');
+            grad.setAttribute('x2', '0'); grad.setAttribute('y2', '1');
+            const s0 = document.createElementNS(nightNS, 'stop');
+            s0.setAttribute('offset', '0%');
+            s0.setAttribute('stop-color', '#000820');
+            s0.setAttribute('stop-opacity', '0.55');
+            const s1 = document.createElementNS(nightNS, 'stop');
+            s1.setAttribute('offset', '100%');
+            s1.setAttribute('stop-color', '#000820');
+            s1.setAttribute('stop-opacity', '0.55');
+            grad.appendChild(s0); grad.appendChild(s1);
+            defs.appendChild(grad);
+            svg.insertBefore(defs, svg.firstChild);
+
+            const nightPath = document.createElementNS(nightNS, 'path');
+            nightPath.id = 'wm-night-path';
+            nightPath.setAttribute('fill', 'url(#wm-night-grad)');
+            nightLayer.appendChild(nightPath);
+            svg.insertBefore(nightLayer, svg.firstChild); // bottom of z-stack
+
+            const _updateTerminator = () => {
+                const dec = _parseDeclination();
+                const lon = _subSolarLon();
+                nightPath.setAttribute('d', _buildNightPath(dec, lon));
+            };
+            _updateTerminator();
+            const _nightInterval = setInterval(_updateTerminator, 60000);
+            mapCleanup.push(() => clearInterval(_nightInterval));
+            // ── End terminator ────────────────────────────────────────────────
 
             // Manual centroid overrides for countries whose bounding box spans
             // overseas territories, placing the flag over the wrong location.
