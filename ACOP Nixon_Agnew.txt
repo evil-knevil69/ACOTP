@@ -16514,18 +16514,31 @@ function openWorldMap() {
             const s0 = document.createElementNS(nightNS, 'stop');
             s0.setAttribute('offset', '0%');
             s0.setAttribute('stop-color', '#000510');
-            s0.setAttribute('stop-opacity', '0.82');
+            s0.setAttribute('stop-opacity', '0.52');
             const s1 = document.createElementNS(nightNS, 'stop');
             s1.setAttribute('offset', '100%');
             s1.setAttribute('stop-color', '#000510');
-            s1.setAttribute('stop-opacity', '0.82');
+            s1.setAttribute('stop-opacity', '0.52');
             grad.appendChild(s0); grad.appendChild(s1);
             defs.appendChild(grad);
+
+            // Soft terminator: a Gaussian blur on the night overlay gives a gentle
+            // penumbra around its edges instead of a hard day/night line.
+            const nightBlur = document.createElementNS(nightNS, 'filter');
+            nightBlur.id = 'wm-night-blur';
+            nightBlur.setAttribute('x', '-3%'); nightBlur.setAttribute('y', '-3%');
+            nightBlur.setAttribute('width', '106%'); nightBlur.setAttribute('height', '106%');
+            const nightFe = document.createElementNS(nightNS, 'feGaussianBlur');
+            nightFe.setAttribute('in', 'SourceGraphic');
+            nightFe.setAttribute('stdDeviation', '7');
+            nightBlur.appendChild(nightFe);
+            defs.appendChild(nightBlur);
             svg.insertBefore(defs, svg.firstChild);
 
             const nightPath = document.createElementNS(nightNS, 'path');
             nightPath.id = 'wm-night-path';
             nightPath.setAttribute('fill', 'url(#wm-night-grad)');
+            nightPath.setAttribute('filter', 'url(#wm-night-blur)');
             nightLayer.appendChild(nightPath);
             // Append (not insertBefore firstChild) so the dark overlay sits ABOVE
             // the country paths and actually dims them. Capitals, SIGINT and event
@@ -16794,9 +16807,10 @@ function openWorldMap() {
 
             // Build one chip per country
             // Branch icons replace the ARMY/NAVY/AIR/NUKE text labels. The SVGs are
-            // black line-art (Noun Project), so they are used as a CSS mask and
-            // filled with each branch's colour — keeps the colour coding and stays
-            // visible on the dark tooltip background.
+            // Noun Project line-art; rendering them as <img> with filter:brightness(0)
+            // forces a solid black silhouette regardless of the file's own colours
+            // (preserving transparency). This is more robust than a CSS mask, which
+            // only showed the airport icon — the others' alpha didn't drive the mask.
             const _BRANCH_ICONS = {
                 army: 'https://file.garden/aXPgNT-ZRCxxpy0g/noun-military-helmet-6848473.svg',
                 navy: 'https://file.garden/aXPgNT-ZRCxxpy0g/noun-battleship-6343043.svg',
@@ -16806,17 +16820,17 @@ function openWorldMap() {
             const _sigintTooltipHtml = (code) => {
                 const d = MILITARY_DISPOSITIONS[code];
                 if (!d) return '';
-                const row = (col, icon, val) => val
+                const row = (icon, val) => val
                     ? `<div style="display:flex;gap:7px;align-items:center;margin:2px 0;">
-                         <span style="display:inline-block;flex:0 0 16px;width:16px;height:16px;background-color:${col};-webkit-mask:url(${icon}) center/contain no-repeat;mask:url(${icon}) center/contain no-repeat;"></span>
+                         <img src="${icon}" alt="" style="flex:0 0 16px;width:16px;height:16px;object-fit:contain;filter:brightness(0);">
                          <span style="color:#999;">${val}</span>
                        </div>`
                     : '';
                 return `<div style="font-family:TypewriterDry,monospace;font-size:11px;padding:4px 0;">` +
-                    row('#4caf50', _BRANCH_ICONS.army, d.army) +
-                    row('#42a5f5', _BRANCH_ICONS.navy, d.navy) +
-                    row('#b0bec5', _BRANCH_ICONS.air,  d.air)  +
-                    row('#fdd835', _BRANCH_ICONS.nuke, d.nuke) +
+                    row(_BRANCH_ICONS.army, d.army) +
+                    row(_BRANCH_ICONS.navy, d.navy) +
+                    row(_BRANCH_ICONS.air,  d.air)  +
+                    row(_BRANCH_ICONS.nuke, d.nuke) +
                     `</div>`;
             };
 
