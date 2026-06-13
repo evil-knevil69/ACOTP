@@ -17604,20 +17604,47 @@ function openWorldMap() {
             });
 
             // ── Globe orthographic projection ─────────────────────────────────
-            // Pre-sample all country paths into lon/lat arrays.
-            // Done once per map-open (SVG is already in the DOM).
+            // Pre-sample all country paths into lon/lat arrays, one array per
+            // SVG subpath (each M…Z block). Countries with overseas territories
+            // (France, UK, Netherlands, USA…) have one subpath per territory.
+            // Sampling the whole path at once with getPointAtLength() traverses
+            // the invisible straight-line segments that connect subpaths across
+            // the SVG canvas — those segments project as cross-globe artifacts.
             const _globeSamples = [];
             svg.querySelectorAll('path,polygon').forEach(el => {
                 if (!el.id || !COUNTRY_NAMES[el.id]) return;
-                const len = el.getTotalLength ? el.getTotalLength() : 0;
-                if (len < 1) return;
-                const steps = Math.max(4, Math.min(1200, Math.ceil(len / 2)));
-                const pts = [];
-                for (let i = 0; i <= steps; i++) {
-                    const p = el.getPointAtLength(i / steps * len);
-                    pts.push([ (p.x / 1800) * 360 - 180, 90 - (p.y / 900) * 180 ]);
+                const d = el.getAttribute ? el.getAttribute('d') : null;
+                const subpaths = [];
+                if (d) {
+                    (d.match(/[Mm][^Mm]*/g) || []).forEach(spStr => {
+                        const tmp = document.createElementNS(_sNS, 'path');
+                        tmp.setAttribute('d', spStr);
+                        svg.appendChild(tmp);          // needs DOM for getTotalLength
+                        const len = tmp.getTotalLength();
+                        if (len >= 2) {
+                            const steps = Math.max(4, Math.min(600, Math.ceil(len / 2)));
+                            const pts = [];
+                            for (let i = 0; i <= steps; i++) {
+                                const p = tmp.getPointAtLength(i / steps * len);
+                                pts.push([(p.x / 1800) * 360 - 180, 90 - (p.y / 900) * 180]);
+                            }
+                            subpaths.push(pts);
+                        }
+                        tmp.remove();
+                    });
+                } else {
+                    const len = el.getTotalLength ? el.getTotalLength() : 0;
+                    if (len >= 2) {
+                        const steps = Math.max(4, Math.min(600, Math.ceil(len / 2)));
+                        const pts = [];
+                        for (let i = 0; i <= steps; i++) {
+                            const p = el.getPointAtLength(i / steps * len);
+                            pts.push([(p.x / 1800) * 360 - 180, 90 - (p.y / 900) * 180]);
+                        }
+                        subpaths.push(pts);
+                    }
                 }
-                _globeSamples.push({ el, pts });
+                if (subpaths.length) _globeSamples.push({ el, subpaths });
             });
 
             const _ortho = (lon, lat, lon0r, lat0r) => {
@@ -17679,65 +17706,46 @@ function openWorldMap() {
                 }
                 ctx.restore();
 
-                // Countries — clipped to the globe disc.
-                //
-                // Back-hemisphere points are CLAMPED to the limb (horizon circle)
-                // rather than dropped. Dropping them made ctx.fill() close the
-                // visible arc with a straight chord across the sphere, which both
-                // joined landmasses across the ocean and self-intersected the
-                // outline — even-odd fill then rendered that as a triangular hole
-                // (the USSR bug). Walking clamped points along the limb instead
-                // lets each polygon close naturally along the horizon.
-                //
-                // Runs are still split on antimeridian jumps (separate landmasses
-                // such as Russia's far-eastern Chukotka), and a run is only filled
-                // if it contains at least one genuinely front-facing point so that
-                // wholly-back countries don't smear a sliver onto the limb.
+                // Countries — each SVG subpath (island / territory) drawn
+                // independently. Back-hemisphere points are dropped; when the
+                // path crosses the limb we end the current run so ctx.fill()
+                // closes only the visible arc, not a chord across the globe.
+                // Antimeridian jumps also end a run (catches Russia wrapping
+                // past 180°). Globe-disc clip keeps any residual paint inside
+                // the sphere boundary.
                 ctx.save();
                 ctx.beginPath();
                 ctx.arc(cx, cy, R, 0, 2 * Math.PI);
                 ctx.clip();
 
-                const _sinL0 = Math.sin(lat0r), _cosL0 = Math.cos(lat0r);
-
-                _globeSamples.forEach(({ el, pts }) => {
+                _globeSamples.forEach(({ el, subpaths }) => {
                     const fill = el.style.fill || window.getComputedStyle(el).fill || '#3a4a2e';
-                    let prevLon  = null;
-                    let inRun    = false;
-                    let anyFront = false;
+                    subpaths.forEach(pts => {
+                        let prevLon = null;
+                        let inRun   = false;
 
-                    const endRun = () => {
-                        if (inRun && anyFront) {
+                        const endRun = () => {
+                            if (!inRun) return;
                             ctx.fillStyle   = fill;
                             ctx.fill();
                             ctx.strokeStyle = 'rgba(0,0,0,0.7)';
                             ctx.lineWidth   = 0.4;
                             ctx.stroke();
-                        }
-                        inRun = false; anyFront = false;
-                    };
+                            inRun = false;
+                        };
 
-                    for (let i = 0; i < pts.length; i++) {
-                        const [lon, lat] = pts[i];
-                        if (inRun && prevLon !== null && Math.abs(lon - prevLon) > 180) endRun();
-                        const λ  = lon * Math.PI / 180, φ = lat * Math.PI / 180;
-                        const dλ = λ - lon0r;
-                        const cosC = _sinL0 * Math.sin(φ) + _cosL0 * Math.cos(φ) * Math.cos(dλ);
-                        let x = Math.cos(φ) * Math.sin(dλ);
-                        let y = _cosL0 * Math.sin(φ) - _sinL0 * Math.cos(φ) * Math.cos(dλ);
-                        if (cosC < 0) {
-                            // back hemisphere → push radially out to the horizon
-                            const m = Math.hypot(x, y) || 1;
-                            x /= m; y /= m;
-                        } else {
-                            anyFront = true;
+                        for (let i = 0; i < pts.length; i++) {
+                            const [lon, lat] = pts[i];
+                            if (inRun && prevLon !== null && Math.abs(lon - prevLon) > 180) endRun();
+                            const q = _ortho(lon, lat, lon0r, lat0r);
+                            if (!q) { endRun(); prevLon = lon; continue; }
+                            const px = cx + q[0] * R, py = cy - q[1] * R;
+                            if (!inRun) { ctx.beginPath(); ctx.moveTo(px, py); inRun = true; }
+                            else ctx.lineTo(px, py);
+                            prevLon = lon;
                         }
-                        const px = cx + x * R, py = cy - y * R;
-                        if (!inRun) { ctx.beginPath(); ctx.moveTo(px, py); inRun = true; }
-                        else ctx.lineTo(px, py);
-                        prevLon = lon;
-                    }
-                    endRun();
+                        endRun();
+                    });
                 });
 
                 ctx.restore();
