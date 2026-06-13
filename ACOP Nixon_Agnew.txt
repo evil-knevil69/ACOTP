@@ -17605,34 +17605,70 @@ function openWorldMap() {
 
             // ── Globe orthographic projection ─────────────────────────────────
             // Pre-sample all country paths into lon/lat arrays, one array per
-            // SVG subpath (each M…Z block). Countries with overseas territories
-            // (France, UK, Netherlands, USA…) have one subpath per territory.
-            // Sampling the whole path at once with getPointAtLength() traverses
-            // the invisible straight-line segments that connect subpaths across
-            // the SVG canvas — those segments project as cross-globe artifacts.
+            // SVG subpath. Countries with overseas territories (France, UK, NL…)
+            // have one subpath per island/territory; sampling the whole path at
+            // once makes getPointAtLength() jump across the invisible connectors
+            // between subpaths, which projects as cross-globe artifacts.
+            //
+            // For multi-subpath paths we need to find where each M…Z block starts
+            // and ends in the path's parameterisation. We do this by building a
+            // scratch path with cumulative d strings (which handles relative-m
+            // offsets correctly because they have full context) and measuring
+            // getTotalLength() after each addition. We then sample from the
+            // ORIGINAL element using those boundaries — never from the scratch —
+            // so all coordinates are correct regardless of M/m.
             const _globeSamples = [];
             svg.querySelectorAll('path,polygon').forEach(el => {
                 if (!el.id || !COUNTRY_NAMES[el.id]) return;
                 const d = el.getAttribute ? el.getAttribute('d') : null;
                 const subpaths = [];
+
                 if (d) {
-                    (d.match(/[Mm][^Mm]*/g) || []).forEach(spStr => {
-                        const tmp = document.createElementNS(_sNS, 'path');
-                        tmp.setAttribute('d', spStr);
-                        svg.appendChild(tmp);          // needs DOM for getTotalLength
-                        const len = tmp.getTotalLength();
+                    const spStrs = d.match(/[Mm][^Mm]*/g) || [];
+                    if (spStrs.length <= 1) {
+                        // Single subpath — sample the whole element directly
+                        const len = el.getTotalLength ? el.getTotalLength() : 0;
                         if (len >= 2) {
                             const steps = Math.max(4, Math.min(600, Math.ceil(len / 2)));
                             const pts = [];
                             for (let i = 0; i <= steps; i++) {
-                                const p = tmp.getPointAtLength(i / steps * len);
+                                const p = el.getPointAtLength(i / steps * len);
                                 pts.push([(p.x / 1800) * 360 - 180, 90 - (p.y / 900) * 180]);
                             }
                             subpaths.push(pts);
                         }
-                        tmp.remove();
-                    });
+                    } else {
+                        // Multi-subpath: one scratch element measures all boundaries,
+                        // then we sample the original element (correct coords always).
+                        const scratch = document.createElementNS(_sNS, 'path');
+                        svg.appendChild(scratch);   // DOM needed for getTotalLength
+                        const bnd = [0];
+                        let cumD = '';
+                        for (const sp of spStrs) {
+                            cumD += sp;
+                            scratch.setAttribute('d', cumD);
+                            bnd.push(scratch.getTotalLength());
+                        }
+                        scratch.remove();
+
+                        for (let i = 0; i < spStrs.length; i++) {
+                            // +1 for i>0: step past the Z→M boundary where
+                            // getPointAtLength returns the previous subpath's
+                            // first point (Z closes to the M, not the new M).
+                            const l0 = bnd[i] + (i > 0 ? 1 : 0);
+                            const l1 = bnd[i + 1];
+                            if (l1 - l0 < 2) continue;
+                            const steps = Math.max(4, Math.min(600, Math.ceil((l1 - l0) / 2)));
+                            const pts = [];
+                            for (let j = 0; j <= steps; j++) {
+                                const p = el.getPointAtLength(l0 + j / steps * (l1 - l0));
+                                pts.push([(p.x / 1800) * 360 - 180, 90 - (p.y / 900) * 180]);
+                            }
+                            subpaths.push(pts);
+                        }
+                    }
                 } else {
+                    // <polygon> element — no d attribute, treat as single subpath
                     const len = el.getTotalLength ? el.getTotalLength() : 0;
                     if (len >= 2) {
                         const steps = Math.max(4, Math.min(600, Math.ceil(len / 2)));
