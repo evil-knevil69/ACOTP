@@ -16932,7 +16932,7 @@ function openWorldMap() {
                     const html = _sigintTooltipHtml(code);
                     if (!html) return;
                     const fc = COUNTRIES[code];
-                    evTooltip.innerHTML = `<strong style="font-family:TypewriterDry,monospace;letter-spacing:1px;">[${fc ? fc.name : code} - Disposition of Forces]</strong>${html}`;
+                    evTooltip.innerHTML = `<strong style="font-family:TypewriterDry,monospace;letter-spacing:1px;">${fc ? fc.name : code} - Disposition of Forces</strong>${html}`;
                     evTooltip.style.display = 'block';
                     const vr = viewport.getBoundingClientRect();
                     evTooltip.style.left = Math.min(ev.clientX - vr.left + 12, 989 - 280) + 'px';
@@ -16994,7 +16994,7 @@ function openWorldMap() {
                     const html = _sigintTooltipHtml(code);
                     if (!html) return;
                     const fc = COUNTRIES[code];
-                    evTooltip.innerHTML = `<strong style="font-family:TypewriterDry,monospace;letter-spacing:1px;">[${fc ? fc.name : code} - Disposition of Forces]</strong>${html}`;
+                    evTooltip.innerHTML = `<strong style="font-family:TypewriterDry,monospace;letter-spacing:1px;">${fc ? fc.name : code} - Disposition of Forces</strong>${html}`;
                     evTooltip.style.display = 'block';
                     const vr = viewport.getBoundingClientRect();
                     evTooltip.style.left = Math.min(ev.clientX - vr.left + 12, 989 - 280) + 'px';
