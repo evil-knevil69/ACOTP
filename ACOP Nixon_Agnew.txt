@@ -16400,8 +16400,17 @@ function openWorldMap() {
 
             // Overlay SVG for flags and event icons — sits above the map SVG so
             // the SIGINT colour filter (applied to svgEl only) leaves them untinted.
+            // It must share the map SVG's user coordinate system (viewBox), because
+            // icon/flag positions come from getBBox() in that space.
             flagSvgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            flagSvgEl.setAttribute('viewBox', '0 0 1800 900');
+            const _mapVB = svg.getAttribute('viewBox')
+                || ('0 0 ' + (svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal.width : 1800)
+                    + ' ' + (svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal.height : 900));
+            flagSvgEl.setAttribute('viewBox', _mapVB);
+            // Match the map's aspect handling exactly; only set it if the map does,
+            // so an absent attribute leaves both on the SVG default (xMidYMid meet).
+            const _mapPAR = svg.getAttribute('preserveAspectRatio');
+            if (_mapPAR) flagSvgEl.setAttribute('preserveAspectRatio', _mapPAR);
             flagSvgEl.style.cssText = 'position:absolute;top:0;left:0;width:1800px;height:900px;transform-origin:0 0;pointer-events:none;overflow:visible;';
             viewport.appendChild(flagSvgEl);
 
