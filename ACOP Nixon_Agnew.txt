@@ -15998,6 +15998,20 @@ const ANTHEM_COUNTRIES = new Set([
   'VD','VE','VN','VU','WS','YD','YE','YU','ZA','ZM','ZR'
 ]);
 
+// Countries with a Military Balance 1972-73 profile in /Milbal (named by ISO
+// code). Used when SIGINT is on: a double-click opens the Milbal page instead
+// of the CIA factbook.
+const MILBAL_COUNTRIES = new Set([
+  'AE','AF','AL','AR','AT','AU','BE','BG','BH','BO','BR','BU','CA','CE','CG',
+  'CH','CI','CL','CM','CN','CO','CS','CU','DD','DE','DK','DO','DY','DZ','EC',
+  'EG','ES','ET','FI','FR','GB','GH','GN','GR','GT','GY','HN','HT','HU','ID',
+  'IE','IL','IN','IQ','IR','IT','JO','JP','KE','KH','KP','KR','KW','LA','LB',
+  'LR','LU','LY','MA','MG','ML','MN','MX','MY','NE','NG','NI','NL','NO','NZ',
+  'OM','PE','PH','PK','PL','PT','PY','QA','RH','RO','RW','SA','SD','SE','SG',
+  'SN','SO','SU','SV','SY','TD','TH','TN','TR','TW','TZ','UG','US','UY','VD',
+  'VE','VN','YU','ZA','ZM','ZR'
+]);
+
 // ── Inject "World Map" button into #map_footer ──────────────────────────────
 function _addWorldMapBtn() {
     if (document.getElementById('world_map_button')) return;
@@ -17790,7 +17804,7 @@ function openWorldMap() {
                     evTooltip.style.display = 'none';
                     const cel = _countryElForEvent(e.clientX, e.clientY);
                     const code = cel && cel.id;
-                    if (code && COUNTRY_NAMES[code]) openCIAProfile(code, container, tooltip);
+                    if (code && COUNTRY_NAMES[code]) openCIAProfile(code, container, tooltip, sigintOn);
                 });
 
                 g.style.display = 'none';
@@ -18118,7 +18132,7 @@ function openWorldMap() {
                 el.addEventListener('dblclick', e => {
                     e.stopPropagation();
                     tooltip.style.display = 'none';
-                    openCIAProfile(code, container, tooltip);
+                    openCIAProfile(code, container, tooltip, sigintOn);
                 });
             });
         })
@@ -18132,10 +18146,23 @@ function openWorldMap() {
 }
 
 // ── CIA profile viewer ───────────────────────────────────────────────────────
-function openCIAProfile(code, mapPanel, tooltip) {
-    const stem = CODE_TO_FILE[code];
-    if (!stem) { alert('No CIA profile for ' + (COUNTRY_NAMES[code] || code)); return; }
-    const url = PAGES_BASE + '/CIA/' + stem + '.html';
+function openCIAProfile(code, mapPanel, tooltip, military) {
+    // When SIGINT is on (military=true) the viewer shows the Military Balance
+    // 1972-73 entry from /Milbal (files named by ISO code) and the index button
+    // becomes "Military Intel". Otherwise it's the CIA Basic Intelligence Factbook.
+    let url, indexUrl, indexLabel;
+    if (military) {
+        if (!MILBAL_COUNTRIES.has(code)) { alert('No Military Balance profile for ' + (COUNTRY_NAMES[code] || code)); return; }
+        url        = PAGES_BASE + '/Milbal/' + code + '.html';
+        indexUrl   = PAGES_BASE + '/Milbal/index.html';
+        indexLabel = 'Military Intel';
+    } else {
+        const stem = CODE_TO_FILE[code];
+        if (!stem) { alert('No CIA profile for ' + (COUNTRY_NAMES[code] || code)); return; }
+        url        = PAGES_BASE + '/CIA/' + stem + '.html';
+        indexUrl   = PAGES_BASE + '/CIA/index.html';
+        indexLabel = 'Basic Intelligence Factbook';
+    }
 
     const viewer = document.createElement('div');
     viewer.id = 'cia-profile-viewer';
@@ -18150,10 +18177,10 @@ function openCIAProfile(code, mapPanel, tooltip) {
     bar.appendChild(backBtn);
 
     const indexBtn = document.createElement('button');
-    indexBtn.textContent = 'Basic Intelligence Factbook';
+    indexBtn.textContent = indexLabel;
     indexBtn.addEventListener('click', () => {
-        iframe.src = PAGES_BASE + '/CIA/index.html';
-        lbl.textContent = 'Basic Intelligence Factbook';
+        iframe.src = indexUrl;
+        lbl.textContent = indexLabel;
     });
     bar.appendChild(indexBtn);
 
