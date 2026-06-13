@@ -16670,6 +16670,16 @@ function openWorldMap() {
 
             // Per-chip pixel nudges (paste output of the "Move Chips" tool here).
             const CHIP_OFFSETS = {
+                TR: { x: 12, y: -3 },
+                HU: { x: 7, y: -4 },
+                PL: { x: 13, y: 1 },
+                GB: { x: -8, y: -26 },
+                DE: { x: -2, y: 0 },
+                SU: { x: -132, y: 18 },
+                CN: { x: -45, y: 7 },
+                VD: { x: 1, y: -1 },
+                IL: { x: 0, y: -6 },
+                PT: { x: -4, y: 0 },
             };
 
             const _sNS = 'http://www.w3.org/2000/svg';
@@ -17919,32 +17929,10 @@ function openWorldMap() {
                     : '(drag a SIGINT chip to see its offset)';
             };
 
-            const moveChipsBtn = document.createElement('button');
-            moveChipsBtn.textContent = 'Move Chips';
-            moveChipsBtn.style.cssText = 'margin-left:8px;cursor:pointer;padding:0 10px;height:30px;font-size:11px;';
-            moveChipsBtn.addEventListener('click', () => {
-                _chipEditMode = !_chipEditMode;
-                moveChipsBtn.style.background = _chipEditMode ? '#f90' : '';
-                moveChipsBtn.style.color      = _chipEditMode ? '#000' : '';
-                chipOffsetPanel.style.display = _chipEditMode ? 'block' : 'none';
-                // Show the whole layer + every chip (incl. small-country ones) so
-                // any chip can be positioned; restore on exit.
-                if (_chipEditMode) {
-                    sigintLayer.style.display = '';
-                    _sigintChips.forEach(({ chip }) => {
-                        chip.style.display = '';
-                        chip.style.cursor = 'grab';
-                    });
-                    _refreshChipPanel();
-                } else {
-                    sigintLayer.style.display = sigintOn ? '' : 'none';
-                    _sigintChips.forEach(({ chip, small }) => {
-                        chip.style.display = small ? 'none' : '';
-                        chip.style.cursor = '';
-                    });
-                }
-            });
-            bar.appendChild(moveChipsBtn);
+            // Move Chips button removed — chip positions are now fixed via
+            // CHIP_OFFSETS. _chipEditMode stays false, so the chip drag handler
+            // and chipOffsetPanel/_refreshChipPanel above remain as inert dead
+            // code (their references must stay valid for the mod to parse/run).
 
             // ── Scrollbars ──────────────────────────────────────────────────
             // Created after innerHTML is set so they aren't wiped by SVG load.
