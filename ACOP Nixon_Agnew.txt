@@ -17680,38 +17680,59 @@ function openWorldMap() {
                 ctx.restore();
 
                 // Countries — clipped to the globe disc.
-                // Each visible run of a country path is its own beginPath so that:
-                // (a) even-odd fill can't punch holes between disjoint runs (fixes
-                //     the USSR triangular-cut), and (b) the closing chord back to
-                //     the first moveTo is never stroked, eliminating cross-globe
-                //     line artifacts. ctx.fill() implicitly closes the polygon for
-                //     fill purposes without drawing a visible closing stroke.
+                //
+                // Back-hemisphere points are CLAMPED to the limb (horizon circle)
+                // rather than dropped. Dropping them made ctx.fill() close the
+                // visible arc with a straight chord across the sphere, which both
+                // joined landmasses across the ocean and self-intersected the
+                // outline — even-odd fill then rendered that as a triangular hole
+                // (the USSR bug). Walking clamped points along the limb instead
+                // lets each polygon close naturally along the horizon.
+                //
+                // Runs are still split on antimeridian jumps (separate landmasses
+                // such as Russia's far-eastern Chukotka), and a run is only filled
+                // if it contains at least one genuinely front-facing point so that
+                // wholly-back countries don't smear a sliver onto the limb.
                 ctx.save();
                 ctx.beginPath();
                 ctx.arc(cx, cy, R, 0, 2 * Math.PI);
                 ctx.clip();
 
+                const _sinL0 = Math.sin(lat0r), _cosL0 = Math.cos(lat0r);
+
                 _globeSamples.forEach(({ el, pts }) => {
                     const fill = el.style.fill || window.getComputedStyle(el).fill || '#3a4a2e';
-                    let prevLon = 0;
-                    let inRun   = false;
+                    let prevLon  = null;
+                    let inRun    = false;
+                    let anyFront = false;
 
                     const endRun = () => {
-                        if (!inRun) return;
-                        ctx.fillStyle   = fill;
-                        ctx.fill();           // implicit close for fill — no visual chord
-                        ctx.strokeStyle = 'rgba(0,0,0,0.7)';
-                        ctx.lineWidth   = 0.4;
-                        ctx.stroke();         // open-ended stroke — no closing chord line
-                        inRun = false;
+                        if (inRun && anyFront) {
+                            ctx.fillStyle   = fill;
+                            ctx.fill();
+                            ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+                            ctx.lineWidth   = 0.4;
+                            ctx.stroke();
+                        }
+                        inRun = false; anyFront = false;
                     };
 
                     for (let i = 0; i < pts.length; i++) {
                         const [lon, lat] = pts[i];
-                        if (inRun && Math.abs(lon - prevLon) > 180) endRun();
-                        const q = _ortho(lon, lat, lon0r, lat0r);
-                        if (!q) { endRun(); prevLon = lon; continue; }
-                        const px = cx + q[0] * R, py = cy - q[1] * R;
+                        if (inRun && prevLon !== null && Math.abs(lon - prevLon) > 180) endRun();
+                        const λ  = lon * Math.PI / 180, φ = lat * Math.PI / 180;
+                        const dλ = λ - lon0r;
+                        const cosC = _sinL0 * Math.sin(φ) + _cosL0 * Math.cos(φ) * Math.cos(dλ);
+                        let x = Math.cos(φ) * Math.sin(dλ);
+                        let y = _cosL0 * Math.sin(φ) - _sinL0 * Math.cos(φ) * Math.cos(dλ);
+                        if (cosC < 0) {
+                            // back hemisphere → push radially out to the horizon
+                            const m = Math.hypot(x, y) || 1;
+                            x /= m; y /= m;
+                        } else {
+                            anyFront = true;
+                        }
+                        const px = cx + x * R, py = cy - y * R;
                         if (!inRun) { ctx.beginPath(); ctx.moveTo(px, py); inRun = true; }
                         else ctx.lineTo(px, py);
                         prevLon = lon;
