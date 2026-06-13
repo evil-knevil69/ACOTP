@@ -16776,20 +16776,30 @@ function openWorldMap() {
             const _chipMoves = {}; // code → {x,y} delta from base centroid — paste into CHIP_OFFSETS
 
             // Build one chip per country
+            // Branch icons replace the ARMY/NAVY/AIR/NUKE text labels. The SVGs are
+            // black line-art (Noun Project), so they are used as a CSS mask and
+            // filled with each branch's colour — keeps the colour coding and stays
+            // visible on the dark tooltip background.
+            const _BRANCH_ICONS = {
+                army: 'https://file.garden/aXPgNT-ZRCxxpy0g/noun-military-helmet-6848473.svg',
+                navy: 'https://file.garden/aXPgNT-ZRCxxpy0g/noun-battleship-6343043.svg',
+                air:  'https://file.garden/aXPgNT-ZRCxxpy0g/noun-airport-military-2009265.svg',
+                nuke: 'https://file.garden/aXPgNT-ZRCxxpy0g/noun-nuclear-8069480.svg',
+            };
             const _sigintTooltipHtml = (code) => {
                 const d = MILITARY_DISPOSITIONS[code];
                 if (!d) return '';
-                const row = (col, label, val) => val
-                    ? `<div style="display:flex;gap:6px;align-items:baseline;margin:2px 0;">
-                         <span style="color:${col};font-weight:bold;min-width:38px;">${label}</span>
+                const row = (col, icon, val) => val
+                    ? `<div style="display:flex;gap:7px;align-items:center;margin:2px 0;">
+                         <span style="display:inline-block;flex:0 0 16px;width:16px;height:16px;background-color:${col};-webkit-mask:url(${icon}) center/contain no-repeat;mask:url(${icon}) center/contain no-repeat;"></span>
                          <span style="color:#ccc;">${val}</span>
                        </div>`
                     : '';
                 return `<div style="font-family:TypewriterDry,monospace;font-size:11px;padding:4px 0;">` +
-                    row('#4caf50','ARMY',  d.army) +
-                    row('#42a5f5','NAVY',  d.navy) +
-                    row('#b0bec5','AIR',   d.air)  +
-                    row('#fdd835','NUKE',  d.nuke) +
+                    row('#4caf50', _BRANCH_ICONS.army, d.army) +
+                    row('#42a5f5', _BRANCH_ICONS.navy, d.navy) +
+                    row('#b0bec5', _BRANCH_ICONS.air,  d.air)  +
+                    row('#fdd835', _BRANCH_ICONS.nuke, d.nuke) +
                     `</div>`;
             };
 
@@ -16861,7 +16871,7 @@ function openWorldMap() {
                     const html = _sigintTooltipHtml(code);
                     if (!html) return;
                     const fc = COUNTRIES[code];
-                    evTooltip.innerHTML = `<strong style="font-family:TypewriterDry,monospace;letter-spacing:1px;">${fc ? fc.name.toUpperCase() : code} — SIGINT</strong>${html}`;
+                    evTooltip.innerHTML = `<strong style="font-family:TypewriterDry,monospace;letter-spacing:1px;">[${fc ? fc.name : code} - Disposition of Forces]</strong>${html}`;
                     evTooltip.style.display = 'block';
                     const vr = viewport.getBoundingClientRect();
                     evTooltip.style.left = Math.min(ev.clientX - vr.left + 12, 989 - 280) + 'px';
@@ -16923,7 +16933,7 @@ function openWorldMap() {
                     const html = _sigintTooltipHtml(code);
                     if (!html) return;
                     const fc = COUNTRIES[code];
-                    evTooltip.innerHTML = `<strong style="font-family:TypewriterDry,monospace;letter-spacing:1px;">${fc ? fc.name.toUpperCase() : code} — SIGINT</strong>${html}`;
+                    evTooltip.innerHTML = `<strong style="font-family:TypewriterDry,monospace;letter-spacing:1px;">[${fc ? fc.name : code} - Disposition of Forces]</strong>${html}`;
                     evTooltip.style.display = 'block';
                     const vr = viewport.getBoundingClientRect();
                     evTooltip.style.left = Math.min(ev.clientX - vr.left + 12, 989 - 280) + 'px';
