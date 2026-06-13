@@ -16871,6 +16871,9 @@ function openWorldMap() {
                 IL: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/telaviv.gif',
                 ET: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/AddisAbaba-ezgif.com-optimize.gif',
                 CN: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/Beijing-ezgif.com-optimize.gif',
+                SY: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/Damascus-ezgif.com-optimize.gif',
+                EG: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/Cairo-ezgif.com-optimize.gif',
+                IT: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/Rome.jpeg',
             };
 
             // Build SVG flag overlay (flags as <image> elements inside the SVG)
