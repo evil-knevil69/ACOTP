@@ -16622,6 +16622,154 @@ function openWorldMap() {
             sigintLayer.style.pointerEvents = 'all';
             if (!sigintOn) sigintLayer.style.display = 'none';
 
+            // ── Jet stream layer ───────────────────────────────────────────────
+            // Three persistent east-flowing jet stream bands. SVG animate on
+            // stroke-dashoffset makes dashes flow east. Not SIGINT-gated —
+            // jets are atmospheric, always visible when the map is open.
+            const jetLayer = document.createElementNS(_sNS, 'g');
+            jetLayer.id = 'wm-jet-layer';
+            jetLayer.style.pointerEvents = 'none';
+            (function() {
+                const _bw = (y0, amp, wl) => {
+                    let d = '';
+                    for (let i = 0; i <= 225; i++) {
+                        const x = i * 8;
+                        const y = y0 + amp * Math.sin(2 * Math.PI * x / wl);
+                        d += (i ? 'L' : 'M') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
+                    }
+                    return d;
+                };
+                [
+                    { y: 150, amp: 16, wl: 820,  dur: '3.2s', op: 0.40 },
+                    { y: 307, amp: 10, wl: 1050, dur: '4.6s', op: 0.24 },
+                    { y: 749, amp: 13, wl: 920,  dur: '3.9s', op: 0.26 },
+                ].forEach(j => {
+                    const p = document.createElementNS(_sNS, 'path');
+                    p.setAttribute('d', _bw(j.y, j.amp, j.wl));
+                    p.setAttribute('fill', 'none');
+                    p.setAttribute('stroke', '#ffc040');
+                    p.setAttribute('stroke-width', '1.1');
+                    p.setAttribute('stroke-opacity', String(j.op));
+                    p.setAttribute('stroke-dasharray', '60 48');
+                    const a = document.createElementNS(_sNS, 'animate');
+                    a.setAttribute('attributeName', 'stroke-dashoffset');
+                    a.setAttribute('from', '108');
+                    a.setAttribute('to', '0');
+                    a.setAttribute('dur', j.dur);
+                    a.setAttribute('repeatCount', 'indefinite');
+                    p.appendChild(a);
+                    jetLayer.appendChild(p);
+                });
+            })();
+            // ── End jet stream layer ───────────────────────────────────────────
+
+            // ── Submarine patrol corridors ─────────────────────────────────────
+            // Approximate SSBN bastions from IISS Military Balance 1972-73.
+            // US: blue; Soviet: red. Pulsing fill opacity + dashed perimeter.
+            // Part of sigintLayer — hidden when SIGINT is off.
+            const subGroup = document.createElementNS(_sNS, 'g');
+            subGroup.id = 'wm-sub-patrols';
+            subGroup.style.pointerEvents = 'none';
+            [
+                [ 700, 192, 138, 56, '#4488ff', 'SSBN PATROL (US)' ],   // N Atlantic
+                [1672, 325,  98, 62, '#4488ff', 'SSBN PATROL (US)' ],   // W Pacific
+                [1098,  70, 190, 40, '#ff4444', 'SSBN BASTION (SU)'],   // Barents/Arctic
+                [ 920, 112,  88, 36, '#ff4444', 'SSBN BASTION (SU)'],   // Norwegian Sea
+                [1638, 188,  78, 50, '#ff4444', 'SSBN BASTION (SU)'],   // Sea of Okhotsk
+            ].forEach(([cx, cy, rx, ry, fill, label]) => {
+                const el = document.createElementNS(_sNS, 'ellipse');
+                el.setAttribute('cx', cx);  el.setAttribute('cy', cy);
+                el.setAttribute('rx', rx);  el.setAttribute('ry', ry);
+                el.setAttribute('fill', fill);
+                el.setAttribute('fill-opacity', '0.08');
+                el.setAttribute('stroke', fill);
+                el.setAttribute('stroke-opacity', '0.50');
+                el.setAttribute('stroke-width', '0.7');
+                el.setAttribute('stroke-dasharray', '8 5');
+                const pulse = document.createElementNS(_sNS, 'animate');
+                pulse.setAttribute('attributeName', 'fill-opacity');
+                pulse.setAttribute('values', '0.04;0.17;0.04');
+                pulse.setAttribute('dur', (2.0 + Math.random() * 1.4).toFixed(1) + 's');
+                pulse.setAttribute('repeatCount', 'indefinite');
+                el.appendChild(pulse);
+                const lbl = document.createElementNS(_sNS, 'text');
+                lbl.setAttribute('x', cx);
+                lbl.setAttribute('y', cy + ry + 9);
+                lbl.setAttribute('text-anchor', 'middle');
+                lbl.setAttribute('font-size', '5.5');
+                lbl.setAttribute('fill', fill);
+                lbl.setAttribute('fill-opacity', '0.60');
+                lbl.setAttribute('font-family', 'TypewriterDry,monospace');
+                lbl.setAttribute('letter-spacing', '0.8');
+                lbl.textContent = label;
+                subGroup.appendChild(el);
+                subGroup.appendChild(lbl);
+            });
+            sigintLayer.appendChild(subGroup);
+            // ── End submarine patrol corridors ────────────────────────────────
+
+            // ── Orbital reconnaissance tracks ──────────────────────────────────
+            // KH-9 Hexagon (US, prograde) peaks 59°N over Europe.
+            // Zenit-4 (USSR, retrograde) peaks 60°N over central US.
+            // Satellite icons ride via animateMotion / mpath; track is dashed line.
+            // Both live inside sigintLayer — hidden when SIGINT is off.
+            const orbitGroup = document.createElementNS(_sNS, 'g');
+            orbitGroup.id = 'wm-orbital-tracks';
+            orbitGroup.style.pointerEvents = 'none';
+
+            const _mkOrbitPath = (phase, inclDeg, dir) => {
+                const amp = inclDeg / 90 * 450;
+                const pts = [];
+                for (let i = 0; i <= 90; i++) {
+                    const f = i / 90;
+                    pts.push([f * 1800, 450 - amp * Math.sin(2 * Math.PI * (f + phase))]);
+                }
+                if (dir < 0) pts.reverse();
+                return pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+            };
+
+            [
+                { id: 'wm-orbit-us', phase: 0.667, incl: 62, dir:  1, col: '#66aaff', label: 'KH-9 HEXAGON', lx: 1055, ly: 155, dur: '88s' },
+                { id: 'wm-orbit-su', phase: 0.03,  incl: 60, dir: -1, col: '#ff8855', label: 'ZENIT-4',      lx:  400, ly: 155, dur: '92s' },
+            ].forEach(s => {
+                const trackPath = document.createElementNS(_sNS, 'path');
+                trackPath.id = s.id;
+                trackPath.setAttribute('d', _mkOrbitPath(s.phase, s.incl, s.dir));
+                trackPath.setAttribute('fill', 'none');
+                trackPath.setAttribute('stroke', s.col);
+                trackPath.setAttribute('stroke-width', '0.5');
+                trackPath.setAttribute('stroke-opacity', '0.40');
+                trackPath.setAttribute('stroke-dasharray', '14 9');
+                orbitGroup.appendChild(trackPath);
+
+                const lbl = document.createElementNS(_sNS, 'text');
+                lbl.setAttribute('x', s.lx);
+                lbl.setAttribute('y', s.ly);
+                lbl.setAttribute('text-anchor', 'middle');
+                lbl.setAttribute('font-size', '5');
+                lbl.setAttribute('fill', s.col);
+                lbl.setAttribute('fill-opacity', '0.65');
+                lbl.setAttribute('font-family', 'TypewriterDry,monospace');
+                lbl.textContent = s.label;
+                orbitGroup.appendChild(lbl);
+
+                const satIcon = document.createElementNS(_sNS, 'circle');
+                satIcon.setAttribute('r', '2.8');
+                satIcon.setAttribute('fill', s.col);
+                satIcon.setAttribute('filter', 'url(#wm-cap-glow)');
+                const motion = document.createElementNS(_sNS, 'animateMotion');
+                motion.setAttribute('dur', s.dur);
+                motion.setAttribute('repeatCount', 'indefinite');
+                const mp = document.createElementNS(_sNS, 'mpath');
+                mp.setAttribute('href', '#' + s.id);
+                mp.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#' + s.id);
+                motion.appendChild(mp);
+                satIcon.appendChild(motion);
+                orbitGroup.appendChild(satIcon);
+            });
+            sigintLayer.appendChild(orbitGroup);
+            // ── End orbital reconnaissance tracks ─────────────────────────────
+
             // Collected for the Move Chips drag tool: { chip, code, baseCx, baseCy, small }
             const _sigintChips = [];
             let _chipEditMode = false;
@@ -17428,6 +17576,7 @@ function openWorldMap() {
             // Capitals at the bottom; events above them (so dots never cover icons
             // and events win hover priority); flags appended last, on top — they are
             // pointer-events:none so being on top does not block hover.
+            svg.appendChild(jetLayer);    // jet streams below capitals
             capGroupEl = capGroup;
             svg.appendChild(capGroup);
             // SIGINT layer sits between capitals and events
