@@ -16008,8 +16008,9 @@ function _addWorldMapBtn() {
 var _wmFlagsOn     = false;
 var _wmEventsOn    = true;
 var _wmCapitalsOn  = false;
-var _wmAllegiance  = false;
+var _wmAllegiance  = true;
 var _wmNightOn     = true;
+var _wmSigintOn    = false;
 
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
@@ -16083,7 +16084,76 @@ function openWorldMap() {
     container.id = 'world-map-container';
     container.style.cssText = 'width:989px;height:625px;background:#111;position:relative;left:60px;box-sizing:border-box;display:flex;flex-direction:column;';
 
-    // SVG viewport fills all space above control bar
+    // Top bar — display / intelligence layer toggles
+    const topBar = document.createElement('div');
+    topBar.style.cssText = 'flex-shrink:0;height:34px;background:#0a0a0a;border-bottom:1px solid #222;display:flex;align-items:center;gap:6px;padding:0 12px;font-family:TypewriterDry,monospace;font-size:11px;letter-spacing:1px;color:#555;';
+    const topBarLabel = document.createElement('span');
+    topBarLabel.textContent = 'DISPLAY:';
+    topBar.appendChild(topBarLabel);
+
+    const _mkTopBtn = (label, active) => {
+        const b = document.createElement('button');
+        b.textContent = label;
+        b.style.cssText = 'cursor:pointer;padding:0 8px;height:24px;font-family:TypewriterDry,monospace;font-size:11px;letter-spacing:1px;background:#111;border:1px solid #333;color:#aaa;';
+        b.style.outline = active ? '2px solid #888' : '';
+        b.style.fontWeight = active ? 'bold' : '';
+        b.style.color = active ? '#ddd' : '#888';
+        return b;
+    };
+
+    // Night toggle (moved from bottom bar)
+    const nightBtn = _mkTopBtn('NIGHT', nightOn);
+    nightBtn.addEventListener('click', () => {
+        nightOn = !nightOn; _wmNightOn = nightOn;
+        nightBtn.style.outline = nightOn ? '2px solid #888' : '';
+        nightBtn.style.fontWeight = nightOn ? 'bold' : '';
+        nightBtn.style.color = nightOn ? '#ddd' : '#888';
+        const ng = svgEl && svgEl.querySelector('#wm-night-layer');
+        if (ng) ng.style.display = nightOn ? '' : 'none';
+    });
+    topBar.appendChild(nightBtn);
+
+    // SIGINT — phosphor / war-room skin
+    const _applySigint = (on) => {
+        if (!viewport) return;
+        if (on) {
+            viewport.style.filter = 'sepia(0.3) hue-rotate(80deg) saturate(1.4) brightness(0.85)';
+            if (!document.getElementById('wm-sigint-css')) {
+                const st = document.createElement('style');
+                st.id = 'wm-sigint-css';
+                st.textContent = `
+                    #wm-viewport::after {
+                        content:'';position:absolute;inset:0;pointer-events:none;z-index:9000;
+                        background: repeating-linear-gradient(
+                            to bottom,
+                            transparent 0px, transparent 3px,
+                            rgba(0,0,0,0.18) 3px, rgba(0,0,0,0.18) 4px
+                        );
+                    }
+                    #wm-viewport::before {
+                        content:'';position:absolute;inset:0;pointer-events:none;z-index:9001;
+                        background: radial-gradient(ellipse at center,
+                            transparent 55%, rgba(0,0,0,0.55) 100%);
+                    }
+                `;
+                document.head.appendChild(st);
+            }
+        } else {
+            viewport.style.filter = '';
+            const st = document.getElementById('wm-sigint-css');
+            if (st) st.remove();
+        }
+    };
+    const sigintBtn = _mkTopBtn('SIGINT', sigintOn);
+    sigintBtn.addEventListener('click', () => {
+        sigintOn = !sigintOn; _wmSigintOn = sigintOn;
+        sigintBtn.style.outline = sigintOn ? '2px solid #888' : '';
+        sigintBtn.style.fontWeight = sigintOn ? 'bold' : '';
+        sigintBtn.style.color = sigintOn ? '#ddd' : '#888';
+        _applySigint(sigintOn);
+    });
+    topBar.appendChild(sigintBtn);
+    // SVG viewport fills all space between bars
     const viewport = document.createElement('div');
     viewport.id = 'wm-viewport';
     viewport.style.cssText = 'flex:1;overflow:hidden;position:relative;cursor:default;user-select:none;';
@@ -16099,6 +16169,8 @@ function openWorldMap() {
     // its own finish function; the cleanup below invokes it if still pending.
     let _activeDragEnd = null;
     mapCleanup.push(() => { if (_activeDragEnd) _activeDragEnd(); });
+    if (sigintOn) _applySigint(true);
+    mapCleanup.push(() => { const st = document.getElementById('wm-sigint-css'); if (st) st.remove(); viewport.style.filter = ''; });
 
     const backBtn = document.createElement('button');
     backBtn.textContent = '<- Electoral Map';
@@ -16123,6 +16195,7 @@ function openWorldMap() {
     let applyT = () => {};
     let allegiance = _wmAllegiance;
     let nightOn = _wmNightOn;
+    let sigintOn = _wmSigintOn;
     let svgEl = null;
     let selectedEl = null;
     const origFills = new Map();
@@ -16284,20 +16357,7 @@ function openWorldMap() {
     });
     bar.appendChild(capBtn);
 
-    const nightBtn = document.createElement('button');
-    nightBtn.textContent = 'Night';
-    nightBtn.style.cssText = 'margin-left:4px;cursor:pointer;padding:0 8px;height:30px;';
-    nightBtn.style.outline = nightOn ? '2px solid #ccc' : '';
-    nightBtn.style.fontWeight = nightOn ? 'bold' : '';
-    nightBtn.addEventListener('click', () => {
-        nightOn = !nightOn; _wmNightOn = nightOn;
-        nightBtn.style.outline = nightOn ? '2px solid #ccc' : '';
-        nightBtn.style.fontWeight = nightOn ? 'bold' : '';
-        const ng = svgEl && svgEl.querySelector('#wm-night-layer');
-        if (ng) ng.style.display = nightOn ? '' : 'none';
-    });
-    bar.appendChild(nightBtn);
-
+    container.appendChild(topBar);
     container.appendChild(viewport);
     container.appendChild(bar);
     gw.appendChild(container);
