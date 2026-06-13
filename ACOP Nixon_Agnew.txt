@@ -17683,6 +17683,20 @@ function openWorldMap() {
                 if (subpaths.length) _globeSamples.push({ el, subpaths });
             });
 
+            // Assign each country a unique RGB "pick colour" for canvas hit-testing.
+            // We render an offscreen hit-map (same geometry, flat pick colours) and
+            // read the pixel under the cursor to know which country was hovered.
+            const _globeHitLookup = {};   // pickKey → { code, name }
+            let   _globeHitCanvas = null; // offscreen pick buffer
+            let   _globeHitCtx    = null;
+            _globeSamples.forEach((s, i) => {
+                const key = i + 1; // 0 reserved for "no country"
+                s.hitKey  = key;
+                s.hitFill = 'rgb(' + (key & 255) + ',' + ((key >> 8) & 255) + ',' + ((key >> 16) & 255) + ')';
+                const code = (s.el.id || '').replace(/^wm-/, '').toUpperCase();
+                _globeHitLookup[key] = { code, name: COUNTRY_NAMES[s.el.id] || COUNTRY_NAMES[code] || code };
+            });
+
             const _ortho = (lon, lat, lon0r, lat0r) => {
                 const λ  = lon * Math.PI / 180, φ = lat * Math.PI / 180;
                 const dλ = λ - lon0r;
@@ -17694,7 +17708,7 @@ function openWorldMap() {
                 ];
             };
 
-            const _drawGlobeFrame = () => {
+            const _drawGlobeFrame = (skipHit) => {
                 if (!_globeCanvas || !_globeOn) return;
                 const ctx   = _globeCanvas.getContext('2d');
                 const GW    = _globeCanvas.width, GH = _globeCanvas.height;
@@ -17744,47 +17758,55 @@ function openWorldMap() {
 
                 // Countries — each SVG subpath (island / territory) drawn
                 // independently. Back-hemisphere points are dropped; when the
-                // path crosses the limb we end the current run so ctx.fill()
-                // closes only the visible arc, not a chord across the globe.
-                // Antimeridian jumps also end a run (catches Russia wrapping
-                // past 180°). Globe-disc clip keeps any residual paint inside
-                // the sphere boundary.
-                ctx.save();
-                ctx.beginPath();
-                ctx.arc(cx, cy, R, 0, 2 * Math.PI);
-                ctx.clip();
-
-                _globeSamples.forEach(({ el, subpaths }) => {
-                    const fill = el.style.fill || window.getComputedStyle(el).fill || '#3a4a2e';
-                    subpaths.forEach(pts => {
-                        let prevLon = null;
-                        let inRun   = false;
-
-                        const endRun = () => {
-                            if (!inRun) return;
-                            ctx.fillStyle   = fill;
-                            ctx.fill();
-                            ctx.strokeStyle = 'rgba(0,0,0,0.7)';
-                            ctx.lineWidth   = 0.4;
-                            ctx.stroke();
-                            inRun = false;
-                        };
-
-                        for (let i = 0; i < pts.length; i++) {
-                            const [lon, lat] = pts[i];
-                            if (inRun && prevLon !== null && Math.abs(lon - prevLon) > 180) endRun();
-                            const q = _ortho(lon, lat, lon0r, lat0r);
-                            if (!q) { endRun(); prevLon = lon; continue; }
-                            const px = cx + q[0] * R, py = cy - q[1] * R;
-                            if (!inRun) { ctx.beginPath(); ctx.moveTo(px, py); inRun = true; }
-                            else ctx.lineTo(px, py);
-                            prevLon = lon;
-                        }
-                        endRun();
+                // path crosses the limb we end the current run so fill() closes
+                // only the visible arc, not a chord across the globe. Antimeridian
+                // jumps also end a run (catches Russia wrapping past 180°). The
+                // globe-disc clip keeps any residual paint inside the sphere.
+                //
+                // Factored into a helper so the offscreen hit-map can be painted
+                // with the identical geometry but flat pick colours and no stroke.
+                const _paintCountries = (tctx, fillOf, doStroke) => {
+                    tctx.save();
+                    tctx.beginPath();
+                    tctx.arc(cx, cy, R, 0, 2 * Math.PI);
+                    tctx.clip();
+                    _globeSamples.forEach(s => {
+                        const fill = fillOf(s);
+                        s.subpaths.forEach(pts => {
+                            let prevLon = null;
+                            let inRun   = false;
+                            const endRun = () => {
+                                if (!inRun) return;
+                                tctx.fillStyle = fill;
+                                tctx.fill();
+                                if (doStroke) {
+                                    tctx.strokeStyle = 'rgba(0,0,0,0.7)';
+                                    tctx.lineWidth   = 0.4;
+                                    tctx.stroke();
+                                }
+                                inRun = false;
+                            };
+                            for (let i = 0; i < pts.length; i++) {
+                                const [lon, lat] = pts[i];
+                                if (inRun && prevLon !== null && Math.abs(lon - prevLon) > 180) endRun();
+                                const q = _ortho(lon, lat, lon0r, lat0r);
+                                if (!q) { endRun(); prevLon = lon; continue; }
+                                const px = cx + q[0] * R, py = cy - q[1] * R;
+                                if (!inRun) { tctx.beginPath(); tctx.moveTo(px, py); inRun = true; }
+                                else tctx.lineTo(px, py);
+                                prevLon = lon;
+                            }
+                            endRun();
+                        });
                     });
-                });
+                    tctx.restore();
+                };
 
-                ctx.restore();
+                _paintCountries(
+                    ctx,
+                    s => (s.el.style.fill || window.getComputedStyle(s.el).fill || '#3a4a2e'),
+                    true
+                );
 
                 // Night overlay: offscreen at 1/3 scale then drawn stretched
                 if (nightOn) {
@@ -17884,33 +17906,93 @@ function openWorldMap() {
                 ctx.strokeStyle = 'rgba(100,160,255,0.4)';
                 ctx.lineWidth   = 1.2;
                 ctx.stroke();
+
+                // Offscreen pick buffer for hover hit-testing. Skipped during an
+                // active drag (skipHit) to keep rotation smooth; rebuilt on drag
+                // end so the buffer matches the final orientation.
+                if (!skipHit) {
+                    if (!_globeHitCanvas) {
+                        _globeHitCanvas = document.createElement('canvas');
+                        _globeHitCtx    = _globeHitCanvas.getContext('2d', { willReadFrequently: true });
+                    }
+                    if (_globeHitCanvas.width !== GW || _globeHitCanvas.height !== GH) {
+                        _globeHitCanvas.width  = GW;
+                        _globeHitCanvas.height = GH;
+                    }
+                    _globeHitCtx.clearRect(0, 0, GW, GH);
+                    // Same geometry helper, flat pick colours, no stroke
+                    _paintCountries(_globeHitCtx, s => s.hitFill, false);
+                }
             };
 
             _drawGlobe = _drawGlobeFrame;
 
-            // Drag-to-rotate
+            // Drag-to-rotate + hover-to-identify
             _globeSetDrag = (canvas) => {
                 let _dragStart = null;
+                let _moved     = false;
+                canvas.style.cursor = 'grab';
                 const _onDown = e => {
                     _dragStart = { x: e.clientX, y: e.clientY, lon0: _globeLon0, lat0: _globeLat0 };
+                    _moved = false;
+                    canvas.style.cursor = 'grabbing';
+                    evTooltip.style.display = 'none';
                 };
                 const _onMove = e => {
                     if (!_dragStart) return;
+                    _moved = true;
                     _globeLon0 = _dragStart.lon0 - (e.clientX - _dragStart.x) * 0.3;
                     _globeLat0 = Math.max(-85, Math.min(85,
                         _dragStart.lat0 + (e.clientY - _dragStart.y) * 0.3));
-                    _drawGlobeFrame();
+                    _drawGlobeFrame(true); // skip pick buffer while spinning
                 };
                 const _onUp = () => {
+                    if (!_dragStart) return;
                     _dragStart = null;
+                    canvas.style.cursor = 'grab';
                     _wmGlobeLon0 = _globeLon0;
                     _wmGlobeLat0 = _globeLat0;
+                    if (_moved) _drawGlobeFrame(); // rebuild pick buffer at final angle
                 };
+
+                // Hover: read the pick buffer to name the country under the cursor.
+                const _onHover = e => {
+                    if (_dragStart || !_globeHitCtx) return;
+                    const rect = canvas.getBoundingClientRect();
+                    const hx = Math.round((e.clientX - rect.left) * (canvas.width  / rect.width));
+                    const hy = Math.round((e.clientY - rect.top)  * (canvas.height / rect.height));
+                    let info = null;
+                    if (hx >= 0 && hy >= 0 && hx < canvas.width && hy < canvas.height) {
+                        const px = _globeHitCtx.getImageData(hx, hy, 1, 1).data;
+                        if (px[3] > 0) info = _globeHitLookup[px[0] | (px[1] << 8) | (px[2] << 16)];
+                    }
+                    if (!info) {
+                        canvas.style.cursor = 'grab';
+                        if (evTooltip.dataset.globe) { evTooltip.style.display = 'none'; delete evTooltip.dataset.globe; }
+                        return;
+                    }
+                    canvas.style.cursor = 'pointer';
+                    const disp = (sigintOn && MILITARY_DISPOSITIONS[info.code]) ? _sigintTooltipHtml(info.code) : '';
+                    evTooltip.dataset.globe = '1';
+                    evTooltip.innerHTML = `<strong style="font-family:TypewriterDry,monospace;letter-spacing:1px;">${(info.name || info.code).toUpperCase()}${disp ? ' — SIGINT' : ''}</strong>${disp}`;
+                    evTooltip.style.display = 'block';
+                    const vr = viewport.getBoundingClientRect();
+                    evTooltip.style.left = Math.min(e.clientX - vr.left + 14, 989 - 280) + 'px';
+                    evTooltip.style.top  = Math.max(e.clientY - vr.top  - 10, 4) + 'px';
+                };
+                const _onLeave = () => {
+                    if (evTooltip.dataset.globe) { evTooltip.style.display = 'none'; delete evTooltip.dataset.globe; }
+                };
+
                 canvas.addEventListener('mousedown', _onDown);
+                canvas.addEventListener('mousemove', _onHover);
+                canvas.addEventListener('mouseleave', _onLeave);
                 document.addEventListener('mousemove', _onMove);
                 document.addEventListener('mouseup', _onUp);
                 mapCleanup.push(() => {
                     canvas.removeEventListener('mousedown', _onDown);
+                    canvas.removeEventListener('mousemove', _onHover);
+                    canvas.removeEventListener('mouseleave', _onLeave);
                     document.removeEventListener('mousemove', _onMove);
                     document.removeEventListener('mouseup', _onUp);
                     if (_globeCanvas) { _globeCanvas.remove(); _globeCanvas = null; }
