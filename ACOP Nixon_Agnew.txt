@@ -16792,7 +16792,7 @@ function openWorldMap() {
                 const row = (col, icon, val) => val
                     ? `<div style="display:flex;gap:7px;align-items:center;margin:2px 0;">
                          <span style="display:inline-block;flex:0 0 16px;width:16px;height:16px;background-color:${col};-webkit-mask:url(${icon}) center/contain no-repeat;mask:url(${icon}) center/contain no-repeat;"></span>
-                         <span style="color:#ccc;">${val}</span>
+                         <span style="color:#999;">${val}</span>
                        </div>`
                     : '';
                 return `<div style="font-family:TypewriterDry,monospace;font-size:11px;padding:4px 0;">` +
