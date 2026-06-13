@@ -16024,6 +16024,7 @@ var _wmCapitalsOn  = false;
 var _wmAllegiance  = true;
 var _wmNightOn     = true;
 var _wmSigintOn    = false;
+var _wmOceanMaskEl = null;   // cached SVG <mask>; built once, re-appended on each open
 
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
@@ -16655,27 +16656,30 @@ function openWorldMap() {
             // Ocean mask: a white full-map rect (ocean = visible) with every
             // country shape painted black on top (land = hidden). The patrol
             // ellipses are drawn through this mask so they only show over water.
-            const _oceanMask = document.createElementNS(_sNS, 'mask');
-            _oceanMask.id = 'wm-ocean-mask';
-            _oceanMask.setAttribute('maskUnits', 'userSpaceOnUse');
-            _oceanMask.setAttribute('x', '0');    _oceanMask.setAttribute('y', '0');
-            _oceanMask.setAttribute('width', '1800'); _oceanMask.setAttribute('height', '900');
-            const _oceanBg = document.createElementNS(_sNS, 'rect');
-            _oceanBg.setAttribute('x', '0');      _oceanBg.setAttribute('y', '0');
-            _oceanBg.setAttribute('width', '1800'); _oceanBg.setAttribute('height', '900');
-            _oceanBg.setAttribute('fill', '#fff');
-            _oceanMask.appendChild(_oceanBg);
-            svg.querySelectorAll('path,polygon').forEach(p => {
-                if (!p.id || !COUNTRY_NAMES[p.id]) return;
-                const c = p.cloneNode(false);
-                c.removeAttribute('id');
-                c.removeAttribute('style');
-                c.setAttribute('fill', '#000');
-                c.setAttribute('stroke', '#000');     // close coastline anti-alias gaps
-                c.setAttribute('stroke-width', '1.5');
-                _oceanMask.appendChild(c);
-            });
-            svg.appendChild(_oceanMask);
+            // Built once (first open) and re-appended on subsequent opens.
+            if (!_wmOceanMaskEl) {
+                _wmOceanMaskEl = document.createElementNS(_sNS, 'mask');
+                _wmOceanMaskEl.id = 'wm-ocean-mask';
+                _wmOceanMaskEl.setAttribute('maskUnits', 'userSpaceOnUse');
+                _wmOceanMaskEl.setAttribute('x', '0');    _wmOceanMaskEl.setAttribute('y', '0');
+                _wmOceanMaskEl.setAttribute('width', '1800'); _wmOceanMaskEl.setAttribute('height', '900');
+                const _oceanBg = document.createElementNS(_sNS, 'rect');
+                _oceanBg.setAttribute('x', '0');      _oceanBg.setAttribute('y', '0');
+                _oceanBg.setAttribute('width', '1800'); _oceanBg.setAttribute('height', '900');
+                _oceanBg.setAttribute('fill', '#fff');
+                _wmOceanMaskEl.appendChild(_oceanBg);
+                svg.querySelectorAll('path,polygon').forEach(p => {
+                    if (!p.id || !COUNTRY_NAMES[p.id]) return;
+                    const c = p.cloneNode(false);
+                    c.removeAttribute('id');
+                    c.removeAttribute('style');
+                    c.setAttribute('fill', '#000');
+                    c.setAttribute('stroke', '#000');     // close coastline anti-alias gaps
+                    c.setAttribute('stroke-width', '1.5');
+                    _wmOceanMaskEl.appendChild(c);
+                });
+            }
+            svg.appendChild(_wmOceanMaskEl);
 
             // Ellipses are masked to ocean; labels are added straight to subGroup
             // (unmasked) so the text stays legible even if it overhangs a coast.
