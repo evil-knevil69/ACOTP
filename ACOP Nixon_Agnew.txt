@@ -16024,6 +16024,9 @@ var _wmCapitalsOn  = false;
 var _wmAllegiance  = true;
 var _wmNightOn     = true;
 var _wmSigintOn    = false;
+var _wmGlobeOn     = false;
+var _wmGlobeLon0   = 10;
+var _wmGlobeLat0   = 30;
 
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
@@ -16142,6 +16145,10 @@ function openWorldMap() {
     // Reassigned inside the SVG .then() once capitals exist; lets the night
     // toggle and the terminator tick re-evaluate which capitals are in darkness.
     let _onNightChange = () => {};
+    let _drawGlobe    = () => {};   // reassigned inside .then() once SVG paths are sampled
+    let _globeOn      = _wmGlobeOn;
+    let _globeCanvas  = null;
+    let _globeLon0    = _wmGlobeLon0, _globeLat0 = _wmGlobeLat0;
     let selectedEl = null;
     const origFills = new Map();
     let flagsOn = _wmFlagsOn;
@@ -16221,6 +16228,32 @@ function openWorldMap() {
     topBar.appendChild(sigintBtn);
     if (sigintOn) _applySigint(true);
     mapCleanup.push(() => { const st = document.getElementById('wm-sigint-css'); if (st) st.remove(); viewport.style.filter = ''; });
+
+    // Globe button — toggles orthographic projection overlay
+    const globeBtn = _mkTopBtn('GLOBE', _globeOn);
+    globeBtn.addEventListener('click', () => {
+        _globeOn = !_globeOn; _wmGlobeOn = _globeOn;
+        globeBtn.style.outline    = _globeOn ? '2px solid #888' : '';
+        globeBtn.style.fontWeight = _globeOn ? 'bold' : '';
+        globeBtn.style.color      = _globeOn ? '#ddd' : '#888';
+        if (_globeOn) {
+            if (!_globeCanvas) {
+                _globeCanvas = document.createElement('canvas');
+                _globeCanvas.style.cssText = 'position:absolute;top:0;left:0;z-index:40;pointer-events:all;';
+                _globeCanvas.width  = viewport.clientWidth  || 989;
+                _globeCanvas.height = viewport.clientHeight || 547;
+                viewport.appendChild(_globeCanvas);
+                _globeSetDrag(_globeCanvas);
+            }
+            _drawGlobe();
+        } else {
+            if (_globeCanvas) { _globeCanvas.remove(); _globeCanvas = null; }
+        }
+    });
+    topBar.appendChild(globeBtn);
+    // Drag-setup stub — replaced inside .then() once canvas is live.
+    // Using a let+reassign pattern identical to _drawGlobe / _onNightChange.
+    let _globeSetDrag = () => {};
     let _capEditMode = false;
     // Live references to the events / capitals <g> layers. Assigned in the SVG
     // .then() below and closed over by the toggle buttons. LOCAL closure vars
@@ -17569,6 +17602,249 @@ function openWorldMap() {
                     _applyCapVis(); // restore visibility based on the Capitals toggle
                 }
             });
+
+            // ── Globe orthographic projection ─────────────────────────────────
+            // Pre-sample all country paths into lon/lat arrays.
+            // Done once per map-open (SVG is already in the DOM).
+            const _globeSamples = [];
+            svg.querySelectorAll('path,polygon').forEach(el => {
+                if (!el.id || !COUNTRY_NAMES[el.id]) return;
+                const len = el.getTotalLength ? el.getTotalLength() : 0;
+                if (len < 1) return;
+                const steps = Math.max(4, Math.min(1200, Math.ceil(len / 2)));
+                const pts = [];
+                for (let i = 0; i <= steps; i++) {
+                    const p = el.getPointAtLength(i / steps * len);
+                    pts.push([ (p.x / 1800) * 360 - 180, 90 - (p.y / 900) * 180 ]);
+                }
+                _globeSamples.push({ el, pts });
+            });
+
+            const _ortho = (lon, lat, lon0r, lat0r) => {
+                const λ  = lon * Math.PI / 180, φ = lat * Math.PI / 180;
+                const dλ = λ - lon0r;
+                const cosC = Math.sin(lat0r) * Math.sin(φ) + Math.cos(lat0r) * Math.cos(φ) * Math.cos(dλ);
+                if (cosC < 0) return null;
+                return [
+                    Math.cos(φ) * Math.sin(dλ),
+                    Math.cos(lat0r) * Math.sin(φ) - Math.sin(lat0r) * Math.cos(φ) * Math.cos(dλ),
+                ];
+            };
+
+            const _drawGlobeFrame = () => {
+                if (!_globeCanvas || !_globeOn) return;
+                const ctx   = _globeCanvas.getContext('2d');
+                const GW    = _globeCanvas.width, GH = _globeCanvas.height;
+                const R     = Math.round(Math.min(GW, GH) * 0.46);
+                const cx    = GW / 2, cy = GH / 2;
+                const lon0r = _globeLon0 * Math.PI / 180;
+                const lat0r = _globeLat0 * Math.PI / 180;
+
+                ctx.clearRect(0, 0, GW, GH);
+
+                // Ocean
+                ctx.beginPath();
+                ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+                ctx.fillStyle = '#0b1e3d';
+                ctx.fill();
+
+                // Graticule
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+                ctx.clip();
+                ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+                ctx.lineWidth   = 0.6;
+                for (let glat = -60; glat <= 60; glat += 30) {
+                    ctx.beginPath();
+                    let fst = true;
+                    for (let glon = -180; glon <= 180; glon += 2) {
+                        const q = _ortho(glon, glat, lon0r, lat0r);
+                        if (!q) { fst = true; continue; }
+                        const px = cx + q[0] * R, py = cy - q[1] * R;
+                        if (fst) { ctx.moveTo(px, py); fst = false; } else ctx.lineTo(px, py);
+                    }
+                    ctx.stroke();
+                }
+                for (let glon = -180; glon < 180; glon += 30) {
+                    ctx.beginPath();
+                    let fst = true;
+                    for (let glat2 = -88; glat2 <= 88; glat2 += 2) {
+                        const q = _ortho(glon, glat2, lon0r, lat0r);
+                        if (!q) { fst = true; continue; }
+                        const px = cx + q[0] * R, py = cy - q[1] * R;
+                        if (fst) { ctx.moveTo(px, py); fst = false; } else ctx.lineTo(px, py);
+                    }
+                    ctx.stroke();
+                }
+                ctx.restore();
+
+                // Countries
+                _globeSamples.forEach(({ el, pts }) => {
+                    const fill = el.style.fill || window.getComputedStyle(el).fill || '#3a4a2e';
+                    ctx.beginPath();
+                    let prevVis = false;
+                    let prevLon = 0;
+                    for (let i = 0; i < pts.length; i++) {
+                        const [lon, lat] = pts[i];
+                        const q = _ortho(lon, lat, lon0r, lat0r);
+                        if (!q) { prevVis = false; continue; }
+                        // Break path on antimeridian jumps (> 180° lon gap)
+                        if (prevVis && Math.abs(lon - prevLon) > 180) { prevVis = false; }
+                        const px = cx + q[0] * R, py = cy - q[1] * R;
+                        if (!prevVis) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                        prevVis = true;
+                        prevLon = lon;
+                    }
+                    ctx.fillStyle = fill;
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+                    ctx.lineWidth   = 0.4;
+                    ctx.stroke();
+                });
+
+                // Night overlay: offscreen at 1/3 scale then drawn stretched
+                if (nightOn) {
+                    const NR  = Math.round(R / 3);
+                    const NW2 = NR * 2, NH2 = NR * 2;
+                    const off = document.createElement('canvas');
+                    off.width  = NW2; off.height = NH2;
+                    const octx    = off.getContext('2d');
+                    const imgData = octx.createImageData(NW2, NH2);
+                    const d       = imgData.data;
+                    const decR    = _parseDeclination() * Math.PI / 180;
+                    const subLonR = _subSolarLon() * Math.PI / 180;
+                    const sinDec  = Math.sin(decR), cosDec = Math.cos(decR);
+                    const sinL0   = Math.sin(lat0r), cosL0 = Math.cos(lat0r);
+                    for (let ny = 0; ny < NH2; ny++) {
+                        for (let nx = 0; nx < NW2; nx++) {
+                            const u = (nx - NR) / NR;
+                            const v = (NR - ny) / NR;
+                            const rr2 = u * u + v * v;
+                            if (rr2 > 1) continue;
+                            const ρ    = Math.sqrt(rr2);
+                            const cosρ = Math.sqrt(1 - rr2);
+                            let φ, λ;
+                            if (ρ < 1e-9) { φ = lat0r; λ = lon0r; }
+                            else {
+                                // Standard inverse orthographic: sin(c)=ρ, cos(c)=cosρ
+                                φ = Math.asin(cosρ * sinL0 + v * cosL0);
+                                λ = lon0r + Math.atan2(u * ρ, ρ * cosL0 * cosρ - v * sinL0 * ρ);
+                            }
+                            const cosZ = Math.sin(φ) * sinDec + Math.cos(φ) * cosDec * Math.cos(λ - subLonR);
+                            if (cosZ < 0) {
+                                const i4 = (ny * NW2 + nx) * 4;
+                                const alpha = Math.min(210, ((-cosZ) * 1.5 * 210) | 0);
+                                d[i4]     = 0;
+                                d[i4 + 1] = 5;
+                                d[i4 + 2] = 16;
+                                d[i4 + 3] = alpha;
+                            }
+                        }
+                    }
+                    octx.putImageData(imgData, 0, 0);
+                    ctx.drawImage(off, cx - R, cy - R, R * 2, R * 2);
+                }
+
+                // Capital dots
+                if (_capDots.length) {
+                    const decR2   = _parseDeclination() * Math.PI / 180;
+                    const subLon2 = _subSolarLon();
+                    const sinDec2 = Math.sin(decR2), cosDec2 = Math.cos(decR2);
+                    _capDots.forEach(({ dot }) => {
+                        const svgCx = parseFloat(dot.getAttribute('cx'));
+                        const svgCy = parseFloat(dot.getAttribute('cy'));
+                        const lon = (svgCx / 1800) * 360 - 180;
+                        const lat = 90 - (svgCy / 900) * 180;
+                        const q = _ortho(lon, lat, lon0r, lat0r);
+                        if (!q) return;
+                        const px = cx + q[0] * R, py = cy - q[1] * R;
+                        const latR = lat * Math.PI / 180;
+                        const dLon = (lon - subLon2) * Math.PI / 180;
+                        const cosZ = Math.sin(latR) * sinDec2 + Math.cos(latR) * cosDec2 * Math.cos(dLon);
+                        ctx.beginPath();
+                        ctx.arc(px, py, 2.2, 0, 2 * Math.PI);
+                        if (nightOn && cosZ < 0) {
+                            ctx.fillStyle = '#ffd24a';
+                            ctx.shadowColor = '#ffd24a';
+                            ctx.shadowBlur  = 5;
+                        } else {
+                            ctx.fillStyle = '#cc0000';
+                            ctx.shadowBlur = 0;
+                        }
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                    });
+                }
+
+                // Atmosphere limb
+                const atm = ctx.createRadialGradient(cx, cy, R - 2, cx, cy, R + 8);
+                atm.addColorStop(0, 'rgba(90,150,255,0.25)');
+                atm.addColorStop(1, 'rgba(90,150,255,0)');
+                ctx.beginPath();
+                ctx.arc(cx, cy, R + 8, 0, 2 * Math.PI);
+                ctx.fillStyle = atm;
+                ctx.fill();
+
+                // Limb darkening
+                const limb = ctx.createRadialGradient(cx, cy, R * 0.68, cx, cy, R);
+                limb.addColorStop(0, 'rgba(0,0,20,0)');
+                limb.addColorStop(1, 'rgba(0,0,20,0.55)');
+                ctx.beginPath();
+                ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+                ctx.fillStyle = limb;
+                ctx.fill();
+
+                // Globe edge
+                ctx.beginPath();
+                ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+                ctx.strokeStyle = 'rgba(100,160,255,0.4)';
+                ctx.lineWidth   = 1.2;
+                ctx.stroke();
+            };
+
+            _drawGlobe = _drawGlobeFrame;
+
+            // Drag-to-rotate
+            _globeSetDrag = (canvas) => {
+                let _dragStart = null;
+                const _onDown = e => {
+                    _dragStart = { x: e.clientX, y: e.clientY, lon0: _globeLon0, lat0: _globeLat0 };
+                };
+                const _onMove = e => {
+                    if (!_dragStart) return;
+                    _globeLon0 = _dragStart.lon0 - (e.clientX - _dragStart.x) * 0.3;
+                    _globeLat0 = Math.max(-85, Math.min(85,
+                        _dragStart.lat0 + (e.clientY - _dragStart.y) * 0.3));
+                    _drawGlobeFrame();
+                };
+                const _onUp = () => {
+                    _dragStart = null;
+                    _wmGlobeLon0 = _globeLon0;
+                    _wmGlobeLat0 = _globeLat0;
+                };
+                canvas.addEventListener('mousedown', _onDown);
+                document.addEventListener('mousemove', _onMove);
+                document.addEventListener('mouseup', _onUp);
+                mapCleanup.push(() => {
+                    canvas.removeEventListener('mousedown', _onDown);
+                    document.removeEventListener('mousemove', _onMove);
+                    document.removeEventListener('mouseup', _onUp);
+                    if (_globeCanvas) { _globeCanvas.remove(); _globeCanvas = null; }
+                });
+            };
+
+            // If globe was open when map was closed and reopened, restore it
+            if (_globeOn) {
+                _globeCanvas = document.createElement('canvas');
+                _globeCanvas.style.cssText = 'position:absolute;top:0;left:0;z-index:40;pointer-events:all;';
+                _globeCanvas.width  = viewport.clientWidth  || 989;
+                _globeCanvas.height = viewport.clientHeight || 547;
+                viewport.appendChild(_globeCanvas);
+                _globeSetDrag(_globeCanvas);
+                _drawGlobeFrame();
+            }
+            // ── End globe ─────────────────────────────────────────────────────
 
             const _iconGroup = document.createElementNS(_evNS, 'g');
             _iconGroup.id = 'wm-events';
