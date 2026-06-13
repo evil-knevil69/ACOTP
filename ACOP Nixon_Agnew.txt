@@ -17679,29 +17679,47 @@ function openWorldMap() {
                 }
                 ctx.restore();
 
-                // Countries
+                // Countries — clipped to the globe disc.
+                // Each visible run of a country path is its own beginPath so that:
+                // (a) even-odd fill can't punch holes between disjoint runs (fixes
+                //     the USSR triangular-cut), and (b) the closing chord back to
+                //     the first moveTo is never stroked, eliminating cross-globe
+                //     line artifacts. ctx.fill() implicitly closes the polygon for
+                //     fill purposes without drawing a visible closing stroke.
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+                ctx.clip();
+
                 _globeSamples.forEach(({ el, pts }) => {
                     const fill = el.style.fill || window.getComputedStyle(el).fill || '#3a4a2e';
-                    ctx.beginPath();
-                    let prevVis = false;
                     let prevLon = 0;
+                    let inRun   = false;
+
+                    const endRun = () => {
+                        if (!inRun) return;
+                        ctx.fillStyle   = fill;
+                        ctx.fill();           // implicit close for fill — no visual chord
+                        ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+                        ctx.lineWidth   = 0.4;
+                        ctx.stroke();         // open-ended stroke — no closing chord line
+                        inRun = false;
+                    };
+
                     for (let i = 0; i < pts.length; i++) {
                         const [lon, lat] = pts[i];
+                        if (inRun && Math.abs(lon - prevLon) > 180) endRun();
                         const q = _ortho(lon, lat, lon0r, lat0r);
-                        if (!q) { prevVis = false; continue; }
-                        // Break path on antimeridian jumps (> 180° lon gap)
-                        if (prevVis && Math.abs(lon - prevLon) > 180) { prevVis = false; }
+                        if (!q) { endRun(); prevLon = lon; continue; }
                         const px = cx + q[0] * R, py = cy - q[1] * R;
-                        if (!prevVis) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-                        prevVis = true;
+                        if (!inRun) { ctx.beginPath(); ctx.moveTo(px, py); inRun = true; }
+                        else ctx.lineTo(px, py);
                         prevLon = lon;
                     }
-                    ctx.fillStyle = fill;
-                    ctx.fill();
-                    ctx.strokeStyle = 'rgba(0,0,0,0.7)';
-                    ctx.lineWidth   = 0.4;
-                    ctx.stroke();
+                    endRun();
                 });
+
+                ctx.restore();
 
                 // Night overlay: offscreen at 1/3 scale then drawn stretched
                 if (nightOn) {
