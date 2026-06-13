@@ -16603,6 +16603,25 @@ function openWorldMap() {
                 SY:  { army:'100K · ~1,200 tanks',        navy:'small · Soviet base Tartus',          air:'210 combat a/c',            nuke:null, small:true },
                 IN:  { army:'840K · 25 divs',             navy:'~60 ships · 1 carrier',              air:'650 combat a/c',            nuke:null },
                 PK:  { army:'278K · 12 divs',             navy:'~17 ships',                           air:'200 combat a/c',            nuke:null },
+                // ── NATO (remaining members) ──────────────────────────────────
+                GB:  { army:'180K · 12 armd regts',       navy:'82K · 1 carrier · 6 SSN · 24 diesel subs', air:'~500 combat a/c',       nuke:'64 SLBM · 4 Polaris SSBNs' },
+                FR:  { army:'328K · 5 mech divs',         navy:'68K · 2 carriers · 19 subs',          air:'500 combat a/c (+150 naval)', nuke:'18 S-2 IRBM · 1 SSBN · 36 Mirage IVA' },
+                IT:  { army:'307K · 7 divs',              navy:'44K · 9 subs · 3 cruisers',           air:'320 combat a/c',            nuke:null },
+                CA:  { army:'34K (Mobile Command)',       navy:'14K · 4 subs',                        air:'162 combat a/c',            nuke:null },
+                NO:  { army:'18K · 1 brigade group',      navy:'8.5K · 15 coastal subs',              air:'117 combat a/c',            nuke:null },
+                TR:  { army:'360K · 13 divs',             navy:'39K · 10 subs · 10 destroyers',       air:'288 combat a/c',            nuke:null },
+                NL:  { army:'80K · 6 brigades',           navy:'20K · 4 subs · 12 destroyers',        air:'144 combat a/c',            nuke:null, small:true },
+                BE:  { army:'66K · 4 brigades',           navy:'4.2K · minehunters',                  air:'144 combat a/c',            nuke:null, small:true },
+                DK:  { army:'27K · 4 brigades',           navy:'6.6K · 6 coastal subs',               air:'112 combat a/c',            nuke:null, small:true },
+                PT:  { army:'179K (colonial wars)',       navy:'18K · 4 subs · 11 frigates',          air:'150 combat a/c',            nuke:null, small:true },
+                GR:  { army:'118K · 12 divs',             navy:'18K · 2 subs · 8 destroyers',         air:'190 combat a/c',            nuke:null, small:true },
+                LU:  { army:'550 · 1 light inf bn',       navy:null,                                  air:null,                        nuke:null, small:true },
+                // ── Warsaw Pact (remaining members) ───────────────────────────
+                PL:  { army:'200K · 15 divs',             navy:'19K · 5 subs',                        air:'696 combat a/c',            nuke:null },
+                RO:  { army:'150K · 9 divs',              navy:'8K · coastal/Danube',                 air:'252 combat a/c',            nuke:null },
+                CS:  { army:'145K · 10 divs',             navy:null,                                  air:'504 combat a/c',            nuke:null, small:true },
+                HU:  { army:'90K · 6 divs',               navy:'500 · Danube flotilla',               air:'108 combat a/c',            nuke:null, small:true },
+                BG:  { army:'117K · 8 MR divs · 5 tank bdes', navy:'7K · 2 subs',                     air:'252 combat a/c',            nuke:null, small:true },
             };
 
             // SVG coordinates for each disposition country — reuse FLAG_CENTRES
