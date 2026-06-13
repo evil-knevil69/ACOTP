@@ -16534,6 +16534,171 @@ function openWorldMap() {
             mapCleanup.push(() => clearInterval(_nightInterval));
             // ── End terminator ────────────────────────────────────────────────
 
+            // ── SIGINT force-disposition layer ────────────────────────────────
+            // Figures from IISS Military Balance 1972-73 (knowledge-sourced;
+            // verify against the print edition). Nuclear: confirmed programmes
+            // only — Israel listed as suspected/unacknowledged.
+            // army/navy/air/nuke: short string for the on-map chip tooltip.
+            // Large countries show the 4-block chip directly on the map.
+            // Small countries (flag = true) hide the chip and show data only
+            // on hover of the country path, via the shared evTooltip.
+            const MILITARY_DISPOSITIONS = {
+                US:  { army:'840K active · 13 divs',    navy:'592 ships · 15 carriers · 41 SSBNs',  air:'~7,400 combat a/c',        nuke:'1,054 ICBM · 656 SLBM · ~400 B-52s' },
+                SU:  { army:'2.0M · 167 divs',          navy:'4 fleets · ~300 subs · 2 carriers',   air:'~10,000 combat a/c',        nuke:'1,530 ICBM · 628 SLBM' },
+                CN:  { army:'~2.5M ground forces',       navy:'coastal · ~55 subs',                  air:'~3,500 a/c (MiG-17/19 era)',nuke:'~50 warheads · DF-2/3 IRBM' },
+                DE:  { army:'345K · 12 divs (Bundeswehr)',navy:'Baltic · 24 destroyers/frigates',    air:'432 combat a/c',            nuke:null },
+                DD:  { army:'107K · 2 MR divs · 1 tank div',navy:'Volksmarine · ~130 vessels',      air:'~210 a/c',                  nuke:null, small:true },
+                KR:  { army:'600K · 20 divs',            navy:'~62 ships',                           air:'216 a/c',                   nuke:null, small:true },
+                KP:  { army:'440K · 21 divs',            navy:'coastal · ~400 patrol craft',         air:'~550 a/c',                  nuke:null, small:true },
+                VN:  { army:'430K ARVN',                  navy:'river/coastal flotilla',              air:'~500 a/c (US-supplied)',     nuke:null, small:true },
+                VD:  { army:'400K PAVN',                  navy:'coastal · torpedo boats',             air:'~200 a/c (MiG-17/21)',      nuke:null, small:true },
+                IL:  { army:'75K reg · 200K reserve',    navy:'~12 ships · 3 submarines',            air:'~350 combat a/c',           nuke:'suspected · unacknowledged', small:true },
+                EG:  { army:'285K · ~1,900 tanks',        navy:'~70 ships (Soviet)',                  air:'~600 a/c (Soviet-supplied)', nuke:null },
+                SY:  { army:'100K · ~1,200 tanks',        navy:'small · Soviet base Tartus',          air:'~210 a/c',                  nuke:null, small:true },
+                IN:  { army:'825K · 21 divs',             navy:'84 ships · 1 carrier',               air:'~625 a/c',                  nuke:null },
+                PK:  { army:'365K · 17 divs',             navy:'~25 ships',                           air:'~285 a/c',                  nuke:null },
+            };
+
+            // SVG coordinates for each disposition country — reuse FLAG_CENTRES
+            // where available; hand-placed otherwise.
+            const _dispCentroid = { ...FLAG_CENTRES,
+                IL: {cx: 925, cy: 288},
+                KP: {cx: 1387, cy: 224},
+            };
+
+            const _sNS = 'http://www.w3.org/2000/svg';
+            const sigintLayer = document.createElementNS(_sNS, 'g');
+            sigintLayer.id = 'wm-sigint-layer';
+            sigintLayer.style.pointerEvents = 'all';
+            if (!sigintOn) sigintLayer.style.display = 'none';
+
+            // Build one chip per country
+            const _sigintTooltipHtml = (code) => {
+                const d = MILITARY_DISPOSITIONS[code];
+                if (!d) return '';
+                const row = (col, label, val) => val
+                    ? `<div style="display:flex;gap:6px;align-items:baseline;margin:2px 0;">
+                         <span style="color:${col};font-weight:bold;min-width:38px;">${label}</span>
+                         <span style="color:#ccc;">${val}</span>
+                       </div>`
+                    : '';
+                return `<div style="font-family:TypewriterDry,monospace;font-size:11px;padding:4px 0;">` +
+                    row('#4caf50','ARMY',  d.army) +
+                    row('#42a5f5','NAVY',  d.navy) +
+                    row('#b0bec5','AIR',   d.air)  +
+                    row('#fdd835','NUKE',  d.nuke) +
+                    `</div>`;
+            };
+
+            Object.entries(MILITARY_DISPOSITIONS).forEach(([code, d]) => {
+                const cen = _dispCentroid[code];
+                if (!cen) return;
+                const cx = cen.cx, cy = cen.cy;
+
+                const chip = document.createElementNS(_sNS, 'g');
+                chip.dataset.sigintCode = code;
+                if (d.small) {
+                    // Hidden on-map; shown only via country-path hover
+                    chip.style.display = 'none';
+                }
+
+                // Background rect — width depends on nuclear
+                const hasNuke = !!d.nuke;
+                const squares = hasNuke ? 4 : 3;
+                const W = squares * 9 + (squares - 1) * 2 + 8; // px in SVG units
+                const bg = document.createElementNS(_sNS, 'rect');
+                bg.setAttribute('x', cx - W/2);
+                bg.setAttribute('y', cy - 7);
+                bg.setAttribute('width', W);
+                bg.setAttribute('height', 14);
+                bg.setAttribute('rx', '2');
+                bg.setAttribute('fill', '#000');
+                bg.setAttribute('fill-opacity', '0.72');
+                chip.appendChild(bg);
+
+                // Coloured squares: Army / Navy / Air / Nuke
+                const cats = [
+                    { col: '#4caf50' },
+                    { col: '#42a5f5' },
+                    { col: '#90a4ae' },
+                ];
+                if (hasNuke) cats.push({ col: '#fdd835' });
+
+                cats.forEach((cat, i) => {
+                    const sq = document.createElementNS(_sNS, 'rect');
+                    const sx = cx - W/2 + 4 + i * 11;
+                    sq.setAttribute('x', sx);
+                    sq.setAttribute('y', cy - 4);
+                    sq.setAttribute('width', '9');
+                    sq.setAttribute('height', '8');
+                    sq.setAttribute('rx', '1');
+                    sq.setAttribute('fill', cat.col);
+                    chip.appendChild(sq);
+                });
+
+                // Invisible hover target spanning the full chip area (+padding)
+                const hit = document.createElementNS(_sNS, 'rect');
+                hit.setAttribute('x', cx - W/2 - 2);
+                hit.setAttribute('y', cy - 9);
+                hit.setAttribute('width', W + 4);
+                hit.setAttribute('height', 18);
+                hit.setAttribute('fill', 'transparent');
+                hit.setAttribute('cursor', 'default');
+                chip.appendChild(hit);
+
+                chip.addEventListener('mouseenter', (ev) => {
+                    const html = _sigintTooltipHtml(code);
+                    if (!html) return;
+                    const fc = COUNTRIES[code];
+                    evTooltip.innerHTML = `<strong style="font-family:TypewriterDry,monospace;letter-spacing:1px;">${fc ? fc.name.toUpperCase() : code} — SIGINT</strong>${html}`;
+                    evTooltip.style.display = 'block';
+                    const vr = viewport.getBoundingClientRect();
+                    evTooltip.style.left = Math.min(ev.clientX - vr.left + 12, 989 - 280) + 'px';
+                    evTooltip.style.top  = Math.max(ev.clientY - vr.top  - 10, 4) + 'px';
+                });
+                chip.addEventListener('mousemove', (ev) => {
+                    const vr = viewport.getBoundingClientRect();
+                    evTooltip.style.left = Math.min(ev.clientX - vr.left + 12, 989 - 280) + 'px';
+                    evTooltip.style.top  = Math.max(ev.clientY - vr.top  - 10, 4) + 'px';
+                });
+                chip.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
+
+                sigintLayer.appendChild(chip);
+            });
+
+            // Country-path hover for small-country disposition (sigintOn guard is
+            // checked at event time so toggling without reload works).
+            svg.querySelectorAll('path[id]').forEach(path => {
+                const code = path.id.replace(/^wm-/, '').toUpperCase();
+                if (!MILITARY_DISPOSITIONS[code] || !MILITARY_DISPOSITIONS[code].small) return;
+                path.addEventListener('mouseenter', (ev) => {
+                    if (!sigintOn) return;
+                    const html = _sigintTooltipHtml(code);
+                    if (!html) return;
+                    const fc = COUNTRIES[code];
+                    evTooltip.innerHTML = `<strong style="font-family:TypewriterDry,monospace;letter-spacing:1px;">${fc ? fc.name.toUpperCase() : code} — SIGINT</strong>${html}`;
+                    evTooltip.style.display = 'block';
+                    const vr = viewport.getBoundingClientRect();
+                    evTooltip.style.left = Math.min(ev.clientX - vr.left + 12, 989 - 280) + 'px';
+                    evTooltip.style.top  = Math.max(ev.clientY - vr.top  - 10, 4) + 'px';
+                });
+                path.addEventListener('mousemove', (ev) => {
+                    if (!sigintOn) return;
+                    const vr = viewport.getBoundingClientRect();
+                    evTooltip.style.left = Math.min(ev.clientX - vr.left + 12, 989 - 280) + 'px';
+                    evTooltip.style.top  = Math.max(ev.clientY - vr.top  - 10, 4) + 'px';
+                });
+            });
+
+            // Extend the SIGINT toggle to include this layer. _applySigint is
+            // a const in the outer scope, so we patch via the sigint-btn click
+            // handler by reading sigintLayer through a module-level var.
+            sigintBtn.addEventListener('click', () => {
+                sigintLayer.style.display = sigintOn ? '' : 'none';
+            });
+            if (sigintOn) sigintLayer.style.display = '';
+            // ── End SIGINT layer ──────────────────────────────────────────────
+
             // Manual centroid overrides for countries whose bounding box spans
             // overseas territories, placing the flag over the wrong location.
             // Coordinates are in SVG units (map is 1800x900).
@@ -17149,6 +17314,8 @@ function openWorldMap() {
             // pointer-events:none so being on top does not block hover.
             capGroupEl = capGroup;
             svg.appendChild(capGroup);
+            // SIGINT layer sits between capitals and events
+            svg.appendChild(sigintLayer);
             iconGroupEl = _iconGroup;
             svg.appendChild(_iconGroup);
             // Restore flags-on-top if the toggle was left on from a previous visit
