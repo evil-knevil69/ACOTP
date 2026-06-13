@@ -2084,7 +2084,13 @@ function __mapVisitTick() {
                 const visitText = document.querySelector('.visit_text');
                 if (visitText && !visitText.dataset.replaced) {
                     visitText.dataset.replaced = 'true';
-                    visitText.innerHTML = '<p style="text-align: center; font-family: Georgia, serif; font-size: 1.17em; margin: 0; margin-left: -20px; margin-top: -10px; color: black;">Click on the state you wish to visit.</p>';
+                    visitText.innerHTML = '<p style="text-align: center; font-family: Georgia, serif; font-size: 1.17em; margin: 0; color: black;">Click on the state you wish to visit.</p>';
+                    // The caption is a sibling AFTER #main_content_area, but the map is
+                    // absolutely positioned and out of flow — so the caption renders
+                    // above the map. Move it inside #map_container (itself a positioning
+                    // context) so the .visit_text CSS can pin it under the map.
+                    const _mc = document.getElementById('map_container');
+                    if (_mc && visitText.parentElement !== _mc) _mc.appendChild(visitText);
                 }
                 if (!document.getElementById('visit-hide-style')) {
                     const vs = document.createElement('style');
@@ -2158,9 +2164,14 @@ function __mapVisitTick() {
                             height: 0 !important;
                         }
                         .visit_text {
-                            position: relative !important;
-                            top: -10px !important;
+                            position: absolute !important;
+                            bottom: 14px !important;
+                            left: 0 !important;
+                            width: 921px !important;
+                            margin: 0 !important;
+                            text-align: center !important;
                             z-index: 10 !important;
+                            pointer-events: none !important;
                         }
                     `;
                     document.head.appendChild(vs);
