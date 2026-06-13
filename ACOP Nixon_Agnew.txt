@@ -16566,11 +16566,20 @@ function openWorldMap() {
                 KP: {cx: 1387, cy: 224},
             };
 
+            // Per-chip pixel nudges (paste output of the "Move Chips" tool here).
+            const CHIP_OFFSETS = {
+            };
+
             const _sNS = 'http://www.w3.org/2000/svg';
             const sigintLayer = document.createElementNS(_sNS, 'g');
             sigintLayer.id = 'wm-sigint-layer';
             sigintLayer.style.pointerEvents = 'all';
             if (!sigintOn) sigintLayer.style.display = 'none';
+
+            // Collected for the Move Chips drag tool: { chip, code, baseCx, baseCy, small }
+            const _sigintChips = [];
+            let _chipEditMode = false;
+            const _chipMoves = {}; // code → {x,y} delta from base centroid — paste into CHIP_OFFSETS
 
             // Build one chip per country
             const _sigintTooltipHtml = (code) => {
@@ -16593,12 +16602,20 @@ function openWorldMap() {
             Object.entries(MILITARY_DISPOSITIONS).forEach(([code, d]) => {
                 const cen = _dispCentroid[code];
                 if (!cen) return;
-                const cx = cen.cx, cy = cen.cy;
+                // Base centroid (no offset) — drag tool reports the delta from this.
+                const baseCx = cen.cx, baseCy = cen.cy;
+                const off = CHIP_OFFSETS[code] || { x: 0, y: 0 };
+                const cx = baseCx + (off.x || 0), cy = baseCy + (off.y || 0);
 
+                // The whole chip is positioned by a group transform so the Move
+                // Chips tool only has to tweak the translate. Child geometry is
+                // laid out relative to (0,0).
                 const chip = document.createElementNS(_sNS, 'g');
                 chip.dataset.sigintCode = code;
+                chip.setAttribute('transform', `translate(${cx},${cy})`);
                 if (d.small) {
-                    // Hidden on-map; shown only via country-path hover
+                    // Hidden on-map; shown only via country-path hover (and during
+                    // Move Chips edit mode).
                     chip.style.display = 'none';
                 }
 
@@ -16607,8 +16624,8 @@ function openWorldMap() {
                 const squares = hasNuke ? 4 : 3;
                 const W = squares * 9 + (squares - 1) * 2 + 8; // px in SVG units
                 const bg = document.createElementNS(_sNS, 'rect');
-                bg.setAttribute('x', cx - W/2);
-                bg.setAttribute('y', cy - 7);
+                bg.setAttribute('x', -W/2);
+                bg.setAttribute('y', -7);
                 bg.setAttribute('width', W);
                 bg.setAttribute('height', 14);
                 bg.setAttribute('rx', '2');
@@ -16626,9 +16643,8 @@ function openWorldMap() {
 
                 cats.forEach((cat, i) => {
                     const sq = document.createElementNS(_sNS, 'rect');
-                    const sx = cx - W/2 + 4 + i * 11;
-                    sq.setAttribute('x', sx);
-                    sq.setAttribute('y', cy - 4);
+                    sq.setAttribute('x', -W/2 + 4 + i * 11);
+                    sq.setAttribute('y', -4);
                     sq.setAttribute('width', '9');
                     sq.setAttribute('height', '8');
                     sq.setAttribute('rx', '1');
@@ -16638,8 +16654,8 @@ function openWorldMap() {
 
                 // Invisible hover target spanning the full chip area (+padding)
                 const hit = document.createElementNS(_sNS, 'rect');
-                hit.setAttribute('x', cx - W/2 - 2);
-                hit.setAttribute('y', cy - 9);
+                hit.setAttribute('x', -W/2 - 2);
+                hit.setAttribute('y', -9);
                 hit.setAttribute('width', W + 4);
                 hit.setAttribute('height', 18);
                 hit.setAttribute('fill', 'transparent');
@@ -16647,6 +16663,7 @@ function openWorldMap() {
                 chip.appendChild(hit);
 
                 chip.addEventListener('mouseenter', (ev) => {
+                    if (_chipEditMode) return;
                     const html = _sigintTooltipHtml(code);
                     if (!html) return;
                     const fc = COUNTRIES[code];
@@ -16657,13 +16674,49 @@ function openWorldMap() {
                     evTooltip.style.top  = Math.max(ev.clientY - vr.top  - 10, 4) + 'px';
                 });
                 chip.addEventListener('mousemove', (ev) => {
+                    if (_chipEditMode) return;
                     const vr = viewport.getBoundingClientRect();
                     evTooltip.style.left = Math.min(ev.clientX - vr.left + 12, 989 - 280) + 'px';
                     evTooltip.style.top  = Math.max(ev.clientY - vr.top  - 10, 4) + 'px';
                 });
                 chip.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
 
+                // Drag to reposition (Move Chips edit mode)
+                chip.addEventListener('mousedown', ev => {
+                    if (!_chipEditMode) return;
+                    ev.stopPropagation(); ev.preventDefault();
+                    evTooltip.style.display = 'none';
+                    chip.style.cursor = 'grabbing';
+                    const m = (chip.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+                    const startX = m ? parseFloat(m[1]) : baseCx;
+                    const startY = m ? parseFloat(m[2]) : baseCy;
+                    const sx = ev.clientX, sy = ev.clientY;
+                    const onMove = mv => {
+                        const nx = startX + (mv.clientX - sx) / scale;
+                        const ny = startY + (mv.clientY - sy) / scale;
+                        chip.setAttribute('transform', `translate(${nx},${ny})`);
+                    };
+                    const onUp = () => {
+                        document.removeEventListener('mousemove', onMove);
+                        document.removeEventListener('mouseup', onUp);
+                        _activeDragEnd = null;
+                        chip.style.cursor = 'grab';
+                        const fm = (chip.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+                        if (fm) {
+                            _chipMoves[code] = {
+                                x: Math.round(parseFloat(fm[1]) - baseCx),
+                                y: Math.round(parseFloat(fm[2]) - baseCy),
+                            };
+                            _refreshChipPanel();
+                        }
+                    };
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                    _activeDragEnd = onUp;
+                });
+
                 sigintLayer.appendChild(chip);
+                _sigintChips.push({ chip, code, baseCx, baseCy, small: !!d.small });
             });
 
             // Country-path hover for small-country disposition (sigintOn guard is
@@ -17579,6 +17632,46 @@ function openWorldMap() {
                 if (_flagEditMode) _refreshFlagPanel();
             });
             bar.appendChild(moveFlagsBtn);
+
+            // ── Move Chips tool (SIGINT disposition chips) ───────────────────
+            const chipOffsetPanel = document.createElement('div');
+            chipOffsetPanel.style.cssText = 'position:absolute;top:16px;right:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:480px;white-space:pre;display:none;user-select:text;cursor:text;';
+            viewport.appendChild(chipOffsetPanel);
+
+            const _refreshChipPanel = () => {
+                const lines = Object.entries(_chipMoves).map(([code, o]) =>
+                    `${code}: { x: ${o.x}, y: ${o.y} },`);
+                chipOffsetPanel.textContent = lines.length
+                    ? lines.join('\n')
+                    : '(drag a SIGINT chip to see its offset)';
+            };
+
+            const moveChipsBtn = document.createElement('button');
+            moveChipsBtn.textContent = 'Move Chips';
+            moveChipsBtn.style.cssText = 'margin-left:8px;cursor:pointer;padding:0 10px;height:30px;font-size:11px;';
+            moveChipsBtn.addEventListener('click', () => {
+                _chipEditMode = !_chipEditMode;
+                moveChipsBtn.style.background = _chipEditMode ? '#f90' : '';
+                moveChipsBtn.style.color      = _chipEditMode ? '#000' : '';
+                chipOffsetPanel.style.display = _chipEditMode ? 'block' : 'none';
+                // Show the whole layer + every chip (incl. small-country ones) so
+                // any chip can be positioned; restore on exit.
+                if (_chipEditMode) {
+                    sigintLayer.style.display = '';
+                    _sigintChips.forEach(({ chip }) => {
+                        chip.style.display = '';
+                        chip.style.cursor = 'grab';
+                    });
+                    _refreshChipPanel();
+                } else {
+                    sigintLayer.style.display = sigintOn ? '' : 'none';
+                    _sigintChips.forEach(({ chip, small }) => {
+                        chip.style.display = small ? 'none' : '';
+                        chip.style.cursor = '';
+                    });
+                }
+            });
+            bar.appendChild(moveChipsBtn);
 
             // ── Scrollbars ──────────────────────────────────────────────────
             // Created after innerHTML is set so they aren't wiped by SVG load.
