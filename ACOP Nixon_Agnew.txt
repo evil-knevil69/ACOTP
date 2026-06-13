@@ -16140,6 +16140,10 @@ function openWorldMap() {
     let nightOn = _wmNightOn;
     let sigintOn = _wmSigintOn;
     let svgEl = null;
+    // Flags live in their own overlay SVG above the map so the SIGINT colour tint
+    // (applied to the map SVG only) leaves them in true colour. The CRT scanline/
+    // vignette stay on the viewport and so still pass over the flags.
+    let flagSvgEl = null;
     // Reassigned inside the SVG .then() once capitals exist; lets the night
     // toggle and the terminator tick re-evaluate which capitals are in darkness.
     let _onNightChange = () => {};
@@ -16181,10 +16185,13 @@ function openWorldMap() {
     topBar.appendChild(nightBtn);
 
     // SIGINT — phosphor / war-room skin
+    // The colour tint is applied to the MAP svg only (not the whole viewport) so
+    // the flag overlay svg — a separate viewport child — keeps its true colours.
+    // The scanline + vignette CRT overlay stays on the viewport, above both.
     const _applySigint = (on) => {
         if (!viewport) return;
+        if (svgEl) svgEl.style.filter = on ? 'sepia(0.3) hue-rotate(80deg) saturate(1.4) brightness(0.85)' : '';
         if (on) {
-            viewport.style.filter = 'sepia(0.3) hue-rotate(80deg) saturate(1.4) brightness(0.85)';
             if (!document.getElementById('wm-sigint-css')) {
                 const st = document.createElement('style');
                 st.id = 'wm-sigint-css';
@@ -16206,7 +16213,6 @@ function openWorldMap() {
                 document.head.appendChild(st);
             }
         } else {
-            viewport.style.filter = '';
             const st = document.getElementById('wm-sigint-css');
             if (st) st.remove();
         }
@@ -16221,7 +16227,7 @@ function openWorldMap() {
     });
     topBar.appendChild(sigintBtn);
     if (sigintOn) _applySigint(true);
-    mapCleanup.push(() => { const st = document.getElementById('wm-sigint-css'); if (st) st.remove(); viewport.style.filter = ''; });
+    mapCleanup.push(() => { const st = document.getElementById('wm-sigint-css'); if (st) st.remove(); if (svgEl) svgEl.style.filter = ''; if (flagSvgEl) { flagSvgEl.remove(); flagSvgEl = null; } });
     let _capEditMode = false;
     // Live references to the events / capitals <g> layers. Assigned in the SVG
     // .then() below and closed over by the toggle buttons. LOCAL closure vars
@@ -16236,13 +16242,13 @@ function openWorldMap() {
     // Visibility controlled by append/remove (same proven pattern as Flags).
     // style.display on SVG <g> is unreliable across browsers; DOM membership is not.
     const _applyEventVis = () => {
-        if (!iconGroupEl || !svgEl) return;
+        if (!iconGroupEl || !flagSvgEl) return;
         if (eventsOn) {
             if (!iconGroupEl.parentNode) {
-                if (flagOverlayG && flagOverlayG.parentNode === svgEl)
-                    svgEl.insertBefore(iconGroupEl, flagOverlayG);
+                if (flagOverlayG && flagOverlayG.parentNode === flagSvgEl)
+                    flagSvgEl.insertBefore(iconGroupEl, flagOverlayG);
                 else
-                    svgEl.appendChild(iconGroupEl);
+                    flagSvgEl.appendChild(iconGroupEl);
             }
         } else {
             iconGroupEl.remove();
@@ -16253,12 +16259,9 @@ function openWorldMap() {
         const show = capitalsOn || _capEditMode;
         if (show) {
             if (!capGroupEl.parentNode) {
-                if (iconGroupEl && iconGroupEl.parentNode === svgEl)
-                    svgEl.insertBefore(capGroupEl, iconGroupEl);
-                else if (flagOverlayG && flagOverlayG.parentNode === svgEl)
-                    svgEl.insertBefore(capGroupEl, flagOverlayG);
-                else
-                    svgEl.appendChild(capGroupEl);
+                const _sig = svgEl.querySelector('#wm-sigint-layer');
+                if (_sig) svgEl.insertBefore(capGroupEl, _sig);
+                else svgEl.appendChild(capGroupEl);
             }
         } else {
             capGroupEl.remove();
@@ -16339,14 +16342,14 @@ function openWorldMap() {
     flagBtn.style.outline = flagsOn ? '2px solid #ccc' : '';
     flagBtn.style.fontWeight = flagsOn ? 'bold' : '';
     flagBtn.addEventListener('click', () => {
-        if (!svgEl || !flagOverlayG) return;
+        if (!flagSvgEl || !flagOverlayG) return;
         flagsOn = !flagsOn; _wmFlagsOn = flagsOn;
         flagBtn.style.outline = flagsOn ? '2px solid #ccc' : '';
         flagBtn.style.fontWeight = flagsOn ? 'bold' : '';
         if (flagsOn) {
-            // Append last so flags sit on top — z-order is capitals → events → flags.
+            // Append last so flags sit on top of event icons on the overlay SVG.
             // Flags are pointer-events:none, so being on top does not block hover.
-            svgEl.appendChild(flagOverlayG);
+            flagSvgEl.appendChild(flagOverlayG);
         } else { flagOverlayG.remove(); }
     });
     bar.appendChild(flagBtn);
@@ -16395,6 +16398,13 @@ function openWorldMap() {
 
             svgEl = svg;
 
+            // Overlay SVG for flags and event icons — sits above the map SVG so
+            // the SIGINT colour filter (applied to svgEl only) leaves them untinted.
+            flagSvgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            flagSvgEl.setAttribute('viewBox', '0 0 1800 900');
+            flagSvgEl.style.cssText = 'position:absolute;top:0;left:0;width:1800px;height:900px;transform-origin:0 0;pointer-events:none;overflow:visible;';
+            viewport.appendChild(flagSvgEl);
+
             // Centre the SVG in the viewport on first load
             const vw = viewport.clientWidth || 989;
             const vh = viewport.clientHeight || 581;
@@ -16416,6 +16426,7 @@ function openWorldMap() {
                     ty = Math.round((vh - H) / 2);
                 }
                 svg.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+                if (flagSvgEl) flagSvgEl.style.transform = svg.style.transform;
 
                 // Sync scrollbar thumbs
                 if (vScrollTrack && hScrollTrack) {
@@ -17622,9 +17633,10 @@ function openWorldMap() {
             // SIGINT layer sits between capitals and events
             svg.appendChild(sigintLayer);
             iconGroupEl = _iconGroup;
-            svg.appendChild(_iconGroup);
-            // Restore flags-on-top if the toggle was left on from a previous visit
-            if (flagsOn && flagOverlayG) svg.appendChild(flagOverlayG);
+            // Icons and flags go on the overlay SVG so they are outside the SIGINT tint.
+            flagSvgEl.appendChild(_iconGroup);
+            // Restore flags-on-top of icons if the toggle was left on from a previous visit
+            if (flagsOn && flagOverlayG) flagSvgEl.appendChild(flagOverlayG);
 
             let _editMode = false;
             const _movedOffsets = {}; // id → {x,y} accumulated via drag tool
@@ -17872,7 +17884,7 @@ function openWorldMap() {
                     // Auto-show flags when entering edit mode
                     if (_flagEditMode && !flagsOn) {
                         flagsOn = true;
-                        svgEl.appendChild(flagOverlayG); // flags on top
+                        flagSvgEl.appendChild(flagOverlayG); // flags on top
                     }
                     // Set pointer-events on the group AND explicitly on each image
                     flagOverlayG.style.pointerEvents = _flagEditMode ? 'all' : 'none';
