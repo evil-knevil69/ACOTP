@@ -16139,6 +16139,9 @@ function openWorldMap() {
     let nightOn = _wmNightOn;
     let sigintOn = _wmSigintOn;
     let svgEl = null;
+    // Reassigned inside the SVG .then() once capitals exist; lets the night
+    // toggle and the terminator tick re-evaluate which capitals are in darkness.
+    let _onNightChange = () => {};
     let selectedEl = null;
     const origFills = new Map();
     let flagsOn = _wmFlagsOn;
@@ -16172,6 +16175,7 @@ function openWorldMap() {
         nightBtn.style.color = nightOn ? '#ddd' : '#888';
         const ng = svgEl && svgEl.querySelector('#wm-night-layer');
         if (ng) ng.style.display = nightOn ? '' : 'none';
+        _onNightChange(); // re-light / un-light the capitals on the dark side
     });
     topBar.appendChild(nightBtn);
 
@@ -16528,6 +16532,7 @@ function openWorldMap() {
                 const dec = _parseDeclination();
                 const lon = _subSolarLon();
                 nightPath.setAttribute('d', _buildNightPath(dec, lon));
+                _onNightChange(); // capitals that just crossed the terminator
             };
             _updateTerminator();
             const _nightInterval = setInterval(_updateTerminator, 60000);
@@ -17228,6 +17233,30 @@ function openWorldMap() {
             capGroup.id = 'wm-capitals';
             // svg.appendChild deferred — appended below, before _iconGroup, so events render above capitals
 
+            // Soft glow filter for capitals on the night side of the terminator.
+            // Built programmatically (not via innerHTML, which would lowercase the
+            // camelCase filter-primitive tag names and break the filter).
+            const _capGlowFilter = document.createElementNS(_evNS, 'filter');
+            _capGlowFilter.id = 'wm-cap-glow';
+            _capGlowFilter.setAttribute('x', '-300%');
+            _capGlowFilter.setAttribute('y', '-300%');
+            _capGlowFilter.setAttribute('width', '700%');
+            _capGlowFilter.setAttribute('height', '700%');
+            const _capGlowBlur = document.createElementNS(_evNS, 'feGaussianBlur');
+            _capGlowBlur.setAttribute('stdDeviation', '1.6');
+            _capGlowBlur.setAttribute('result', 'b');
+            _capGlowFilter.appendChild(_capGlowBlur);
+            const _capGlowMerge = document.createElementNS(_evNS, 'feMerge');
+            ['b', 'b', 'SourceGraphic'].forEach(src => {
+                const n = document.createElementNS(_evNS, 'feMergeNode');
+                n.setAttribute('in', src);
+                _capGlowMerge.appendChild(n);
+            });
+            _capGlowFilter.appendChild(_capGlowMerge);
+            const _capDefs = document.createElementNS(_evNS, 'defs');
+            _capDefs.appendChild(_capGlowFilter);
+            capGroup.appendChild(_capDefs);
+
             Object.entries(CAPITAL_DATA).forEach(([code, cityName]) => {
                 const paths = Array.from(svg.querySelectorAll('[id="' + code + '"]'));
                 if (!paths.length) return;
@@ -17327,6 +17356,39 @@ function openWorldMap() {
                 capGroup.appendChild(label);
                 _capDots.push({ dot, code, label });
             });
+
+            // Light up the capitals that fall on the night side. Uses the same
+            // solar geometry as the terminator: a point is dark when the solar
+            // zenith cosine is negative (sun below the local horizon).
+            const _updateCapGlow = () => {
+                const decR   = _parseDeclination() * Math.PI / 180;
+                const subLon = _subSolarLon();
+                const sinDec = Math.sin(decR), cosDec = Math.cos(decR);
+                _capDots.forEach(({ dot }) => {
+                    if (!nightOn) {
+                        dot.removeAttribute('filter');
+                        dot.setAttribute('fill', '#cc0000');
+                        return;
+                    }
+                    const cx  = parseFloat(dot.getAttribute('cx'));
+                    const cy  = parseFloat(dot.getAttribute('cy'));
+                    const lon = cx / 1800 * 360 - 180;
+                    const lat = 90 - cy / 900 * 180;
+                    const latR = lat * Math.PI / 180;
+                    const dLon = (lon - subLon) * Math.PI / 180;
+                    const cosZ = Math.sin(latR) * sinDec
+                               + Math.cos(latR) * cosDec * Math.cos(dLon);
+                    if (cosZ < 0) {
+                        dot.setAttribute('fill', '#ffd24a'); // lit amber — city lights
+                        dot.setAttribute('filter', 'url(#wm-cap-glow)');
+                    } else {
+                        dot.removeAttribute('filter');
+                        dot.setAttribute('fill', '#cc0000'); // daytime red marker
+                    }
+                });
+            };
+            _onNightChange = _updateCapGlow;
+            _updateCapGlow();
 
             const capOffsetPanel = document.createElement('div');
             capOffsetPanel.style.cssText = 'position:absolute;bottom:16px;right:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:520px;white-space:pre;display:none;user-select:text;cursor:text;';
