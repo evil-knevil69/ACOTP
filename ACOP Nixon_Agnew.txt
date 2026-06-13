@@ -16508,12 +16508,12 @@ function openWorldMap() {
             grad.setAttribute('x2', '0'); grad.setAttribute('y2', '1');
             const s0 = document.createElementNS(nightNS, 'stop');
             s0.setAttribute('offset', '0%');
-            s0.setAttribute('stop-color', '#000820');
-            s0.setAttribute('stop-opacity', '0.55');
+            s0.setAttribute('stop-color', '#000510');
+            s0.setAttribute('stop-opacity', '0.82');
             const s1 = document.createElementNS(nightNS, 'stop');
             s1.setAttribute('offset', '100%');
-            s1.setAttribute('stop-color', '#000820');
-            s1.setAttribute('stop-opacity', '0.55');
+            s1.setAttribute('stop-color', '#000510');
+            s1.setAttribute('stop-opacity', '0.82');
             grad.appendChild(s0); grad.appendChild(s1);
             defs.appendChild(grad);
             svg.insertBefore(defs, svg.firstChild);
