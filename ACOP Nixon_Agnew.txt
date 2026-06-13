@@ -16526,7 +16526,10 @@ function openWorldMap() {
             nightPath.id = 'wm-night-path';
             nightPath.setAttribute('fill', 'url(#wm-night-grad)');
             nightLayer.appendChild(nightPath);
-            svg.insertBefore(nightLayer, svg.firstChild); // bottom of z-stack
+            // Append (not insertBefore firstChild) so the dark overlay sits ABOVE
+            // the country paths and actually dims them. Capitals, SIGINT and event
+            // icons are appended later, so they remain bright on top of the night.
+            svg.appendChild(nightLayer);
 
             const _updateTerminator = () => {
                 const dec = _parseDeclination();
@@ -16640,47 +16643,6 @@ function openWorldMap() {
             sigintLayer.id = 'wm-sigint-layer';
             sigintLayer.style.pointerEvents = 'all';
             if (!sigintOn) sigintLayer.style.display = 'none';
-
-            // ── Jet stream layer ───────────────────────────────────────────────
-            // Three persistent east-flowing jet stream bands. SVG animate on
-            // stroke-dashoffset makes dashes flow east. Not SIGINT-gated —
-            // jets are atmospheric, always visible when the map is open.
-            const jetLayer = document.createElementNS(_sNS, 'g');
-            jetLayer.id = 'wm-jet-layer';
-            jetLayer.style.pointerEvents = 'none';
-            (function() {
-                const _bw = (y0, amp, wl) => {
-                    let d = '';
-                    for (let i = 0; i <= 225; i++) {
-                        const x = i * 8;
-                        const y = y0 + amp * Math.sin(2 * Math.PI * x / wl);
-                        d += (i ? 'L' : 'M') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
-                    }
-                    return d;
-                };
-                [
-                    { y: 150, amp: 16, wl: 820,  dur: '3.2s', op: 0.40 },
-                    { y: 307, amp: 10, wl: 1050, dur: '4.6s', op: 0.24 },
-                    { y: 749, amp: 13, wl: 920,  dur: '3.9s', op: 0.26 },
-                ].forEach(j => {
-                    const p = document.createElementNS(_sNS, 'path');
-                    p.setAttribute('d', _bw(j.y, j.amp, j.wl));
-                    p.setAttribute('fill', 'none');
-                    p.setAttribute('stroke', '#ffc040');
-                    p.setAttribute('stroke-width', '1.1');
-                    p.setAttribute('stroke-opacity', String(j.op));
-                    p.setAttribute('stroke-dasharray', '60 48');
-                    const a = document.createElementNS(_sNS, 'animate');
-                    a.setAttribute('attributeName', 'stroke-dashoffset');
-                    a.setAttribute('from', '108');
-                    a.setAttribute('to', '0');
-                    a.setAttribute('dur', j.dur);
-                    a.setAttribute('repeatCount', 'indefinite');
-                    p.appendChild(a);
-                    jetLayer.appendChild(p);
-                });
-            })();
-            // ── End jet stream layer ───────────────────────────────────────────
 
             // ── Submarine patrol corridors ─────────────────────────────────────
             // Approximate SSBN bastions from IISS Military Balance 1972-73.
@@ -17605,7 +17567,6 @@ function openWorldMap() {
             // Capitals at the bottom; events above them (so dots never cover icons
             // and events win hover priority); flags appended last, on top — they are
             // pointer-events:none so being on top does not block hover.
-            svg.appendChild(jetLayer);    // jet streams below capitals
             capGroupEl = capGroup;
             svg.appendChild(capGroup);
             // SIGINT layer sits between capitals and events
