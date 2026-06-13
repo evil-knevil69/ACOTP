@@ -16935,14 +16935,18 @@ function openWorldMap() {
                     evTooltip.innerHTML = `<strong style="font-family:TypewriterDry,monospace;letter-spacing:1px;">${fc ? fc.name : code} - Disposition of Forces</strong>${html}`;
                     evTooltip.style.display = 'block';
                     const vr = viewport.getBoundingClientRect();
-                    evTooltip.style.left = Math.min(ev.clientX - vr.left + 12, 989 - 280) + 'px';
-                    evTooltip.style.top  = Math.max(ev.clientY - vr.top  - 10, 4) + 'px';
+                    // Pinned to the top-left of the world-map window (viewport),
+                    // not the cursor or the global screen corner.
+                    evTooltip.style.left = (vr.left + 12) + 'px';
+                    evTooltip.style.top  = (vr.top  + 12) + 'px';
                 });
                 chip.addEventListener('mousemove', (ev) => {
                     if (_chipEditMode) return;
                     const vr = viewport.getBoundingClientRect();
-                    evTooltip.style.left = Math.min(ev.clientX - vr.left + 12, 989 - 280) + 'px';
-                    evTooltip.style.top  = Math.max(ev.clientY - vr.top  - 10, 4) + 'px';
+                    // Pinned to the top-left of the world-map window (viewport),
+                    // not the cursor or the global screen corner.
+                    evTooltip.style.left = (vr.left + 12) + 'px';
+                    evTooltip.style.top  = (vr.top  + 12) + 'px';
                 });
                 chip.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
 
@@ -16997,14 +17001,18 @@ function openWorldMap() {
                     evTooltip.innerHTML = `<strong style="font-family:TypewriterDry,monospace;letter-spacing:1px;">${fc ? fc.name : code} - Disposition of Forces</strong>${html}`;
                     evTooltip.style.display = 'block';
                     const vr = viewport.getBoundingClientRect();
-                    evTooltip.style.left = Math.min(ev.clientX - vr.left + 12, 989 - 280) + 'px';
-                    evTooltip.style.top  = Math.max(ev.clientY - vr.top  - 10, 4) + 'px';
+                    // Pinned to the top-left of the world-map window (viewport),
+                    // not the cursor or the global screen corner.
+                    evTooltip.style.left = (vr.left + 12) + 'px';
+                    evTooltip.style.top  = (vr.top  + 12) + 'px';
                 });
                 path.addEventListener('mousemove', (ev) => {
                     if (!sigintOn) return;
                     const vr = viewport.getBoundingClientRect();
-                    evTooltip.style.left = Math.min(ev.clientX - vr.left + 12, 989 - 280) + 'px';
-                    evTooltip.style.top  = Math.max(ev.clientY - vr.top  - 10, 4) + 'px';
+                    // Pinned to the top-left of the world-map window (viewport),
+                    // not the cursor or the global screen corner.
+                    evTooltip.style.left = (vr.left + 12) + 'px';
+                    evTooltip.style.top  = (vr.top  + 12) + 'px';
                 });
             });
 
