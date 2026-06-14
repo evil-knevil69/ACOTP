@@ -16545,18 +16545,18 @@ function openWorldMap() {
     const _regions = [
         { label: 'N.AM.',        x:  400, y: 225, s: 1.6 },
         { label: 'LAT.AM.',      x:  575, y: 525, s: 1.8 },
-        { label: 'EUR.',         x:  975, y: 190, s: 2.2 },
-        { label: 'AFR.',         x: 1010, y: 435, s: 1.7 },
-        { label: 'M.EAST',      x: 1110, y: 310, s: 2.4 },
+        { label: 'EUR.',         x:  930, y: 190, s: 2.2 },
+        { label: 'AFR.',         x:  965, y: 480, s: 1.7 },
+        { label: 'M.EAST',      x: 1075, y: 310, s: 2.4 },
         { label: 'SE.ASIA',     x: 1425, y: 390, s: 2.2 },
         { label: 'WORLD',        x:  900, y: 450, s: 0.52 },
     ];
     _regions.forEach(r => {
         const rb = document.createElement('button');
         rb.textContent = r.label;
-        rb.style.cssText = 'cursor:pointer;padding:0 6px;height:22px;font-family:TypewriterDry,monospace;font-size:10px;letter-spacing:1px;background:transparent;border:1px solid #2a2a2a;color:#555;transition:color 0.15s,border-color 0.15s;';
-        rb.addEventListener('mouseenter', () => { rb.style.color = '#ccc'; rb.style.borderColor = '#666'; });
-        rb.addEventListener('mouseleave', () => { rb.style.color = '#555'; rb.style.borderColor = '#2a2a2a'; });
+        rb.style.cssText = 'cursor:pointer;padding:0 6px;height:22px;font-family:TypewriterDry,monospace;font-size:10px;letter-spacing:1px;background:transparent;border:1px solid #444;color:#888;transition:color 0.15s,border-color 0.15s;';
+        rb.addEventListener('mouseenter', () => { rb.style.color = '#ddd'; rb.style.borderColor = '#888'; });
+        rb.addEventListener('mouseleave', () => { rb.style.color = '#888'; rb.style.borderColor = '#444'; });
         rb.addEventListener('click', () => flyTo(r.x, r.y, r.s, 700));
         topBar.appendChild(rb);
     });
