@@ -16769,7 +16769,8 @@ function openWorldMap() {
                 if (p.id && COUNTRY_NAMES[p.id]) _countryEls.push(p);
             });
             if (_countryEls.length) {
-                svg.insertBefore(landGroup, _countryEls[0]); // sits above ocean, below later layers
+                const _landParent = _countryEls[0].parentNode;
+                _landParent.insertBefore(landGroup, _countryEls[0]);
                 _countryEls.forEach(p => landGroup.appendChild(p));
             }
 
