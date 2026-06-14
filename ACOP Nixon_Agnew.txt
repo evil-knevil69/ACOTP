@@ -16779,7 +16779,7 @@ function openWorldMap() {
             hoverFe.setAttribute('dx', '0'); hoverFe.setAttribute('dy', '0');
             hoverFe.setAttribute('stdDeviation', '5');
             hoverFe.setAttribute('flood-color', '#ffffff');
-            hoverFe.setAttribute('flood-opacity', '0.7');
+            hoverFe.setAttribute('flood-opacity', '0.47');
             hoverGlowFilter.appendChild(hoverFe);
             defs.appendChild(hoverGlowFilter);
 
@@ -17054,11 +17054,11 @@ function openWorldMap() {
 
             const _subZones = []; // { el, lbl, rx, ry, fill, label } — for Move Subs tool
             [
-                [ 700, 192, 138, 56, '#4488ff', 'SSBN PATROL (US)' ],   // N Atlantic
-                [1672, 325,  98, 62, '#4488ff', 'SSBN PATROL (US)' ],   // W Pacific
+                [ 619,  96, 138, 56, '#4488ff', 'SSBN PATROL (US)' ],   // Labrador/N Atlantic
+                [1672, 325,  98, 62, '#4488ff', 'SSBN PATROL (US)' ],   // W Pacific (was over China)
                 [1098,  70, 190, 40, '#ff4444', 'SSBN BASTION (SU)'],   // Barents/Arctic
                 [ 920, 112,  88, 36, '#ff4444', 'SSBN BASTION (SU)'],   // Norwegian Sea
-                [1638, 188,  78, 50, '#ff4444', 'SSBN BASTION (SU)'],   // Sea of Okhotsk
+                [1638, 188,  78, 50, '#ff4444', 'SSBN BASTION (SU)'],   // Sea of Okhotsk (was over Siberia)
             ].forEach(([cx, cy, rx, ry, fill, label]) => {
                 const el = document.createElementNS(_sNS, 'ellipse');
                 el.setAttribute('cx', cx);  el.setAttribute('cy', cy);
