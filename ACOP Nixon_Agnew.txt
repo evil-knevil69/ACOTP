@@ -16119,6 +16119,33 @@ function openWorldMap() {
     viewport.id = 'wm-viewport';
     viewport.style.cssText = 'flex:1;overflow:hidden;position:relative;cursor:default;user-select:none;';
 
+    // ── Always-on film grain + vignette ──────────────────────────────────────
+    // A permanent, subtle "lit table" pass that unifies the layered map. Sits
+    // above the map imagery (z 15/16) but below the scrollbars/panels (z 20+)
+    // and below the heavier SIGINT CRT overlay (z 9000+). pointer-events:none so
+    // it never blocks the map. Both are viewport children, removed with it.
+    const vignetteFx = document.createElement('div');
+    vignetteFx.id = 'wm-vignette-fx';
+    vignetteFx.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:15;background:radial-gradient(ellipse at center, rgba(0,0,0,0) 56%, rgba(0,0,0,0.34) 100%);';
+    viewport.appendChild(vignetteFx);
+
+    const grainFx = document.createElement('div');
+    grainFx.id = 'wm-grain-fx';
+    const _grainURI = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E";
+    grainFx.style.cssText = "position:absolute;inset:-12px;pointer-events:none;z-index:16;opacity:0.05;mix-blend-mode:overlay;background-image:url(\"" + _grainURI + "\");background-size:160px 160px;";
+    viewport.appendChild(grainFx);
+    // Drift the grain tile a few px so it shimmers like film rather than sitting static.
+    try {
+        grainFx.animate(
+            [
+                { transform: 'translate(0,0)' }, { transform: 'translate(-7px,5px)' },
+                { transform: 'translate(5px,-6px)' }, { transform: 'translate(-4px,7px)' },
+                { transform: 'translate(7px,3px)' }, { transform: 'translate(0,0)' },
+            ],
+            { duration: 700, iterations: Infinity, easing: 'steps(5)' }
+        );
+    } catch (_) {}
+
     // Control bar at the bottom
     const bar = document.createElement('div');
     bar.style.cssText = 'flex-shrink:0;height:44px;background:#000;display:flex;align-items:center;gap:6px;padding:0 12px;';
@@ -16712,6 +16739,23 @@ function openWorldMap() {
             termGlowBlur.appendChild(termGlowFe);
             defs.appendChild(termGlowBlur);
 
+            // Warm sun-glint radial gradient — the bright sunlit spot at the
+            // subsolar point. objectBoundingBox so it travels with its circle.
+            const glintGrad = document.createElementNS(nightNS, 'radialGradient');
+            glintGrad.id = 'wm-glint-grad';
+            [
+                ['0%',   '#fff7de', '0.42'],
+                ['45%',  '#ffe7aa', '0.16'],
+                ['100%', '#ffe7aa', '0'],
+            ].forEach(([off, col, op]) => {
+                const st = document.createElementNS(nightNS, 'stop');
+                st.setAttribute('offset', off);
+                st.setAttribute('stop-color', col);
+                st.setAttribute('stop-opacity', op);
+                glintGrad.appendChild(st);
+            });
+            defs.appendChild(glintGrad);
+
             svg.insertBefore(defs, svg.firstChild);
 
             // Wrap every country path in one group so the drop-shadow filter sees
@@ -16752,6 +16796,16 @@ function openWorldMap() {
             termPulse.setAttribute('repeatCount', 'indefinite');
             termGlow.appendChild(termPulse);
             nightLayer.appendChild(termGlow);
+
+            // Sun glint — a soft warm bloom on the sunlit (subsolar) spot that
+            // glides with the day. Sits above the map base but below the pins.
+            const sunGlint = document.createElementNS(nightNS, 'circle');
+            sunGlint.id = 'wm-sun-glint';
+            sunGlint.setAttribute('r', '150');
+            sunGlint.setAttribute('fill', 'url(#wm-glint-grad)');
+            sunGlint.setAttribute('pointer-events', 'none');
+            nightLayer.appendChild(sunGlint);
+
             // Append (not insertBefore firstChild) so the dark overlay sits ABOVE
             // the country paths and actually dims them. Capitals, SIGINT and event
             // icons are appended later, so they remain bright on top of the night.
@@ -16762,6 +16816,9 @@ function openWorldMap() {
                 const lon = _subSolarLon();
                 nightPath.setAttribute('d', _buildNightPath(dec, lon));
                 termGlow.setAttribute('d', _termCurveD(dec, lon));
+                // Subsolar point: latitude = solar declination, longitude = subsolar lon.
+                sunGlint.setAttribute('cx', (lon + 180) / 360 * 1800);
+                sunGlint.setAttribute('cy', (90 - dec) / 180 * 900);
                 _onNightChange(); // capitals that just crossed the terminator
             };
             _updateTerminator();
@@ -17700,6 +17757,15 @@ function openWorldMap() {
                 dot.setAttribute('stroke', 'rgba(255,255,255,0.9)');
                 dot.setAttribute('stroke-width', '0.6');
                 dot.setAttribute('pointer-events', 'all');
+                // Gentle twinkle — imperceptible on the daytime red dots, reads as
+                // flickering city lights on the glowing amber night-side capitals.
+                // Randomised duration so they shimmer out of sync.
+                const _twinkle = document.createElementNS(_evNS, 'animate');
+                _twinkle.setAttribute('attributeName', 'opacity');
+                _twinkle.setAttribute('values', '1;0.72;1');
+                _twinkle.setAttribute('dur', (1.6 + Math.random() * 2.4).toFixed(2) + 's');
+                _twinkle.setAttribute('repeatCount', 'indefinite');
+                dot.appendChild(_twinkle);
 
                 const label = document.createElementNS(_evNS, 'text');
                 label.setAttribute('x', baseCx + off.x + 3);
