@@ -830,7 +830,7 @@ div.center img#header {
     max-height: none !important;
     overflow-y: auto !important;
 }
-#game_window g {
+#game_window > g {
     display: block !important;
     position: absolute !important;
     bottom: 0 !important;
@@ -858,7 +858,7 @@ div.center img#header {
     max-height: 250px !important;
     margin-right: 0 !important;
 }
-#game_window g .inner_window_sign_display {
+#game_window > g .inner_window_sign_display {
     position: absolute !important;
     bottom: 0 !important;
     left: 50% !important;
@@ -2084,7 +2084,7 @@ function __mapVisitTick() {
                 const visitText = document.querySelector('.visit_text');
                 if (visitText && !visitText.dataset.replaced) {
                     visitText.dataset.replaced = 'true';
-                    visitText.innerHTML = '<p style="text-align: center; font-family: Georgia, serif; font-size: 1.17em; margin: 0; margin-left: -20px; margin-top: -10px; color: black;">Click on the state you wish to visit.</p>';
+                    visitText.innerHTML = '<p style="text-align: center; font-family: Georgia, serif; font-size: 1.17em; margin: 0; color: black;">Click on the state you wish to visit.</p>';
                 }
                 if (!document.getElementById('visit-hide-style')) {
                     const vs = document.createElement('style');
@@ -2099,6 +2099,7 @@ function __mapVisitTick() {
                             -webkit-mask-image: none !important;
                             mask-image: none !important;
                             margin-left: -65px !important;
+                            position: relative !important;
                         }
                         #map_container {
                             background-image: none !important;
@@ -2158,9 +2159,14 @@ function __mapVisitTick() {
                             height: 0 !important;
                         }
                         .visit_text {
-                            position: relative !important;
-                            top: -10px !important;
+                            position: absolute !important;
+                            bottom: 80px !important;
+                            left: 0 !important;
+                            width: 1113px !important;
+                            margin: 0 !important;
+                            text-align: center !important;
                             z-index: 10 !important;
+                            pointer-events: none !important;
                         }
                     `;
                     document.head.appendChild(vs);

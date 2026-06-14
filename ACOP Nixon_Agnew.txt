@@ -11680,7 +11680,7 @@ const COUNTRIES = {
   BS: { name:'Bahamas', loyal:72, file:'bahamas', flag:'svg' }, // Bahamas — British colony (ind. 1973), Western
   BB: { name:'Barbados', loyal:70, file:'barbados', flag:'svg' }, // Barbados — Commonwealth
   CA: { name:'Canada', loyal:88, file:'canada', flag:'svg' }, // Canada — NORAD, NATO, close partner
-  CR: { name:'Costa Rica', loyal:72, file:'costa-rica', flag:'svg' }, // Costa Rica — stable democracy, pro-US
+  CR: { name:'Nicaragua', loyal:72, file:'nicaragua', flag:'svg' }, // NB: SVG path id 'CR' is the NORTHERN shape = Nicaragua (ids are swapped vs geography)
   CU: { name:'Cuba', loyal:12, file:'cuba', flag:'svg' }, // Cuba — Soviet ally
   DO: { name:'Dominican Republic', loyal:75, file:'dominican-republic', flag:'svg' }, // Dominican Republic — US intervened 1965, Balaguer
   SV: { name:'El Salvador', loyal:68, file:'el-salvador', flag:'svg' }, // El Salvador
@@ -11689,7 +11689,7 @@ const COUNTRIES = {
   HN: { name:'Honduras', loyal:68, file:'honduras', flag:'svg' }, // Honduras
   JM: { name:'Jamaica', loyal:65, file:'jamaica', flag:'svg' }, // Jamaica — Commonwealth
   MX: { name:'Mexico', loyal:58, file:'mexico', flag:'svg' }, // Mexico — PRI, independent foreign policy
-  NI: { name:'Nicaragua', loyal:72, file:'nicaragua', flag:'svg' }, // Nicaragua — Somoza dynasty, pro-US
+  NI: { name:'Costa Rica', loyal:72, file:'costa-rica', flag:'svg' }, // NB: SVG path id 'NI' is the SOUTHERN shape = Costa Rica (ids are swapped vs geography)
   PA: { name:'Panama', loyal:52, file:'panama', flag:'svg' }, // Panama — Canal Zone tensions with Torrijos
   TT: { name:'Trinidad and Tobago', loyal:65, file:'trinidad-and-tobago', flag:'svg' }, // Trinidad and Tobago — Commonwealth
   GD: { name:'Grenada', loyal:65, file:'grenada', flag:'svg' }, // Grenada — British associated state
@@ -12023,8 +12023,8 @@ var RepublicanSupport = 9;
 // ─────────────────────────────────────────────────────────────────────────────
 var Vietnam        = 6;  // Vietnam War (also used for other game logic)
 var chad           = 1;  // Chadian Civil War
-var khmer          = 1;  // Cambodian Civil War
-var laos           = 1;  // Laotian Civil War
+var khmer          = 1;  // Cambodia: 1 = Civil War, 2 = Khmer Rouge / Year Zero (set via question onShow)
+var laos           = 1;  // Laos: 1 = Civil War, 2 = Pathet Lao takeover (set via question onShow)
 var eritrea        = 1;  // Eritrean War of Independence
 var managua        = 1;  // Managua Earthquake — DEMO: starts active so the 3-turn
                          // lifespan is visible from question 1; set back to 0 and
@@ -12092,7 +12092,20 @@ const _EVENT_DEFS = [
         body: 'A 1970 coup aided by the US removed Prince Sihanouk and installed the Lon Nol government. Lon Nol, paralysed by a stroke and absorbed by the occult, is losing his grip on reality. The Khmer Rouge, previously a marginal force, now controls large areas of the countryside despite the slaughter of USAF saturation bombing. The government\'s hold on the cities is increasingly precarious.',
         country: 'KH',
         positionOffset: { x: -10, y: -12 },
-        state: () => 1, // TEMP: was () => khmer
+        // khmer === 1 → civil war shows; set khmer = 2 from a question onShow to
+        // end the war and bring up the Khmer Rouge / Year Zero event below.
+        state: () => khmer === 1 ? 1 : 0,
+    },
+    {
+        id: 'khmer-rouge',
+        continent: 'Asia',
+        type: 'crisis',
+        label: 'Khmer Rouge — Year Zero',
+        img: null,
+        body: 'On 17 April 1975 the Khmer Rouge entered Phnom Penh, ending the civil war. Pol Pot\'s regime emptied the cities at gunpoint, abolished money and proclaimed "Year Zero". What follows is one of the worst genocides of the century: as much as a quarter of Cambodia\'s population will die in the killing fields. Washington, having backed Lon Nol, looks away.',
+        country: 'KH',
+        positionOffset: { x: -10, y: -12 },
+        state: () => khmer >= 2 ? 1 : 0,
     },
     {
         id: 'laotian-civil-war',
@@ -12102,7 +12115,19 @@ const _EVENT_DEFS = [
         img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Laos3.png',
         body: 'The Royal Lao Government has fought the communist Pathet Lao since 1953, with North Vietnamese forces providing decisive support to the insurgents. The CIA maintains a secret army of Hmong fighters under General Vang Pao, conducting unconventional warfare across the Plain of Jars. US bombing of the Ho Chi Minh Trail has made Laos the most heavily bombed country per capita in history. Congress and the public remain largely unaware of the scale of American involvement.',
         country: 'LA',
-        state: () => 1, // TEMP: was () => laos
+        // laos === 1 → civil war shows; set laos = 2 from a question onShow to end
+        // the war and bring up the Pathet Lao takeover event below.
+        state: () => laos === 1 ? 1 : 0,
+    },
+    {
+        id: 'pathet-lao',
+        continent: 'Asia',
+        type: 'crisis',
+        label: 'Pathet Lao Takeover',
+        img: null,
+        body: 'In December 1975 the communist Pathet Lao abolished the 600-year-old Lao monarchy and proclaimed the Lao People\'s Democratic Republic. King Savang Vatthana abdicates and will later die in a re-education camp. The CIA\'s secret war is over; tens of thousands of Hmong who fought for the Americans flee across the Mekong or face reprisal.',
+        country: 'LA',
+        state: () => laos >= 2 ? 1 : 0,
     },
     {
         id: 'managua-quake',
@@ -12111,7 +12136,7 @@ const _EVENT_DEFS = [
         label: 'Managua Earthquake',
         img: null, // TODO: e.g. 'https://file.garden/.../managua.jpg'
         body: 'A 6.2-magnitude earthquake struck the Nicaraguan capital on December 23, 1972, killing over 10,000 and levelled much of the city centre.',
-        country: 'NI',
+        country: 'CR', // SVG id 'CR' is the northern shape = physical Nicaragua (ids swapped vs geography)
         positionOffset: { x: -12, y: -13 },
         // ── EVENT LIFESPAN worked example ──
         // state() reads the live variable; set() lets the turn engine write it.
@@ -12132,7 +12157,7 @@ const _EVENT_DEFS = [
         body: 'Following a Greek Cypriot coup backed by the Athens junta, Turkey invaded Cyprus in July 1974. The island is now partitioned between Greek and Turkish zones.',
         country: 'CY',
         positionOffset: { x: -11, y: -11 },
-        state: () => 1, // TEMP: was () => cyprusInvasion
+        state: () => cyprusInvasion,
     },
     {
         id: 'chad-civil-war',
@@ -12165,7 +12190,7 @@ const _EVENT_DEFS = [
         body: 'In the early hours of February 4th 1976, a magnitude 7.5 earthquake struck Guatemala, killing more than 23,000 people and leaving over a million homeless. Striking while the country slept, it devastated highland towns and shanty districts of Guatemala City alike.',
         country: 'GT',
         positionOffset: { x: -18, y: -8 },
-        state: () => 1, // TEMP: was () => guatemalaQuake
+        state: () => guatemalaQuake,
     },
     {
         id: 'rhodesia-bush-war',
@@ -12198,7 +12223,7 @@ const _EVENT_DEFS = [
         body: 'Heavy rainfall, snowmelt and a saturated drainage basin triggered the worst Mississippi flooding in 150 years. Sixteen states are affected from Illinois to Louisiana, 17 million acres inundated, hundreds dead and thousands homeless. A federal disaster has been declared.',
         country: 'US',
         positionOffset: { x: 23, y: 57 },
-        state: () => 1, // TEMP: was () => mississippi
+        state: () => mississippi,
     },
     {
         id: 'tangshan-quake',
@@ -12209,7 +12234,7 @@ const _EVENT_DEFS = [
         body: 'A magnitude 7.6 earthquake struck the industrial city of Tangshan in northern China at 3:42 in the morning, killing an estimated 240,000 people. The city was almost completely levelled. Beijing refused all offers of foreign aid, and the CIA struggled to get any meaningful intelligence behind a Great Wall of deliberate concealment.',
         country: 'CN',
         positionOffset: { x: 66, y: -48 },
-        state: () => 1, // TEMP: was () => tangshan
+        state: () => tangshan,
     },
     {
         id: 'honduras-coup-1972',
@@ -12220,7 +12245,7 @@ const _EVENT_DEFS = [
         body: 'The elected president, Ramón Ernesto Cruz is overthrown in a bloodless military coup. A military triumvirate now rules, headed by ex and now president General Oswaldo Enrique López Arellano. This will turn out to be a coup from the left, promising land reform and labor union rights. But, a true banana republic, the position of United Fruit will be protected.',
         country: 'HN',
         positionOffset: { x: -16, y: -15 },
-        state: () => 1, // TEMP: was () => hondurasCoup
+        state: () => hondurasCoup,
     },
     {
         id: 'bananagate',
@@ -12231,7 +12256,7 @@ const _EVENT_DEFS = [
         body: 'Our friend, President López has been overthrown in another coup. This follows in the wake of the chairman of United Brands committing suicide after being caught bribing López $3m to reduce Hondura\'s banana export tax. \'Bananagate\' rumbles on for a few weeks, while United Fruit loosens its grip on Honduras.',
         country: 'HN',
         positionOffset: { x: -15, y: -15 },
-        state: () => 1, // TEMP: was () => bananagate
+        state: () => bananagate,
     },
     {
         id: 'rwanda-coup',
@@ -12242,7 +12267,7 @@ const _EVENT_DEFS = [
         body: 'Led by Major General Juvénal Habyarimana, deposing Rwanda\'s first elected president, Grégoire Kayibanda, and installing a Hutu-dominated totalitarian state. The new regime clamps down on intra-Hutu rivalry at the expense of the marginalised Tutsi minority, laying the structural foundations for the Rwandan genocide after Habyarimana\'s assassination in 1994.',
         country: 'RW',
         positionOffset: { x: -12, y: -13 },
-        state: () => 1, // TEMP: was () => rwandaCoup
+        state: () => rwandaCoup,
     },
     {
         id: 'afghanistan-coup',
@@ -12253,7 +12278,7 @@ const _EVENT_DEFS = [
         body: 'Mohammad Daoud Khan overthrows his cousin, King Mohammad Zahir Shah (the last king of Afghanistan). A one party republic is established with some Marxist leanings. Despite this, Daoud puts feelers out to the US and Pakistan.',
         country: 'AF',
         positionOffset: { x: -4, y: -13 },
-        state: () => 1, // TEMP: was () => afghanCoup
+        state: () => afghanCoup,
     },
     {
         id: 'niger-coup',
@@ -12264,7 +12289,7 @@ const _EVENT_DEFS = [
         body: '15 April 1974. Lieutenant-Colonel Seyni Kountché led a military coup that ended the fourteen-year rule of President Diori. The army effectively distributes food aid hoarded by Diori to a population reeling from a 6 year long drought, winning much popular support.',
         country: 'NE',
         positionOffset: { x: -41, y: 9 },
-        state: () => 1, // TEMP: was () => nigerCoup
+        state: () => nigerCoup,
     },
     {
         id: 'greek-corrective-revolution',
@@ -12275,7 +12300,7 @@ const _EVENT_DEFS = [
         body: 'Brigadier Dimitrios Ioannidis, head of the military police, has overthrown George Papadopoulos in a palace coup. Papadopoulos had been cautiously liberalising the regime but Ioannidis wants to tear off the mask, enforcing an ultra nationalist, reactionary regime with torture, mass imprisonment and pervasive censorship. The social base of the Regime of the Colonels grows ever narrower.',
         country: 'GR',
         positionOffset: { x: -22, y: -22 },
-        state: () => 1, // TEMP: was () => greekCoup
+        state: () => greekCoup,
     },
     {
         id: 'ethiopian-revolution',
@@ -12286,7 +12311,7 @@ const _EVENT_DEFS = [
         body: 'Ethiopia, one of the world\'s oldest nations, may be entering the first modern example of a polycrisis. War in Eritrea, ethnic conflict, famine in the Wollo, peasant uprisings against all of the above and against the anachronistic feudalism of Emperor Haile Selassie. Students burning down campuses and a demoralised and underpaid army, now turning openly to mutiny.',
         country: 'ET',
         positionOffset: { x: -2, y: 17 },
-        state: () => 1, // TEMP: was () => ethiopianRevolution
+        state: () => ethiopianRevolution,
     },
     {
         id: 'derg-coup',
@@ -12297,7 +12322,7 @@ const _EVENT_DEFS = [
         body: 'Taking advantage of the collapsing legitimacy of the Ethiopian Empire, a group of junior officers place Haile Selassie under palace arrest. \'The Committee\', aka the Derg, create a Marxist dictatorship that turns in on itself, initiating a Red Terror akin to its Soviet and Stalinist namesakes.',
         country: 'ET',
         positionOffset: { x: -21, y: -6 },
-        state: () => 1, // TEMP: was () => dergCoup
+        state: () => dergCoup,
     },
     {
         id: 'uruguay-self-coup',
@@ -12308,7 +12333,7 @@ const _EVENT_DEFS = [
         body: 'President Juan María Bordaberry dissolves parliament with military backing, banning political parties, trade unions and the press. The objective is the elimination of the left. Uruguay\'s democratic traditions are shredded and torture becomes institutionalised. The CIA raises no objection. After all, Uruguay is a founding member of Operation Condor.',
         country: 'UY',
         positionOffset: { x: -10, y: -5 },
-        state: () => 1, // TEMP: was () => uruguayCoup
+        state: () => uruguayCoup,
     },
     {
         id: 'chilean-coup',
@@ -12319,7 +12344,7 @@ const _EVENT_DEFS = [
         body: '9/11. 1973. A day that will live in infamy. And conspiracy. The narrowly but legitimately elected Socialist Government of Salvador Allende is violently overthrown by the army led by General Augusto Pinochet. At the least, you let this happen. At the worst your hands drip blood like the stands of Santiago Stadium and like the decks of the army\'s helicopters, from which several hundred political prisoners are \'disappeared\'.',
         country: 'CL',
         positionOffset: { x: -35, y: -17 },
-        state: () => 1, // TEMP: was () => chileanCoup
+        state: () => chileanCoup,
     },
     {
         id: 'upper-volta-coup',
@@ -12330,7 +12355,7 @@ const _EVENT_DEFS = [
         body: 'President General Sangoulé Lamizana commits a self coup, suspending the constitution and appointing himself as prime minister. The context is the social dislocation of the 6 year long Sahel Famine. Lamizana presents himself as a strongman in a crisis and guards his direct line to you and therefore, aid from Washington.',
         country: 'HV',
         positionOffset: { x: -12, y: -12 },
-        state: () => 1, // TEMP: was () => upperVoltaCoup
+        state: () => upperVoltaCoup,
     },
     {
         id: 'tacnazo',
@@ -12341,7 +12366,7 @@ const _EVENT_DEFS = [
         body: 'A general overthrows a general. The ailing President Velasco is overthrown by General Morales Bermúdez. The \'developmentalist\' Peruvian Revolution takes a right turn, stalling social and economic reforms. The other good news is that Peru becomes a fully fledged member of the Condor club.',
         country: 'PE',
         positionOffset: { x: -16, y: 4 },
-        state: () => 1, // TEMP: was () => tacnazo
+        state: () => tacnazo,
     },
     {
         id: 'argentine-coup',
@@ -12352,7 +12377,7 @@ const _EVENT_DEFS = [
         body: 'A rampaging military junta takes power, weakly grasped, from Isabel \'Isabelita\' Peron, Juan Peron\'s widow. Argentina is already roiling from the Dirty War, which now becomes fully institutionalised: more than 300 concentration camps sprout like grass in the Pampas. The Department of State aids and abets the generals in their struggle against communism.',
         country: 'AR',
         positionOffset: { x: 8, y: -36 },
-        state: () => 1, // TEMP: was () => argentineCoup
+        state: () => argentineCoup,
     },
     {
         id: 'north-yemen-coup',
@@ -12363,7 +12388,7 @@ const _EVENT_DEFS = [
         body: 'Colonel Ibrahim al-Hamdi has overthrown the civilian government of President Abdul Rahman al-Iryani in a swift, largely bloodless coup. A moderniser and nationalist, al-Hamdi moves to dismantle the tribal power structures that have paralysed Yemeni politics. He pivots away from the USSR and one of his first actions is a telegram to you asking for development aid.',
         country: 'YE',
         positionOffset: { x: -14, y: -14 },
-        state: () => 1, // TEMP: was () => northYemenCoup
+        state: () => northYemenCoup,
     },
     {
         id: 'oromo-uprising',
@@ -12374,7 +12399,7 @@ const _EVENT_DEFS = [
         body: 'Ethiopia\'s largest ethnic group rises in armed resistance against centuries of subjugation. The Oromo Liberation Front, founded as the empire fractures, demands recognition, land and self-determination.',
         country: 'ET',
         positionOffset: { x: -18, y: 18 },
-        state: () => 1, // TEMP: was () => oromoUprising
+        state: () => oromoUprising,
     },
     {
         id: 'sahrawi-insurgency',
@@ -12385,7 +12410,7 @@ const _EVENT_DEFS = [
         body: 'Spain\'s Saharan colony is slipping from its grasp as the Franco regime enters its death throes. The Polisario Front fights for Sahrawi self-determination, but Morocco\'s King Hassan II has designs on the territory and Algeria is watching. When Hassan sends 350,000 civilians marching across the border in the \'Green March\', Spain folds and the Polisario are left fighting Moroccan and Mauritanian annexation across open desert. One of the last decolonisation struggles, almost entirely ignored by Washington.',
         country: 'MA',
         positionOffset: { x: -46, y: 23 },
-        state: () => 1, // TEMP: was () => sahrawiInsurgency
+        state: () => sahrawiInsurgency,
     },
     {
         id: 'sahel-drought',
@@ -12498,7 +12523,7 @@ function _shiftStateIssue(issueId, delta) {
 
 cyoAdventure = function (a) {
     const ans = campaignTrail_temp.player_answers[campaignTrail_temp.player_answers.length - 1];
-    e.noCounter = campaignTrail_temp.player_answers.length;
+    campaignTrail_temp.noCounter = campaignTrail_temp.player_answers.length;
 
     // Tier 1: random image from nominee pool
     updateAdvisorImage();
@@ -12556,6 +12581,10 @@ cyoAdventure = function (a) {
 
 const style2 = document.createElement('style');
 style2.innerHTML = `
+    @font-face {
+        font-family: 'Tenada';
+        src: url('https://file.garden/aXPgNT-ZRCxxpy0g/Tenada.ttf') format('truetype');
+    }
     #candidate_pic {
         left: -16px !important;
         z-index: 7 !important;
@@ -14404,14 +14433,28 @@ const questionData = {
 
 const _shownTransitions = new Set();
 
+// The engine advances the question index on the page-global `e`
+// (campaign_trail.js: `e.question_number++`). The mod's `campaignTrail_temp`
+// parameter is bound once at mod load; if the loader rebinds the global between
+// games, top-level primitives like question_number never appear on our binding
+// (object/array fields keep working — Object.assign copies their references).
+// Bare `e` here resolves up the scope chain to the page global — destructuring
+// it out of the new Function parameters only removes the local, not the global.
+const _liveGameState = () => {
+    if (typeof e !== 'undefined' && e && e.question_number != null) return e;
+    if (campaignTrail_temp && campaignTrail_temp.question_number != null) return campaignTrail_temp;
+    return null;
+};
+
 window.__onGameWindowMutation(() => {
         {
             updateTypewriterVisibility();
             updateCampaignSign();
             addInnerCircleButton();
 
-            if (typeof e !== 'undefined' && e.question_number != null) {
-                const currentPK = campaignTrail_temp.questions_json?.[e.question_number]?.pk ?? null;
+            const _gs = _liveGameState();
+            if (_gs) {
+                const currentPK = _gs.questions_json?.[_gs.question_number]?.pk ?? null;
                 if (currentPK !== _lastQuestionPK) {
                     _lastQuestionPK = currentPK;
                     _questionCount++;
@@ -14441,7 +14484,7 @@ window.__onGameWindowMutation(() => {
                     const h3 = document.querySelector('#progress_bar h3');
                     if (h3 && h3.dataset.dateAttached !== String(_lastQuestionPK)) {
                         const qd = questionData[_lastQuestionPK] || {};
-                        attachDateToProgressBar(qd.date || '', e.question_number, _lastQuestionPK);
+                        attachDateToProgressBar(qd.date || '', _gs.question_number, _lastQuestionPK);
                     }
                 }
             }
@@ -14739,8 +14782,16 @@ document.addEventListener('mouseleave', () => {
 }, true);
 
 function showSectionTransition(t, pk) {
-    if (_shownTransitions.has(pk)) return;
-    _shownTransitions.add(pk);
+    // _shownTransitions tracks DISMISSED transitions (set on the Continue click),
+    // not merely "attempted". The engine wipes every direct child of #game_window
+    // on each question render (campaign_trail.js: querySelectorAll(...).remove()),
+    // which destroys this overlay. By keying off dismissal — and re-attaching
+    // whenever the overlay is missing — the retry tick restores it after a wipe
+    // instead of marking it gone forever.
+    if (_shownTransitions.has(pk)) return;                       // user already dismissed it
+    if (document.getElementById('section-transition-' + pk)) return; // already on screen
+    const target = document.getElementById('game_window');
+    if (!target) return;                                          // no host yet — retry next tick
 
     const overlay = document.createElement('div');
     overlay.id = 'section-transition-' + pk;
@@ -14775,14 +14826,19 @@ function showSectionTransition(t, pk) {
         <p style="font-family:'TypewriterDry',sans-serif;font-size:14px;max-width:600px;
                   line-height:1.5;margin-bottom:${t.img ? '24px' : '36px'};">${t.body}</p>
         ${t.img ? `<img src="${t.img}" style="display:block;max-width:400px;height:auto;margin:0 auto 36px auto;">` : ''}
-        <button onclick="document.getElementById('${dismissId}').remove();">Continue</button>
+        <button class="section-transition-continue">Continue</button>
     `;
 
-    const target = document.getElementById('game_window');
-    if (target) {
-        target.style.position = 'relative';
-        target.appendChild(overlay);
-    }
+    target.style.position = 'relative';
+    target.appendChild(overlay);
+
+    // Mark dismissed only on the explicit Continue click, so an engine re-render
+    // that wipes the overlay before the player acts simply re-shows it next tick.
+    const continueBtn = overlay.querySelector('.section-transition-continue');
+    if (continueBtn) continueBtn.addEventListener('click', () => {
+        _shownTransitions.add(pk);
+        overlay.remove();
+    });
 }
 
 function fadeText(el, newText) {
@@ -15951,20 +16007,38 @@ const CODE_TO_FILE = Object.fromEntries(
 const FLAG_URLS = Object.fromEntries(
     Object.entries(COUNTRIES).filter(([, v]) => v.flag).map(([k, v]) => [k, PAGES_BASE + '/flags/' + k + '.' + v.flag])
 );
+// CR/NI SVG path ids are swapped relative to geography (id 'CR' is the northern
+// shape = Nicaragua). Flag URLs are built from the code, so unlike the rest of
+// the country data they don't follow the name swap — fix them up by hand.
+{ const _t = FLAG_URLS.CR; FLAG_URLS.CR = FLAG_URLS.NI; FLAG_URLS.NI = _t; }
 
 // Countries with confirmed .ogg anthem files on GitHub Pages
 const ANTHEM_COUNTRIES = new Set([
   'AD','AE','AF','AL','AR','AT','AU','BB','BD','BE','BG','BH','BI','BO',
   'BR','BS','BT','BU','BW','CA','CE','CF','CG','CH','CI','CL','CN','CO',
-  'CR','CS','CU','CY','DD','DE','DK','DO','DY','DZ','EC','EG','ES','ET',
+  'CM','CR','CS','CU','CY','DD','DE','DK','DO','DY','DZ','EC','EG','EP','ES','ET',
   'FI','FJ','FR','GA','GB','GD','GH','GM','GN','GQ','GR','GT','GY','HN',
   'HT','HU','HV','ID','IE','IL','IN','IQ','IR','IS','IT','JM','JO','JP',
   'KE','KH','KP','KR','KW','LA','LB','LI','LR','LS','LU','LY','MA','MC',
-  'MG','ML','MR','MT','MU','MV','MW','MX','MY','NE','NG','NI','NL','NO',
+  'MG','ML','MN','MR','MT','MU','MV','MW','MX','MY','NE','NG','NI','NL','NO',
   'NP','NR','NZ','OM','PA','PE','PH','PK','PL','PT','PY','QA','RH','RO',
   'RW','SA','SD','SE','SG','SK','SL','SM','SN','SO','SU','SV','SWA','SY',
   'SZ','TD','TG','TH','TN','TO','TR','TT','TW','TZ','UG','US','UY','VA',
   'VD','VE','VN','VU','WS','YD','YE','YU','ZA','ZM','ZR'
+]);
+
+// Countries with a Military Balance 1972-73 profile in /Milbal (named by ISO
+// code). Used when SIGINT is on: a double-click opens the Milbal page instead
+// of the CIA factbook.
+const MILBAL_COUNTRIES = new Set([
+  'AE','AF','AL','AR','AT','AU','BE','BG','BH','BO','BR','BU','CA','CE','CG',
+  'CH','CI','CL','CM','CN','CO','CS','CU','DD','DE','DK','DO','DY','DZ','EC',
+  'EG','ES','ET','FI','FR','GB','GH','GN','GR','GT','GY','HN','HT','HU','ID',
+  'IE','IL','IN','IQ','IR','IT','JO','JP','KE','KH','KP','KR','KW','LA','LB',
+  'LR','LU','LY','MA','MG','ML','MN','MX','MY','NE','NG','NI','NL','NO','NZ',
+  'OM','PE','PH','PK','PL','PT','PY','QA','RH','RO','RW','SA','SD','SE','SG',
+  'SN','SO','SU','SV','SY','TD','TH','TN','TR','TW','TZ','UG','US','UY','VD',
+  'VE','VN','YU','ZA','ZM','ZR'
 ]);
 
 // ── Inject "World Map" button into #map_footer ──────────────────────────────
@@ -15990,7 +16064,13 @@ function _addWorldMapBtn() {
 var _wmFlagsOn     = false;
 var _wmEventsOn    = true;
 var _wmCapitalsOn  = false;
-var _wmAllegiance  = false;
+var _wmAllegiance  = true;
+var _wmNightOn     = true;
+var _wmSigintOn    = false;
+var defcon         = 5;      // 5=peace … 1=imminent war; drives the SIGINT readiness banner
+var _wmOceanMaskEl = null;   // cached SVG <mask>; built once, re-appended on each open
+var _wmPrevLoyal   = null;   // snapshot of COUNTRY_LOYAL from the previous map open; drives allegiance delta flashes
+var _wmEventDebutPk = {};    // event id -> question pk at which it first appeared; icon micro-animations play only on the debut turn
 
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
@@ -16064,10 +16144,37 @@ function openWorldMap() {
     container.id = 'world-map-container';
     container.style.cssText = 'width:989px;height:625px;background:#111;position:relative;left:60px;box-sizing:border-box;display:flex;flex-direction:column;';
 
-    // SVG viewport fills all space above control bar
+    // SVG viewport fills all space between bars
     const viewport = document.createElement('div');
     viewport.id = 'wm-viewport';
     viewport.style.cssText = 'flex:1;overflow:hidden;position:relative;cursor:default;user-select:none;';
+
+    // ── Always-on film grain + vignette ──────────────────────────────────────
+    // A permanent, subtle "lit table" pass that unifies the layered map. Sits
+    // above the map imagery (z 15/16) but below the scrollbars/panels (z 20+)
+    // and below the heavier SIGINT CRT overlay (z 9000+). pointer-events:none so
+    // it never blocks the map. Both are viewport children, removed with it.
+    const vignetteFx = document.createElement('div');
+    vignetteFx.id = 'wm-vignette-fx';
+    vignetteFx.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:15;background:radial-gradient(ellipse at center, rgba(0,0,0,0) 56%, rgba(0,0,0,0.34) 100%);';
+    viewport.appendChild(vignetteFx);
+
+    const grainFx = document.createElement('div');
+    grainFx.id = 'wm-grain-fx';
+    const _grainURI = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E";
+    grainFx.style.cssText = "position:absolute;inset:-12px;pointer-events:none;z-index:16;opacity:0.05;mix-blend-mode:overlay;background-image:url(\"" + _grainURI + "\");background-size:160px 160px;";
+    viewport.appendChild(grainFx);
+    // Drift the grain tile a few px so it shimmers like film rather than sitting static.
+    try {
+        grainFx.animate(
+            [
+                { transform: 'translate(0,0)' }, { transform: 'translate(-7px,5px)' },
+                { transform: 'translate(5px,-6px)' }, { transform: 'translate(-4px,7px)' },
+                { transform: 'translate(7px,3px)' }, { transform: 'translate(0,0)' },
+            ],
+            { duration: 700, iterations: Infinity, easing: 'steps(5)' }
+        );
+    } catch (_) {}
 
     // Control bar at the bottom
     const bar = document.createElement('div');
@@ -16103,12 +16210,97 @@ function openWorldMap() {
     let tx = 0, ty = 0, scale = 0.55;
     let applyT = () => {};
     let allegiance = _wmAllegiance;
+    let nightOn = _wmNightOn;
+    let sigintOn = _wmSigintOn;
     let svgEl = null;
+    // Flags live in their own overlay SVG above the map so the SIGINT colour tint
+    // (applied to the map SVG only) leaves them in true colour. The CRT scanline/
+    // vignette stay on the viewport and so still pass over the flags.
+    let flagSvgEl = null;
+    // Reassigned inside the SVG .then() once capitals exist; lets the night
+    // toggle and the terminator tick re-evaluate which capitals are in darkness.
+    let _onNightChange = () => {};
     let selectedEl = null;
     const origFills = new Map();
     let flagsOn = _wmFlagsOn;
     let eventsOn = _wmEventsOn;
     let capitalsOn = _wmCapitalsOn;
+
+    // Top bar — display / intelligence layer toggles. Built after the toggle
+    // state vars above so the buttons can read their initial on/off values.
+    const topBar = document.createElement('div');
+    topBar.style.cssText = 'flex-shrink:0;height:34px;background:#0a0a0a;border-bottom:1px solid #222;display:flex;align-items:center;gap:6px;padding:0 12px;font-family:TypewriterDry,monospace;font-size:11px;letter-spacing:1px;color:#555;';
+    const topBarLabel = document.createElement('span');
+    topBarLabel.textContent = 'DISPLAY:';
+    topBar.appendChild(topBarLabel);
+
+    const _mkTopBtn = (label, active) => {
+        const b = document.createElement('button');
+        b.textContent = label;
+        b.style.cssText = 'cursor:pointer;padding:0 8px;height:24px;font-family:TypewriterDry,monospace;font-size:11px;letter-spacing:1px;background:#111;border:1px solid #333;color:#fff;';
+        // Text is always white (matching the bottom-bar buttons); the active
+        // state is shown by the outline + bold weight, not by colour.
+        b.style.outline = active ? '2px solid #888' : '';
+        b.style.fontWeight = active ? 'bold' : '';
+        return b;
+    };
+
+    // Night toggle (moved from bottom bar)
+    const nightBtn = _mkTopBtn('NIGHT', nightOn);
+    nightBtn.addEventListener('click', () => {
+        nightOn = !nightOn; _wmNightOn = nightOn;
+        nightBtn.style.outline = nightOn ? '2px solid #888' : '';
+        nightBtn.style.fontWeight = nightOn ? 'bold' : '';
+        const ng = svgEl && svgEl.querySelector('#wm-night-layer');
+        if (ng) ng.style.display = nightOn ? '' : 'none';
+        _onNightChange(); // re-light / un-light the capitals on the dark side
+    });
+    topBar.appendChild(nightBtn);
+
+    // SIGINT — phosphor / war-room skin
+    // The colour tint is applied to the MAP svg only (not the whole viewport) so
+    // the flag overlay svg — a separate viewport child — keeps its true colours.
+    // The scanline + vignette CRT overlay stays on the viewport, above both.
+    const _applySigint = (on) => {
+        if (!viewport) return;
+        if (svgEl) svgEl.style.filter = on ? 'sepia(0.3) hue-rotate(80deg) saturate(1.4) brightness(0.85)' : '';
+        if (on) {
+            if (!document.getElementById('wm-sigint-css')) {
+                const st = document.createElement('style');
+                st.id = 'wm-sigint-css';
+                st.textContent = `
+                    #wm-viewport::after {
+                        content:'';position:absolute;inset:0;pointer-events:none;z-index:9000;
+                        background: repeating-linear-gradient(
+                            to bottom,
+                            transparent 0px, transparent 3px,
+                            rgba(0,0,0,0.18) 3px, rgba(0,0,0,0.18) 4px
+                        );
+                    }
+                    #wm-viewport::before {
+                        content:'';position:absolute;inset:0;pointer-events:none;z-index:9001;
+                        background: radial-gradient(ellipse at center,
+                            transparent 55%, rgba(0,0,0,0.55) 100%);
+                    }
+                `;
+                document.head.appendChild(st);
+            }
+        } else {
+            const st = document.getElementById('wm-sigint-css');
+            if (st) st.remove();
+        }
+    };
+    const sigintBtn = _mkTopBtn('SIGINT', sigintOn);
+    sigintBtn.addEventListener('click', () => {
+        sigintOn = !sigintOn; _wmSigintOn = sigintOn;
+        sigintBtn.style.outline = sigintOn ? '2px solid #888' : '';
+        sigintBtn.style.fontWeight = sigintOn ? 'bold' : '';
+        _applySigint(sigintOn);
+        _defconUpdate();
+    });
+    topBar.appendChild(sigintBtn);
+    if (sigintOn) _applySigint(true);
+    mapCleanup.push(() => { const st = document.getElementById('wm-sigint-css'); if (st) st.remove(); if (svgEl) svgEl.style.filter = ''; if (flagSvgEl) { flagSvgEl.remove(); flagSvgEl = null; } });
     let _capEditMode = false;
     // Live references to the events / capitals <g> layers. Assigned in the SVG
     // .then() below and closed over by the toggle buttons. LOCAL closure vars
@@ -16120,16 +16312,58 @@ function openWorldMap() {
     // initial build, and by the capitals edit-mode button. NB: capitals are no
     // longer gated on zoom — the toggle alone decides visibility, so clicking
     // "Capitals" always shows them (they are simply small when zoomed out).
+    // Visibility controlled by append/remove (same proven pattern as Flags).
+    // style.display on SVG <g> is unreliable across browsers; DOM membership is not.
     const _applyEventVis = () => {
-        if (iconGroupEl) iconGroupEl.style.display = eventsOn ? '' : 'none';
+        if (!iconGroupEl || !flagSvgEl) return;
+        if (eventsOn) {
+            if (!iconGroupEl.parentNode) {
+                if (flagOverlayG && flagOverlayG.parentNode === flagSvgEl)
+                    flagSvgEl.insertBefore(iconGroupEl, flagOverlayG);
+                else
+                    flagSvgEl.appendChild(iconGroupEl);
+            }
+        } else {
+            iconGroupEl.remove();
+        }
     };
     const _applyCapVis = () => {
-        if (capGroupEl) capGroupEl.style.display = (capitalsOn || _capEditMode) ? '' : 'none';
+        if (!capGroupEl || !svgEl) return;
+        const show = capitalsOn || _capEditMode;
+        if (show) {
+            if (!capGroupEl.parentNode) {
+                const _sig = svgEl.querySelector('#wm-sigint-layer');
+                if (_sig) svgEl.insertBefore(capGroupEl, _sig);
+                else svgEl.appendChild(capGroupEl);
+            }
+        } else {
+            capGroupEl.remove();
+        }
     };
     const smallFlagCodes = new Set();
     let flagOverlayG = null;
     let vScrollTrack, vScrollThumb, hScrollTrack, hScrollThumb;
     let _updateIconVis = () => {};
+
+    // Shared country-selection toggle (yellow outline). Called by both the country
+    // path click handler and by an event icon click (events forward selection to
+    // the country they sit on, so the country stays clickable "through" the icon).
+    const selectCountry = (el) => {
+        if (!el) return;
+        if (selectedEl && selectedEl !== el) {
+            selectedEl.style.stroke = '';
+            selectedEl.style.strokeWidth = '';
+        }
+        if (selectedEl === el) {
+            el.style.stroke = '';
+            el.style.strokeWidth = '';
+            selectedEl = null;
+        } else {
+            el.style.stroke = '#ffff00';
+            el.style.strokeWidth = '3px';
+            selectedEl = el;
+        }
+    };
 
     function doZoom(factor) {
         const vw = viewport.clientWidth || 989;
@@ -16142,13 +16376,111 @@ function openWorldMap() {
         applyT();
     }
 
+    // ── Camera fly-to (eased tween of tx/ty/scale) ───────────────────────────
+    let _camAnim = null;
+    const _cancelCam = () => { if (_camAnim) { cancelAnimationFrame(_camAnim); _camAnim = null; } };
+    mapCleanup.push(_cancelCam);
+    const _easeInOut = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    // Eased pan+zoom that centres SVG-space point (px,py) in the viewport.
+    function flyTo(px, py, targetScale, dur, done) {
+        const vw = viewport.clientWidth || 989, vh = viewport.clientHeight || 581;
+        const toS  = Math.max(0.08, Math.min(8, targetScale || scale));
+        const toTx = vw / 2 - px * toS;
+        const toTy = vh / 2 - py * toS;
+        const fromTx = tx, fromTy = ty, fromS = scale;
+        const t0 = performance.now();
+        dur = dur || 700;
+        _cancelCam();
+        const step = now => {
+            const p = Math.min(1, (now - t0) / dur);
+            const e = _easeInOut(p);
+            tx = fromTx + (toTx - fromTx) * e;
+            ty = fromTy + (toTy - fromTy) * e;
+            scale = fromS + (toS - fromS) * e;
+            applyT();
+            if (p < 1) { _camAnim = requestAnimationFrame(step); }
+            else { _camAnim = null; if (done) done(); }
+        };
+        _camAnim = requestAnimationFrame(step);
+    }
+    // Fly the camera to an SVG element's centroid (used by country/event clicks).
+    const flyToEl = el => {
+        if (!el) return;
+        try {
+            const b = el.getBBox();
+            // Zoom in to a comfortable level only if currently zoomed out.
+            const targetS = scale < 1.1 ? 1.4 : scale;
+            flyTo(b.x + b.width / 2, b.y + b.height / 2, targetS, 650);
+        } catch (_) {}
+    };
+
+    // ── Colour helpers for the tweened allegiance choropleth ─────────────────
+    const _parseRGB = s => {
+        if (!s) return null;
+        const m = s.match(/(\d+)[,\s]+(\d+)[,\s]+(\d+)/); // matches "rgb(r, g, b)" and "r g b"
+        return m ? [+m[1], +m[2], +m[3]] : null;
+    };
+    let _allegToken = 0;
+    // Lerp every country fill from its current colour to targetOf(el) over dur ms.
+    function _tweenFills(targetOf, dur) {
+        if (!svgEl) return;
+        const token = ++_allegToken;
+        const items = [];
+        svgEl.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
+            if (!el.id || !COUNTRY_NAMES[el.id]) return;
+            const from = _parseRGB(window.getComputedStyle(el).fill);
+            const toStr = targetOf(el);
+            const to = _parseRGB(toStr);
+            if (!from || !to) { el.style.fill = toStr; return; }
+            items.push({ el, from, to });
+        });
+        const t0 = performance.now();
+        const step = now => {
+            if (token !== _allegToken) return; // superseded by a newer toggle
+            const p = Math.min(1, (now - t0) / dur);
+            items.forEach(({ el, from, to }) => {
+                el.style.fill = 'rgb(' +
+                    Math.round(from[0] + (to[0] - from[0]) * p) + ',' +
+                    Math.round(from[1] + (to[1] - from[1]) * p) + ',' +
+                    Math.round(from[2] + (to[2] - from[2]) * p) + ')';
+            });
+            if (p < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+    }
+    // Flash a brief ring on countries whose loyalty changed since the last open.
+    function _flashLoyaltyDeltas() {
+        if (!svgEl || !_wmPrevLoyal) return;
+        Object.keys(COUNTRY_LOYAL).forEach(code => {
+            const prev = _wmPrevLoyal[code];
+            const now = COUNTRY_LOYAL[code];
+            if (prev == null || prev === now) return;
+            const el = svgEl.querySelector('[id="' + code + '"]');
+            if (!el) return;
+            const up = now > prev;
+            const ringCol = up ? '#3ad17a' : '#ff5252';
+            el.style.transition = 'none';
+            el.style.stroke = ringCol;
+            el.style.strokeWidth = '3px';
+            let pulses = 0;
+            const iv = setInterval(() => {
+                el.style.strokeOpacity = (pulses % 2 ? '1' : '0.2');
+                if (++pulses >= 6) {
+                    clearInterval(iv);
+                    el.style.stroke = ''; el.style.strokeWidth = ''; el.style.strokeOpacity = '';
+                }
+            }, 220);
+            mapCleanup.push(() => clearInterval(iv));
+        });
+    }
+
     [
-        { label: '^', fn: () => { ty += 80; applyT(); } },
-        { label: 'v', fn: () => { ty -= 80; applyT(); } },
-        { label: '<', fn: () => { tx += 80; applyT(); } },
-        { label: '>', fn: () => { tx -= 80; applyT(); } },
-        { label: '+', fn: () => doZoom(1.25) },
-        { label: '-', fn: () => doZoom(1 / 1.25) },
+        { label: '^', fn: () => { _cancelCam(); ty += 80; applyT(); } },
+        { label: 'v', fn: () => { _cancelCam(); ty -= 80; applyT(); } },
+        { label: '<', fn: () => { _cancelCam(); tx += 80; applyT(); } },
+        { label: '>', fn: () => { _cancelCam(); tx -= 80; applyT(); } },
+        { label: '+', fn: () => { _cancelCam(); doZoom(1.25); } },
+        { label: '-', fn: () => { _cancelCam(); doZoom(1 / 1.25); } },
     ].forEach(({ label, fn }) => {
         const b = document.createElement('button');
         b.textContent = label;
@@ -16156,6 +16488,28 @@ function openWorldMap() {
         b.addEventListener('click', fn);
         bar.appendChild(b);
     });
+
+    // Allegiance legend — red→grey→blue loyalty gradient, shown when the layer is on.
+    const allegLegend = document.createElement('div');
+    allegLegend.style.cssText = 'position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:40;display:none;align-items:center;gap:8px;background:rgba(0,0,0,0.72);padding:6px 12px;border-radius:5px;font-family:TypewriterDry,monospace;font-size:10px;letter-spacing:1px;color:#ddd;box-shadow:0 2px 8px rgba(0,0,0,0.5);';
+    allegLegend.innerHTML =
+        '<span style="color:#dc2626;">BITTER ENEMY</span>' +
+        '<span style="width:160px;height:9px;border-radius:5px;display:inline-block;background:linear-gradient(to right,#dc2626,#a0a0a0,#1d4ed8);"></span>' +
+        '<span style="color:#1d4ed8;">ALLIED</span>';
+    viewport.appendChild(allegLegend);
+    const _updateAllegLegend = () => { allegLegend.style.display = allegiance ? 'flex' : 'none'; };
+
+    // ── DEFCON readiness banner (top-right, visible when SIGINT is on) ────────
+    const _defconCols = { 1:'#dc2626', 2:'#ea580c', 3:'#ca8a04', 4:'#16a34a', 5:'#1d4ed8' };
+    const defconBanner = document.createElement('div');
+    defconBanner.style.cssText = 'position:absolute;top:8px;right:16px;z-index:50;font-family:Tenada,TypewriterDry,monospace;font-size:11px;letter-spacing:2px;color:#999;display:none;align-items:center;pointer-events:none;';
+    const _defconUpdate = () => {
+        const lvl = Math.max(1, Math.min(5, defcon));
+        defconBanner.innerHTML = 'DEFCON <span style="display:inline-block;min-width:16px;text-align:center;padding:0 4px;background:' + _defconCols[lvl] + ';color:#000;font-weight:bold;">' + lvl + '</span>';
+        defconBanner.style.display = sigintOn ? 'flex' : 'none';
+    };
+    _defconUpdate();
+    viewport.appendChild(defconBanner);
 
     // Allegiance toggle
     const allegBtn = document.createElement('button');
@@ -16168,10 +16522,12 @@ function openWorldMap() {
         allegiance = !allegiance; _wmAllegiance = allegiance;
         allegBtn.style.outline = allegiance ? '2px solid #ccc' : '';
         allegBtn.style.fontWeight = allegiance ? 'bold' : '';
-        svgEl.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
-            if (!el.id || !COUNTRY_NAMES[el.id]) return;
-            el.style.fill = allegiance ? _loyalColour(COUNTRY_LOYAL[el.id] || 0) : (origFills.get(el) || '');
-        });
+        // Tween the choropleth in/out instead of snapping.
+        _tweenFills(
+            el => allegiance ? _loyalColour(COUNTRY_LOYAL[el.id] || 0) : (origFills.get(el) || ''),
+            600
+        );
+        _updateAllegLegend();
     });
     bar.appendChild(allegBtn);
 
@@ -16181,14 +16537,14 @@ function openWorldMap() {
     flagBtn.style.outline = flagsOn ? '2px solid #ccc' : '';
     flagBtn.style.fontWeight = flagsOn ? 'bold' : '';
     flagBtn.addEventListener('click', () => {
-        if (!svgEl || !flagOverlayG) return;
+        if (!flagSvgEl || !flagOverlayG) return;
         flagsOn = !flagsOn; _wmFlagsOn = flagsOn;
         flagBtn.style.outline = flagsOn ? '2px solid #ccc' : '';
         flagBtn.style.fontWeight = flagsOn ? 'bold' : '';
         if (flagsOn) {
-            // Append last so flags sit on top — z-order is capitals → events → flags.
+            // Append last so flags sit on top of event icons on the overlay SVG.
             // Flags are pointer-events:none, so being on top does not block hover.
-            svgEl.appendChild(flagOverlayG);
+            flagSvgEl.appendChild(flagOverlayG);
         } else { flagOverlayG.remove(); }
     });
     bar.appendChild(flagBtn);
@@ -16219,6 +16575,36 @@ function openWorldMap() {
     });
     bar.appendChild(capBtn);
 
+    // Feature 3 — Regional zoom buttons, right-aligned on the top bar.
+    // A flex spacer pushes them to the right; a label separates them from the
+    // left-side toggles. Coordinates: SVG-space centroids (1800×900 canvas).
+    const _regionSpacer = document.createElement('div');
+    _regionSpacer.style.cssText = 'flex:1;';
+    topBar.appendChild(_regionSpacer);
+    const regionLabel = document.createElement('span');
+    regionLabel.textContent = 'JUMP:';
+    regionLabel.style.cssText = 'color:#444;margin-right:4px;font-size:10px;';
+    topBar.appendChild(regionLabel);
+    const _regions = [
+        { label: 'N.AM.',        x:  400, y: 225, s: 1.6 },
+        { label: 'LAT.AM.',      x:  575, y: 525, s: 1.8 },
+        { label: 'EUR.',         x:  930, y: 190, s: 2.2 },
+        { label: 'AFR.',         x:  965, y: 480, s: 1.7 },
+        { label: 'M.EAST',      x: 1075, y: 310, s: 2.4 },
+        { label: 'SE.ASIA',     x: 1425, y: 390, s: 2.2 },
+        { label: 'WORLD',        x:  900, y: 450, s: 0.52 },
+    ];
+    _regions.forEach(r => {
+        const rb = document.createElement('button');
+        rb.textContent = r.label;
+        rb.style.cssText = 'cursor:pointer;padding:0 6px;height:22px;font-family:TypewriterDry,monospace;font-size:10px;letter-spacing:1px;background:transparent;border:1px solid #444;color:#888;transition:color 0.15s,border-color 0.15s;';
+        rb.addEventListener('mouseenter', () => { rb.style.color = '#ddd'; rb.style.borderColor = '#888'; });
+        rb.addEventListener('mouseleave', () => { rb.style.color = '#888'; rb.style.borderColor = '#444'; });
+        rb.addEventListener('click', () => flyTo(r.x, r.y, r.s, 700));
+        topBar.appendChild(rb);
+    });
+
+    container.appendChild(topBar);
     container.appendChild(viewport);
     container.appendChild(bar);
     gw.appendChild(container);
@@ -16235,6 +16621,22 @@ function openWorldMap() {
             svg.style.cssText = 'position:absolute;top:0;left:0;width:1800px;height:900px;transform-origin:0 0;pointer-events:all;';
 
             svgEl = svg;
+
+            // Overlay SVG for flags and event icons — sits above the map SVG so
+            // the SIGINT colour filter (applied to svgEl only) leaves them untinted.
+            // It must share the map SVG's user coordinate system (viewBox), because
+            // icon/flag positions come from getBBox() in that space.
+            flagSvgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            const _mapVB = svg.getAttribute('viewBox')
+                || ('0 0 ' + (svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal.width : 1800)
+                    + ' ' + (svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal.height : 900));
+            flagSvgEl.setAttribute('viewBox', _mapVB);
+            // Match the map's aspect handling exactly; only set it if the map does,
+            // so an absent attribute leaves both on the SVG default (xMidYMid meet).
+            const _mapPAR = svg.getAttribute('preserveAspectRatio');
+            if (_mapPAR) flagSvgEl.setAttribute('preserveAspectRatio', _mapPAR);
+            flagSvgEl.style.cssText = 'position:absolute;top:0;left:0;width:1800px;height:900px;transform-origin:0 0;pointer-events:none;overflow:visible;';
+            viewport.appendChild(flagSvgEl);
 
             // Centre the SVG in the viewport on first load
             const vw = viewport.clientWidth || 989;
@@ -16257,6 +16659,7 @@ function openWorldMap() {
                     ty = Math.round((vh - H) / 2);
                 }
                 svg.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+                if (flagSvgEl) flagSvgEl.style.transform = svg.style.transform;
 
                 // Sync scrollbar thumbs
                 if (vScrollTrack && hScrollTrack) {
@@ -16286,9 +16689,261 @@ function openWorldMap() {
             };
             applyT();
 
+            // ── Day/Night terminator ──────────────────────────────────────────
+            // Solar declination from the current in-game question date.
+            // Subsolar longitude (hour angle) from the player's real-time UTC clock.
+            const _parseDeclination = () => {
+                const months = { january:1,february:2,march:3,april:4,may:5,june:6,
+                                 july:7,august:8,september:9,october:10,november:11,december:12 };
+                let dayOfYear = 355; // default: mid-December (Nixon's era start)
+                const qd = questionData[_lastQuestionPK];
+                if (qd && qd.date) {
+                    const parts = qd.date.toLowerCase().split(/\s+/);
+                    let day = 15, month = 0;
+                    parts.forEach(p => {
+                        const n = parseInt(p);
+                        if (!isNaN(n) && n >= 1 && n <= 31) day = n;
+                        if (months[p]) month = months[p];
+                    });
+                    if (month) {
+                        const daysInMonth = [0,31,28,31,30,31,30,31,31,30,31,30,31];
+                        dayOfYear = day;
+                        for (let m = 1; m < month; m++) dayOfYear += daysInMonth[m];
+                    }
+                }
+                return -23.45 * Math.cos(2 * Math.PI * (dayOfYear + 10) / 365);
+            };
+            const _subSolarLon = () => {
+                const now = new Date();
+                const utcH = now.getUTCHours() + now.getUTCMinutes()/60 + now.getUTCSeconds()/3600;
+                return -(utcH - 12) * 15;
+            };
+            // Open terminator curve (no pole-edge closing) — shared by the night
+            // fill region and the warm day-side glow stroke.
+            const _termCurveD = (decDeg, subLonDeg) => {
+                const W = 1800, H = 900;
+                const dec = decDeg * Math.PI / 180;
+                const tanDec = Math.tan(dec);
+                const N = 720;
+                let d = '';
+                for (let i = 0; i <= N; i++) {
+                    const lon = -180 + i * 360 / N;
+                    const dLon = (lon - subLonDeg) * Math.PI / 180;
+                    const lat = (Math.abs(tanDec) < 1e-6)
+                        ? (Math.cos(dLon) >= 0 ? -89.9 : 89.9)
+                        : Math.atan(-Math.cos(dLon) / tanDec) * 180 / Math.PI;
+                    const x = (lon + 180) / 360 * W;
+                    const y = (90 - lat) / 180 * H;
+                    d += (i === 0 ? `M ${x},${y}` : ` L ${x},${y}`);
+                }
+                return d;
+            };
+            const _buildNightPath = (decDeg, subLonDeg) => {
+                const dec = decDeg * Math.PI / 180;
+                // Close with the dark-pole edge:
+                // dec > 0 → southern summer → south pole dark → close at y=H
+                // dec < 0 → northern summer → north pole dark → close at y=0
+                // dec ≈ 0 → equinox → close at y=H (arbitrary, effect is same)
+                const edgeY = dec < 0 ? 0 : 900;
+                return _termCurveD(decDeg, subLonDeg) + ` L 1800,${edgeY} L 0,${edgeY} Z`;
+            };
+
+            const nightNS = 'http://www.w3.org/2000/svg';
+            const nightLayer = document.createElementNS(nightNS, 'g');
+            nightLayer.id = 'wm-night-layer';
+            nightLayer.style.pointerEvents = 'none';
+            if (!nightOn) nightLayer.style.display = 'none';
+
+            // Gradient: darker at anti-solar pole, fades to transparent at terminator
+            const defs = document.createElementNS(nightNS, 'defs');
+            const grad = document.createElementNS(nightNS, 'linearGradient');
+            grad.id = 'wm-night-grad';
+            grad.setAttribute('x1', '0'); grad.setAttribute('y1', '0');
+            grad.setAttribute('x2', '0'); grad.setAttribute('y2', '1');
+            const s0 = document.createElementNS(nightNS, 'stop');
+            s0.setAttribute('offset', '0%');
+            s0.setAttribute('stop-color', '#000510');
+            s0.setAttribute('stop-opacity', '0.52');
+            const s1 = document.createElementNS(nightNS, 'stop');
+            s1.setAttribute('offset', '100%');
+            s1.setAttribute('stop-color', '#000510');
+            s1.setAttribute('stop-opacity', '0.52');
+            grad.appendChild(s0); grad.appendChild(s1);
+            defs.appendChild(grad);
+
+            // Soft terminator: a Gaussian blur on the night overlay gives a gentle
+            // penumbra around its edges instead of a hard day/night line.
+            const nightBlur = document.createElementNS(nightNS, 'filter');
+            nightBlur.id = 'wm-night-blur';
+            nightBlur.setAttribute('x', '-3%'); nightBlur.setAttribute('y', '-3%');
+            nightBlur.setAttribute('width', '106%'); nightBlur.setAttribute('height', '106%');
+            const nightFe = document.createElementNS(nightNS, 'feGaussianBlur');
+            nightFe.setAttribute('in', 'SourceGraphic');
+            nightFe.setAttribute('stdDeviation', '7');
+            nightBlur.appendChild(nightFe);
+            defs.appendChild(nightBlur);
+
+            // Landmass drop shadow — applied to the whole-land group (built below)
+            // so only the outer coastline silhouette casts a shadow onto the ocean,
+            // with no seams between adjacent countries.
+            const landShadow = document.createElementNS(nightNS, 'filter');
+            landShadow.id = 'wm-land-shadow';
+            landShadow.setAttribute('x', '-5%');  landShadow.setAttribute('y', '-5%');
+            landShadow.setAttribute('width', '110%'); landShadow.setAttribute('height', '110%');
+            const landFe = document.createElementNS(nightNS, 'feDropShadow');
+            landFe.setAttribute('dx', '2');
+            landFe.setAttribute('dy', '3');
+            landFe.setAttribute('stdDeviation', '2.6');
+            landFe.setAttribute('flood-color', '#00060f');
+            landFe.setAttribute('flood-opacity', '0.5');
+            landShadow.appendChild(landFe);
+            defs.appendChild(landShadow);
+
+            // Soft blur for the warm terminator glow stroke.
+            const termGlowBlur = document.createElementNS(nightNS, 'filter');
+            termGlowBlur.id = 'wm-term-glow-blur';
+            termGlowBlur.setAttribute('x', '-10%'); termGlowBlur.setAttribute('y', '-10%');
+            termGlowBlur.setAttribute('width', '120%'); termGlowBlur.setAttribute('height', '120%');
+            const termGlowFe = document.createElementNS(nightNS, 'feGaussianBlur');
+            termGlowFe.setAttribute('in', 'SourceGraphic');
+            termGlowFe.setAttribute('stdDeviation', '4.5');
+            termGlowBlur.appendChild(termGlowFe);
+            defs.appendChild(termGlowBlur);
+
+            // Hover-glow filter: soft drop shadow in the country's own allegiance
+            // colour, applied on mouseenter and removed on mouseleave.
+            const hoverGlowFilter = document.createElementNS(nightNS, 'filter');
+            hoverGlowFilter.id = 'wm-hover-glow';
+            hoverGlowFilter.setAttribute('x', '-15%'); hoverGlowFilter.setAttribute('y', '-15%');
+            hoverGlowFilter.setAttribute('width', '130%'); hoverGlowFilter.setAttribute('height', '130%');
+            const hoverFe = document.createElementNS(nightNS, 'feDropShadow');
+            hoverFe.id = 'wm-hover-fe';
+            hoverFe.setAttribute('dx', '0'); hoverFe.setAttribute('dy', '0');
+            hoverFe.setAttribute('stdDeviation', '5');
+            hoverFe.setAttribute('flood-color', '#ffffff');
+            hoverFe.setAttribute('flood-opacity', '0.47');
+            hoverGlowFilter.appendChild(hoverFe);
+            defs.appendChild(hoverGlowFilter);
+
+
+            // subsolar point. objectBoundingBox so it travels with its circle.
+            const glintGrad = document.createElementNS(nightNS, 'radialGradient');
+            glintGrad.id = 'wm-glint-grad';
+            [
+                ['0%',   '#fff7de', '0.42'],
+                ['45%',  '#ffe7aa', '0.16'],
+                ['100%', '#ffe7aa', '0'],
+            ].forEach(([off, col, op]) => {
+                const st = document.createElementNS(nightNS, 'stop');
+                st.setAttribute('offset', off);
+                st.setAttribute('stop-color', col);
+                st.setAttribute('stop-opacity', op);
+                glintGrad.appendChild(st);
+            });
+            defs.appendChild(glintGrad);
+
+            svg.insertBefore(defs, svg.firstChild);
+
+            // Wrap every country path in one group so the drop-shadow filter sees
+            // the unified land alpha (outer coast only). Other code queries
+            // countries via recursive selectors/getBBox, so grouping is transparent.
+            const landGroup = document.createElementNS(nightNS, 'g');
+            landGroup.id = 'wm-land';
+            landGroup.setAttribute('filter', 'url(#wm-land-shadow)');
+            const _countryEls = [];
+            svg.querySelectorAll('path,polygon').forEach(p => {
+                if (p.id && COUNTRY_NAMES[p.id]) _countryEls.push(p);
+            });
+            if (_countryEls.length) {
+                const _landParent = _countryEls[0].parentNode;
+                _landParent.insertBefore(landGroup, _countryEls[0]);
+                _countryEls.forEach(p => landGroup.appendChild(p));
+            }
+
+            // Feature 1 — Country hover glow.
+            // Each country path gets a feDropShadow in its own allegiance tint on
+            // mouseenter, removed on mouseleave. The shadow colour adapts to the
+            // country's current fill (blue Allied, red Enemy, neutral white) so it
+            // reads correctly in both normal and allegiance modes.
+            const _parseHoverCol = el => {
+                const fill = el.style.fill || window.getComputedStyle(el).fill || '';
+                const m = fill.match(/(\d+)[,\s]+(\d+)[,\s]+(\d+)/);
+                if (!m) return '#aaaacc';
+                const [r, g, b] = [+m[1], +m[2], +m[3]];
+                // Bias strongly blue → blue glow; strongly red → red glow; else white
+                if (b > r + 30 && b > g + 20) return '#88aaff';
+                if (r > b + 30 && r > g + 20) return '#ff8888';
+                return '#ccddff';
+            };
+            _countryEls.forEach(p => {
+                p.addEventListener('mouseenter', () => {
+                    const col = _parseHoverCol(p);
+                    const fe = document.getElementById('wm-hover-fe');
+                    if (fe) fe.setAttribute('flood-color', col);
+                    p.setAttribute('filter', 'url(#wm-hover-glow)');
+                });
+                p.addEventListener('mouseleave', () => {
+                    p.removeAttribute('filter');
+                });
+            });
+
+            const nightPath = document.createElementNS(nightNS, 'path');
+            nightPath.id = 'wm-night-path';
+            nightPath.setAttribute('fill', 'url(#wm-night-grad)');
+            nightPath.setAttribute('filter', 'url(#wm-night-blur)');
+            nightLayer.appendChild(nightPath);
+
+            // Warm sunrise/sunset glow hugging the terminator. A blurred amber
+            // stroke on the day-night curve, gently pulsing so it feels alive.
+            const termGlow = document.createElementNS(nightNS, 'path');
+            termGlow.id = 'wm-term-glow';
+            termGlow.setAttribute('fill', 'none');
+            termGlow.setAttribute('stroke', '#ff9b3d');
+            termGlow.setAttribute('stroke-width', '7');
+            termGlow.setAttribute('stroke-linecap', 'round');
+            termGlow.setAttribute('stroke-opacity', '0.45');
+            termGlow.setAttribute('filter', 'url(#wm-term-glow-blur)');
+            const termPulse = document.createElementNS(nightNS, 'animate');
+            termPulse.setAttribute('attributeName', 'stroke-opacity');
+            termPulse.setAttribute('values', '0.30;0.55;0.30');
+            termPulse.setAttribute('dur', '6s');
+            termPulse.setAttribute('repeatCount', 'indefinite');
+            termGlow.appendChild(termPulse);
+            nightLayer.appendChild(termGlow);
+
+            // Sun glint — a soft warm bloom on the sunlit (subsolar) spot that
+            // glides with the day. Sits above the map base but below the pins.
+            const sunGlint = document.createElementNS(nightNS, 'circle');
+            sunGlint.id = 'wm-sun-glint';
+            sunGlint.setAttribute('r', '150');
+            sunGlint.setAttribute('fill', 'url(#wm-glint-grad)');
+            sunGlint.setAttribute('pointer-events', 'none');
+            nightLayer.appendChild(sunGlint);
+
+            // Append (not insertBefore firstChild) so the dark overlay sits ABOVE
+            // the country paths and actually dims them. Capitals, SIGINT and event
+            // icons are appended later, so they remain bright on top of the night.
+            svg.appendChild(nightLayer);
+
+            const _updateTerminator = () => {
+                const dec = _parseDeclination();
+                const lon = _subSolarLon();
+                nightPath.setAttribute('d', _buildNightPath(dec, lon));
+                termGlow.setAttribute('d', _termCurveD(dec, lon));
+                // Subsolar point: latitude = solar declination, longitude = subsolar lon.
+                sunGlint.setAttribute('cx', (lon + 180) / 360 * 1800);
+                sunGlint.setAttribute('cy', (90 - dec) / 180 * 900);
+                _onNightChange(); // capitals that just crossed the terminator
+            };
+            _updateTerminator();
+            const _nightInterval = setInterval(_updateTerminator, 60000);
+            mapCleanup.push(() => clearInterval(_nightInterval));
+            // ── End terminator ────────────────────────────────────────────────
+
             // Manual centroid overrides for countries whose bounding box spans
             // overseas territories, placing the flag over the wrong location.
-            // Coordinates are in SVG units (map is 1800x900).
+            // Coordinates are in SVG units (map is 1800x900). Declared before the
+            // SIGINT block because _dispCentroid spreads from it.
             const FLAG_CENTRES = {
                 GB:  {cx: 730, cy: 158},  FR:  {cx: 747, cy: 184},  DE:  {cx: 779, cy: 168},
                 PT:  {cx: 683, cy: 229},  ES:  {cx: 716, cy: 229},  NL:  {cx: 758, cy: 153},
@@ -16326,6 +16981,416 @@ function openWorldMap() {
                 AE:  {cx:1023, cy: 324},  OM:  {cx:1045, cy: 343},
             };
 
+            // ── SIGINT force-disposition layer ────────────────────────────────
+            // Figures from IISS Military Balance 1972-73 (knowledge-sourced;
+            // verify against the print edition). Nuclear: confirmed programmes
+            // only — Israel listed as suspected/unacknowledged.
+            // army/navy/air/nuke: short string for the on-map chip tooltip.
+            // Large countries show the 4-block chip directly on the map.
+            // Small countries (flag = true) hide the chip and show data only
+            // on hover of the country path, via the shared evTooltip.
+            const MILITARY_DISPOSITIONS = {
+                US:  { army:'861K · 13 divs',           navy:'243 major ships · 14 carriers · 41 SSBNs', air:'730K · ~6,000 combat a/c', nuke:'1,054 ICBM · 656 SLBM · 390 B-52s' },
+                SU:  { army:'2.0M · 164 divs',          navy:'4 fleets · 231 major ships · ~300 subs', air:'550K · ~9,000 combat a/c',  nuke:'~1,530 ICBM · 560 SLBM' },
+                CN:  { army:'2.5M · ~130 divs',         navy:'coastal · ~36 subs',                  air:'~3,600 a/c (MiG-17/19 era)',nuke:'MRBM/IRBM · fissile for ~150 wpns' },
+                DE:  { army:'327K · 12 divs (Bundeswehr)',navy:'Baltic · 17 destroyers/frigates · 6 subs', air:'459 combat a/c',      nuke:null },
+                DD:  { army:'90K · 4 motor rifle · 2 tank divs',navy:'Volksmarine · ~170 coastal craft', air:'304 combat a/c',       nuke:null, small:true },
+                KR:  { army:'560K · 29 divs',            navy:'~69 ships',                           air:'235 combat a/c',            nuke:null, small:true },
+                KP:  { army:'360K · 22 divs',            navy:'coastal · 3 subs · ~110 craft',       air:'578 combat a/c',            nuke:null, small:true },
+                VN:  { army:'410K ARVN',                  navy:'river/coastal flotilla',              air:'275 combat a/c (US-supplied)', nuke:null, small:true },
+                VD:  { army:'500K PAVN',                  navy:'coastal · torpedo boats',             air:'228 combat a/c (MiG-17/21)', nuke:null, small:true },
+                IL:  { army:'61K active · 275K mobilized',navy:'~17 ships · 2 submarines',           air:'432 combat a/c',            nuke:'suspected · unacknowledged', small:true },
+                EG:  { army:'285K · ~1,900 tanks',        navy:'~70 ships (Soviet)',                  air:'768 combat a/c (Soviet-supplied)', nuke:null },
+                SY:  { army:'100K · ~1,200 tanks',        navy:'small · Soviet base Tartus',          air:'210 combat a/c',            nuke:null, small:true },
+                IN:  { army:'840K · 25 divs',             navy:'~60 ships · 1 carrier',              air:'650 combat a/c',            nuke:null },
+                PK:  { army:'278K · 12 divs',             navy:'~17 ships',                           air:'200 combat a/c',            nuke:null },
+                // ── NATO (remaining members) ──────────────────────────────────
+                GB:  { army:'180K · 12 armd regts',       navy:'82K · 1 carrier · 6 SSN · 24 diesel subs', air:'~500 combat a/c',       nuke:'64 SLBM · 4 Polaris SSBNs' },
+                FR:  { army:'328K · 5 mech divs',         navy:'68K · 2 carriers · 19 subs',          air:'500 combat a/c (+150 naval)', nuke:'18 S-2 IRBM · 1 SSBN · 36 Mirage IVA' },
+                IT:  { army:'307K · 7 divs',              navy:'44K · 9 subs · 3 cruisers',           air:'320 combat a/c',            nuke:null },
+                CA:  { army:'34K (Mobile Command)',       navy:'14K · 4 subs',                        air:'162 combat a/c',            nuke:null },
+                NO:  { army:'18K · 1 brigade group',      navy:'8.5K · 15 coastal subs',              air:'117 combat a/c',            nuke:null },
+                TR:  { army:'360K · 13 divs',             navy:'39K · 10 subs · 10 destroyers',       air:'288 combat a/c',            nuke:null },
+                NL:  { army:'80K · 6 brigades',           navy:'20K · 4 subs · 12 destroyers',        air:'144 combat a/c',            nuke:null, small:true },
+                BE:  { army:'66K · 4 brigades',           navy:'4.2K · minehunters',                  air:'144 combat a/c',            nuke:null, small:true },
+                DK:  { army:'27K · 4 brigades',           navy:'6.6K · 6 coastal subs',               air:'112 combat a/c',            nuke:null, small:true },
+                PT:  { army:'179K (colonial wars)',       navy:'18K · 4 subs · 11 frigates',          air:'150 combat a/c',            nuke:null, small:true },
+                GR:  { army:'118K · 12 divs',             navy:'18K · 2 subs · 8 destroyers',         air:'190 combat a/c',            nuke:null, small:true },
+                LU:  { army:'550 · 1 light inf bn',       navy:null,                                  air:null,                        nuke:null, small:true },
+                // ── Warsaw Pact (remaining members) ───────────────────────────
+                PL:  { army:'200K · 15 divs',             navy:'19K · 5 subs',                        air:'696 combat a/c',            nuke:null },
+                RO:  { army:'150K · 9 divs',              navy:'8K · coastal/Danube',                 air:'252 combat a/c',            nuke:null },
+                CS:  { army:'145K · 10 divs',             navy:null,                                  air:'504 combat a/c',            nuke:null, small:true },
+                HU:  { army:'90K · 6 divs',               navy:'500 · Danube flotilla',               air:'108 combat a/c',            nuke:null, small:true },
+                BG:  { army:'117K · 8 MR divs · 5 tank bdes', navy:'7K · 2 subs',                     air:'252 combat a/c',            nuke:null, small:true },
+            };
+
+            // SVG coordinates for each disposition country — reuse FLAG_CENTRES
+            // where available; hand-placed otherwise.
+            const _dispCentroid = { ...FLAG_CENTRES,
+                IL: {cx: 925, cy: 288},
+                KP: {cx: 1387, cy: 224},
+            };
+
+            // Per-chip pixel nudges (paste output of the "Move Chips" tool here).
+            const CHIP_OFFSETS = {
+                TR: { x: 12, y: -3 },
+                HU: { x: 7, y: -4 },
+                PL: { x: 13, y: 1 },
+                GB: { x: -8, y: -26 },
+                DE: { x: -2, y: 0 },
+                SU: { x: -132, y: 18 },
+                CN: { x: -45, y: 7 },
+                VD: { x: 1, y: -1 },
+                IL: { x: 0, y: -6 },
+                PT: { x: -4, y: 0 },
+            };
+
+            const _sNS = 'http://www.w3.org/2000/svg';
+            const sigintLayer = document.createElementNS(_sNS, 'g');
+            sigintLayer.id = 'wm-sigint-layer';
+            sigintLayer.style.pointerEvents = 'all';
+            if (!sigintOn) sigintLayer.style.display = 'none';
+
+            // ── Submarine patrol corridors ─────────────────────────────────────
+            // Approximate SSBN bastions from IISS Military Balance 1972-73.
+            // US: blue; Soviet: red. Pulsing fill opacity + dashed perimeter.
+            // Part of sigintLayer — hidden when SIGINT is off.
+            const subGroup = document.createElementNS(_sNS, 'g');
+            subGroup.id = 'wm-sub-patrols';
+            subGroup.style.pointerEvents = 'none';
+
+            // Ocean mask: a white full-map rect (ocean = visible) with every
+            // country shape painted black on top (land = hidden). The patrol
+            // ellipses are drawn through this mask so they only show over water.
+            // Built once (first open) and re-appended on subsequent opens.
+            if (!_wmOceanMaskEl) {
+                _wmOceanMaskEl = document.createElementNS(_sNS, 'mask');
+                _wmOceanMaskEl.id = 'wm-ocean-mask';
+                _wmOceanMaskEl.setAttribute('maskUnits', 'userSpaceOnUse');
+                _wmOceanMaskEl.setAttribute('x', '0');    _wmOceanMaskEl.setAttribute('y', '0');
+                _wmOceanMaskEl.setAttribute('width', '1800'); _wmOceanMaskEl.setAttribute('height', '900');
+                const _oceanBg = document.createElementNS(_sNS, 'rect');
+                _oceanBg.setAttribute('x', '0');      _oceanBg.setAttribute('y', '0');
+                _oceanBg.setAttribute('width', '1800'); _oceanBg.setAttribute('height', '900');
+                _oceanBg.setAttribute('fill', '#fff');
+                _wmOceanMaskEl.appendChild(_oceanBg);
+                svg.querySelectorAll('path,polygon').forEach(p => {
+                    if (!p.id || !COUNTRY_NAMES[p.id]) return;
+                    const c = p.cloneNode(false);
+                    c.removeAttribute('id');
+                    c.removeAttribute('style');
+                    c.setAttribute('fill', '#000');
+                    c.setAttribute('stroke', '#000');     // close coastline anti-alias gaps
+                    c.setAttribute('stroke-width', '1.5');
+                    _wmOceanMaskEl.appendChild(c);
+                });
+            }
+            svg.appendChild(_wmOceanMaskEl);
+
+            // Ellipses are masked to ocean; labels are added straight to subGroup
+            // (unmasked) so the text stays legible even if it overhangs a coast.
+            const subEllipses = document.createElementNS(_sNS, 'g');
+            subEllipses.setAttribute('mask', 'url(#wm-ocean-mask)');
+            subGroup.appendChild(subEllipses);
+
+            const _subZones = []; // { el, lbl, rx, ry, fill, label } — for Move Subs tool
+            [
+                [  619,  96, 138, 56, '#4488ff', 'SSBN PATROL (US)' ],   // Labrador/N Atlantic
+                [ 1479, 328,  98, 62, '#4488ff', 'SSBN PATROL (US)' ],   // SW Pacific
+                [ 1060, 442,  95, 20, '#ff4444', 'SSBN BASTION (SU)'],   // Indian Ocean
+                [  785,  29,  88, 36, '#ff4444', 'SSBN BASTION (SU)'],   // Greenland Sea
+                [ 1501, 185,  78, 50, '#ff4444', 'SSBN BASTION (SU)'],   // Sea of Okhotsk
+            ].forEach(([cx, cy, rx, ry, fill, label]) => {
+                const el = document.createElementNS(_sNS, 'ellipse');
+                el.setAttribute('cx', cx);  el.setAttribute('cy', cy);
+                el.setAttribute('rx', rx);  el.setAttribute('ry', ry);
+                el.setAttribute('fill', fill);
+                el.setAttribute('fill-opacity', '0.08');
+                el.setAttribute('stroke', fill);
+                el.setAttribute('stroke-opacity', '0.50');
+                el.setAttribute('stroke-width', '0.7');
+                el.setAttribute('stroke-dasharray', '8 5');
+                const pulse = document.createElementNS(_sNS, 'animate');
+                pulse.setAttribute('attributeName', 'fill-opacity');
+                pulse.setAttribute('values', '0.04;0.17;0.04');
+                pulse.setAttribute('dur', (2.0 + Math.random() * 1.4).toFixed(1) + 's');
+                pulse.setAttribute('repeatCount', 'indefinite');
+                el.appendChild(pulse);
+                const lbl = document.createElementNS(_sNS, 'text');
+                lbl.setAttribute('x', cx);
+                lbl.setAttribute('y', cy + ry + 9);
+                lbl.setAttribute('text-anchor', 'middle');
+                lbl.setAttribute('font-size', '5.5');
+                lbl.setAttribute('fill', fill);
+                lbl.setAttribute('fill-opacity', '0.60');
+                lbl.setAttribute('font-family', 'TypewriterDry,monospace');
+                lbl.setAttribute('letter-spacing', '0.8');
+                lbl.textContent = label;
+                subEllipses.appendChild(el);   // masked → ocean only
+                subGroup.appendChild(lbl);     // unmasked → always legible
+                _subZones.push({ el, lbl, rx, ry, fill, label });
+            });
+            sigintLayer.appendChild(subGroup);
+            // ── End submarine patrol corridors ────────────────────────────────
+
+            // ── Orbital reconnaissance tracks ──────────────────────────────────
+            // KH-9 Hexagon (US, prograde) peaks 59°N over Europe.
+            // Zenit-4 (USSR, retrograde) peaks 60°N over central US.
+            // Satellite icons ride via animateMotion / mpath; track is dashed line.
+            // Both live inside sigintLayer — hidden when SIGINT is off.
+            const orbitGroup = document.createElementNS(_sNS, 'g');
+            orbitGroup.id = 'wm-orbital-tracks';
+            orbitGroup.style.pointerEvents = 'none';
+
+            const _mkOrbitPath = (phase, inclDeg, dir) => {
+                const amp = inclDeg / 90 * 450;
+                const pts = [];
+                for (let i = 0; i <= 90; i++) {
+                    const f = i / 90;
+                    pts.push([f * 1800, 450 - amp * Math.sin(2 * Math.PI * (f + phase))]);
+                }
+                if (dir < 0) pts.reverse();
+                return pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+            };
+
+            [
+                { id: 'wm-orbit-us', phase: 0.667, incl: 62, dir:  1, col: '#66aaff', label: 'KH-9 HEXAGON', lx: 1055, ly: 155, dur: '88s' },
+                { id: 'wm-orbit-su', phase: 0.03,  incl: 60, dir: -1, col: '#ff8855', label: 'ZENIT-4',      lx:  400, ly: 155, dur: '92s' },
+            ].forEach(s => {
+                const trackPath = document.createElementNS(_sNS, 'path');
+                trackPath.id = s.id;
+                trackPath.setAttribute('d', _mkOrbitPath(s.phase, s.incl, s.dir));
+                trackPath.setAttribute('fill', 'none');
+                trackPath.setAttribute('stroke', s.col);
+                trackPath.setAttribute('stroke-width', '0.5');
+                trackPath.setAttribute('stroke-opacity', '0.40');
+                trackPath.setAttribute('stroke-dasharray', '14 9');
+                orbitGroup.appendChild(trackPath);
+
+                const lbl = document.createElementNS(_sNS, 'text');
+                lbl.setAttribute('x', s.lx);
+                lbl.setAttribute('y', s.ly);
+                lbl.setAttribute('text-anchor', 'middle');
+                lbl.setAttribute('font-size', '5');
+                lbl.setAttribute('fill', s.col);
+                lbl.setAttribute('fill-opacity', '0.65');
+                lbl.setAttribute('font-family', 'TypewriterDry,monospace');
+                lbl.textContent = s.label;
+                orbitGroup.appendChild(lbl);
+
+                const satIcon = document.createElementNS(_sNS, 'circle');
+                satIcon.setAttribute('r', '2.8');
+                satIcon.setAttribute('fill', s.col);
+                satIcon.setAttribute('filter', 'url(#wm-cap-glow)');
+                const motion = document.createElementNS(_sNS, 'animateMotion');
+                motion.setAttribute('dur', s.dur);
+                motion.setAttribute('repeatCount', 'indefinite');
+                const mp = document.createElementNS(_sNS, 'mpath');
+                mp.setAttribute('href', '#' + s.id);
+                mp.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#' + s.id);
+                motion.appendChild(mp);
+                satIcon.appendChild(motion);
+                orbitGroup.appendChild(satIcon);
+            });
+            sigintLayer.appendChild(orbitGroup);
+            // ── End orbital reconnaissance tracks ─────────────────────────────
+
+            // Collected for the Move Chips drag tool: { chip, code, baseCx, baseCy, small }
+            const _sigintChips = [];
+            let _chipEditMode = false;
+            const _chipMoves = {}; // code → {x,y} delta from base centroid — paste into CHIP_OFFSETS
+
+            // Build one chip per country
+            // Branch icons replace the ARMY/NAVY/AIR/NUKE text labels. The SVGs are
+            // Noun Project line-art; rendering them as <img> with filter:brightness(0)
+            // forces a solid black silhouette regardless of the file's own colours
+            // (preserving transparency). This is more robust than a CSS mask, which
+            // only showed the airport icon — the others' alpha didn't drive the mask.
+            const _BRANCH_ICONS = {
+                army: 'https://file.garden/aXPgNT-ZRCxxpy0g/noun-military-helmet-6848473.svg',
+                navy: 'https://file.garden/aXPgNT-ZRCxxpy0g/noun-battleship-6343043.svg',
+                air:  'https://file.garden/aXPgNT-ZRCxxpy0g/noun-airport-military-2009265.svg',
+                nuke: 'https://file.garden/aXPgNT-ZRCxxpy0g/noun-nuclear-8069480.svg',
+            };
+            const _sigintTooltipHtml = (code) => {
+                const d = MILITARY_DISPOSITIONS[code];
+                if (!d) return '';
+                const row = (icon, val) => val
+                    ? `<div style="display:flex;gap:7px;align-items:center;margin:2px 0;">
+                         <img src="${icon}" alt="" style="flex:0 0 16px;width:16px;height:16px;object-fit:contain;filter:brightness(0);">
+                         <span style="color:#999;">${val}</span>
+                       </div>`
+                    : '';
+                return `<div style="font-family:TypewriterDry,monospace;font-size:11px;padding:4px 0;">` +
+                    row(_BRANCH_ICONS.army, d.army) +
+                    row(_BRANCH_ICONS.navy, d.navy) +
+                    row(_BRANCH_ICONS.air,  d.air)  +
+                    row(_BRANCH_ICONS.nuke, d.nuke) +
+                    `</div>`;
+            };
+
+            Object.entries(MILITARY_DISPOSITIONS).forEach(([code, d]) => {
+                const cen = _dispCentroid[code];
+                if (!cen) return;
+                // Base centroid (no offset) — drag tool reports the delta from this.
+                const baseCx = cen.cx, baseCy = cen.cy;
+                const off = CHIP_OFFSETS[code] || { x: 0, y: 0 };
+                const cx = baseCx + (off.x || 0), cy = baseCy + (off.y || 0);
+
+                // The whole chip is positioned by a group transform so the Move
+                // Chips tool only has to tweak the translate. Child geometry is
+                // laid out relative to (0,0).
+                const chip = document.createElementNS(_sNS, 'g');
+                chip.dataset.sigintCode = code;
+                chip.setAttribute('transform', `translate(${cx},${cy})`);
+                if (d.small) {
+                    // Hidden on-map; shown only via country-path hover (and during
+                    // Move Chips edit mode).
+                    chip.style.display = 'none';
+                }
+
+                // Background rect — width depends on nuclear
+                const hasNuke = !!d.nuke;
+                const squares = hasNuke ? 4 : 3;
+                const W = squares * 9 + (squares - 1) * 2 + 8; // px in SVG units
+                const bg = document.createElementNS(_sNS, 'rect');
+                bg.setAttribute('x', -W/2);
+                bg.setAttribute('y', -7);
+                bg.setAttribute('width', W);
+                bg.setAttribute('height', 14);
+                bg.setAttribute('rx', '2');
+                bg.setAttribute('fill', '#000');
+                bg.setAttribute('fill-opacity', '0.72');
+                chip.appendChild(bg);
+
+                // Coloured squares: Army / Navy / Air / Nuke
+                const cats = [
+                    { col: '#4caf50' },
+                    { col: '#42a5f5' },
+                    { col: '#90a4ae' },
+                ];
+                if (hasNuke) cats.push({ col: '#fdd835' });
+
+                cats.forEach((cat, i) => {
+                    const sq = document.createElementNS(_sNS, 'rect');
+                    sq.setAttribute('x', -W/2 + 4 + i * 11);
+                    sq.setAttribute('y', -4);
+                    sq.setAttribute('width', '9');
+                    sq.setAttribute('height', '8');
+                    sq.setAttribute('rx', '1');
+                    sq.setAttribute('fill', cat.col);
+                    chip.appendChild(sq);
+                });
+
+                // Invisible hover target spanning the full chip area (+padding)
+                const hit = document.createElementNS(_sNS, 'rect');
+                hit.setAttribute('x', -W/2 - 2);
+                hit.setAttribute('y', -9);
+                hit.setAttribute('width', W + 4);
+                hit.setAttribute('height', 18);
+                hit.setAttribute('fill', 'transparent');
+                hit.setAttribute('cursor', 'default');
+                chip.appendChild(hit);
+
+                chip.addEventListener('mouseenter', (ev) => {
+                    if (_chipEditMode) return;
+                    const html = _sigintTooltipHtml(code);
+                    if (!html) return;
+                    const fc = COUNTRIES[code];
+                    evTooltip.innerHTML = `<strong style="font-family:TypewriterDry,monospace;letter-spacing:1px;">${fc ? fc.name : code} - Disposition of Forces</strong>${html}`;
+                    evTooltip.style.display = 'block';
+                    const vr = viewport.getBoundingClientRect();
+                    // Pinned to the top-left of the world-map window (viewport),
+                    // not the cursor or the global screen corner.
+                    evTooltip.style.left = (vr.left + 12) + 'px';
+                    evTooltip.style.top  = (vr.top  + 12) + 'px';
+                });
+                chip.addEventListener('mousemove', (ev) => {
+                    if (_chipEditMode) return;
+                    const vr = viewport.getBoundingClientRect();
+                    // Pinned to the top-left of the world-map window (viewport),
+                    // not the cursor or the global screen corner.
+                    evTooltip.style.left = (vr.left + 12) + 'px';
+                    evTooltip.style.top  = (vr.top  + 12) + 'px';
+                });
+                chip.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
+
+                // Drag to reposition (Move Chips edit mode)
+                chip.addEventListener('mousedown', ev => {
+                    if (!_chipEditMode) return;
+                    ev.stopPropagation(); ev.preventDefault();
+                    evTooltip.style.display = 'none';
+                    chip.style.cursor = 'grabbing';
+                    const m = (chip.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+                    const startX = m ? parseFloat(m[1]) : baseCx;
+                    const startY = m ? parseFloat(m[2]) : baseCy;
+                    const sx = ev.clientX, sy = ev.clientY;
+                    const onMove = mv => {
+                        const nx = startX + (mv.clientX - sx) / scale;
+                        const ny = startY + (mv.clientY - sy) / scale;
+                        chip.setAttribute('transform', `translate(${nx},${ny})`);
+                    };
+                    const onUp = () => {
+                        document.removeEventListener('mousemove', onMove);
+                        document.removeEventListener('mouseup', onUp);
+                        _activeDragEnd = null;
+                        chip.style.cursor = 'grab';
+                        const fm = (chip.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+                        if (fm) {
+                            _chipMoves[code] = {
+                                x: Math.round(parseFloat(fm[1]) - baseCx),
+                                y: Math.round(parseFloat(fm[2]) - baseCy),
+                            };
+                            _refreshChipPanel();
+                        }
+                    };
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                    _activeDragEnd = onUp;
+                });
+
+                sigintLayer.appendChild(chip);
+                _sigintChips.push({ chip, code, baseCx, baseCy, small: !!d.small });
+            });
+
+            // Country-path hover for small-country disposition (sigintOn guard is
+            // checked at event time so toggling without reload works).
+            svg.querySelectorAll('path[id]').forEach(path => {
+                const code = path.id.replace(/^wm-/, '').toUpperCase();
+                if (!MILITARY_DISPOSITIONS[code] || !MILITARY_DISPOSITIONS[code].small) return;
+                path.addEventListener('mouseenter', (ev) => {
+                    if (!sigintOn) return;
+                    const html = _sigintTooltipHtml(code);
+                    if (!html) return;
+                    const fc = COUNTRIES[code];
+                    evTooltip.innerHTML = `<strong style="font-family:TypewriterDry,monospace;letter-spacing:1px;">${fc ? fc.name : code} - Disposition of Forces</strong>${html}`;
+                    evTooltip.style.display = 'block';
+                    const vr = viewport.getBoundingClientRect();
+                    // Pinned to the top-left of the world-map window (viewport),
+                    // not the cursor or the global screen corner.
+                    evTooltip.style.left = (vr.left + 12) + 'px';
+                    evTooltip.style.top  = (vr.top  + 12) + 'px';
+                });
+                path.addEventListener('mousemove', (ev) => {
+                    if (!sigintOn) return;
+                    const vr = viewport.getBoundingClientRect();
+                    // Pinned to the top-left of the world-map window (viewport),
+                    // not the cursor or the global screen corner.
+                    evTooltip.style.left = (vr.left + 12) + 'px';
+                    evTooltip.style.top  = (vr.top  + 12) + 'px';
+                });
+            });
+
+            // Extend the SIGINT toggle to include this layer. _applySigint is
+            // a const in the outer scope, so we patch via the sigint-btn click
+            // handler by reading sigintLayer through a module-level var.
+            sigintBtn.addEventListener('click', () => {
+                sigintLayer.style.display = sigintOn ? '' : 'none';
+            });
+            if (sigintOn) sigintLayer.style.display = '';
+            // ── End SIGINT layer ──────────────────────────────────────────────
+
             // Per-country width overrides (bypasses bbox formula):
             // Colonial powers have huge bboxes (overseas territories) → cap to ~Morocco size.
             // Superpowers already hit the 50px cap → bump 25% to 63px.
@@ -16338,12 +17403,11 @@ function openWorldMap() {
             const CAPITAL_DATA = {
                 // North America
                 US: 'Washington D.C.', CA: 'Ottawa',         MX: 'Mexico City',
-                GT: 'Guatemala City',  BZ: 'Belmopan',       SV: 'San Salvador',
-                HN: 'Tegucigalpa',     NI: 'Managua',        CR: 'San José',
+                GT: 'Guatemala City',  SV: 'San Salvador',
+                HN: 'Tegucigalpa',     NI: 'San José',       CR: 'Managua',
                 PA: 'Panama City',     CU: 'Havana',         JM: 'Kingston',
                 HT: 'Port-au-Prince',  DO: 'Santo Domingo',  TT: 'Port of Spain',
                 BS: 'Nassau',          BB: 'Bridgetown',     GY: 'Georgetown',
-                SR: 'Paramaribo',
                 // South America
                 CO: 'Bogotá',          VE: 'Caracas',        BR: 'Brasília',
                 EC: 'Quito',           PE: 'Lima',           BO: 'La Paz',
@@ -16354,7 +17418,7 @@ function openWorldMap() {
                 FR: 'Paris',           ES: 'Madrid',         PT: 'Lisbon',
                 NL: 'Amsterdam',       BE: 'Brussels',       LU: 'Luxembourg',
                 DE: 'Bonn',            DD: 'East Berlin',    AT: 'Vienna',
-                CH: 'Bern',            IT: 'Rome',           MT: 'Valletta',
+                CH: 'Bern',            IT: 'Rome',
                 NO: 'Oslo',            SE: 'Stockholm',      DK: 'Copenhagen',
                 FI: 'Helsinki',        PL: 'Warsaw',         CS: 'Prague',
                 HU: 'Budapest',        RO: 'Bucharest',      YU: 'Belgrade',
@@ -16365,19 +17429,19 @@ function openWorldMap() {
                 MA: 'Rabat',           TN: 'Tunis',          DZ: 'Algiers',
                 LY: 'Tripoli',         EG: 'Cairo',          SD: 'Khartoum',
                 MR: 'Nouakchott',      SN: 'Dakar',          GM: 'Banjul',
-                GW: 'Bissau',          GN: 'Conakry',        SL: 'Freetown',
+                GN: 'Conakry',        SL: 'Freetown',
                 LR: 'Monrovia',        CI: 'Abidjan',        HV: 'Ouagadougou',
-                GH: 'Accra',           TG: 'Lomé',           BJ: 'Cotonou',
+                GH: 'Accra',           TG: 'Lomé',           DY: 'Cotonou',
                 NG: 'Lagos',           ML: 'Bamako',         NE: 'Niamey',
-                BF: 'Ouagadougou',     TD: 'Fort-Lamy',      CM: 'Yaoundé',
+                TD: 'Fort-Lamy',      CM: 'Yaoundé',
                 CF: 'Bangui',          CG: 'Brazzaville',    GA: 'Libreville',
                 GQ: 'Santa Isabel',    ZR: 'Kinshasa',       RW: 'Kigali',
                 BI: 'Bujumbura',       UG: 'Kampala',        KE: 'Nairobi',
-                TZ: 'Dar es Salaam',   AO: 'Luanda',         ZM: 'Lusaka',
-                MW: 'Lilongwe',        MZ: 'Lourenço Marques', RH: 'Salisbury',
+                TZ: 'Dar es Salaam',   ZM: 'Lusaka',
+                MW: 'Lilongwe',        RH: 'Salisbury',
                 ZA: 'Pretoria',        LS: 'Maseru',         SZ: 'Mbabane',
                 BW: 'Gaborone',        SWA: 'Windhoek',      ET: 'Addis Ababa',
-                DJ: 'Djibouti',        SO: 'Mogadishu',      MG: 'Antananarivo',
+                SO: 'Mogadishu',      MG: 'Antananarivo',
                 // Middle East
                 SY: 'Damascus',        LB: 'Beirut',         IL: 'Tel Aviv',
                 JO: 'Amman',           IQ: 'Baghdad',        KW: 'Kuwait City',
@@ -16387,30 +17451,30 @@ function openWorldMap() {
                 // Asia
                 AF: 'Kabul',           PK: 'Islamabad',      IN: 'New Delhi',
                 BD: 'Dhaka',           NP: 'Kathmandu',      BT: 'Thimphu',
-                LK: 'Colombo',         BU: 'Rangoon',        TH: 'Bangkok',
+                CE: 'Colombo',         BU: 'Rangoon',        TH: 'Bangkok',
                 KH: 'Phnom Penh',      LA: 'Vientiane',      VN: 'Hanoi',
                 VD: 'Saigon',          MY: 'Kuala Lumpur',   SG: 'Singapore',
                 ID: 'Jakarta',         PH: 'Manila',         CN: 'Beijing',
                 MN: 'Ulaanbaatar',     KP: 'Pyongyang',      KR: 'Seoul',
                 JP: 'Tokyo',           TW: 'Taipei',
                 // Oceania
-                AU: 'Canberra',        NZ: 'Wellington',     PG: 'Port Moresby',
+                AU: 'Canberra',        NZ: 'Wellington',
                 FJ: 'Suva',
             };
             const CAPITAL_OFFSETS = {
                 KP: { x: -14, y:  -2 },
                 KR: { x: -20, y: -20 },
                 IE: { x:  -6, y: -13 },
-                FI: { x:  -4, y:   8 },
+                FI: { x: -13, y:  11 },
                 AF: { x:  -4, y: -13 },
-                JP: { x:   6, y:   4 },
+                JP: { x:   8, y:   3 },
                 DD: { x:  -8, y: -14 },
-                IS: { x: -16, y:  -8 },
-                ZA: { x:   0, y:   0 },
+                IS: { x: -23, y:  -9 },
+                ZA: { x:   7, y: -23 },
                 KH: { x: -12, y:  -8 },
                 TH: { x: -18, y: -16 },
                 VN: { x: -28, y: -63 },
-                TW: { x: -11, y: -12 },
+                TW: { x: -10, y: -17 },
                 IT: { x: -15, y: -12 },
                 TR: { x: -27, y: -15 },
                 AL: { x: -14, y: -11 },
@@ -16420,12 +17484,12 @@ function openWorldMap() {
                 RO: { x:  -7, y:  -5 },
                 BG: { x: -21, y: -12 },
                 GR: { x: -14, y: -14 },
-                EG: { x: -14, y: -27 },
+                EG: { x: -14, y: -26 },
                 TN: { x: -11, y: -29 },
                 CY: { x: -12, y: -10 },
                 LB: { x: -13, y: -11 },
-                IL: { x: -11, y: -13 },
-                JO: { x: -18, y: -15 },
+                IL: { x: -14, y: -15 },
+                JO: { x: -18, y: -12 },
                 SY: { x: -21, y:  -3 },
                 IQ: { x: -15, y: -12 },
                 BE: { x: -15, y: -14 },
@@ -16440,8 +17504,8 @@ function openWorldMap() {
                 NL: { x: 194, y:-159 },
                 US: { x: 120, y:  20 },
                 CA: { x:  12, y:  79 },
-                MX: { x: -10, y:  14 },
-                MR: { x: -37, y:   0 },
+                MX: { x:  -6, y:  10 },
+                MR: { x: -37, y:   2 },
                 NE: { x: -42, y:  11 },
                 ML: { x: -35, y:  20 },
                 SN: { x: -25, y: -15 },
@@ -16449,7 +17513,7 @@ function openWorldMap() {
                 ET: { x: -21, y:  -5 },
                 SO: { x: -16, y:   3 },
                 PT: { x:-338, y:-199 },
-                MG: { x:  -8, y: -16 },
+                MG: { x:  -7, y: -16 },
                 AU: { x:  29, y:  55 },
                 NZ: { x:   6, y:  -9 },
                 ID: { x: -76, y:  14 },
@@ -16457,7 +17521,7 @@ function openWorldMap() {
                 MY: { x: -56, y: -11 },
                 LA: { x: -21, y: -13 },
                 BU: { x: -10, y:   1 },
-                BD: { x: -11, y: -11 },
+                BD: { x: -11, y: -12 },
                 IN: { x: -44, y: -40 },
                 PK: { x:   3, y: -27 },
                 IR: { x: -24, y: -29 },
@@ -16470,6 +17534,34 @@ function openWorldMap() {
                 YD: { x: -26, y:   2 },
                 VD: { x:   6, y:  43 },
                 GB: { x:-209, y:-184 },
+                // Batch 2 (Jun 2026)
+                PL: { x:  -5, y: -13 },   DE: { x: -24, y:  -9 },   FR: { x:-337, y:-218 },
+                NP: { x:  -4, y: -10 },   BT: { x: -15, y: -12 },   CN: { x:  70, y: -41 },
+                CU: { x: -28, y: -20 },   BS: { x: -18, y: -20 },   JM: { x: -12, y: -11 },
+                HT: { x:  -9, y: -12 },   DO: { x: -13, y:  -8 },   VE: { x: -16, y: -35 },
+                SV: { x: -13, y: -10 },   HN: { x: -17, y: -12 },
+                PA: { x: -10, y: -14 },   GT: { x: -15, y:  -2 },
+                PE: { x: -18, y:   5 },   CL: { x: -36, y: -16 },   AR: { x:  10, y: -35 },
+                UY: { x:  -9, y:   1 },   PY: { x:  -5, y:   0 },   BR: { x:  32, y:   2 },
+                EC: { x:  10, y: -21 },   CO: { x: -21, y: -24 },   TT: { x: -13, y: -12 },
+                GY: { x: -14, y: -26 },
+                // Batch 3 (Jun 2026)
+                BO: { x: -37, y:  -8 },   NO: { x: -16, y:  30 },   SE: { x: -10, y:   3 },
+                SU: { x:-291, y:  -7 },   MN: { x:   1, y: -17 },   PH: { x: -21, y: -28 },
+                FJ: { x: -16, y:  -9 },   SA: { x:  -9, y: -14 },   BB: { x: -12, y: -12 },
+                // Batch 4 (Jun 2026) — Africa
+                LS: { x: -15, y: -13 },   SZ: { x: -13, y: -12 },   SWA: { x: -19, y: -10 },
+                BW: { x:  -6, y:  -1 },   RH: { x:  -4, y: -20 },   MW: { x: -14, y:  -6 },
+                ZM: { x:  -4, y:   0 },   TZ: { x:   7, y:  -9 },   RW: { x: -12, y: -12 },
+                BI: { x: -14, y: -11 },   UG: { x: -11, y:  -6 },   ZR: { x: -47, y:  -8 },
+                CG: { x: -12, y:   6 },   GA: { x: -23, y: -16 },   GQ: { x: -35, y: -20 },
+                CM: { x: -21, y:   5 },   CF: { x: -27, y:   3 },   TG: { x: -11, y:   1 },
+                GH: { x: -10, y:   1 },   NG: { x: -41, y:   2 },   HV: { x: -13, y: -11 },
+                CI: { x:  -4, y:   0 },   LR: { x: -18, y: -12 },   SL: { x: -18, y: -13 },
+                GN: { x: -26, y: -12 },   GM: { x: -16, y: -11 },   TD: { x: -30, y:  11 },
+                // Batch 5 (Jun 2026)
+                DY: { x: -13, y:   3 },   CE: { x: -16, y:  -8 },
+                CR: { x: -17, y:  -7 },   NI: { x: -11, y: -13 },
             };
 
             // Capital city flavour images — populate with URLs as research is done.
@@ -16488,6 +17580,132 @@ function openWorldMap() {
                 KP: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/PyongyangC.jpeg',
                 KR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/seoulC.jpeg',
                 PH: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/manilaC.jpg',
+                MN: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ulaanbaatarC.jpg',
+                DE: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/BonnC.png',
+                LB: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/beirutC.jpg',
+                MX: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/mexicocityC.jpg',
+                AF: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/kabulC.webp',
+                US: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/WashingtonDCC.jpg',
+                CS: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/pragueC.jpg',
+                PL: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/WarsawC.JPG',
+                GR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/AthensC.jpeg',
+                GB: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/londonc.jpg',
+                ES: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/Madrid.JPG',
+                OM: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/MuscatC.jpeg',
+                SU: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/MoscowC.JPG',
+                TD: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/FortLamy.JPG',
+                MG: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/Atananarivo.JPG',
+                HT: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/portauprinceC.JPG',
+                HU: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/BudapestC.JPG',
+                LR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/monroviaC.JPG',
+                BG: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/sofia.jpeg',
+                DD: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/eastberlin.jpg',
+                NL: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/amsterdamC.jpg',
+                PT: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/lisbonC.jpg',
+                DZ: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/algiersC.jpg',
+                YD: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/adenC.jpg',
+                TR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ankaraC.jpg',
+                SD: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/KhartoumC.jpg',
+                SA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/RiyadhC.jpg',
+                PK: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/islambadC.png',
+                RO: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/bucharest.jpg',
+                VD: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/saigonC.jpg',
+                IE: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/DublinC.jpg',
+                NP: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/kathmandu.jpg',
+                FI: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/helsinkiC.jpg',
+                IS: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/reykjavikC.jpg',
+                AR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/BuenosairesC.jpg',
+                CO: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/bogotaC.jpg',
+                NO: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/osloC.jpg',
+                CF: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/banguiC.jpg',
+                TN: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/TunisC.jpeg',
+                AT: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ViennaC.jpg',
+                AL: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/TiranaC.jpg',
+                IR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/TehranC.jpg',
+                JO: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ammanC.jpg',
+                MA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/RabatC.jpg',
+                LA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/vientianeC.jpeg',
+                NE: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/Niamey.jpg',
+                TW: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/TaipeiC.jpg',
+                DK: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/CopenhagenC.jpg',
+                MY: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/KualalumpurC.jpg',
+                MR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/NouakchottC.jpg',
+                BT: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ThimphuC.jpg',
+                SO: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/MogadishuC.jpg',
+                RW: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/kigaliC.jpg',
+                BI: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/BujumburaC.jpg',
+                CM: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/Yaound%C3%A9C.jpg',
+                KW: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/kuwaitC.jpg',
+                CG: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/BrazzavilleC.jpg',
+                GN: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ConakryC.jpg',
+                LU: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/LuxembourgC.jpg',
+                CE: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ColomboC.jpg',
+                SZ: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/MbabaneC.jpg',
+                UY: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/MontevideoC.jpg',
+                VE: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/CaracasC.jpeg',
+                BU: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/RangoonC.png',
+                SE: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/stockholm.png',
+                VN: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/HanoiC.png',
+                CH: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/BernC.jpg',
+                BE: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/brusselsC.jpg',
+                QA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/DohaC.jpg',
+                HN: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/tegucigalpasC.jpg',
+                FJ: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/suvaC.jpg',
+                BD: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/dhakaC.jpeg',
+                MW: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/LilongweC.jpeg',
+                BH: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ManamaC.jpg',
+                SG: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/singaporeC.jpg',
+                CY: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/NicosiaC.jpg',
+                ID: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/jakartaC.jpg',
+                JM: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/kingstonC.jpg',
+                AE: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/abudhabiC.jpg',
+                BO: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/lapazC.jpg',
+                EC: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/QuitoC.jpeg',
+                DO: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/Santo%20DomingoC.jpg',
+                GQ: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/SanisabelaC.jpg',
+                TG: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/lomeC.jpg',
+                SL: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/freetownC.jpg',
+                BS: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/nassauC.jpg',
+                TT: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/portofspainC.jpg',
+                ZA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/pretoriaC.jpg',
+                KE: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/nairobi.jpg',
+                TZ: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/daressalaamC.jpg',
+                PA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/panamaC.jpg',
+                TH: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/bangkokC.jpg',
+                GA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/LibrevilleC.jpg',
+                UG: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/kampalaC.jpg',
+                ML: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/bamakoC.jpg',
+                GH: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/accraC.jpg',
+                PY: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/asuncionC.jpg',
+                GT: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/guatemalaC.jpg',
+                ZM: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/lusakaC.jpg',
+                SN: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/dakarC.jpg',
+                CI: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/abidjanC.jpg',
+                BB: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/bridgetownC.jpg',
+                LS: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/maseruC.jpg',
+                IN: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/newdelhiC.jpeg',
+                HV: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ouagadougouC.jpg',
+                JP: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/tokyoC.jpg',
+                NG: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/lagosc.jpg',
+                GY: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/georgetownC.jpg',
+                NZ: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/wellingtonC.jpg',
+                CL: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/SantiagoC.jpg',
+                GM: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/banjul.jpg',
+                NI: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/sanjoseC.jpg',
+                SV: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/sansalvadorC.jpg',
+                DY: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/cotonouC.jpg',
+                AU: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/canberraC.jpg',
+                SWA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/windhoekC.jpg',
+                CR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/managuaC.jpg',
+                BW: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/gabaroneC.jpg',
+                KH: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/PhnomPenh-ezgif.com-optimize.gif',
+                BR: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/Brasilia.gif',
+                IL: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/telaviv.gif',
+                ET: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/AddisAbaba-ezgif.com-optimize.gif',
+                CN: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/Beijing-ezgif.com-optimize.gif',
+                SY: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/Damascus-ezgif.com-optimize.gif',
+                EG: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/Cairo-ezgif.com-optimize.gif',
+                IT: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/Rome.jpeg',
             };
 
             // Build SVG flag overlay (flags as <image> elements inside the SVG)
@@ -16606,8 +17824,31 @@ function openWorldMap() {
             const _capDots = [];
             const capGroup = document.createElementNS(_evNS, 'g');
             capGroup.id = 'wm-capitals';
-            capGroup.style.display = 'none'; // initial state; _applyCapVis() decides visibility
             // svg.appendChild deferred — appended below, before _iconGroup, so events render above capitals
+
+            // Soft glow filter for capitals on the night side of the terminator.
+            // Built programmatically (not via innerHTML, which would lowercase the
+            // camelCase filter-primitive tag names and break the filter).
+            const _capGlowFilter = document.createElementNS(_evNS, 'filter');
+            _capGlowFilter.id = 'wm-cap-glow';
+            _capGlowFilter.setAttribute('x', '-300%');
+            _capGlowFilter.setAttribute('y', '-300%');
+            _capGlowFilter.setAttribute('width', '700%');
+            _capGlowFilter.setAttribute('height', '700%');
+            const _capGlowBlur = document.createElementNS(_evNS, 'feGaussianBlur');
+            _capGlowBlur.setAttribute('stdDeviation', '1.6');
+            _capGlowBlur.setAttribute('result', 'b');
+            _capGlowFilter.appendChild(_capGlowBlur);
+            const _capGlowMerge = document.createElementNS(_evNS, 'feMerge');
+            ['b', 'b', 'SourceGraphic'].forEach(src => {
+                const n = document.createElementNS(_evNS, 'feMergeNode');
+                n.setAttribute('in', src);
+                _capGlowMerge.appendChild(n);
+            });
+            _capGlowFilter.appendChild(_capGlowMerge);
+            const _capDefs = document.createElementNS(_evNS, 'defs');
+            _capDefs.appendChild(_capGlowFilter);
+            capGroup.appendChild(_capDefs);
 
             Object.entries(CAPITAL_DATA).forEach(([code, cityName]) => {
                 const paths = Array.from(svg.querySelectorAll('[id="' + code + '"]'));
@@ -16630,6 +17871,20 @@ function openWorldMap() {
                 dot.setAttribute('stroke', 'rgba(255,255,255,0.9)');
                 dot.setAttribute('stroke-width', '0.6');
                 dot.setAttribute('pointer-events', 'all');
+                // Flicker — city lights guttering on the night-side capitals. A
+                // discrete (jumpy, non-interpolated) opacity animation reads as a
+                // real flicker rather than a smooth glow-pulse. It is held idle
+                // (begin="indefinite") and only started when the dot crosses onto
+                // the dark side; day-side dots stay rock-steady. Randomised duration
+                // so the cities flicker out of sync.
+                const _twinkle = document.createElementNS(_evNS, 'animate');
+                _twinkle.setAttribute('attributeName', 'opacity');
+                _twinkle.setAttribute('calcMode', 'discrete');
+                _twinkle.setAttribute('values', '1;0.82;1;1;0.9;1;0.78;1;1;0.85;1;1');
+                _twinkle.setAttribute('dur', (3.0 + Math.random() * 4.0).toFixed(2) + 's');
+                _twinkle.setAttribute('begin', 'indefinite');
+                _twinkle.setAttribute('repeatCount', 'indefinite');
+                dot.appendChild(_twinkle);
 
                 const label = document.createElementNS(_evNS, 'text');
                 label.setAttribute('x', baseCx + off.x + 3);
@@ -16663,7 +17918,7 @@ function openWorldMap() {
                         return;
                     }
                     capImgPanel.dataset.code = code;
-                    capImgPanel.innerHTML = `<div style="font-family:TypewriterDry,monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:4px">${cityName}</div><img src="${url}" style="display:block;max-width:200px;width:auto;height:auto;border-radius:2px">`;
+                    capImgPanel.innerHTML = `<div style="font-family:TypewriterDry,monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:4px;text-align:center">${cityName}</div><img src="${url}" style="display:block;max-width:200px;width:auto;height:auto;border-radius:2px">`;
                     capImgPanel.style.display = 'block';
                     const pad = 12;
                     let x = e.clientX + pad, y = e.clientY + pad;
@@ -16706,8 +17961,54 @@ function openWorldMap() {
 
                 capGroup.appendChild(dot);
                 capGroup.appendChild(label);
-                _capDots.push({ dot, code, label });
+                _capDots.push({ dot, code, label, twinkle: _twinkle, flickering: false });
             });
+
+            // Light up the capitals that fall on the night side. Uses the same
+            // solar geometry as the terminator: a point is dark when the solar
+            // zenith cosine is negative (sun below the local horizon).
+            const _updateCapGlow = () => {
+                const decR   = _parseDeclination() * Math.PI / 180;
+                const subLon = _subSolarLon();
+                const sinDec = Math.sin(decR), cosDec = Math.cos(decR);
+                // Start the flicker only as a capital crosses onto the dark side,
+                // and stop it (resetting to steady opacity 1) when it returns to
+                // daylight. The `flickering` flag makes begin/end fire on the
+                // transition only, not on every periodic terminator tick.
+                const _setFlicker = (entry, on) => {
+                    if (on === entry.flickering) return;
+                    entry.flickering = on;
+                    try { on ? entry.twinkle.beginElement() : entry.twinkle.endElement(); } catch (_) {}
+                };
+                _capDots.forEach(entry => {
+                    const { dot } = entry;
+                    if (!nightOn) {
+                        dot.removeAttribute('filter');
+                        dot.setAttribute('fill', '#cc0000');
+                        _setFlicker(entry, false);
+                        return;
+                    }
+                    const cx  = parseFloat(dot.getAttribute('cx'));
+                    const cy  = parseFloat(dot.getAttribute('cy'));
+                    const lon = cx / 1800 * 360 - 180;
+                    const lat = 90 - cy / 900 * 180;
+                    const latR = lat * Math.PI / 180;
+                    const dLon = (lon - subLon) * Math.PI / 180;
+                    const cosZ = Math.sin(latR) * sinDec
+                               + Math.cos(latR) * cosDec * Math.cos(dLon);
+                    if (cosZ < 0) {
+                        dot.setAttribute('fill', '#ffd24a'); // lit amber — city lights
+                        dot.setAttribute('filter', 'url(#wm-cap-glow)');
+                        _setFlicker(entry, true);
+                    } else {
+                        dot.removeAttribute('filter');
+                        dot.setAttribute('fill', '#cc0000'); // daytime red marker
+                        _setFlicker(entry, false);
+                    }
+                });
+            };
+            _onNightChange = _updateCapGlow;
+            _updateCapGlow();
 
             const capOffsetPanel = document.createElement('div');
             capOffsetPanel.style.cssText = 'position:absolute;bottom:16px;right:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:520px;white-space:pre;display:none;user-select:text;cursor:text;';
@@ -16734,7 +18035,7 @@ function openWorldMap() {
                     if (label) label.style.display = _capEditMode ? '' : 'none';
                 });
                 if (_capEditMode) {
-                    capGroup.style.display = ''; // force visible while editing
+                    _applyCapVis(); // _capEditMode now true → always shows
                     _capRefreshOffsets();
                 } else {
                     _applyCapVis(); // restore visibility based on the Capitals toggle
@@ -16749,10 +18050,13 @@ function openWorldMap() {
             // pointer-events:none so being on top does not block hover.
             capGroupEl = capGroup;
             svg.appendChild(capGroup);
+            // SIGINT layer sits between capitals and events
+            svg.appendChild(sigintLayer);
             iconGroupEl = _iconGroup;
-            svg.appendChild(_iconGroup);
-            // Restore flags-on-top if the toggle was left on from a previous visit
-            if (flagsOn && flagOverlayG) svg.appendChild(flagOverlayG);
+            // Icons and flags go on the overlay SVG so they are outside the SIGINT tint.
+            flagSvgEl.appendChild(_iconGroup);
+            // Restore flags-on-top of icons if the toggle was left on from a previous visit
+            if (flagsOn && flagOverlayG) flagSvgEl.appendChild(flagOverlayG);
 
             let _editMode = false;
             const _movedOffsets = {}; // id → {x,y} accumulated via drag tool
@@ -16787,9 +18091,47 @@ function openWorldMap() {
                     (children || []).forEach(c => el.appendChild(_mkEl(c.tag, c.attrs, c.children)));
                     return el;
                 };
+                // Transparent hit area so hover fires before the cursor is pixel-perfect on the small icon path.
+                const hitCircle = document.createElementNS(_evNS, 'circle');
+                hitCircle.setAttribute('r', '9');
+                hitCircle.setAttribute('fill', 'none');
+                hitCircle.setAttribute('stroke', 'none');
+                hitCircle.style.pointerEvents = 'all';
+                g.appendChild(hitCircle);
+
                 const shapeG = document.createElementNS(_evNS, 'g');
                 shapeG.setAttribute('transform', 'scale(0.6)');
                 specs.forEach(spec => shapeG.appendChild(_mkEl(spec.tag, spec.attrs, spec.children)));
+
+                // ── Icon micro-animation by type ─────────────────────────────
+                // disaster → expanding seismic ripple; war → slow smoke pulse;
+                // coup → rhythmic flash. These play ONLY on the event's debut turn
+                // (the question pk at which it first appears active), so the map is
+                // a quiet board with motion drawing the eye only to what's new.
+                let _animDebut = false;
+                try {
+                    if (def.state() === 1) {
+                        const _curPk = _lastQuestionPK;
+                        if (_wmEventDebutPk[def.id] === undefined) _wmEventDebutPk[def.id] = _curPk;
+                        _animDebut = (_wmEventDebutPk[def.id] === _curPk);
+                    }
+                } catch (_) {}
+                if (_animDebut && def.type === 'disaster') {
+                    const ring = _mkEl('circle', { r: 4, fill: 'none', stroke: '#5AACF0', 'stroke-width': '1.2', opacity: '0' }, [
+                        { tag: 'animate', attrs: { attributeName: 'r',       values: '3;13',    dur: '1.8s', repeatCount: 'indefinite' } },
+                        { tag: 'animate', attrs: { attributeName: 'opacity', values: '0.7;0',   dur: '1.8s', repeatCount: 'indefinite' } },
+                    ]);
+                    g.appendChild(ring);
+                } else if (_animDebut && def.type === 'war') {
+                    const smoke = _mkEl('circle', { r: 6, fill: '#9a9a9a', opacity: '0' }, [
+                        { tag: 'animate', attrs: { attributeName: 'r',       values: '5;11;5',       dur: '3.6s', repeatCount: 'indefinite' } },
+                        { tag: 'animate', attrs: { attributeName: 'opacity', values: '0;0.22;0',     dur: '3.6s', repeatCount: 'indefinite' } },
+                    ]);
+                    g.appendChild(smoke); // behind the shape
+                } else if (_animDebut && def.type === 'coup') {
+                    shapeG.appendChild(_mkEl('animate', { attributeName: 'opacity', values: '1;0.35;1', dur: '1.1s', repeatCount: 'indefinite' }));
+                }
+
                 g.appendChild(shapeG);
 
 
@@ -16797,14 +18139,7 @@ function openWorldMap() {
                 // sit on top of the capitals layer).
                 g.addEventListener('mouseenter', e => {
                     if (_editMode || def.state() !== 1) return;
-                    const imgHtml = def.img
-                        ? `<img src="${def.img}" style="width:auto;max-width:200px;height:auto;display:block;margin:0 auto 2px auto">`
-                        : '';
-                    const labelHtml = `<span style="display:block;font-family:Georgia,serif;font-size:14px;font-weight:bold;color:#333;margin-bottom:2px">${def.label}</span>`;
-                    const bodyHtml = def.body
-                        ? `<span style="display:block;margin-top:2px;padding:3px;background:linear-gradient(135deg,rgba(255,255,255,0.95) 0%,rgba(240,240,240,0.9) 100%);box-shadow:inset 0 1px 2px rgba(255,255,255,0.8),0 1px 3px rgba(0,0,0,0.15);border-radius:2px"><span style="font-family:'PermanentMarker',cursive;font-size:12px;color:rgb(96,115,129);transform:rotate(-1.5deg) skewX(-3deg);display:block;line-height:1.45;letter-spacing:0.05em;text-align:left">${def.body}</span></span>`
-                        : '';
-                    evTooltip.innerHTML = imgHtml + labelHtml + bodyHtml;
+                    evTooltip.innerHTML = _eventPolaroidHtml(def);
                     evTooltip.style.display = 'block';
                     const _pad = 16;
                     let _x = e.clientX + _pad, _y = e.clientY + _pad;
@@ -16840,33 +18175,49 @@ function openWorldMap() {
                     _activeDragEnd = onUp;
                 });
 
-                // Click is "transparent": it forwards to the country path underneath
-                // (so clicking an event highlights/selects the country). We momentarily
-                // hide this icon + flags + capitals so elementFromPoint reaches the path.
-                const _fwdClick = (type, e) => {
+                // Click is "transparent": the event hover wins, but a click selects
+                // the country the event sits on (yellow outline), exactly as if the
+                // icon weren't there. We resolve the country directly from def.country
+                // (largest path with that id); if the event has no country we fall
+                // back to whatever path is under the cursor via elementFromPoint.
+                const _countryElForEvent = (clientX, clientY) => {
+                    if (def.country) {
+                        const paths = Array.from(svg.querySelectorAll('[id="' + def.country + '"]'));
+                        let best = null, bestArea = -1;
+                        paths.forEach(p => {
+                            try { const b = p.getBBox(); const a = b.width * b.height; if (a > bestArea) { bestArea = a; best = p; } } catch (ignore) {}
+                        });
+                        if (best) return best;
+                    }
+                    // Fallback: hide this icon momentarily so elementFromPoint reaches the path.
+                    g.style.display = 'none';
+                    const under = document.elementFromPoint(clientX, clientY);
+                    g.style.display = '';
+                    return (under && under.id && COUNTRY_NAMES[under.id]) ? under : null;
+                };
+                g.addEventListener('click', e => {
+                    if (_editMode) return;
+                    e.stopPropagation();
+                    const cel = _countryElForEvent(e.clientX, e.clientY);
+                    const wasSel = selectedEl === cel;
+                    selectCountry(cel);
+                    if (cel && !wasSel) flyToEl(cel); // glide to the event's country
+                });
+                g.addEventListener('dblclick', e => {
                     if (_editMode) return;
                     e.stopPropagation();
                     evTooltip.style.display = 'none';
-                    g.style.display = 'none';
-                    g.setAttribute('display', 'none');
-                    if (flagOverlayG) flagOverlayG.style.display = 'none';
-                    if (capGroupEl) capGroupEl.style.display = 'none';
-                    const under = document.elementFromPoint(e.clientX, e.clientY);
-                    g.style.display = '';
-                    g.removeAttribute('display');
-                    if (flagOverlayG) flagOverlayG.style.display = '';
-                    if (capGroupEl) capGroupEl.style.display = (capitalsOn || _capEditMode) ? '' : 'none';
-                    if (under && under !== g) under.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, view: window }));
-                };
-                g.addEventListener('click',    e => _fwdClick('click', e));
-                g.addEventListener('dblclick', e => _fwdClick('dblclick', e));
+                    const cel = _countryElForEvent(e.clientX, e.clientY);
+                    const code = cel && cel.id;
+                    if (code && COUNTRY_NAMES[code]) openCIAProfile(code, container, tooltip, sigintOn);
+                });
 
                 g.style.display = 'none';
                 g.setAttribute('display', 'none');
                 g.style.opacity = '0';
                 g.style.pointerEvents = 'none';
                 _iconGroup.appendChild(g);
-                _iconNodes.push({ g, def });
+                _iconNodes.push({ g, def, cx: Math.round(px), cy: Math.round(py) });
             });
 
             _updateIconVis = () => {
@@ -16877,12 +18228,57 @@ function openWorldMap() {
                         if (show) g.removeAttribute('display'); else g.setAttribute('display', 'none');
                         g.style.opacity = show ? '' : '0';
                         // Shown icons are interactive: hover shows the event tooltip,
-                        // click forwards to the country underneath (see _fwdClick).
+                        // click selects the country underneath (see _countryElForEvent).
                         g.style.pointerEvents = show ? 'all' : 'none';
                     } catch(e) {}
                 });
             };
             _updateIconVis();
+
+            // Feature 2 — Hot-zone body glow.
+            // Countries with a RECENTLY-debuted event (coup, war, disaster) pulse a
+            // tinted stroke so the map reads at a glance. The glow only lives for the
+            // event's first two turns of existence — debut turn and the one after —
+            // so the board quietens once a crisis is no longer breaking news. Debut
+            // is the question pk at which the event was first seen active (the same
+            // signal the icon micro-animations use); permanent events debut on the
+            // first map open from the start of the game.
+            const _curTurnIdx = getQuestionIndexFromPk(_lastQuestionPK);
+            const _withinFirstTwoTurns = def => {
+                const dpk = _wmEventDebutPk[def.id];
+                if (dpk === undefined) return true;            // debuting this very turn
+                const di = getQuestionIndexFromPk(dpk);
+                if (di == null || di < 0 || _curTurnIdx == null || _curTurnIdx < 0) return true;
+                return (_curTurnIdx - di) < 2;                 // di and di+1 → first two turns
+            };
+            (() => {
+                const TYPE_COL = { coup: '#e84a4a', war: '#ff7b00', disaster: '#d4c200' };
+                const hotzones = {};  // code → colour (last-write wins for multi-event countries)
+                _iconNodes.forEach(({ def }) => {
+                    try {
+                        if (def.state() !== 1) return;
+                        const col = TYPE_COL[def.type];
+                        if (!col || !def.country) return;
+                        if (!_withinFirstTwoTurns(def)) return;
+                        hotzones[def.country] = col;
+                    } catch (_) {}
+                });
+                const codes = Object.keys(hotzones);
+                if (!codes.length) return;
+                // Pulse a coloured stroke on each hot-zone country. Only stroke-opacity
+                // is animated so the fill/allegiance colour is completely unaffected.
+                let css = '@keyframes wm-hz-pulse { 0%,100%{stroke-opacity:0} 50%{stroke-opacity:0.65} }\n';
+                codes.forEach(code => {
+                    const col = hotzones[code];
+                    css += `[id="${code}"] { stroke:${col}!important; stroke-width:2.5px!important; animation:wm-hz-pulse 2.2s ease-in-out infinite; }\n`;
+                });
+                const hzStyle = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+                hzStyle.id = 'wm-hz-style';
+                hzStyle.textContent = css;
+                svg.appendChild(hzStyle);
+                mapCleanup.push(() => { const s = svg.querySelector('#wm-hz-style'); if (s) s.remove(); });
+            })();
+
             // Apply restored toggle state from a previous visit (single source of truth)
             _applyEventVis();
             _applyCapVis();
@@ -16894,7 +18290,12 @@ function openWorldMap() {
                     origFills.set(el, window.getComputedStyle(el).fill);
                     el.style.fill = _loyalColour(COUNTRY_LOYAL[el.id] || 0);
                 });
+                // Flash countries whose loyalty shifted since the last map open,
+                // then refresh the snapshot for next time.
+                _flashLoyaltyDeltas();
             }
+            _updateAllegLegend();
+            _wmPrevLoyal = Object.assign({}, COUNTRY_LOYAL);
 
             // ── Move Icons tool ──────────────────────────────────────────────
             const offsetPanel = document.createElement('div');
@@ -16920,7 +18321,7 @@ function openWorldMap() {
                 if (_editMode) _refreshOffsets();
             });
             bar.appendChild(moveBtn);
-            bar.appendChild(moveCapBtn);
+            // bar.appendChild(moveCapBtn);   // suspended (edit tool)
 
             // ── Move Flags tool ──────────────────────────────────────────────
             let _flagEditMode = false;
@@ -16979,7 +18380,7 @@ function openWorldMap() {
                     // Auto-show flags when entering edit mode
                     if (_flagEditMode && !flagsOn) {
                         flagsOn = true;
-                        svgEl.appendChild(flagOverlayG); // flags on top
+                        flagSvgEl.appendChild(flagOverlayG); // flags on top
                     }
                     // Set pointer-events on the group AND explicitly on each image
                     flagOverlayG.style.pointerEvents = _flagEditMode ? 'all' : 'none';
@@ -16990,7 +18391,166 @@ function openWorldMap() {
                 }
                 if (_flagEditMode) _refreshFlagPanel();
             });
-            bar.appendChild(moveFlagsBtn);
+            // bar.appendChild(moveFlagsBtn);   // suspended (edit tool)
+
+            // ── Move Subs tool ───────────────────────────────────────────────
+            let _subEditMode = false;
+            const _subMoves = {}; // label → { cx, cy } final positions
+
+            const subOffsetPanel = document.createElement('div');
+            subOffsetPanel.style.cssText = 'position:absolute;top:60px;left:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:560px;white-space:pre;display:none;user-select:text;cursor:text;';
+            viewport.appendChild(subOffsetPanel);
+
+            const _refreshSubPanel = () => {
+                const lines = _subZones.map(({ el, rx, ry, fill, label }) => {
+                    const cx = Math.round(parseFloat(el.getAttribute('cx')));
+                    const cy = Math.round(parseFloat(el.getAttribute('cy')));
+                    return `[ ${String(cx).padStart(4)}, ${String(cy).padStart(3)}, ${String(rx).padStart(3)}, ${String(ry).padStart(2)}, '${fill}', '${label}' ],`;
+                });
+                subOffsetPanel.textContent = lines.join('\n') || '(drag a zone to see its position)';
+            };
+
+            _subZones.forEach(({ el, lbl, ry }) => {
+                el.addEventListener('mousedown', ev => {
+                    if (!_subEditMode) return;
+                    ev.stopPropagation(); ev.preventDefault();
+                    el.style.cursor = 'grabbing';
+                    const startCx = parseFloat(el.getAttribute('cx'));
+                    const startCy = parseFloat(el.getAttribute('cy'));
+                    const sx = ev.clientX, sy = ev.clientY;
+                    const onMove = mv => {
+                        const nx = startCx + (mv.clientX - sx) / scale;
+                        const ny = startCy + (mv.clientY - sy) / scale;
+                        el.setAttribute('cx', nx);
+                        el.setAttribute('cy', ny);
+                        lbl.setAttribute('x', nx);
+                        lbl.setAttribute('y', ny + ry + 9);
+                    };
+                    const onUp = () => {
+                        document.removeEventListener('mousemove', onMove);
+                        document.removeEventListener('mouseup', onUp);
+                        _activeDragEnd = null;
+                        el.style.cursor = 'grab';
+                        _refreshSubPanel();
+                    };
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                    _activeDragEnd = onUp;
+                });
+            });
+
+            const moveSubsBtn = document.createElement('button');
+            moveSubsBtn.textContent = 'Move Subs';
+            moveSubsBtn.style.cssText = 'margin-left:8px;cursor:pointer;padding:0 10px;height:30px;font-size:11px;';
+            moveSubsBtn.addEventListener('click', () => {
+                _subEditMode = !_subEditMode;
+                moveSubsBtn.style.background = _subEditMode ? '#f90' : '';
+                moveSubsBtn.style.color      = _subEditMode ? '#000' : '';
+                subOffsetPanel.style.display  = _subEditMode ? 'block' : 'none';
+                // Auto-show SIGINT layer so zones are visible regardless of toggle state
+                if (_subEditMode) {
+                    sigintLayer.style.display = '';
+                    _subZones.forEach(({ el }) => { el.style.cursor = 'grab'; el.style.pointerEvents = 'all'; });
+                    _refreshSubPanel();
+                } else {
+                    sigintLayer.style.display = sigintOn ? '' : 'none';
+                    _subZones.forEach(({ el }) => { el.style.cursor = ''; el.style.pointerEvents = ''; });
+                }
+            });
+            // bar.appendChild(moveSubsBtn);   // suspended (edit tool)
+
+            // ── Presidential Daily Brief ─────────────────────────────────────
+            // Self-running set-piece: turns on the war-room (SIGINT) skin, then
+            // flies the camera hotspot-to-hotspot through every active event,
+            // surfacing each polaroid in sequence like a morning intelligence brief.
+            let _briefTimers = [];
+            let _briefActive = false;
+            const _clearBrief = () => {
+                _briefActive = false;
+                _briefTimers.forEach(clearTimeout);
+                _briefTimers = [];
+                _cancelCam();
+                evTooltip.style.display = 'none';
+                briefBtn.style.background = '';
+                briefBtn.style.color = '';
+                briefBtn.textContent = 'Daily Brief';
+            };
+            mapCleanup.push(_clearBrief);
+
+            const _runBrief = () => {
+                // Order by debut recency (newest events first). Debut turn is stored
+                // as a question pk; its position in the question order gives recency.
+                const _debutOrder = id => {
+                    const pk = _wmEventDebutPk[id];
+                    if (pk === undefined) return -1;
+                    const i = getQuestionIndexFromPk(pk);
+                    return (i == null || i < 0) ? -1 : i;
+                };
+                // Newest event first → oldest last. Primary key is debut recency
+                // (higher question index = more recent). When several events debuted
+                // on the same turn — which is the case while they are all manually
+                // switched on — fall back to definition order reversed, so the most
+                // recently-added crises in _EVENT_DEFS lead the brief.
+                const _defIdx = def => _EVENT_DEFS.indexOf(def);
+                const nodes = _iconNodes
+                    .filter(n => { try { return n.def.state() === 1; } catch (_) { return false; } })
+                    .sort((a, b) =>
+                        (_debutOrder(b.def.id) - _debutOrder(a.def.id))
+                        || (_defIdx(b.def) - _defIdx(a.def)));
+                if (!nodes.length) return;
+                _briefActive = true;
+                briefBtn.style.background = '#c0392b';
+                briefBtn.style.color = '#fff';
+                briefBtn.textContent = 'Stop Brief';
+                // War-room skin on for the duration.
+                if (!sigintOn) {
+                    sigintOn = true; _wmSigintOn = true;
+                    sigintBtn.style.outline = '2px solid #888';
+                    sigintBtn.style.fontWeight = 'bold';
+                    _applySigint(true);
+                }
+                let i = 0;
+                const showOne = () => {
+                    if (!_briefActive) return;
+                    if (i >= nodes.length) { _clearBrief(); return; }
+                    const node = nodes[i];
+                    evTooltip.style.display = 'none';
+                    flyTo(node.cx, node.cy, 1.8, 900, () => {
+                        if (!_briefActive) return;
+                        evTooltip.innerHTML = _eventPolaroidHtml(node.def);
+                        evTooltip.style.display = 'block';
+                        const vr = viewport.getBoundingClientRect();
+                        evTooltip.style.left = (vr.left + vr.width / 2 - 135) + 'px';
+                        evTooltip.style.top  = (vr.top + 46) + 'px';
+                        _briefTimers.push(setTimeout(() => { i++; showOne(); }, 4000));
+                    });
+                };
+                showOne();
+            };
+
+            const briefBtn = document.createElement('button');
+            briefBtn.textContent = 'Daily Brief';
+            briefBtn.style.cssText = 'margin-left:8px;cursor:pointer;padding:0 10px;height:30px;font-size:11px;';
+            briefBtn.addEventListener('click', () => { _briefActive ? _clearBrief() : _runBrief(); });
+            bar.appendChild(briefBtn);
+
+            // ── Move Chips tool (SIGINT disposition chips) ───────────────────
+            const chipOffsetPanel = document.createElement('div');
+            chipOffsetPanel.style.cssText = 'position:absolute;top:16px;right:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:480px;white-space:pre;display:none;user-select:text;cursor:text;';
+            viewport.appendChild(chipOffsetPanel);
+
+            const _refreshChipPanel = () => {
+                const lines = Object.entries(_chipMoves).map(([code, o]) =>
+                    `${code}: { x: ${o.x}, y: ${o.y} },`);
+                chipOffsetPanel.textContent = lines.length
+                    ? lines.join('\n')
+                    : '(drag a SIGINT chip to see its offset)';
+            };
+
+            // Move Chips button removed — chip positions are now fixed via
+            // CHIP_OFFSETS. _chipEditMode stays false, so the chip drag handler
+            // and chipOffsetPanel/_refreshChipPanel above remain as inert dead
+            // code (their references must stay valid for the mod to parse/run).
 
             // ── Scrollbars ──────────────────────────────────────────────────
             // Created after innerHTML is set so they aren't wiped by SVG load.
@@ -17056,6 +18616,7 @@ function openWorldMap() {
             // ── Mouse wheel ──────────────────────────────────────────────────
             const onWheel = e => {
                 e.preventDefault();
+                _cancelCam();
                 if (e.ctrlKey) {
                     const rect = viewport.getBoundingClientRect();
                     const mx = e.clientX - rect.left;
@@ -17078,14 +18639,14 @@ function openWorldMap() {
             // ── Keyboard navigation ──────────────────────────────────────────
             const STEP = 80;
             const onMapKey = e => {
-                if (e.key === '+' || e.key === '=' || e.code === 'NumpadAdd')    { doZoom(1.25);       e.preventDefault(); return; }
-                if (e.key === '-'                || e.code === 'NumpadSubtract') { doZoom(1 / 1.25);   e.preventDefault(); return; }
+                if (e.key === '+' || e.key === '=' || e.code === 'NumpadAdd')    { _cancelCam(); doZoom(1.25);       e.preventDefault(); return; }
+                if (e.key === '-'                || e.code === 'NumpadSubtract') { _cancelCam(); doZoom(1 / 1.25);   e.preventDefault(); return; }
                 let moved = false;
                 if      (e.code === 'Numpad8' || e.code === 'ArrowUp')    { ty += STEP; moved = true; }
                 else if (e.code === 'Numpad2' || e.code === 'ArrowDown')  { ty -= STEP; moved = true; }
                 else if (e.code === 'Numpad4' || e.code === 'ArrowLeft')  { tx += STEP; moved = true; }
                 else if (e.code === 'Numpad6' || e.code === 'ArrowRight') { tx -= STEP; moved = true; }
-                if (moved) { applyT(); e.preventDefault(); }
+                if (moved) { _cancelCam(); applyT(); e.preventDefault(); }
             };
             document.addEventListener('keydown', onMapKey);
             mapCleanup.push(() => document.removeEventListener('keydown', onMapKey));
@@ -17163,44 +18724,67 @@ function openWorldMap() {
                 });
                 el.addEventListener('click', e => {
                     e.stopPropagation();
-                    // Deselect the previously highlighted country
-                    if (selectedEl && selectedEl !== el) {
-                        selectedEl.style.stroke = '';
-                        selectedEl.style.strokeWidth = '';
-                    }
-                    if (selectedEl === el) {
-                        // Click again to deselect
-                        el.style.stroke = '';
-                        el.style.strokeWidth = '';
-                        selectedEl = null;
-                    } else {
-                        // Highlight this country with yellow outline
-                        el.style.stroke = '#ffff00';
-                        el.style.strokeWidth = '3px';
-                        selectedEl = el;
-                    }
+                    const wasSel = selectedEl === el;
+                    selectCountry(el);
+                    if (!wasSel) flyToEl(el); // glide-centre on the selected country
                 });
                 el.addEventListener('dblclick', e => {
                     e.stopPropagation();
                     tooltip.style.display = 'none';
-                    openCIAProfile(code, container, tooltip);
+                    openCIAProfile(code, container, tooltip, sigintOn);
                 });
             });
         })
-        .catch(() => {
-            viewport.innerHTML = '<p style="color:#fff;padding:40px;font-family:monospace">Failed to load map SVG.<br>Enable GitHub Pages and ensure SVG is published at:<br>' + SVG_URL + '</p>';
+        .catch((err) => {
+            // This fires for BOTH a real fetch failure AND any exception thrown
+            // while building the map (chips, layers, etc.). Log the real error so
+            // a code bug is not misdiagnosed as a GitHub Pages problem.
+            console.error('World map load/build error:', err);
+            viewport.innerHTML = '<p style="color:#fff;padding:40px;font-family:monospace">Failed to load map SVG.<br>Enable GitHub Pages and ensure SVG is published at:<br>' + SVG_URL + '<br><br>(If the SVG URL works in a browser, this is a script error — see console.)</p>';
         });
 }
 
+// Polaroid-style event card markup (photo + title + handwritten body), shared
+// by the event-icon hover tooltip and the Presidential Daily Brief sequence.
+function _eventPolaroidHtml(def) {
+    const imgHtml = def.img
+        ? `<img src="${def.img}" style="width:auto;max-width:200px;height:auto;display:block;margin:0 auto 2px auto">`
+        : '';
+    const labelHtml = `<span style="display:block;font-family:Georgia,serif;font-size:14px;font-weight:bold;color:#333;margin-bottom:2px">${def.label}</span>`;
+    const bodyHtml = def.body
+        ? `<span style="display:block;margin-top:2px;padding:3px;background:linear-gradient(135deg,rgba(255,255,255,0.95) 0%,rgba(240,240,240,0.9) 100%);box-shadow:inset 0 1px 2px rgba(255,255,255,0.8),0 1px 3px rgba(0,0,0,0.15);border-radius:2px"><span style="font-family:'PermanentMarker',cursive;font-size:12px;color:rgb(96,115,129);transform:rotate(-1.5deg) skewX(-3deg);display:block;line-height:1.45;letter-spacing:0.05em;text-align:left">${def.body}</span></span>`
+        : '';
+    return imgHtml + labelHtml + bodyHtml;
+}
+
 // ── CIA profile viewer ───────────────────────────────────────────────────────
-function openCIAProfile(code, mapPanel, tooltip) {
-    const stem = CODE_TO_FILE[code];
-    if (!stem) { alert('No CIA profile for ' + (COUNTRY_NAMES[code] || code)); return; }
-    const url = PAGES_BASE + '/CIA/' + stem + '.html';
+function openCIAProfile(code, mapPanel, tooltip, military) {
+    // When SIGINT is on (military=true) the viewer shows the Military Balance
+    // 1972-73 entry from /Milbal (files named by ISO code) and the index button
+    // becomes "Military Intel". Otherwise it's the CIA Basic Intelligence Factbook.
+    let url, indexUrl, indexLabel, statusUnknown = false;
+    if (military) {
+        // No Military Balance profile → open the viewer anyway with a blank
+        // "Status Unknown" page rather than blocking with an alert.
+        statusUnknown = !MILBAL_COUNTRIES.has(code);
+        url        = statusUnknown ? null : PAGES_BASE + '/Milbal/' + code + '.html';
+        indexUrl   = PAGES_BASE + '/Milbal/index.html';
+        indexLabel = 'Military Intel';
+    } else {
+        const stem = CODE_TO_FILE[code];
+        if (!stem) { alert('No CIA profile for ' + (COUNTRY_NAMES[code] || code)); return; }
+        url        = PAGES_BASE + '/CIA/' + stem + '.html';
+        indexUrl   = PAGES_BASE + '/CIA/index.html';
+        indexLabel = 'Basic Intelligence Factbook';
+    }
 
     const viewer = document.createElement('div');
     viewer.id = 'cia-profile-viewer';
-    viewer.style.cssText = 'position:absolute;top:0;left:0;width:989px;height:625px;z-index:510;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;user-select:none;';
+    // z-index must sit ABOVE the SIGINT CRT scanline/vignette overlay. Those are
+    // pseudo-elements on #wm-viewport (z 9000/9001); because the viewport sets no
+    // z-index it creates no stacking context, so those high-z layers would
+    // otherwise paint over this viewer. 9500 keeps the intel HTML CRT-free.
+    viewer.style.cssText = 'position:absolute;top:0;left:0;width:989px;height:625px;z-index:9500;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;user-select:none;background:#000;';
 
     const bar = document.createElement('div');
     bar.style.cssText = 'flex-shrink:0;height:44px;background:#000;display:flex;align-items:center;padding:0 12px;gap:12px;overflow:hidden;';
@@ -17211,10 +18795,10 @@ function openCIAProfile(code, mapPanel, tooltip) {
     bar.appendChild(backBtn);
 
     const indexBtn = document.createElement('button');
-    indexBtn.textContent = 'Basic Intelligence Factbook';
+    indexBtn.textContent = indexLabel;
     indexBtn.addEventListener('click', () => {
-        iframe.src = PAGES_BASE + '/CIA/index.html';
-        lbl.textContent = 'Basic Intelligence Factbook';
+        iframe.src = indexUrl;
+        lbl.textContent = indexLabel;
     });
     bar.appendChild(indexBtn);
 
@@ -17287,9 +18871,27 @@ function openCIAProfile(code, mapPanel, tooltip) {
     }
 
     const iframe = document.createElement('iframe');
-    iframe.src = url;
     iframe.sandbox = 'allow-same-origin allow-scripts';
     iframe.style.cssText = 'flex:1;border:none;width:100%;';
+    if (statusUnknown) {
+        // Blank intel page styled like the Milbal entries (TypewriterDry on the
+        // standard background) but bearing only "STATUS UNKNOWN".
+        iframe.srcdoc =
+            '<!DOCTYPE html><html><head><meta charset="utf-8"><style>' +
+            "@font-face{font-family:TypewriterDry;src:local('Courier New');}" +
+            'html,body{margin:0;height:100%;}' +
+            'body{display:flex;align-items:center;justify-content:center;' +
+            "background:#cfc8b8 url('" + PAGES_BASE + "/background.png') center/cover no-repeat;" +
+            'font-family:TypewriterDry,\'Courier New\',monospace;color:#2a2a22;}' +
+            '.su{text-align:center;letter-spacing:4px;}' +
+            '.su h1{font-size:34px;margin:0 0 10px;}' +
+            '.su p{font-size:14px;letter-spacing:2px;opacity:0.7;margin:0;}' +
+            '</style></head><body><div class="su"><h1>STATUS UNKNOWN</h1>' +
+            '<p>' + ((COUNTRY_NAMES[code] || code) + '').toUpperCase().replace(/[<>&]/g, '') +
+            ' — NO MILITARY BALANCE ON FILE</p></div></body></html>';
+    } else {
+        iframe.src = url;
+    }
 
     viewer.appendChild(bar);
     viewer.appendChild(iframe);
