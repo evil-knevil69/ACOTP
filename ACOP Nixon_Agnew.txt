@@ -17755,6 +17755,25 @@ function openWorldMap() {
             let _nightOff  = null;
             let _nightOctx = null;
             let _nightNR   = 0;
+            let _nightKey  = '';   // skip the shader when sun/rotation unchanged
+
+            // Graticule: the lat/lon grid is fixed in geographic space, so build
+            // the sample arrays once. The projected screen path is memoised per
+            // rotation (Path2D) — a re-open at the remembered angle reuses it
+            // without re-projecting ~2000 points.
+            const _gratLines = [];
+            for (let glat = -60; glat <= 60; glat += 30) {
+                const line = [];
+                for (let glon = -180; glon <= 180; glon += 2) line.push([glon, glat]);
+                _gratLines.push(line);
+            }
+            for (let glon = -180; glon < 180; glon += 30) {
+                const line = [];
+                for (let glat2 = -88; glat2 <= 88; glat2 += 2) line.push([glon, glat2]);
+                _gratLines.push(line);
+            }
+            let _gratPath = null;
+            let _gratKey  = '';
 
             const _drawGlobeFrame = (skipHit) => {
                 if (!_globeCanvas || !_globeOn) return;
@@ -17773,35 +17792,30 @@ function openWorldMap() {
                 ctx.fillStyle = '#0b1e3d';
                 ctx.fill();
 
-                // Graticule
+                // Graticule — projected path memoised per rotation/size. During a
+                // drag the key changes each frame (rebuild); a re-open at the
+                // remembered angle reuses the cached Path2D and skips projection.
+                const _gratK = lon0r.toFixed(5) + ',' + lat0r.toFixed(5) + ',' + R + ',' + cx + ',' + cy;
+                if (_gratK !== _gratKey || !_gratPath) {
+                    _gratPath = new Path2D();
+                    for (const line of _gratLines) {
+                        let fst = true;
+                        for (let i = 0; i < line.length; i++) {
+                            const q = _ortho(line[i][0], line[i][1], lon0r, lat0r);
+                            if (!q) { fst = true; continue; }
+                            const px = cx + q[0] * R, py = cy - q[1] * R;
+                            if (fst) { _gratPath.moveTo(px, py); fst = false; } else _gratPath.lineTo(px, py);
+                        }
+                    }
+                    _gratKey = _gratK;
+                }
                 ctx.save();
                 ctx.beginPath();
                 ctx.arc(cx, cy, R, 0, 2 * Math.PI);
                 ctx.clip();
                 ctx.strokeStyle = 'rgba(255,255,255,0.08)';
                 ctx.lineWidth   = 0.6;
-                for (let glat = -60; glat <= 60; glat += 30) {
-                    ctx.beginPath();
-                    let fst = true;
-                    for (let glon = -180; glon <= 180; glon += 2) {
-                        const q = _ortho(glon, glat, lon0r, lat0r);
-                        if (!q) { fst = true; continue; }
-                        const px = cx + q[0] * R, py = cy - q[1] * R;
-                        if (fst) { ctx.moveTo(px, py); fst = false; } else ctx.lineTo(px, py);
-                    }
-                    ctx.stroke();
-                }
-                for (let glon = -180; glon < 180; glon += 30) {
-                    ctx.beginPath();
-                    let fst = true;
-                    for (let glat2 = -88; glat2 <= 88; glat2 += 2) {
-                        const q = _ortho(glon, glat2, lon0r, lat0r);
-                        if (!q) { fst = true; continue; }
-                        const px = cx + q[0] * R, py = cy - q[1] * R;
-                        if (fst) { ctx.moveTo(px, py); fst = false; } else ctx.lineTo(px, py);
-                    }
-                    ctx.stroke();
-                }
+                ctx.stroke(_gratPath);
                 ctx.restore();
 
                 // Countries — each SVG subpath (island / territory) drawn
@@ -17868,39 +17882,47 @@ function openWorldMap() {
                     }
                     const off     = _nightOff;
                     const octx    = _nightOctx;
-                    const imgData = octx.createImageData(NW2, NH2);
-                    const d       = imgData.data;
                     const decR    = _parseDeclination() * Math.PI / 180;
                     const subLonR = _subSolarLon() * Math.PI / 180;
-                    const sinDec  = Math.sin(decR), cosDec = Math.cos(decR);
-                    const sinL0   = Math.sin(lat0r), cosL0 = Math.cos(lat0r);
-                    for (let ny = 0; ny < NH2; ny++) {
-                        for (let nx = 0; nx < NW2; nx++) {
-                            const u = (nx - NR) / NR;
-                            const v = (NR - ny) / NR;
-                            const rr2 = u * u + v * v;
-                            if (rr2 > 1) continue;
-                            const ρ    = Math.sqrt(rr2);
-                            const cosρ = Math.sqrt(1 - rr2);
-                            let φ, λ;
-                            if (ρ < 1e-9) { φ = lat0r; λ = lon0r; }
-                            else {
-                                // Standard inverse orthographic: sin(c)=ρ, cos(c)=cosρ
-                                φ = Math.asin(cosρ * sinL0 + v * cosL0);
-                                λ = lon0r + Math.atan2(u * ρ, ρ * cosL0 * cosρ - v * sinL0 * ρ);
-                            }
-                            const cosZ = Math.sin(φ) * sinDec + Math.cos(φ) * cosDec * Math.cos(λ - subLonR);
-                            if (cosZ < 0) {
-                                const i4 = (ny * NW2 + nx) * 4;
-                                const alpha = Math.min(210, ((-cosZ) * 1.5 * 210) | 0);
-                                d[i4]     = 0;
-                                d[i4 + 1] = 5;
-                                d[i4 + 2] = 16;
-                                d[i4 + 3] = alpha;
+                    // Shade only when sun position / rotation / resolution changed.
+                    // The offscreen bitmap persists in _nightOff, so a re-open at
+                    // the remembered angle skips the whole asin/atan2 pixel loop.
+                    const _nightK = NR + ',' + lat0r.toFixed(5) + ',' + lon0r.toFixed(5)
+                        + ',' + decR.toFixed(5) + ',' + subLonR.toFixed(5);
+                    if (_nightK !== _nightKey) {
+                        const imgData = octx.createImageData(NW2, NH2);
+                        const d       = imgData.data;
+                        const sinDec  = Math.sin(decR), cosDec = Math.cos(decR);
+                        const sinL0   = Math.sin(lat0r), cosL0 = Math.cos(lat0r);
+                        for (let ny = 0; ny < NH2; ny++) {
+                            for (let nx = 0; nx < NW2; nx++) {
+                                const u = (nx - NR) / NR;
+                                const v = (NR - ny) / NR;
+                                const rr2 = u * u + v * v;
+                                if (rr2 > 1) continue;
+                                const ρ    = Math.sqrt(rr2);
+                                const cosρ = Math.sqrt(1 - rr2);
+                                let φ, λ;
+                                if (ρ < 1e-9) { φ = lat0r; λ = lon0r; }
+                                else {
+                                    // Standard inverse orthographic: sin(c)=ρ, cos(c)=cosρ
+                                    φ = Math.asin(cosρ * sinL0 + v * cosL0);
+                                    λ = lon0r + Math.atan2(u * ρ, ρ * cosL0 * cosρ - v * sinL0 * ρ);
+                                }
+                                const cosZ = Math.sin(φ) * sinDec + Math.cos(φ) * cosDec * Math.cos(λ - subLonR);
+                                if (cosZ < 0) {
+                                    const i4 = (ny * NW2 + nx) * 4;
+                                    const alpha = Math.min(210, ((-cosZ) * 1.5 * 210) | 0);
+                                    d[i4]     = 0;
+                                    d[i4 + 1] = 5;
+                                    d[i4 + 2] = 16;
+                                    d[i4 + 3] = alpha;
+                                }
                             }
                         }
+                        octx.putImageData(imgData, 0, 0);
+                        _nightKey = _nightK;
                     }
-                    octx.putImageData(imgData, 0, 0);
                     ctx.drawImage(off, cx - R, cy - R, R * 2, R * 2);
                 }
 
