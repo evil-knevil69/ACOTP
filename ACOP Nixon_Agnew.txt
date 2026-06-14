@@ -17053,11 +17053,11 @@ function openWorldMap() {
 
             const _subZones = []; // { el, lbl, rx, ry, fill, label } — for Move Subs tool
             [
-                [ 619,  96, 138, 56, '#4488ff', 'SSBN PATROL (US)' ],   // Labrador/N Atlantic
-                [1672, 325,  98, 62, '#4488ff', 'SSBN PATROL (US)' ],   // W Pacific (was over China)
-                [1098,  70, 190, 40, '#ff4444', 'SSBN BASTION (SU)'],   // Barents/Arctic
-                [ 920, 112,  88, 36, '#ff4444', 'SSBN BASTION (SU)'],   // Norwegian Sea
-                [1638, 188,  78, 50, '#ff4444', 'SSBN BASTION (SU)'],   // Sea of Okhotsk (was over Siberia)
+                [  619,  96, 138, 56, '#4488ff', 'SSBN PATROL (US)' ],   // Labrador/N Atlantic
+                [ 1479, 328,  98, 62, '#4488ff', 'SSBN PATROL (US)' ],   // SW Pacific
+                [ 1080, 442,  95, 20, '#ff4444', 'SSBN BASTION (SU)'],   // Indian Ocean
+                [  785,  29,  88, 36, '#ff4444', 'SSBN BASTION (SU)'],   // Greenland Sea
+                [ 1501, 185,  78, 50, '#ff4444', 'SSBN BASTION (SU)'],   // Sea of Okhotsk
             ].forEach(([cx, cy, rx, ry, fill, label]) => {
                 const el = document.createElementNS(_sNS, 'ellipse');
                 el.setAttribute('cx', cx);  el.setAttribute('cy', cy);
@@ -17837,8 +17837,8 @@ function openWorldMap() {
                 const _twinkle = document.createElementNS(_evNS, 'animate');
                 _twinkle.setAttribute('attributeName', 'opacity');
                 _twinkle.setAttribute('calcMode', 'discrete');
-                _twinkle.setAttribute('values', '1;0.45;1;1;0.7;1;0.35;1;0.9;0.55;1;1');
-                _twinkle.setAttribute('dur', (1.1 + Math.random() * 1.6).toFixed(2) + 's');
+                _twinkle.setAttribute('values', '1;0.82;1;1;0.9;1;0.78;1;1;0.85;1;1');
+                _twinkle.setAttribute('dur', (3.0 + Math.random() * 4.0).toFixed(2) + 's');
                 _twinkle.setAttribute('begin', 'indefinite');
                 _twinkle.setAttribute('repeatCount', 'indefinite');
                 dot.appendChild(_twinkle);
