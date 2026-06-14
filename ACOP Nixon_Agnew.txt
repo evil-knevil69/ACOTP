@@ -16611,6 +16611,13 @@ function openWorldMap() {
     (_svgTextCache ? Promise.resolve(_svgTextCache) : fetch(SVG_URL).then(r => r.text()).then(t => (_svgTextCache = t, t)))
         .then(svgText => {
             viewport.innerHTML = svgText;
+            // innerHTML wipes all pre-existing viewport children; re-attach the overlay
+            // divs that were appended before the SVG loaded (vignette, grain, allegiance
+            // legend, DEFCON banner). Their z-indexes keep them above the SVG.
+            viewport.appendChild(vignetteFx);
+            viewport.appendChild(grainFx);
+            viewport.appendChild(allegLegend);
+            viewport.appendChild(defconBanner);
             const svg = viewport.querySelector('svg');
             if (!svg) return;
 
