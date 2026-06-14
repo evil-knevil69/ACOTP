@@ -16038,6 +16038,7 @@ var _wmCapitalsOn  = false;
 var _wmAllegiance  = true;
 var _wmNightOn     = true;
 var _wmSigintOn    = false;
+var defcon         = 5;      // 5=peace … 1=imminent war; drives the SIGINT readiness banner
 var _wmOceanMaskEl = null;   // cached SVG <mask>; built once, re-appended on each open
 var _wmPrevLoyal   = null;   // snapshot of COUNTRY_LOYAL from the previous map open; drives allegiance delta flashes
 var _wmEventDebutPk = {};    // event id -> question pk at which it first appeared; icon micro-animations play only on the debut turn
@@ -16266,6 +16267,7 @@ function openWorldMap() {
         sigintBtn.style.outline = sigintOn ? '2px solid #888' : '';
         sigintBtn.style.fontWeight = sigintOn ? 'bold' : '';
         _applySigint(sigintOn);
+        _defconUpdate();
     });
     topBar.appendChild(sigintBtn);
     if (sigintOn) _applySigint(true);
@@ -16467,6 +16469,18 @@ function openWorldMap() {
         '<span style="color:#1d4ed8;">ALLIED</span>';
     viewport.appendChild(allegLegend);
     const _updateAllegLegend = () => { allegLegend.style.display = allegiance ? 'flex' : 'none'; };
+
+    // ── DEFCON readiness banner (top-right, visible when SIGINT is on) ────────
+    const _defconCols = { 1:'#dc2626', 2:'#ea580c', 3:'#ca8a04', 4:'#16a34a', 5:'#1d4ed8' };
+    const defconBanner = document.createElement('div');
+    defconBanner.style.cssText = 'position:absolute;top:8px;right:16px;z-index:50;font-family:TypewriterDry,monospace;font-size:11px;letter-spacing:2px;color:#999;display:none;align-items:center;pointer-events:none;';
+    const _defconUpdate = () => {
+        const lvl = Math.max(1, Math.min(5, defcon));
+        defconBanner.innerHTML = 'DEFCON <span style="display:inline-block;min-width:16px;text-align:center;padding:0 4px;background:' + _defconCols[lvl] + ';color:#000;font-weight:bold;">' + lvl + '</span>';
+        defconBanner.style.display = sigintOn ? 'flex' : 'none';
+    };
+    _defconUpdate();
+    viewport.appendChild(defconBanner);
 
     // Allegiance toggle
     const allegBtn = document.createElement('button');
