@@ -18278,7 +18278,7 @@ function openWorldMap() {
                 if (_editMode) _refreshOffsets();
             });
             bar.appendChild(moveBtn);
-            bar.appendChild(moveCapBtn);
+            // bar.appendChild(moveCapBtn);   // suspended (edit tool)
 
             // ── Move Flags tool ──────────────────────────────────────────────
             let _flagEditMode = false;
@@ -18348,7 +18348,7 @@ function openWorldMap() {
                 }
                 if (_flagEditMode) _refreshFlagPanel();
             });
-            bar.appendChild(moveFlagsBtn);
+            // bar.appendChild(moveFlagsBtn);   // suspended (edit tool)
 
             // ── Move Subs tool ───────────────────────────────────────────────
             let _subEditMode = false;
@@ -18414,7 +18414,7 @@ function openWorldMap() {
                     _subZones.forEach(({ el }) => { el.style.cursor = ''; el.style.pointerEvents = ''; });
                 }
             });
-            bar.appendChild(moveSubsBtn);
+            // bar.appendChild(moveSubsBtn);   // suspended (edit tool)
 
             // ── Presidential Daily Brief ─────────────────────────────────────
             // Self-running set-piece: turns on the war-room (SIGINT) skin, then
