@@ -12026,9 +12026,7 @@ var chad           = 1;  // Chadian Civil War
 var khmer          = 1;  // Cambodia: 1 = Civil War, 2 = Khmer Rouge / Year Zero (set via question onShow)
 var laos           = 1;  // Laos: 1 = Civil War, 2 = Pathet Lao takeover (set via question onShow)
 var eritrea        = 1;  // Eritrean War of Independence
-var managua        = 1;  // Managua Earthquake — DEMO: starts active so the 3-turn
-                         // lifespan is visible from question 1; set back to 0 and
-                         // trigger via a question onShow once wired to the story
+var managua        = 0;  // Managua Earthquake — triggered by the Dec 23 1972 question onShow
 var cyprusInvasion = 0;  // Turkish Invasion of Cyprus (triggered by question onShow)
 var guatemalaQuake = 0;  // 1976 Guatemalan Earthquake (triggered by question onShow)
 var tangshan       = 0;  // 1976 Tangshan Earthquake   (triggered by question onShow)
@@ -16621,6 +16619,9 @@ function openWorldMap() {
             svg.style.cssText = 'position:absolute;top:0;left:0;width:1800px;height:900px;transform-origin:0 0;pointer-events:all;';
 
             svgEl = svg;
+            // Re-apply SIGINT filter now that svgEl exists — the early _applySigint(true)
+            // call (before SVG loaded) couldn't set svgEl.style.filter because svgEl was null.
+            if (sigintOn) _applySigint(true);
 
             // Overlay SVG for flags and event icons — sits above the map SVG so
             // the SIGINT colour filter (applied to svgEl only) leaves them untinted.
@@ -17380,6 +17381,7 @@ function openWorldMap() {
                     evTooltip.style.left = (vr.left + 12) + 'px';
                     evTooltip.style.top  = (vr.top  + 12) + 'px';
                 });
+                path.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
             });
 
             // Extend the SIGINT toggle to include this layer. _applySigint is
