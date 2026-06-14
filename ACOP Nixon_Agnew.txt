@@ -16533,36 +16533,36 @@ function openWorldMap() {
     });
     bar.appendChild(capBtn);
 
-    // Feature 3 — Regional zoom buttons.
-    // A second toolbar row for quick-navigate to the six strategic theatres.
-    // Coordinates are SVG-space centroids (1800×900 canvas): x=(lon+180)/360*1800, y=(90-lat)/180*900.
-    const regionBar = document.createElement('div');
-    regionBar.style.cssText = 'flex-shrink:0;height:28px;background:#080808;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;gap:4px;padding:0 10px;font-family:TypewriterDry,monospace;font-size:10px;letter-spacing:1px;';
+    // Feature 3 — Regional zoom buttons, right-aligned on the top bar.
+    // A flex spacer pushes them to the right; a label separates them from the
+    // left-side toggles. Coordinates: SVG-space centroids (1800×900 canvas).
+    const _regionSpacer = document.createElement('div');
+    _regionSpacer.style.cssText = 'flex:1;';
+    topBar.appendChild(_regionSpacer);
     const regionLabel = document.createElement('span');
     regionLabel.textContent = 'JUMP:';
-    regionLabel.style.cssText = 'color:#444;margin-right:4px;';
-    regionBar.appendChild(regionLabel);
+    regionLabel.style.cssText = 'color:#444;margin-right:4px;font-size:10px;';
+    topBar.appendChild(regionLabel);
     const _regions = [
-        { label: 'N.AMERICA',    x:  400, y: 225, s: 1.6 },
-        { label: 'LATIN AM.',    x:  575, y: 525, s: 1.8 },
-        { label: 'EUROPE',       x:  975, y: 190, s: 2.2 },
-        { label: 'AFRICA',       x: 1010, y: 435, s: 1.7 },
-        { label: 'MIDDLE EAST', x: 1110, y: 310, s: 2.4 },
-        { label: 'SE ASIA',      x: 1425, y: 390, s: 2.2 },
+        { label: 'N.AM.',        x:  400, y: 225, s: 1.6 },
+        { label: 'LAT.AM.',      x:  575, y: 525, s: 1.8 },
+        { label: 'EUR.',         x:  975, y: 190, s: 2.2 },
+        { label: 'AFR.',         x: 1010, y: 435, s: 1.7 },
+        { label: 'M.EAST',      x: 1110, y: 310, s: 2.4 },
+        { label: 'SE.ASIA',     x: 1425, y: 390, s: 2.2 },
         { label: 'WORLD',        x:  900, y: 450, s: 0.52 },
     ];
     _regions.forEach(r => {
         const rb = document.createElement('button');
         rb.textContent = r.label;
-        rb.style.cssText = 'cursor:pointer;padding:0 7px;height:20px;font-family:TypewriterDry,monospace;font-size:10px;letter-spacing:1px;background:transparent;border:1px solid #2a2a2a;color:#666;transition:color 0.15s,border-color 0.15s;';
-        rb.addEventListener('mouseenter', () => { rb.style.color = '#bbb'; rb.style.borderColor = '#555'; });
-        rb.addEventListener('mouseleave', () => { rb.style.color = '#666'; rb.style.borderColor = '#2a2a2a'; });
+        rb.style.cssText = 'cursor:pointer;padding:0 6px;height:22px;font-family:TypewriterDry,monospace;font-size:10px;letter-spacing:1px;background:transparent;border:1px solid #2a2a2a;color:#555;transition:color 0.15s,border-color 0.15s;';
+        rb.addEventListener('mouseenter', () => { rb.style.color = '#ccc'; rb.style.borderColor = '#666'; });
+        rb.addEventListener('mouseleave', () => { rb.style.color = '#555'; rb.style.borderColor = '#2a2a2a'; });
         rb.addEventListener('click', () => flyTo(r.x, r.y, r.s, 700));
-        regionBar.appendChild(rb);
+        topBar.appendChild(rb);
     });
 
     container.appendChild(topBar);
-    container.appendChild(regionBar);
     container.appendChild(viewport);
     container.appendChild(bar);
     gw.appendChild(container);
