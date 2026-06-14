@@ -16039,6 +16039,7 @@ var _wmAllegiance  = true;
 var _wmNightOn     = true;
 var _wmSigintOn    = false;
 var _wmOceanMaskEl = null;   // cached SVG <mask>; built once, re-appended on each open
+var _wmPrevLoyal   = null;   // snapshot of COUNTRY_LOYAL from the previous map open; drives allegiance delta flashes
 
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
@@ -16317,13 +16318,111 @@ function openWorldMap() {
         applyT();
     }
 
+    // ── Camera fly-to (eased tween of tx/ty/scale) ───────────────────────────
+    let _camAnim = null;
+    const _cancelCam = () => { if (_camAnim) { cancelAnimationFrame(_camAnim); _camAnim = null; } };
+    mapCleanup.push(_cancelCam);
+    const _easeInOut = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    // Eased pan+zoom that centres SVG-space point (px,py) in the viewport.
+    function flyTo(px, py, targetScale, dur, done) {
+        const vw = viewport.clientWidth || 989, vh = viewport.clientHeight || 581;
+        const toS  = Math.max(0.08, Math.min(8, targetScale || scale));
+        const toTx = vw / 2 - px * toS;
+        const toTy = vh / 2 - py * toS;
+        const fromTx = tx, fromTy = ty, fromS = scale;
+        const t0 = performance.now();
+        dur = dur || 700;
+        _cancelCam();
+        const step = now => {
+            const p = Math.min(1, (now - t0) / dur);
+            const e = _easeInOut(p);
+            tx = fromTx + (toTx - fromTx) * e;
+            ty = fromTy + (toTy - fromTy) * e;
+            scale = fromS + (toS - fromS) * e;
+            applyT();
+            if (p < 1) { _camAnim = requestAnimationFrame(step); }
+            else { _camAnim = null; if (done) done(); }
+        };
+        _camAnim = requestAnimationFrame(step);
+    }
+    // Fly the camera to an SVG element's centroid (used by country/event clicks).
+    const flyToEl = el => {
+        if (!el) return;
+        try {
+            const b = el.getBBox();
+            // Zoom in to a comfortable level only if currently zoomed out.
+            const targetS = scale < 1.1 ? 1.4 : scale;
+            flyTo(b.x + b.width / 2, b.y + b.height / 2, targetS, 650);
+        } catch (_) {}
+    };
+
+    // ── Colour helpers for the tweened allegiance choropleth ─────────────────
+    const _parseRGB = s => {
+        if (!s) return null;
+        const m = s.match(/(\d+)[,\s]+(\d+)[,\s]+(\d+)/); // matches "rgb(r, g, b)" and "r g b"
+        return m ? [+m[1], +m[2], +m[3]] : null;
+    };
+    let _allegToken = 0;
+    // Lerp every country fill from its current colour to targetOf(el) over dur ms.
+    function _tweenFills(targetOf, dur) {
+        if (!svgEl) return;
+        const token = ++_allegToken;
+        const items = [];
+        svgEl.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
+            if (!el.id || !COUNTRY_NAMES[el.id]) return;
+            const from = _parseRGB(window.getComputedStyle(el).fill);
+            const toStr = targetOf(el);
+            const to = _parseRGB(toStr);
+            if (!from || !to) { el.style.fill = toStr; return; }
+            items.push({ el, from, to });
+        });
+        const t0 = performance.now();
+        const step = now => {
+            if (token !== _allegToken) return; // superseded by a newer toggle
+            const p = Math.min(1, (now - t0) / dur);
+            items.forEach(({ el, from, to }) => {
+                el.style.fill = 'rgb(' +
+                    Math.round(from[0] + (to[0] - from[0]) * p) + ',' +
+                    Math.round(from[1] + (to[1] - from[1]) * p) + ',' +
+                    Math.round(from[2] + (to[2] - from[2]) * p) + ')';
+            });
+            if (p < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+    }
+    // Flash a brief ring on countries whose loyalty changed since the last open.
+    function _flashLoyaltyDeltas() {
+        if (!svgEl || !_wmPrevLoyal) return;
+        Object.keys(COUNTRY_LOYAL).forEach(code => {
+            const prev = _wmPrevLoyal[code];
+            const now = COUNTRY_LOYAL[code];
+            if (prev == null || prev === now) return;
+            const el = svgEl.querySelector('[id="' + code + '"]');
+            if (!el) return;
+            const up = now > prev;
+            const ringCol = up ? '#3ad17a' : '#ff5252';
+            el.style.transition = 'none';
+            el.style.stroke = ringCol;
+            el.style.strokeWidth = '3px';
+            let pulses = 0;
+            const iv = setInterval(() => {
+                el.style.strokeOpacity = (pulses % 2 ? '1' : '0.2');
+                if (++pulses >= 6) {
+                    clearInterval(iv);
+                    el.style.stroke = ''; el.style.strokeWidth = ''; el.style.strokeOpacity = '';
+                }
+            }, 220);
+            mapCleanup.push(() => clearInterval(iv));
+        });
+    }
+
     [
-        { label: '^', fn: () => { ty += 80; applyT(); } },
-        { label: 'v', fn: () => { ty -= 80; applyT(); } },
-        { label: '<', fn: () => { tx += 80; applyT(); } },
-        { label: '>', fn: () => { tx -= 80; applyT(); } },
-        { label: '+', fn: () => doZoom(1.25) },
-        { label: '-', fn: () => doZoom(1 / 1.25) },
+        { label: '^', fn: () => { _cancelCam(); ty += 80; applyT(); } },
+        { label: 'v', fn: () => { _cancelCam(); ty -= 80; applyT(); } },
+        { label: '<', fn: () => { _cancelCam(); tx += 80; applyT(); } },
+        { label: '>', fn: () => { _cancelCam(); tx -= 80; applyT(); } },
+        { label: '+', fn: () => { _cancelCam(); doZoom(1.25); } },
+        { label: '-', fn: () => { _cancelCam(); doZoom(1 / 1.25); } },
     ].forEach(({ label, fn }) => {
         const b = document.createElement('button');
         b.textContent = label;
@@ -16331,6 +16430,16 @@ function openWorldMap() {
         b.addEventListener('click', fn);
         bar.appendChild(b);
     });
+
+    // Allegiance legend — red→grey→blue loyalty gradient, shown when the layer is on.
+    const allegLegend = document.createElement('div');
+    allegLegend.style.cssText = 'position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:40;display:none;align-items:center;gap:8px;background:rgba(0,0,0,0.72);padding:6px 12px;border-radius:5px;font-family:TypewriterDry,monospace;font-size:10px;letter-spacing:1px;color:#ddd;box-shadow:0 2px 8px rgba(0,0,0,0.5);';
+    allegLegend.innerHTML =
+        '<span style="color:#dc2626;">BITTER ENEMY</span>' +
+        '<span style="width:160px;height:9px;border-radius:5px;display:inline-block;background:linear-gradient(to right,#dc2626,#a0a0a0,#1d4ed8);"></span>' +
+        '<span style="color:#1d4ed8;">ALLIED</span>';
+    viewport.appendChild(allegLegend);
+    const _updateAllegLegend = () => { allegLegend.style.display = allegiance ? 'flex' : 'none'; };
 
     // Allegiance toggle
     const allegBtn = document.createElement('button');
@@ -16343,10 +16452,12 @@ function openWorldMap() {
         allegiance = !allegiance; _wmAllegiance = allegiance;
         allegBtn.style.outline = allegiance ? '2px solid #ccc' : '';
         allegBtn.style.fontWeight = allegiance ? 'bold' : '';
-        svgEl.querySelectorAll('path,circle,ellipse,polygon').forEach(el => {
-            if (!el.id || !COUNTRY_NAMES[el.id]) return;
-            el.style.fill = allegiance ? _loyalColour(COUNTRY_LOYAL[el.id] || 0) : (origFills.get(el) || '');
-        });
+        // Tween the choropleth in/out instead of snapping.
+        _tweenFills(
+            el => allegiance ? _loyalColour(COUNTRY_LOYAL[el.id] || 0) : (origFills.get(el) || ''),
+            600
+        );
+        _updateAllegLegend();
     });
     bar.appendChild(allegBtn);
 
@@ -17725,6 +17836,27 @@ function openWorldMap() {
                 const shapeG = document.createElementNS(_evNS, 'g');
                 shapeG.setAttribute('transform', 'scale(0.6)');
                 specs.forEach(spec => shapeG.appendChild(_mkEl(spec.tag, spec.attrs, spec.children)));
+
+                // ── Icon micro-animation by type ─────────────────────────────
+                // disaster → expanding seismic ripple; war → slow smoke pulse;
+                // coup → rhythmic flash. SMIL runs continuously; it pauses while
+                // the icon is display:none and resumes when shown.
+                if (def.type === 'disaster') {
+                    const ring = _mkEl('circle', { r: 4, fill: 'none', stroke: '#5AACF0', 'stroke-width': '1.2', opacity: '0' }, [
+                        { tag: 'animate', attrs: { attributeName: 'r',       values: '3;13',    dur: '1.8s', repeatCount: 'indefinite' } },
+                        { tag: 'animate', attrs: { attributeName: 'opacity', values: '0.7;0',   dur: '1.8s', repeatCount: 'indefinite' } },
+                    ]);
+                    g.appendChild(ring);
+                } else if (def.type === 'war') {
+                    const smoke = _mkEl('circle', { r: 6, fill: '#9a9a9a', opacity: '0' }, [
+                        { tag: 'animate', attrs: { attributeName: 'r',       values: '5;11;5',       dur: '3.6s', repeatCount: 'indefinite' } },
+                        { tag: 'animate', attrs: { attributeName: 'opacity', values: '0;0.22;0',     dur: '3.6s', repeatCount: 'indefinite' } },
+                    ]);
+                    g.appendChild(smoke); // behind the shape
+                } else if (def.type === 'coup') {
+                    shapeG.appendChild(_mkEl('animate', { attributeName: 'opacity', values: '1;0.35;1', dur: '1.1s', repeatCount: 'indefinite' }));
+                }
+
                 g.appendChild(shapeG);
 
 
@@ -17732,14 +17864,7 @@ function openWorldMap() {
                 // sit on top of the capitals layer).
                 g.addEventListener('mouseenter', e => {
                     if (_editMode || def.state() !== 1) return;
-                    const imgHtml = def.img
-                        ? `<img src="${def.img}" style="width:auto;max-width:200px;height:auto;display:block;margin:0 auto 2px auto">`
-                        : '';
-                    const labelHtml = `<span style="display:block;font-family:Georgia,serif;font-size:14px;font-weight:bold;color:#333;margin-bottom:2px">${def.label}</span>`;
-                    const bodyHtml = def.body
-                        ? `<span style="display:block;margin-top:2px;padding:3px;background:linear-gradient(135deg,rgba(255,255,255,0.95) 0%,rgba(240,240,240,0.9) 100%);box-shadow:inset 0 1px 2px rgba(255,255,255,0.8),0 1px 3px rgba(0,0,0,0.15);border-radius:2px"><span style="font-family:'PermanentMarker',cursive;font-size:12px;color:rgb(96,115,129);transform:rotate(-1.5deg) skewX(-3deg);display:block;line-height:1.45;letter-spacing:0.05em;text-align:left">${def.body}</span></span>`
-                        : '';
-                    evTooltip.innerHTML = imgHtml + labelHtml + bodyHtml;
+                    evTooltip.innerHTML = _eventPolaroidHtml(def);
                     evTooltip.style.display = 'block';
                     const _pad = 16;
                     let _x = e.clientX + _pad, _y = e.clientY + _pad;
@@ -17798,7 +17923,10 @@ function openWorldMap() {
                 g.addEventListener('click', e => {
                     if (_editMode) return;
                     e.stopPropagation();
-                    selectCountry(_countryElForEvent(e.clientX, e.clientY));
+                    const cel = _countryElForEvent(e.clientX, e.clientY);
+                    const wasSel = selectedEl === cel;
+                    selectCountry(cel);
+                    if (cel && !wasSel) flyToEl(cel); // glide to the event's country
                 });
                 g.addEventListener('dblclick', e => {
                     if (_editMode) return;
@@ -17814,7 +17942,7 @@ function openWorldMap() {
                 g.style.opacity = '0';
                 g.style.pointerEvents = 'none';
                 _iconGroup.appendChild(g);
-                _iconNodes.push({ g, def });
+                _iconNodes.push({ g, def, cx: Math.round(px), cy: Math.round(py) });
             });
 
             _updateIconVis = () => {
@@ -17842,7 +17970,12 @@ function openWorldMap() {
                     origFills.set(el, window.getComputedStyle(el).fill);
                     el.style.fill = _loyalColour(COUNTRY_LOYAL[el.id] || 0);
                 });
+                // Flash countries whose loyalty shifted since the last map open,
+                // then refresh the snapshot for next time.
+                _flashLoyaltyDeltas();
             }
+            _updateAllegLegend();
+            _wmPrevLoyal = Object.assign({}, COUNTRY_LOYAL);
 
             // ── Move Icons tool ──────────────────────────────────────────────
             const offsetPanel = document.createElement('div');
@@ -18006,6 +18139,64 @@ function openWorldMap() {
             });
             bar.appendChild(moveSubsBtn);
 
+            // ── Presidential Daily Brief ─────────────────────────────────────
+            // Self-running set-piece: turns on the war-room (SIGINT) skin, then
+            // flies the camera hotspot-to-hotspot through every active event,
+            // surfacing each polaroid in sequence like a morning intelligence brief.
+            let _briefTimers = [];
+            let _briefActive = false;
+            const _clearBrief = () => {
+                _briefActive = false;
+                _briefTimers.forEach(clearTimeout);
+                _briefTimers = [];
+                _cancelCam();
+                evTooltip.style.display = 'none';
+                briefBtn.style.background = '';
+                briefBtn.style.color = '';
+                briefBtn.textContent = 'Daily Brief';
+            };
+            mapCleanup.push(_clearBrief);
+
+            const _runBrief = () => {
+                const nodes = _iconNodes.filter(n => { try { return n.def.state() === 1; } catch (_) { return false; } });
+                if (!nodes.length) return;
+                _briefActive = true;
+                briefBtn.style.background = '#c0392b';
+                briefBtn.style.color = '#fff';
+                briefBtn.textContent = 'Stop Brief';
+                // War-room skin on for the duration.
+                if (!sigintOn) {
+                    sigintOn = true; _wmSigintOn = true;
+                    sigintBtn.style.outline = '2px solid #888';
+                    sigintBtn.style.fontWeight = 'bold';
+                    sigintBtn.style.color = '#ddd';
+                    _applySigint(true);
+                }
+                let i = 0;
+                const showOne = () => {
+                    if (!_briefActive) return;
+                    if (i >= nodes.length) { _clearBrief(); return; }
+                    const node = nodes[i];
+                    evTooltip.style.display = 'none';
+                    flyTo(node.cx, node.cy, 1.8, 900, () => {
+                        if (!_briefActive) return;
+                        evTooltip.innerHTML = _eventPolaroidHtml(node.def);
+                        evTooltip.style.display = 'block';
+                        const vr = viewport.getBoundingClientRect();
+                        evTooltip.style.left = (vr.left + vr.width / 2 - 135) + 'px';
+                        evTooltip.style.top  = (vr.top + 46) + 'px';
+                        _briefTimers.push(setTimeout(() => { i++; showOne(); }, 4000));
+                    });
+                };
+                showOne();
+            };
+
+            const briefBtn = document.createElement('button');
+            briefBtn.textContent = 'Daily Brief';
+            briefBtn.style.cssText = 'margin-left:8px;cursor:pointer;padding:0 10px;height:30px;font-size:11px;';
+            briefBtn.addEventListener('click', () => { _briefActive ? _clearBrief() : _runBrief(); });
+            bar.appendChild(briefBtn);
+
             // ── Move Chips tool (SIGINT disposition chips) ───────────────────
             const chipOffsetPanel = document.createElement('div');
             chipOffsetPanel.style.cssText = 'position:absolute;top:16px;right:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:480px;white-space:pre;display:none;user-select:text;cursor:text;';
@@ -18088,6 +18279,7 @@ function openWorldMap() {
             // ── Mouse wheel ──────────────────────────────────────────────────
             const onWheel = e => {
                 e.preventDefault();
+                _cancelCam();
                 if (e.ctrlKey) {
                     const rect = viewport.getBoundingClientRect();
                     const mx = e.clientX - rect.left;
@@ -18110,14 +18302,14 @@ function openWorldMap() {
             // ── Keyboard navigation ──────────────────────────────────────────
             const STEP = 80;
             const onMapKey = e => {
-                if (e.key === '+' || e.key === '=' || e.code === 'NumpadAdd')    { doZoom(1.25);       e.preventDefault(); return; }
-                if (e.key === '-'                || e.code === 'NumpadSubtract') { doZoom(1 / 1.25);   e.preventDefault(); return; }
+                if (e.key === '+' || e.key === '=' || e.code === 'NumpadAdd')    { _cancelCam(); doZoom(1.25);       e.preventDefault(); return; }
+                if (e.key === '-'                || e.code === 'NumpadSubtract') { _cancelCam(); doZoom(1 / 1.25);   e.preventDefault(); return; }
                 let moved = false;
                 if      (e.code === 'Numpad8' || e.code === 'ArrowUp')    { ty += STEP; moved = true; }
                 else if (e.code === 'Numpad2' || e.code === 'ArrowDown')  { ty -= STEP; moved = true; }
                 else if (e.code === 'Numpad4' || e.code === 'ArrowLeft')  { tx += STEP; moved = true; }
                 else if (e.code === 'Numpad6' || e.code === 'ArrowRight') { tx -= STEP; moved = true; }
-                if (moved) { applyT(); e.preventDefault(); }
+                if (moved) { _cancelCam(); applyT(); e.preventDefault(); }
             };
             document.addEventListener('keydown', onMapKey);
             mapCleanup.push(() => document.removeEventListener('keydown', onMapKey));
@@ -18195,7 +18387,9 @@ function openWorldMap() {
                 });
                 el.addEventListener('click', e => {
                     e.stopPropagation();
+                    const wasSel = selectedEl === el;
                     selectCountry(el);
+                    if (!wasSel) flyToEl(el); // glide-centre on the selected country
                 });
                 el.addEventListener('dblclick', e => {
                     e.stopPropagation();
@@ -18211,6 +18405,19 @@ function openWorldMap() {
             console.error('World map load/build error:', err);
             viewport.innerHTML = '<p style="color:#fff;padding:40px;font-family:monospace">Failed to load map SVG.<br>Enable GitHub Pages and ensure SVG is published at:<br>' + SVG_URL + '<br><br>(If the SVG URL works in a browser, this is a script error — see console.)</p>';
         });
+}
+
+// Polaroid-style event card markup (photo + title + handwritten body), shared
+// by the event-icon hover tooltip and the Presidential Daily Brief sequence.
+function _eventPolaroidHtml(def) {
+    const imgHtml = def.img
+        ? `<img src="${def.img}" style="width:auto;max-width:200px;height:auto;display:block;margin:0 auto 2px auto">`
+        : '';
+    const labelHtml = `<span style="display:block;font-family:Georgia,serif;font-size:14px;font-weight:bold;color:#333;margin-bottom:2px">${def.label}</span>`;
+    const bodyHtml = def.body
+        ? `<span style="display:block;margin-top:2px;padding:3px;background:linear-gradient(135deg,rgba(255,255,255,0.95) 0%,rgba(240,240,240,0.9) 100%);box-shadow:inset 0 1px 2px rgba(255,255,255,0.8),0 1px 3px rgba(0,0,0,0.15);border-radius:2px"><span style="font-family:'PermanentMarker',cursive;font-size:12px;color:rgb(96,115,129);transform:rotate(-1.5deg) skewX(-3deg);display:block;line-height:1.45;letter-spacing:0.05em;text-align:left">${def.body}</span></span>`
+        : '';
+    return imgHtml + labelHtml + bodyHtml;
 }
 
 // ── CIA profile viewer ───────────────────────────────────────────────────────
