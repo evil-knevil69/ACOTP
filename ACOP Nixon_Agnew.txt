@@ -17829,13 +17829,18 @@ function openWorldMap() {
                 dot.setAttribute('stroke', 'rgba(255,255,255,0.9)');
                 dot.setAttribute('stroke-width', '0.6');
                 dot.setAttribute('pointer-events', 'all');
-                // Gentle twinkle — imperceptible on the daytime red dots, reads as
-                // flickering city lights on the glowing amber night-side capitals.
-                // Randomised duration so they shimmer out of sync.
+                // Flicker — city lights guttering on the night-side capitals. A
+                // discrete (jumpy, non-interpolated) opacity animation reads as a
+                // real flicker rather than a smooth glow-pulse. It is held idle
+                // (begin="indefinite") and only started when the dot crosses onto
+                // the dark side; day-side dots stay rock-steady. Randomised duration
+                // so the cities flicker out of sync.
                 const _twinkle = document.createElementNS(_evNS, 'animate');
                 _twinkle.setAttribute('attributeName', 'opacity');
-                _twinkle.setAttribute('values', '1;0.72;1');
-                _twinkle.setAttribute('dur', (1.6 + Math.random() * 2.4).toFixed(2) + 's');
+                _twinkle.setAttribute('calcMode', 'discrete');
+                _twinkle.setAttribute('values', '1;0.45;1;1;0.7;1;0.35;1;0.9;0.55;1;1');
+                _twinkle.setAttribute('dur', (1.1 + Math.random() * 1.6).toFixed(2) + 's');
+                _twinkle.setAttribute('begin', 'indefinite');
                 _twinkle.setAttribute('repeatCount', 'indefinite');
                 dot.appendChild(_twinkle);
 
@@ -17914,7 +17919,7 @@ function openWorldMap() {
 
                 capGroup.appendChild(dot);
                 capGroup.appendChild(label);
-                _capDots.push({ dot, code, label });
+                _capDots.push({ dot, code, label, twinkle: _twinkle, flickering: false });
             });
 
             // Light up the capitals that fall on the night side. Uses the same
@@ -17924,10 +17929,21 @@ function openWorldMap() {
                 const decR   = _parseDeclination() * Math.PI / 180;
                 const subLon = _subSolarLon();
                 const sinDec = Math.sin(decR), cosDec = Math.cos(decR);
-                _capDots.forEach(({ dot }) => {
+                // Start the flicker only as a capital crosses onto the dark side,
+                // and stop it (resetting to steady opacity 1) when it returns to
+                // daylight. The `flickering` flag makes begin/end fire on the
+                // transition only, not on every periodic terminator tick.
+                const _setFlicker = (entry, on) => {
+                    if (on === entry.flickering) return;
+                    entry.flickering = on;
+                    try { on ? entry.twinkle.beginElement() : entry.twinkle.endElement(); } catch (_) {}
+                };
+                _capDots.forEach(entry => {
+                    const { dot } = entry;
                     if (!nightOn) {
                         dot.removeAttribute('filter');
                         dot.setAttribute('fill', '#cc0000');
+                        _setFlicker(entry, false);
                         return;
                     }
                     const cx  = parseFloat(dot.getAttribute('cx'));
@@ -17941,9 +17957,11 @@ function openWorldMap() {
                     if (cosZ < 0) {
                         dot.setAttribute('fill', '#ffd24a'); // lit amber — city lights
                         dot.setAttribute('filter', 'url(#wm-cap-glow)');
+                        _setFlicker(entry, true);
                     } else {
                         dot.removeAttribute('filter');
                         dot.setAttribute('fill', '#cc0000'); // daytime red marker
+                        _setFlicker(entry, false);
                     }
                 });
             };
