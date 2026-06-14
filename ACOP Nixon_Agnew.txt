@@ -16744,6 +16744,7 @@ function openWorldMap() {
             subEllipses.setAttribute('mask', 'url(#wm-ocean-mask)');
             subGroup.appendChild(subEllipses);
 
+            const _subZones = []; // { el, lbl, rx, ry, fill, label } — for Move Subs tool
             [
                 [ 700, 192, 138, 56, '#4488ff', 'SSBN PATROL (US)' ],   // N Atlantic
                 [1672, 325,  98, 62, '#4488ff', 'SSBN PATROL (US)' ],   // W Pacific
@@ -16778,6 +16779,7 @@ function openWorldMap() {
                 lbl.textContent = label;
                 subEllipses.appendChild(el);   // masked → ocean only
                 subGroup.appendChild(lbl);     // unmasked → always legible
+                _subZones.push({ el, lbl, rx, ry, fill, label });
             });
             sigintLayer.appendChild(subGroup);
             // ── End submarine patrol corridors ────────────────────────────────
@@ -17937,6 +17939,72 @@ function openWorldMap() {
                 if (_flagEditMode) _refreshFlagPanel();
             });
             bar.appendChild(moveFlagsBtn);
+
+            // ── Move Subs tool ───────────────────────────────────────────────
+            let _subEditMode = false;
+            const _subMoves = {}; // label → { cx, cy } final positions
+
+            const subOffsetPanel = document.createElement('div');
+            subOffsetPanel.style.cssText = 'position:absolute;top:60px;left:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:560px;white-space:pre;display:none;user-select:text;cursor:text;';
+            viewport.appendChild(subOffsetPanel);
+
+            const _refreshSubPanel = () => {
+                const lines = _subZones.map(({ el, rx, ry, fill, label }) => {
+                    const cx = Math.round(parseFloat(el.getAttribute('cx')));
+                    const cy = Math.round(parseFloat(el.getAttribute('cy')));
+                    return `[ ${String(cx).padStart(4)}, ${String(cy).padStart(3)}, ${String(rx).padStart(3)}, ${String(ry).padStart(2)}, '${fill}', '${label}' ],`;
+                });
+                subOffsetPanel.textContent = lines.join('\n') || '(drag a zone to see its position)';
+            };
+
+            _subZones.forEach(({ el, lbl, ry }) => {
+                el.addEventListener('mousedown', ev => {
+                    if (!_subEditMode) return;
+                    ev.stopPropagation(); ev.preventDefault();
+                    el.style.cursor = 'grabbing';
+                    const startCx = parseFloat(el.getAttribute('cx'));
+                    const startCy = parseFloat(el.getAttribute('cy'));
+                    const sx = ev.clientX, sy = ev.clientY;
+                    const onMove = mv => {
+                        const nx = startCx + (mv.clientX - sx) / scale;
+                        const ny = startCy + (mv.clientY - sy) / scale;
+                        el.setAttribute('cx', nx);
+                        el.setAttribute('cy', ny);
+                        lbl.setAttribute('x', nx);
+                        lbl.setAttribute('y', ny + ry + 9);
+                    };
+                    const onUp = () => {
+                        document.removeEventListener('mousemove', onMove);
+                        document.removeEventListener('mouseup', onUp);
+                        _activeDragEnd = null;
+                        el.style.cursor = 'grab';
+                        _refreshSubPanel();
+                    };
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                    _activeDragEnd = onUp;
+                });
+            });
+
+            const moveSubsBtn = document.createElement('button');
+            moveSubsBtn.textContent = 'Move Subs';
+            moveSubsBtn.style.cssText = 'margin-left:8px;cursor:pointer;padding:0 10px;height:30px;font-size:11px;';
+            moveSubsBtn.addEventListener('click', () => {
+                _subEditMode = !_subEditMode;
+                moveSubsBtn.style.background = _subEditMode ? '#f90' : '';
+                moveSubsBtn.style.color      = _subEditMode ? '#000' : '';
+                subOffsetPanel.style.display  = _subEditMode ? 'block' : 'none';
+                // Auto-show SIGINT layer so zones are visible regardless of toggle state
+                if (_subEditMode) {
+                    sigintLayer.style.display = '';
+                    _subZones.forEach(({ el }) => { el.style.cursor = 'grab'; el.style.pointerEvents = 'all'; });
+                    _refreshSubPanel();
+                } else {
+                    sigintLayer.style.display = sigintOn ? '' : 'none';
+                    _subZones.forEach(({ el }) => { el.style.cursor = ''; el.style.pointerEvents = ''; });
+                }
+            });
+            bar.appendChild(moveSubsBtn);
 
             // ── Move Chips tool (SIGINT disposition chips) ───────────────────
             const chipOffsetPanel = document.createElement('div');
