@@ -16533,7 +16533,36 @@ function openWorldMap() {
     });
     bar.appendChild(capBtn);
 
+    // Feature 3 — Regional zoom buttons.
+    // A second toolbar row for quick-navigate to the six strategic theatres.
+    // Coordinates are SVG-space centroids (1800×900 canvas): x=(lon+180)/360*1800, y=(90-lat)/180*900.
+    const regionBar = document.createElement('div');
+    regionBar.style.cssText = 'flex-shrink:0;height:28px;background:#080808;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;gap:4px;padding:0 10px;font-family:TypewriterDry,monospace;font-size:10px;letter-spacing:1px;';
+    const regionLabel = document.createElement('span');
+    regionLabel.textContent = 'JUMP:';
+    regionLabel.style.cssText = 'color:#444;margin-right:4px;';
+    regionBar.appendChild(regionLabel);
+    const _regions = [
+        { label: 'N.AMERICA',    x:  400, y: 225, s: 1.6 },
+        { label: 'LATIN AM.',    x:  575, y: 525, s: 1.8 },
+        { label: 'EUROPE',       x:  975, y: 190, s: 2.2 },
+        { label: 'AFRICA',       x: 1010, y: 435, s: 1.7 },
+        { label: 'MIDDLE EAST', x: 1110, y: 310, s: 2.4 },
+        { label: 'SE ASIA',      x: 1425, y: 390, s: 2.2 },
+        { label: 'WORLD',        x:  900, y: 450, s: 0.52 },
+    ];
+    _regions.forEach(r => {
+        const rb = document.createElement('button');
+        rb.textContent = r.label;
+        rb.style.cssText = 'cursor:pointer;padding:0 7px;height:20px;font-family:TypewriterDry,monospace;font-size:10px;letter-spacing:1px;background:transparent;border:1px solid #2a2a2a;color:#666;transition:color 0.15s,border-color 0.15s;';
+        rb.addEventListener('mouseenter', () => { rb.style.color = '#bbb'; rb.style.borderColor = '#555'; });
+        rb.addEventListener('mouseleave', () => { rb.style.color = '#666'; rb.style.borderColor = '#2a2a2a'; });
+        rb.addEventListener('click', () => flyTo(r.x, r.y, r.s, 700));
+        regionBar.appendChild(rb);
+    });
+
     container.appendChild(topBar);
+    container.appendChild(regionBar);
     container.appendChild(viewport);
     container.appendChild(bar);
     gw.appendChild(container);
@@ -16739,7 +16768,22 @@ function openWorldMap() {
             termGlowBlur.appendChild(termGlowFe);
             defs.appendChild(termGlowBlur);
 
-            // Warm sun-glint radial gradient — the bright sunlit spot at the
+            // Hover-glow filter: soft drop shadow in the country's own allegiance
+            // colour, applied on mouseenter and removed on mouseleave.
+            const hoverGlowFilter = document.createElementNS(nightNS, 'filter');
+            hoverGlowFilter.id = 'wm-hover-glow';
+            hoverGlowFilter.setAttribute('x', '-15%'); hoverGlowFilter.setAttribute('y', '-15%');
+            hoverGlowFilter.setAttribute('width', '130%'); hoverGlowFilter.setAttribute('height', '130%');
+            const hoverFe = document.createElementNS(nightNS, 'feDropShadow');
+            hoverFe.id = 'wm-hover-fe';
+            hoverFe.setAttribute('dx', '0'); hoverFe.setAttribute('dy', '0');
+            hoverFe.setAttribute('stdDeviation', '5');
+            hoverFe.setAttribute('flood-color', '#ffffff');
+            hoverFe.setAttribute('flood-opacity', '0.7');
+            hoverGlowFilter.appendChild(hoverFe);
+            defs.appendChild(hoverGlowFilter);
+
+
             // subsolar point. objectBoundingBox so it travels with its circle.
             const glintGrad = document.createElementNS(nightNS, 'radialGradient');
             glintGrad.id = 'wm-glint-grad';
@@ -16773,6 +16817,33 @@ function openWorldMap() {
                 _landParent.insertBefore(landGroup, _countryEls[0]);
                 _countryEls.forEach(p => landGroup.appendChild(p));
             }
+
+            // Feature 1 — Country hover glow.
+            // Each country path gets a feDropShadow in its own allegiance tint on
+            // mouseenter, removed on mouseleave. The shadow colour adapts to the
+            // country's current fill (blue Allied, red Enemy, neutral white) so it
+            // reads correctly in both normal and allegiance modes.
+            const _parseHoverCol = el => {
+                const fill = el.style.fill || window.getComputedStyle(el).fill || '';
+                const m = fill.match(/(\d+)[,\s]+(\d+)[,\s]+(\d+)/);
+                if (!m) return '#aaaacc';
+                const [r, g, b] = [+m[1], +m[2], +m[3]];
+                // Bias strongly blue → blue glow; strongly red → red glow; else white
+                if (b > r + 30 && b > g + 20) return '#88aaff';
+                if (r > b + 30 && r > g + 20) return '#ff8888';
+                return '#ccddff';
+            };
+            _countryEls.forEach(p => {
+                p.addEventListener('mouseenter', () => {
+                    const col = _parseHoverCol(p);
+                    const fe = document.getElementById('wm-hover-fe');
+                    if (fe) fe.setAttribute('flood-color', col);
+                    p.setAttribute('filter', 'url(#wm-hover-glow)');
+                });
+                p.addEventListener('mouseleave', () => {
+                    p.removeAttribute('filter');
+                });
+            });
 
             const nightPath = document.createElementNS(nightNS, 'path');
             nightPath.id = 'wm-night-path';
@@ -18103,6 +18174,39 @@ function openWorldMap() {
                 });
             };
             _updateIconVis();
+
+            // Feature 2 — Hot-zone body glow.
+            // Countries with an active event (coup, war, disaster) pulse a subtle
+            // tinted fill on the SVG land path so the map reads at a glance even
+            // without the icon layer. Implemented as a repeating CSS animation on
+            // a <style> block injected into the SVG. Cleaned up on map close.
+            (() => {
+                const TYPE_COL = { coup: '#e84a4a', war: '#ff7b00', disaster: '#d4c200' };
+                const hotzones = {};  // code → colour (last-write wins for multi-event countries)
+                _iconNodes.forEach(({ def }) => {
+                    try {
+                        if (def.state() !== 1) return;
+                        const col = TYPE_COL[def.type];
+                        if (!col || !def.country) return;
+                        hotzones[def.country] = col;
+                    } catch (_) {}
+                });
+                const codes = Object.keys(hotzones);
+                if (!codes.length) return;
+                // Pulse a coloured stroke on each hot-zone country. Only stroke-opacity
+                // is animated so the fill/allegiance colour is completely unaffected.
+                let css = '@keyframes wm-hz-pulse { 0%,100%{stroke-opacity:0} 50%{stroke-opacity:0.65} }\n';
+                codes.forEach(code => {
+                    const col = hotzones[code];
+                    css += `[id="${code}"] { stroke:${col}!important; stroke-width:2.5px!important; animation:wm-hz-pulse 2.2s ease-in-out infinite; }\n`;
+                });
+                const hzStyle = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+                hzStyle.id = 'wm-hz-style';
+                hzStyle.textContent = css;
+                svg.appendChild(hzStyle);
+                mapCleanup.push(() => { const s = svg.querySelector('#wm-hz-style'); if (s) s.remove(); });
+            })();
+
             // Apply restored toggle state from a previous visit (single source of truth)
             _applyEventVis();
             _applyCapVis();
