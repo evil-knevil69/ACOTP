@@ -18176,10 +18176,21 @@ function openWorldMap() {
             _updateIconVis();
 
             // Feature 2 — Hot-zone body glow.
-            // Countries with an active event (coup, war, disaster) pulse a subtle
-            // tinted fill on the SVG land path so the map reads at a glance even
-            // without the icon layer. Implemented as a repeating CSS animation on
-            // a <style> block injected into the SVG. Cleaned up on map close.
+            // Countries with a RECENTLY-debuted event (coup, war, disaster) pulse a
+            // tinted stroke so the map reads at a glance. The glow only lives for the
+            // event's first two turns of existence — debut turn and the one after —
+            // so the board quietens once a crisis is no longer breaking news. Debut
+            // is the question pk at which the event was first seen active (the same
+            // signal the icon micro-animations use); permanent events debut on the
+            // first map open from the start of the game.
+            const _curTurnIdx = getQuestionIndexFromPk(_lastQuestionPK);
+            const _withinFirstTwoTurns = def => {
+                const dpk = _wmEventDebutPk[def.id];
+                if (dpk === undefined) return true;            // debuting this very turn
+                const di = getQuestionIndexFromPk(dpk);
+                if (di == null || di < 0 || _curTurnIdx == null || _curTurnIdx < 0) return true;
+                return (_curTurnIdx - di) < 2;                 // di and di+1 → first two turns
+            };
             (() => {
                 const TYPE_COL = { coup: '#e84a4a', war: '#ff7b00', disaster: '#d4c200' };
                 const hotzones = {};  // code → colour (last-write wins for multi-event countries)
@@ -18188,6 +18199,7 @@ function openWorldMap() {
                         if (def.state() !== 1) return;
                         const col = TYPE_COL[def.type];
                         if (!col || !def.country) return;
+                        if (!_withinFirstTwoTurns(def)) return;
                         hotzones[def.country] = col;
                     } catch (_) {}
                 });
@@ -18414,9 +18426,17 @@ function openWorldMap() {
                     const i = getQuestionIndexFromPk(pk);
                     return (i == null || i < 0) ? -1 : i;
                 };
+                // Newest event first → oldest last. Primary key is debut recency
+                // (higher question index = more recent). When several events debuted
+                // on the same turn — which is the case while they are all manually
+                // switched on — fall back to definition order reversed, so the most
+                // recently-added crises in _EVENT_DEFS lead the brief.
+                const _defIdx = def => _EVENT_DEFS.indexOf(def);
                 const nodes = _iconNodes
                     .filter(n => { try { return n.def.state() === 1; } catch (_) { return false; } })
-                    .sort((a, b) => _debutOrder(b.def.id) - _debutOrder(a.def.id));
+                    .sort((a, b) =>
+                        (_debutOrder(b.def.id) - _debutOrder(a.def.id))
+                        || (_defIdx(b.def) - _defIdx(a.def)));
                 if (!nodes.length) return;
                 _briefActive = true;
                 briefBtn.style.background = '#c0392b';
@@ -18699,7 +18719,11 @@ function openCIAProfile(code, mapPanel, tooltip, military) {
 
     const viewer = document.createElement('div');
     viewer.id = 'cia-profile-viewer';
-    viewer.style.cssText = 'position:absolute;top:0;left:0;width:989px;height:625px;z-index:510;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;user-select:none;';
+    // z-index must sit ABOVE the SIGINT CRT scanline/vignette overlay. Those are
+    // pseudo-elements on #wm-viewport (z 9000/9001); because the viewport sets no
+    // z-index it creates no stacking context, so those high-z layers would
+    // otherwise paint over this viewer. 9500 keeps the intel HTML CRT-free.
+    viewer.style.cssText = 'position:absolute;top:0;left:0;width:989px;height:625px;z-index:9500;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;user-select:none;background:#000;';
 
     const bar = document.createElement('div');
     bar.style.cssText = 'flex-shrink:0;height:44px;background:#000;display:flex;align-items:center;padding:0 12px;gap:12px;overflow:hidden;';
