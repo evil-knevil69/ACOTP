@@ -18703,10 +18703,12 @@ function openCIAProfile(code, mapPanel, tooltip, military) {
     // When SIGINT is on (military=true) the viewer shows the Military Balance
     // 1972-73 entry from /Milbal (files named by ISO code) and the index button
     // becomes "Military Intel". Otherwise it's the CIA Basic Intelligence Factbook.
-    let url, indexUrl, indexLabel;
+    let url, indexUrl, indexLabel, statusUnknown = false;
     if (military) {
-        if (!MILBAL_COUNTRIES.has(code)) { alert('No Military Balance profile for ' + (COUNTRY_NAMES[code] || code)); return; }
-        url        = PAGES_BASE + '/Milbal/' + code + '.html';
+        // No Military Balance profile → open the viewer anyway with a blank
+        // "Status Unknown" page rather than blocking with an alert.
+        statusUnknown = !MILBAL_COUNTRIES.has(code);
+        url        = statusUnknown ? null : PAGES_BASE + '/Milbal/' + code + '.html';
         indexUrl   = PAGES_BASE + '/Milbal/index.html';
         indexLabel = 'Military Intel';
     } else {
@@ -18810,9 +18812,27 @@ function openCIAProfile(code, mapPanel, tooltip, military) {
     }
 
     const iframe = document.createElement('iframe');
-    iframe.src = url;
     iframe.sandbox = 'allow-same-origin allow-scripts';
     iframe.style.cssText = 'flex:1;border:none;width:100%;';
+    if (statusUnknown) {
+        // Blank intel page styled like the Milbal entries (TypewriterDry on the
+        // standard background) but bearing only "STATUS UNKNOWN".
+        iframe.srcdoc =
+            '<!DOCTYPE html><html><head><meta charset="utf-8"><style>' +
+            "@font-face{font-family:TypewriterDry;src:local('Courier New');}" +
+            'html,body{margin:0;height:100%;}' +
+            'body{display:flex;align-items:center;justify-content:center;' +
+            "background:#cfc8b8 url('" + PAGES_BASE + "/background.png') center/cover no-repeat;" +
+            'font-family:TypewriterDry,\'Courier New\',monospace;color:#2a2a22;}' +
+            '.su{text-align:center;letter-spacing:4px;}' +
+            '.su h1{font-size:34px;margin:0 0 10px;}' +
+            '.su p{font-size:14px;letter-spacing:2px;opacity:0.7;margin:0;}' +
+            '</style></head><body><div class="su"><h1>STATUS UNKNOWN</h1>' +
+            '<p>' + ((COUNTRY_NAMES[code] || code) + '').toUpperCase().replace(/[<>&]/g, '') +
+            ' — NO MILITARY BALANCE ON FILE</p></div></body></html>';
+    } else {
+        iframe.src = url;
+    }
 
     viewer.appendChild(bar);
     viewer.appendChild(iframe);
