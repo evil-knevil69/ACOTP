@@ -17055,7 +17055,7 @@ function openWorldMap() {
             [
                 [  619,  96, 138, 56, '#4488ff', 'SSBN PATROL (US)' ],   // Labrador/N Atlantic
                 [ 1479, 328,  98, 62, '#4488ff', 'SSBN PATROL (US)' ],   // SW Pacific
-                [ 1080, 442,  95, 20, '#ff4444', 'SSBN BASTION (SU)'],   // Indian Ocean
+                [ 1060, 442,  95, 20, '#ff4444', 'SSBN BASTION (SU)'],   // Indian Ocean
                 [  785,  29,  88, 36, '#ff4444', 'SSBN BASTION (SU)'],   // Greenland Sea
                 [ 1501, 185,  78, 50, '#ff4444', 'SSBN BASTION (SU)'],   // Sea of Okhotsk
             ].forEach(([cx, cy, rx, ry, fill, label]) => {
