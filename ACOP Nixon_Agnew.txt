@@ -12132,7 +12132,7 @@ const _EVENT_DEFS = [
         body: 'Following a Greek Cypriot coup backed by the Athens junta, Turkey invaded Cyprus in July 1974. The island is now partitioned between Greek and Turkish zones.',
         country: 'CY',
         positionOffset: { x: -11, y: -11 },
-        state: () => 1, // TEMP: was () => cyprusInvasion
+        state: () => cyprusInvasion,
     },
     {
         id: 'chad-civil-war',
@@ -12165,7 +12165,7 @@ const _EVENT_DEFS = [
         body: 'In the early hours of February 4th 1976, a magnitude 7.5 earthquake struck Guatemala, killing more than 23,000 people and leaving over a million homeless. Striking while the country slept, it devastated highland towns and shanty districts of Guatemala City alike.',
         country: 'GT',
         positionOffset: { x: -18, y: -8 },
-        state: () => 1, // TEMP: was () => guatemalaQuake
+        state: () => guatemalaQuake,
     },
     {
         id: 'rhodesia-bush-war',
@@ -12198,7 +12198,7 @@ const _EVENT_DEFS = [
         body: 'Heavy rainfall, snowmelt and a saturated drainage basin triggered the worst Mississippi flooding in 150 years. Sixteen states are affected from Illinois to Louisiana, 17 million acres inundated, hundreds dead and thousands homeless. A federal disaster has been declared.',
         country: 'US',
         positionOffset: { x: 23, y: 57 },
-        state: () => 1, // TEMP: was () => mississippi
+        state: () => mississippi,
     },
     {
         id: 'tangshan-quake',
@@ -12209,7 +12209,7 @@ const _EVENT_DEFS = [
         body: 'A magnitude 7.6 earthquake struck the industrial city of Tangshan in northern China at 3:42 in the morning, killing an estimated 240,000 people. The city was almost completely levelled. Beijing refused all offers of foreign aid, and the CIA struggled to get any meaningful intelligence behind a Great Wall of deliberate concealment.',
         country: 'CN',
         positionOffset: { x: 66, y: -48 },
-        state: () => 1, // TEMP: was () => tangshan
+        state: () => tangshan,
     },
     {
         id: 'honduras-coup-1972',
@@ -12220,7 +12220,7 @@ const _EVENT_DEFS = [
         body: 'The elected president, Ramón Ernesto Cruz is overthrown in a bloodless military coup. A military triumvirate now rules, headed by ex and now president General Oswaldo Enrique López Arellano. This will turn out to be a coup from the left, promising land reform and labor union rights. But, a true banana republic, the position of United Fruit will be protected.',
         country: 'HN',
         positionOffset: { x: -16, y: -15 },
-        state: () => 1, // TEMP: was () => hondurasCoup
+        state: () => hondurasCoup,
     },
     {
         id: 'bananagate',
@@ -12231,7 +12231,7 @@ const _EVENT_DEFS = [
         body: 'Our friend, President López has been overthrown in another coup. This follows in the wake of the chairman of United Brands committing suicide after being caught bribing López $3m to reduce Hondura\'s banana export tax. \'Bananagate\' rumbles on for a few weeks, while United Fruit loosens its grip on Honduras.',
         country: 'HN',
         positionOffset: { x: -15, y: -15 },
-        state: () => 1, // TEMP: was () => bananagate
+        state: () => bananagate,
     },
     {
         id: 'rwanda-coup',
@@ -12242,7 +12242,7 @@ const _EVENT_DEFS = [
         body: 'Led by Major General Juvénal Habyarimana, deposing Rwanda\'s first elected president, Grégoire Kayibanda, and installing a Hutu-dominated totalitarian state. The new regime clamps down on intra-Hutu rivalry at the expense of the marginalised Tutsi minority, laying the structural foundations for the Rwandan genocide after Habyarimana\'s assassination in 1994.',
         country: 'RW',
         positionOffset: { x: -12, y: -13 },
-        state: () => 1, // TEMP: was () => rwandaCoup
+        state: () => rwandaCoup,
     },
     {
         id: 'afghanistan-coup',
@@ -12253,7 +12253,7 @@ const _EVENT_DEFS = [
         body: 'Mohammad Daoud Khan overthrows his cousin, King Mohammad Zahir Shah (the last king of Afghanistan). A one party republic is established with some Marxist leanings. Despite this, Daoud puts feelers out to the US and Pakistan.',
         country: 'AF',
         positionOffset: { x: -4, y: -13 },
-        state: () => 1, // TEMP: was () => afghanCoup
+        state: () => afghanCoup,
     },
     {
         id: 'niger-coup',
@@ -12264,7 +12264,7 @@ const _EVENT_DEFS = [
         body: '15 April 1974. Lieutenant-Colonel Seyni Kountché led a military coup that ended the fourteen-year rule of President Diori. The army effectively distributes food aid hoarded by Diori to a population reeling from a 6 year long drought, winning much popular support.',
         country: 'NE',
         positionOffset: { x: -41, y: 9 },
-        state: () => 1, // TEMP: was () => nigerCoup
+        state: () => nigerCoup,
     },
     {
         id: 'greek-corrective-revolution',
@@ -12275,7 +12275,7 @@ const _EVENT_DEFS = [
         body: 'Brigadier Dimitrios Ioannidis, head of the military police, has overthrown George Papadopoulos in a palace coup. Papadopoulos had been cautiously liberalising the regime but Ioannidis wants to tear off the mask, enforcing an ultra nationalist, reactionary regime with torture, mass imprisonment and pervasive censorship. The social base of the Regime of the Colonels grows ever narrower.',
         country: 'GR',
         positionOffset: { x: -22, y: -22 },
-        state: () => 1, // TEMP: was () => greekCoup
+        state: () => greekCoup,
     },
     {
         id: 'ethiopian-revolution',
@@ -12286,7 +12286,7 @@ const _EVENT_DEFS = [
         body: 'Ethiopia, one of the world\'s oldest nations, may be entering the first modern example of a polycrisis. War in Eritrea, ethnic conflict, famine in the Wollo, peasant uprisings against all of the above and against the anachronistic feudalism of Emperor Haile Selassie. Students burning down campuses and a demoralised and underpaid army, now turning openly to mutiny.',
         country: 'ET',
         positionOffset: { x: -2, y: 17 },
-        state: () => 1, // TEMP: was () => ethiopianRevolution
+        state: () => ethiopianRevolution,
     },
     {
         id: 'derg-coup',
@@ -12297,7 +12297,7 @@ const _EVENT_DEFS = [
         body: 'Taking advantage of the collapsing legitimacy of the Ethiopian Empire, a group of junior officers place Haile Selassie under palace arrest. \'The Committee\', aka the Derg, create a Marxist dictatorship that turns in on itself, initiating a Red Terror akin to its Soviet and Stalinist namesakes.',
         country: 'ET',
         positionOffset: { x: -21, y: -6 },
-        state: () => 1, // TEMP: was () => dergCoup
+        state: () => dergCoup,
     },
     {
         id: 'uruguay-self-coup',
@@ -12308,7 +12308,7 @@ const _EVENT_DEFS = [
         body: 'President Juan María Bordaberry dissolves parliament with military backing, banning political parties, trade unions and the press. The objective is the elimination of the left. Uruguay\'s democratic traditions are shredded and torture becomes institutionalised. The CIA raises no objection. After all, Uruguay is a founding member of Operation Condor.',
         country: 'UY',
         positionOffset: { x: -10, y: -5 },
-        state: () => 1, // TEMP: was () => uruguayCoup
+        state: () => uruguayCoup,
     },
     {
         id: 'chilean-coup',
@@ -12319,7 +12319,7 @@ const _EVENT_DEFS = [
         body: '9/11. 1973. A day that will live in infamy. And conspiracy. The narrowly but legitimately elected Socialist Government of Salvador Allende is violently overthrown by the army led by General Augusto Pinochet. At the least, you let this happen. At the worst your hands drip blood like the stands of Santiago Stadium and like the decks of the army\'s helicopters, from which several hundred political prisoners are \'disappeared\'.',
         country: 'CL',
         positionOffset: { x: -35, y: -17 },
-        state: () => 1, // TEMP: was () => chileanCoup
+        state: () => chileanCoup,
     },
     {
         id: 'upper-volta-coup',
@@ -12330,7 +12330,7 @@ const _EVENT_DEFS = [
         body: 'President General Sangoulé Lamizana commits a self coup, suspending the constitution and appointing himself as prime minister. The context is the social dislocation of the 6 year long Sahel Famine. Lamizana presents himself as a strongman in a crisis and guards his direct line to you and therefore, aid from Washington.',
         country: 'HV',
         positionOffset: { x: -12, y: -12 },
-        state: () => 1, // TEMP: was () => upperVoltaCoup
+        state: () => upperVoltaCoup,
     },
     {
         id: 'tacnazo',
@@ -12341,7 +12341,7 @@ const _EVENT_DEFS = [
         body: 'A general overthrows a general. The ailing President Velasco is overthrown by General Morales Bermúdez. The \'developmentalist\' Peruvian Revolution takes a right turn, stalling social and economic reforms. The other good news is that Peru becomes a fully fledged member of the Condor club.',
         country: 'PE',
         positionOffset: { x: -16, y: 4 },
-        state: () => 1, // TEMP: was () => tacnazo
+        state: () => tacnazo,
     },
     {
         id: 'argentine-coup',
@@ -12352,7 +12352,7 @@ const _EVENT_DEFS = [
         body: 'A rampaging military junta takes power, weakly grasped, from Isabel \'Isabelita\' Peron, Juan Peron\'s widow. Argentina is already roiling from the Dirty War, which now becomes fully institutionalised: more than 300 concentration camps sprout like grass in the Pampas. The Department of State aids and abets the generals in their struggle against communism.',
         country: 'AR',
         positionOffset: { x: 8, y: -36 },
-        state: () => 1, // TEMP: was () => argentineCoup
+        state: () => argentineCoup,
     },
     {
         id: 'north-yemen-coup',
@@ -12363,7 +12363,7 @@ const _EVENT_DEFS = [
         body: 'Colonel Ibrahim al-Hamdi has overthrown the civilian government of President Abdul Rahman al-Iryani in a swift, largely bloodless coup. A moderniser and nationalist, al-Hamdi moves to dismantle the tribal power structures that have paralysed Yemeni politics. He pivots away from the USSR and one of his first actions is a telegram to you asking for development aid.',
         country: 'YE',
         positionOffset: { x: -14, y: -14 },
-        state: () => 1, // TEMP: was () => northYemenCoup
+        state: () => northYemenCoup,
     },
     {
         id: 'oromo-uprising',
@@ -12374,7 +12374,7 @@ const _EVENT_DEFS = [
         body: 'Ethiopia\'s largest ethnic group rises in armed resistance against centuries of subjugation. The Oromo Liberation Front, founded as the empire fractures, demands recognition, land and self-determination.',
         country: 'ET',
         positionOffset: { x: -18, y: 18 },
-        state: () => 1, // TEMP: was () => oromoUprising
+        state: () => oromoUprising,
     },
     {
         id: 'sahrawi-insurgency',
@@ -12385,7 +12385,7 @@ const _EVENT_DEFS = [
         body: 'Spain\'s Saharan colony is slipping from its grasp as the Franco regime enters its death throes. The Polisario Front fights for Sahrawi self-determination, but Morocco\'s King Hassan II has designs on the territory and Algeria is watching. When Hassan sends 350,000 civilians marching across the border in the \'Green March\', Spain folds and the Polisario are left fighting Moroccan and Mauritanian annexation across open desert. One of the last decolonisation struggles, almost entirely ignored by Washington.',
         country: 'MA',
         positionOffset: { x: -46, y: 23 },
-        state: () => 1, // TEMP: was () => sahrawiInsurgency
+        state: () => sahrawiInsurgency,
     },
     {
         id: 'sahel-drought',
