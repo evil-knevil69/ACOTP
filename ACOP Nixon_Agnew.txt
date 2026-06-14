@@ -16207,10 +16207,11 @@ function openWorldMap() {
     const _mkTopBtn = (label, active) => {
         const b = document.createElement('button');
         b.textContent = label;
-        b.style.cssText = 'cursor:pointer;padding:0 8px;height:24px;font-family:TypewriterDry,monospace;font-size:11px;letter-spacing:1px;background:#111;border:1px solid #333;color:#aaa;';
+        b.style.cssText = 'cursor:pointer;padding:0 8px;height:24px;font-family:TypewriterDry,monospace;font-size:11px;letter-spacing:1px;background:#111;border:1px solid #333;color:#fff;';
+        // Text is always white (matching the bottom-bar buttons); the active
+        // state is shown by the outline + bold weight, not by colour.
         b.style.outline = active ? '2px solid #888' : '';
         b.style.fontWeight = active ? 'bold' : '';
-        b.style.color = active ? '#ddd' : '#888';
         return b;
     };
 
@@ -16220,7 +16221,6 @@ function openWorldMap() {
         nightOn = !nightOn; _wmNightOn = nightOn;
         nightBtn.style.outline = nightOn ? '2px solid #888' : '';
         nightBtn.style.fontWeight = nightOn ? 'bold' : '';
-        nightBtn.style.color = nightOn ? '#ddd' : '#888';
         const ng = svgEl && svgEl.querySelector('#wm-night-layer');
         if (ng) ng.style.display = nightOn ? '' : 'none';
         _onNightChange(); // re-light / un-light the capitals on the dark side
@@ -16265,7 +16265,6 @@ function openWorldMap() {
         sigintOn = !sigintOn; _wmSigintOn = sigintOn;
         sigintBtn.style.outline = sigintOn ? '2px solid #888' : '';
         sigintBtn.style.fontWeight = sigintOn ? 'bold' : '';
-        sigintBtn.style.color = sigintOn ? '#ddd' : '#888';
         _applySigint(sigintOn);
     });
     topBar.appendChild(sigintBtn);
@@ -18465,7 +18464,6 @@ function openWorldMap() {
                     sigintOn = true; _wmSigintOn = true;
                     sigintBtn.style.outline = '2px solid #888';
                     sigintBtn.style.fontWeight = 'bold';
-                    sigintBtn.style.color = '#ddd';
                     _applySigint(true);
                 }
                 let i = 0;
