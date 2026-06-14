@@ -16024,9 +16024,10 @@ var _wmCapitalsOn  = false;
 var _wmAllegiance  = true;
 var _wmNightOn     = true;
 var _wmSigintOn    = false;
-var _wmGlobeOn     = false;
-var _wmGlobeLon0   = 10;
-var _wmGlobeLat0   = 30;
+var _wmGlobeOn          = false;
+var _wmGlobeLon0        = 10;
+var _wmGlobeLat0        = 30;
+var _globeSamplesCache  = null;   // persists across openWorldMap() calls
 
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
@@ -17605,28 +17606,92 @@ function openWorldMap() {
 
             // ── Globe orthographic projection ─────────────────────────────────
             // Pre-sample all country paths into lon/lat arrays, one array per
-            // SVG subpath. Countries with overseas territories (France, UK, NL…)
-            // have one subpath per island/territory; sampling the whole path at
-            // once makes getPointAtLength() jump across the invisible connectors
-            // between subpaths, which projects as cross-globe artifacts.
+            // SVG subpath. getPointAtLength / getTotalLength are expensive (they
+            // force layout reflow on every call), so we cache the result in two
+            // tiers:
+            //   1. _globeSamplesCache (module-level var) — survives across
+            //      openWorldMap() calls within the same page load.
+            //   2. localStorage key '_globeSamplesV2' — survives page reloads.
+            //      The SVG paths never change, so the sampled lon/lat arrays are
+            //      always identical; there is no cache-invalidation concern.
             //
-            // For multi-subpath paths we need to find where each M…Z block starts
-            // and ends in the path's parameterisation. We do this by building a
-            // scratch path with cumulative d strings (which handles relative-m
-            // offsets correctly because they have full context) and measuring
-            // getTotalLength() after each addition. We then sample from the
-            // ORIGINAL element using those boundaries — never from the scratch —
-            // so all coordinates are correct regardless of M/m.
-            const _globeSamples = [];
-            svg.querySelectorAll('path,polygon').forEach(el => {
-                if (!el.id || !COUNTRY_NAMES[el.id]) return;
-                const d = el.getAttribute ? el.getAttribute('d') : null;
-                const subpaths = [];
+            // On a cold (uncached) open the sampling loop below runs once.
+            // On every subsequent open it is skipped entirely.
 
-                if (d) {
-                    const spStrs = d.match(/[Mm][^Mm]*/g) || [];
-                    if (spStrs.length <= 1) {
-                        // Single subpath — sample the whole element directly
+            const _globeHitLookup = {};   // pickKey → { code, name }
+            let   _globeHitCanvas = null; // offscreen pick buffer
+            let   _globeHitCtx    = null;
+            const _globeSamples   = [];
+
+            // Try to prime the module-level cache from localStorage on first open.
+            if (!_globeSamplesCache) {
+                try {
+                    const _raw = localStorage.getItem('_globeSamplesV2');
+                    if (_raw) _globeSamplesCache = JSON.parse(_raw);
+                } catch (_) {}
+            }
+
+            if (_globeSamplesCache) {
+                // Fast path — rebuild _globeSamples from cache: only requires
+                // getElementById() lookups, no layout reflow.
+                _globeSamplesCache.forEach(c => {
+                    const el = svg.getElementById ? svg.getElementById(c.id)
+                                                  : svg.querySelector('#' + c.id);
+                    if (!el) return;
+                    const code = c.id.replace(/^wm-/, '').toUpperCase();
+                    _globeSamples.push({ el, subpaths: c.subpaths, hitKey: c.hitKey, hitFill: c.hitFill });
+                    _globeHitLookup[c.hitKey] = { code, name: COUNTRY_NAMES[c.id] || COUNTRY_NAMES[code] || code };
+                });
+            } else {
+                // Slow path — full sampling (runs once, result is then cached).
+                // Countries with overseas territories (France, UK, NL…) have one
+                // subpath per island; sampling the whole path at once makes
+                // getPointAtLength() jump across the invisible connectors, producing
+                // cross-globe artefacts.  We measure each subpath boundary via a
+                // scratch element then sample the original (correct coords always).
+                svg.querySelectorAll('path,polygon').forEach(el => {
+                    if (!el.id || !COUNTRY_NAMES[el.id]) return;
+                    const d = el.getAttribute ? el.getAttribute('d') : null;
+                    const subpaths = [];
+
+                    if (d) {
+                        const spStrs = d.match(/[Mm][^Mm]*/g) || [];
+                        if (spStrs.length <= 1) {
+                            const len = el.getTotalLength ? el.getTotalLength() : 0;
+                            if (len >= 2) {
+                                const steps = Math.max(4, Math.min(600, Math.ceil(len / 2)));
+                                const pts = [];
+                                for (let i = 0; i <= steps; i++) {
+                                    const p = el.getPointAtLength(i / steps * len);
+                                    pts.push([(p.x / 1800) * 360 - 180, 90 - (p.y / 900) * 180]);
+                                }
+                                subpaths.push(pts);
+                            }
+                        } else {
+                            const scratch = document.createElementNS(_sNS, 'path');
+                            svg.appendChild(scratch);
+                            const bnd = [0];
+                            let cumD = '';
+                            for (const sp of spStrs) {
+                                cumD += sp;
+                                scratch.setAttribute('d', cumD);
+                                bnd.push(scratch.getTotalLength());
+                            }
+                            scratch.remove();
+                            for (let i = 0; i < spStrs.length; i++) {
+                                const l0 = bnd[i] + (i > 0 ? 1 : 0);
+                                const l1 = bnd[i + 1];
+                                if (l1 - l0 < 2) continue;
+                                const steps = Math.max(4, Math.min(600, Math.ceil((l1 - l0) / 2)));
+                                const pts = [];
+                                for (let j = 0; j <= steps; j++) {
+                                    const p = el.getPointAtLength(l0 + j / steps * (l1 - l0));
+                                    pts.push([(p.x / 1800) * 360 - 180, 90 - (p.y / 900) * 180]);
+                                }
+                                subpaths.push(pts);
+                            }
+                        }
+                    } else {
                         const len = el.getTotalLength ? el.getTotalLength() : 0;
                         if (len >= 2) {
                             const steps = Math.max(4, Math.min(600, Math.ceil(len / 2)));
@@ -17637,65 +17702,31 @@ function openWorldMap() {
                             }
                             subpaths.push(pts);
                         }
-                    } else {
-                        // Multi-subpath: one scratch element measures all boundaries,
-                        // then we sample the original element (correct coords always).
-                        const scratch = document.createElementNS(_sNS, 'path');
-                        svg.appendChild(scratch);   // DOM needed for getTotalLength
-                        const bnd = [0];
-                        let cumD = '';
-                        for (const sp of spStrs) {
-                            cumD += sp;
-                            scratch.setAttribute('d', cumD);
-                            bnd.push(scratch.getTotalLength());
-                        }
-                        scratch.remove();
-
-                        for (let i = 0; i < spStrs.length; i++) {
-                            // +1 for i>0: step past the Z→M boundary where
-                            // getPointAtLength returns the previous subpath's
-                            // first point (Z closes to the M, not the new M).
-                            const l0 = bnd[i] + (i > 0 ? 1 : 0);
-                            const l1 = bnd[i + 1];
-                            if (l1 - l0 < 2) continue;
-                            const steps = Math.max(4, Math.min(600, Math.ceil((l1 - l0) / 2)));
-                            const pts = [];
-                            for (let j = 0; j <= steps; j++) {
-                                const p = el.getPointAtLength(l0 + j / steps * (l1 - l0));
-                                pts.push([(p.x / 1800) * 360 - 180, 90 - (p.y / 900) * 180]);
-                            }
-                            subpaths.push(pts);
-                        }
                     }
-                } else {
-                    // <polygon> element — no d attribute, treat as single subpath
-                    const len = el.getTotalLength ? el.getTotalLength() : 0;
-                    if (len >= 2) {
-                        const steps = Math.max(4, Math.min(600, Math.ceil(len / 2)));
-                        const pts = [];
-                        for (let i = 0; i <= steps; i++) {
-                            const p = el.getPointAtLength(i / steps * len);
-                            pts.push([(p.x / 1800) * 360 - 180, 90 - (p.y / 900) * 180]);
-                        }
-                        subpaths.push(pts);
-                    }
-                }
-                if (subpaths.length) _globeSamples.push({ el, subpaths });
-            });
+                    if (subpaths.length) _globeSamples.push({ el, subpaths });
+                });
 
-            // Assign each country a unique RGB "pick colour" for canvas hit-testing.
-            // We render an offscreen hit-map (same geometry, flat pick colours) and
-            // read the pixel under the cursor to know which country was hovered.
-            const _globeHitLookup = {};   // pickKey → { code, name }
-            let   _globeHitCanvas = null; // offscreen pick buffer
-            let   _globeHitCtx    = null;
-            _globeSamples.forEach((s, i) => {
-                const key = i + 1; // 0 reserved for "no country"
-                s.hitKey  = key;
-                s.hitFill = 'rgb(' + (key & 255) + ',' + ((key >> 8) & 255) + ',' + ((key >> 16) & 255) + ')';
-                const code = (s.el.id || '').replace(/^wm-/, '').toUpperCase();
-                _globeHitLookup[key] = { code, name: COUNTRY_NAMES[s.el.id] || COUNTRY_NAMES[code] || code };
-            });
+                // Assign pick colours and populate hit lookup.
+                _globeSamples.forEach((s, i) => {
+                    const key = i + 1;
+                    s.hitKey  = key;
+                    s.hitFill = 'rgb(' + (key & 255) + ',' + ((key >> 8) & 255) + ',' + ((key >> 16) & 255) + ')';
+                    const code = (s.el.id || '').replace(/^wm-/, '').toUpperCase();
+                    _globeHitLookup[key] = { code, name: COUNTRY_NAMES[s.el.id] || COUNTRY_NAMES[code] || code };
+                });
+
+                // Save to module-level cache and localStorage so future opens skip
+                // the sampling loop entirely.
+                _globeSamplesCache = _globeSamples.map(s => ({
+                    id:       s.el.id,
+                    subpaths: s.subpaths,
+                    hitKey:   s.hitKey,
+                    hitFill:  s.hitFill,
+                }));
+                try {
+                    localStorage.setItem('_globeSamplesV2', JSON.stringify(_globeSamplesCache));
+                } catch (_) {}
+            }
 
             const _ortho = (lon, lat, lon0r, lat0r) => {
                 const λ  = lon * Math.PI / 180, φ = lat * Math.PI / 180;
@@ -17707,6 +17738,12 @@ function openWorldMap() {
                     Math.cos(lat0r) * Math.sin(φ) - Math.sin(lat0r) * Math.cos(φ) * Math.cos(dλ),
                 ];
             };
+
+            // Persistent offscreen canvas for the night-side pixel shader.
+            // Reused across frames; only reallocated when NR changes.
+            let _nightOff  = null;
+            let _nightOctx = null;
+            let _nightNR   = 0;
 
             const _drawGlobeFrame = (skipHit) => {
                 if (!_globeCanvas || !_globeOn) return;
@@ -17808,13 +17845,19 @@ function openWorldMap() {
                     true
                 );
 
-                // Night overlay: offscreen at 1/3 scale then drawn stretched
+                // Night overlay: offscreen at 1/3 scale then drawn stretched.
+                // Reuse the offscreen canvas across frames to avoid per-frame allocation.
                 if (nightOn) {
                     const NR  = Math.round(R / 3);
                     const NW2 = NR * 2, NH2 = NR * 2;
-                    const off = document.createElement('canvas');
-                    off.width  = NW2; off.height = NH2;
-                    const octx    = off.getContext('2d');
+                    if (!_nightOff || _nightNR !== NR) {
+                        _nightOff  = document.createElement('canvas');
+                        _nightOctx = _nightOff.getContext('2d');
+                        _nightOff.width = NW2; _nightOff.height = NH2;
+                        _nightNR = NR;
+                    }
+                    const off     = _nightOff;
+                    const octx    = _nightOctx;
                     const imgData = octx.createImageData(NW2, NH2);
                     const d       = imgData.data;
                     const decR    = _parseDeclination() * Math.PI / 180;
