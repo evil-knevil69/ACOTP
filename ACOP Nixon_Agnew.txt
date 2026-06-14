@@ -12023,8 +12023,8 @@ var RepublicanSupport = 9;
 // ─────────────────────────────────────────────────────────────────────────────
 var Vietnam        = 6;  // Vietnam War (also used for other game logic)
 var chad           = 1;  // Chadian Civil War
-var khmer          = 1;  // Cambodian Civil War
-var laos           = 1;  // Laotian Civil War
+var khmer          = 1;  // Cambodia: 1 = Civil War, 2 = Khmer Rouge / Year Zero (set via question onShow)
+var laos           = 1;  // Laos: 1 = Civil War, 2 = Pathet Lao takeover (set via question onShow)
 var eritrea        = 1;  // Eritrean War of Independence
 var managua        = 1;  // Managua Earthquake — DEMO: starts active so the 3-turn
                          // lifespan is visible from question 1; set back to 0 and
@@ -12092,7 +12092,20 @@ const _EVENT_DEFS = [
         body: 'A 1970 coup aided by the US removed Prince Sihanouk and installed the Lon Nol government. Lon Nol, paralysed by a stroke and absorbed by the occult, is losing his grip on reality. The Khmer Rouge, previously a marginal force, now controls large areas of the countryside despite the slaughter of USAF saturation bombing. The government\'s hold on the cities is increasingly precarious.',
         country: 'KH',
         positionOffset: { x: -10, y: -12 },
-        state: () => 1, // TEMP: was () => khmer
+        // khmer === 1 → civil war shows; set khmer = 2 from a question onShow to
+        // end the war and bring up the Khmer Rouge / Year Zero event below.
+        state: () => khmer === 1 ? 1 : 0,
+    },
+    {
+        id: 'khmer-rouge',
+        continent: 'Asia',
+        type: 'crisis',
+        label: 'Khmer Rouge — Year Zero',
+        img: null,
+        body: 'On 17 April 1975 the Khmer Rouge entered Phnom Penh, ending the civil war. Pol Pot\'s regime emptied the cities at gunpoint, abolished money and proclaimed "Year Zero". What follows is one of the worst genocides of the century: as much as a quarter of Cambodia\'s population will die in the killing fields. Washington, having backed Lon Nol, looks away.',
+        country: 'KH',
+        positionOffset: { x: -10, y: -12 },
+        state: () => khmer >= 2 ? 1 : 0,
     },
     {
         id: 'laotian-civil-war',
@@ -12102,7 +12115,19 @@ const _EVENT_DEFS = [
         img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Laos3.png',
         body: 'The Royal Lao Government has fought the communist Pathet Lao since 1953, with North Vietnamese forces providing decisive support to the insurgents. The CIA maintains a secret army of Hmong fighters under General Vang Pao, conducting unconventional warfare across the Plain of Jars. US bombing of the Ho Chi Minh Trail has made Laos the most heavily bombed country per capita in history. Congress and the public remain largely unaware of the scale of American involvement.',
         country: 'LA',
-        state: () => 1, // TEMP: was () => laos
+        // laos === 1 → civil war shows; set laos = 2 from a question onShow to end
+        // the war and bring up the Pathet Lao takeover event below.
+        state: () => laos === 1 ? 1 : 0,
+    },
+    {
+        id: 'pathet-lao',
+        continent: 'Asia',
+        type: 'crisis',
+        label: 'Pathet Lao Takeover',
+        img: null,
+        body: 'In December 1975 the communist Pathet Lao abolished the 600-year-old Lao monarchy and proclaimed the Lao People\'s Democratic Republic. King Savang Vatthana abdicates and will later die in a re-education camp. The CIA\'s secret war is over; tens of thousands of Hmong who fought for the Americans flee across the Mekong or face reprisal.',
+        country: 'LA',
+        state: () => laos >= 2 ? 1 : 0,
     },
     {
         id: 'managua-quake',
