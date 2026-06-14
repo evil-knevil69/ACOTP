@@ -18235,7 +18235,17 @@ function openWorldMap() {
             mapCleanup.push(_clearBrief);
 
             const _runBrief = () => {
-                const nodes = _iconNodes.filter(n => { try { return n.def.state() === 1; } catch (_) { return false; } });
+                // Order by debut recency (newest events first). Debut turn is stored
+                // as a question pk; its position in the question order gives recency.
+                const _debutOrder = id => {
+                    const pk = _wmEventDebutPk[id];
+                    if (pk === undefined) return -1;
+                    const i = getQuestionIndexFromPk(pk);
+                    return (i == null || i < 0) ? -1 : i;
+                };
+                const nodes = _iconNodes
+                    .filter(n => { try { return n.def.state() === 1; } catch (_) { return false; } })
+                    .sort((a, b) => _debutOrder(b.def.id) - _debutOrder(a.def.id));
                 if (!nodes.length) return;
                 _briefActive = true;
                 briefBtn.style.background = '#c0392b';
