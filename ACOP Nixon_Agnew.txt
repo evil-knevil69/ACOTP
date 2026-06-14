@@ -12556,6 +12556,10 @@ cyoAdventure = function (a) {
 
 const style2 = document.createElement('style');
 style2.innerHTML = `
+    @font-face {
+        font-family: 'Tenada';
+        src: url('https://file.garden/aXPgNT-ZRCxxpy0g/Tenada.ttf') format('truetype');
+    }
     #candidate_pic {
         left: -16px !important;
         z-index: 7 !important;
