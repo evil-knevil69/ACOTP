@@ -16040,6 +16040,7 @@ var _wmNightOn     = true;
 var _wmSigintOn    = false;
 var _wmOceanMaskEl = null;   // cached SVG <mask>; built once, re-appended on each open
 var _wmPrevLoyal   = null;   // snapshot of COUNTRY_LOYAL from the previous map open; drives allegiance delta flashes
+var _wmEventDebutPk = {};    // event id -> question pk at which it first appeared; icon micro-animations play only on the debut turn
 
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
@@ -17906,21 +17907,30 @@ function openWorldMap() {
 
                 // ── Icon micro-animation by type ─────────────────────────────
                 // disaster → expanding seismic ripple; war → slow smoke pulse;
-                // coup → rhythmic flash. SMIL runs continuously; it pauses while
-                // the icon is display:none and resumes when shown.
-                if (def.type === 'disaster') {
+                // coup → rhythmic flash. These play ONLY on the event's debut turn
+                // (the question pk at which it first appears active), so the map is
+                // a quiet board with motion drawing the eye only to what's new.
+                let _animDebut = false;
+                try {
+                    if (def.state() === 1) {
+                        const _curPk = _lastQuestionPK;
+                        if (_wmEventDebutPk[def.id] === undefined) _wmEventDebutPk[def.id] = _curPk;
+                        _animDebut = (_wmEventDebutPk[def.id] === _curPk);
+                    }
+                } catch (_) {}
+                if (_animDebut && def.type === 'disaster') {
                     const ring = _mkEl('circle', { r: 4, fill: 'none', stroke: '#5AACF0', 'stroke-width': '1.2', opacity: '0' }, [
                         { tag: 'animate', attrs: { attributeName: 'r',       values: '3;13',    dur: '1.8s', repeatCount: 'indefinite' } },
                         { tag: 'animate', attrs: { attributeName: 'opacity', values: '0.7;0',   dur: '1.8s', repeatCount: 'indefinite' } },
                     ]);
                     g.appendChild(ring);
-                } else if (def.type === 'war') {
+                } else if (_animDebut && def.type === 'war') {
                     const smoke = _mkEl('circle', { r: 6, fill: '#9a9a9a', opacity: '0' }, [
                         { tag: 'animate', attrs: { attributeName: 'r',       values: '5;11;5',       dur: '3.6s', repeatCount: 'indefinite' } },
                         { tag: 'animate', attrs: { attributeName: 'opacity', values: '0;0.22;0',     dur: '3.6s', repeatCount: 'indefinite' } },
                     ]);
                     g.appendChild(smoke); // behind the shape
-                } else if (def.type === 'coup') {
+                } else if (_animDebut && def.type === 'coup') {
                     shapeG.appendChild(_mkEl('animate', { attributeName: 'opacity', values: '1;0.35;1', dur: '1.1s', repeatCount: 'indefinite' }));
                 }
 
