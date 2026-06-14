@@ -16619,7 +16619,9 @@ function openWorldMap() {
                 const utcH = now.getUTCHours() + now.getUTCMinutes()/60 + now.getUTCSeconds()/3600;
                 return -(utcH - 12) * 15;
             };
-            const _buildNightPath = (decDeg, subLonDeg) => {
+            // Open terminator curve (no pole-edge closing) — shared by the night
+            // fill region and the warm day-side glow stroke.
+            const _termCurveD = (decDeg, subLonDeg) => {
                 const W = 1800, H = 900;
                 const dec = decDeg * Math.PI / 180;
                 const tanDec = Math.tan(dec);
@@ -16635,13 +16637,16 @@ function openWorldMap() {
                     const y = (90 - lat) / 180 * H;
                     d += (i === 0 ? `M ${x},${y}` : ` L ${x},${y}`);
                 }
+                return d;
+            };
+            const _buildNightPath = (decDeg, subLonDeg) => {
+                const dec = decDeg * Math.PI / 180;
                 // Close with the dark-pole edge:
                 // dec > 0 → southern summer → south pole dark → close at y=H
                 // dec < 0 → northern summer → north pole dark → close at y=0
                 // dec ≈ 0 → equinox → close at y=H (arbitrary, effect is same)
-                const edgeY = dec < 0 ? 0 : H;
-                d += ` L ${W},${edgeY} L 0,${edgeY} Z`;
-                return d;
+                const edgeY = dec < 0 ? 0 : 900;
+                return _termCurveD(decDeg, subLonDeg) + ` L 1800,${edgeY} L 0,${edgeY} Z`;
             };
 
             const nightNS = 'http://www.w3.org/2000/svg';
@@ -16678,13 +16683,74 @@ function openWorldMap() {
             nightFe.setAttribute('stdDeviation', '7');
             nightBlur.appendChild(nightFe);
             defs.appendChild(nightBlur);
+
+            // Landmass drop shadow — applied to the whole-land group (built below)
+            // so only the outer coastline silhouette casts a shadow onto the ocean,
+            // with no seams between adjacent countries.
+            const landShadow = document.createElementNS(nightNS, 'filter');
+            landShadow.id = 'wm-land-shadow';
+            landShadow.setAttribute('x', '-5%');  landShadow.setAttribute('y', '-5%');
+            landShadow.setAttribute('width', '110%'); landShadow.setAttribute('height', '110%');
+            const landFe = document.createElementNS(nightNS, 'feDropShadow');
+            landFe.setAttribute('dx', '2');
+            landFe.setAttribute('dy', '3');
+            landFe.setAttribute('stdDeviation', '2.6');
+            landFe.setAttribute('flood-color', '#00060f');
+            landFe.setAttribute('flood-opacity', '0.5');
+            landShadow.appendChild(landFe);
+            defs.appendChild(landShadow);
+
+            // Soft blur for the warm terminator glow stroke.
+            const termGlowBlur = document.createElementNS(nightNS, 'filter');
+            termGlowBlur.id = 'wm-term-glow-blur';
+            termGlowBlur.setAttribute('x', '-10%'); termGlowBlur.setAttribute('y', '-10%');
+            termGlowBlur.setAttribute('width', '120%'); termGlowBlur.setAttribute('height', '120%');
+            const termGlowFe = document.createElementNS(nightNS, 'feGaussianBlur');
+            termGlowFe.setAttribute('in', 'SourceGraphic');
+            termGlowFe.setAttribute('stdDeviation', '4.5');
+            termGlowBlur.appendChild(termGlowFe);
+            defs.appendChild(termGlowBlur);
+
             svg.insertBefore(defs, svg.firstChild);
+
+            // Wrap every country path in one group so the drop-shadow filter sees
+            // the unified land alpha (outer coast only). Other code queries
+            // countries via recursive selectors/getBBox, so grouping is transparent.
+            const landGroup = document.createElementNS(nightNS, 'g');
+            landGroup.id = 'wm-land';
+            landGroup.setAttribute('filter', 'url(#wm-land-shadow)');
+            const _countryEls = [];
+            svg.querySelectorAll('path,polygon').forEach(p => {
+                if (p.id && COUNTRY_NAMES[p.id]) _countryEls.push(p);
+            });
+            if (_countryEls.length) {
+                svg.insertBefore(landGroup, _countryEls[0]); // sits above ocean, below later layers
+                _countryEls.forEach(p => landGroup.appendChild(p));
+            }
 
             const nightPath = document.createElementNS(nightNS, 'path');
             nightPath.id = 'wm-night-path';
             nightPath.setAttribute('fill', 'url(#wm-night-grad)');
             nightPath.setAttribute('filter', 'url(#wm-night-blur)');
             nightLayer.appendChild(nightPath);
+
+            // Warm sunrise/sunset glow hugging the terminator. A blurred amber
+            // stroke on the day-night curve, gently pulsing so it feels alive.
+            const termGlow = document.createElementNS(nightNS, 'path');
+            termGlow.id = 'wm-term-glow';
+            termGlow.setAttribute('fill', 'none');
+            termGlow.setAttribute('stroke', '#ff9b3d');
+            termGlow.setAttribute('stroke-width', '7');
+            termGlow.setAttribute('stroke-linecap', 'round');
+            termGlow.setAttribute('stroke-opacity', '0.45');
+            termGlow.setAttribute('filter', 'url(#wm-term-glow-blur)');
+            const termPulse = document.createElementNS(nightNS, 'animate');
+            termPulse.setAttribute('attributeName', 'stroke-opacity');
+            termPulse.setAttribute('values', '0.30;0.55;0.30');
+            termPulse.setAttribute('dur', '6s');
+            termPulse.setAttribute('repeatCount', 'indefinite');
+            termGlow.appendChild(termPulse);
+            nightLayer.appendChild(termGlow);
             // Append (not insertBefore firstChild) so the dark overlay sits ABOVE
             // the country paths and actually dims them. Capitals, SIGINT and event
             // icons are appended later, so they remain bright on top of the night.
@@ -16694,6 +16760,7 @@ function openWorldMap() {
                 const dec = _parseDeclination();
                 const lon = _subSolarLon();
                 nightPath.setAttribute('d', _buildNightPath(dec, lon));
+                termGlow.setAttribute('d', _termCurveD(dec, lon));
                 _onNightChange(); // capitals that just crossed the terminator
             };
             _updateTerminator();
