@@ -12047,6 +12047,9 @@ var argentineCoup      = 0;  // Argentine Coup               (triggered by quest
 var northYemenCoup     = 0;  // 1974 North Yemen Coup        (triggered by question onShow)
 var oromoUprising      = 0;  // Oromo Uprising               (triggered by question onShow)
 var sahrawiInsurgency  = 0;  // Sahrawi Insurgency           (triggered by question onShow)
+var yomKippurGolan     = 0;  // Yom Kippur War — Golan Heights front (triggered by question onShow)
+var yomKippurSuez      = 0;  // Yom Kippur War — Suez Canal front    (triggered by question onShow)
+var smilingBuddha      = 0;  // Indian nuclear test 'Smiling Buddha' May 1974 (triggered by question onShow)
 var _allendeSpeechPlayed = false; // Easter egg: Allende's last speech plays once on first world map open after coup
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
@@ -12420,6 +12423,39 @@ const _EVENT_DEFS = [
         country: 'NE',
         positionOffset: { x: 0, y: 6 },
         state: () => 1,
+    },
+    {
+        id: 'yom-kippur-golan',
+        continent: 'Asia',
+        type: 'war',
+        label: 'Yom Kippur War — Golan Heights',
+        img: null,
+        body: 'On 6 October 1973 — Yom Kippur, the Jewish Day of Atonement — Syria launched a massive armoured assault across the Purple Line into the Golan Heights, initially overwhelming Israeli defences. In three days of ferocious fighting, Israel\'s outnumbered tank crews halted the advance and counter-attacked toward Damascus. The Syrian offensive is broken but the shock to Israeli — and American — assumptions of invulnerability has been profound.',
+        country: 'SY',
+        positionOffset: { x: -30, y: 18 },
+        state: () => yomKippurGolan,
+    },
+    {
+        id: 'yom-kippur-suez',
+        continent: 'Africa',
+        type: 'war',
+        label: 'Yom Kippur War — Suez Canal',
+        img: null,
+        body: 'Simultaneously with the Syrian assault, Egypt\'s Second and Third Armies crossed the Suez Canal in overwhelming force, breaching the Bar-Lev Line and routing Israeli forces in Sinai. Sadat\'s army held its bridgehead even as Israel recovered, and Sharon\'s counter-crossing west of the canal ultimately encircled Egypt\'s Third Army. The war ended with both sides exhausted and a ceasefire brokered under intense US–Soviet pressure — but the myth of Israeli invincibility was shattered for ever.',
+        country: 'EG',
+        positionOffset: { x: 28, y: -22 },
+        state: () => yomKippurSuez,
+    },
+    {
+        id: 'smiling-buddha',
+        continent: 'Asia',
+        type: 'nuclear',
+        label: 'Smiling Buddha — Indian Nuclear Test',
+        img: null,
+        body: 'On 18 May 1974, India detonated a 8-kiloton plutonium device at Pokhran in the Rajasthan desert, becoming the sixth nation to test a nuclear weapon and the first outside the five permanent members of the UN Security Council. Delhi called it a "peaceful nuclear explosion". Washington, blindsided, saw a non-proliferation framework crumbling. Pakistan\'s Zulfikar Ali Bhutto was watching and reportedly vowed to match it "even if we have to eat grass".',
+        country: 'IN',
+        positionOffset: { x: -18, y: 8 },
+        state: () => smilingBuddha,
     },
 ];
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
