@@ -12080,7 +12080,7 @@ const _EVENT_DEFS = [
         continent: 'Asia',
         type: 'war',
         label: 'Vietnam War',
-        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/0331_vietnam9.jpg',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9788.jpg',
         body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. It remains the key psychological inflection point in US history, and the turn to paranoia, cynicism and polarisation runs through the dividing lines of this conflict',
         country: 'VD',
         positionOffset: { x: 12, y: 25 },
