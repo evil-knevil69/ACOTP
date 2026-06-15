@@ -16907,13 +16907,13 @@ function openWorldMap() {
             termGlow.id = 'wm-term-glow';
             termGlow.setAttribute('fill', 'none');
             termGlow.setAttribute('stroke', '#ff9b3d');
-            termGlow.setAttribute('stroke-width', '7');
+            termGlow.setAttribute('stroke-width', '3.5');
             termGlow.setAttribute('stroke-linecap', 'round');
-            termGlow.setAttribute('stroke-opacity', '0.45');
+            termGlow.setAttribute('stroke-opacity', '0.22');
             termGlow.setAttribute('filter', 'url(#wm-term-glow-blur)');
             const termPulse = document.createElementNS(nightNS, 'animate');
             termPulse.setAttribute('attributeName', 'stroke-opacity');
-            termPulse.setAttribute('values', '0.30;0.55;0.30');
+            termPulse.setAttribute('values', '0.15;0.28;0.15');
             termPulse.setAttribute('dur', '6s');
             termPulse.setAttribute('repeatCount', 'indefinite');
             termGlow.appendChild(termPulse);
