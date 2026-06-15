@@ -16528,7 +16528,7 @@ function openWorldMap() {
     // DEFCON
     const _defconCols = { 1:'#dc2626', 2:'#ea580c', 3:'#ca8a04', 4:'#16a34a', 5:'#1d4ed8' };
     const defconBanner = document.createElement('div');
-    defconBanner.style.cssText = 'position:absolute;top:8px;right:16px;z-index:50;font-family:Tenada,TypewriterDry,monospace;font-size:11px;letter-spacing:2px;color:#999;display:none;align-items:center;pointer-events:none;';
+    defconBanner.style.cssText = 'position:absolute;top:8px;right:16px;z-index:9500;font-family:Tenada,TypewriterDry,monospace;font-size:13px;letter-spacing:2px;color:#999;display:none;align-items:center;pointer-events:none;';
     const _defconUpdate = () => {
         const lvl = Math.max(1, Math.min(5, defcon));
         defconBanner.innerHTML = 'DEFCON <span style="display:inline-block;min-width:16px;text-align:center;padding:0 4px;background:' + _defconCols[lvl] + ';color:#000;font-weight:bold;">' + lvl + '</span>';
