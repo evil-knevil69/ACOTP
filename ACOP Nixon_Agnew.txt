@@ -12016,6 +12016,8 @@ var MentalState = 0;
 var ApprovalRating = 62;
 var CongressionalSupport = 6;
 var RepublicanSupport = 9;
+var MEPeace = 0;
+
 // ── WORLD EVENTS ─────────────────────────────────────────────────────────────
 // To add a new event:
 //   1. Declare its variable here  (1 = showing, 0 = hidden, 3 = crossed out)
@@ -12062,7 +12064,7 @@ const _EVENT_DEFS = [
         id: 'ni-troubles',
         continent: 'Europe',
         type: 'insurgency',
-        label: 'The Troubles — Northern Ireland',
+        label: 'The Troubles',
         img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Troubles-ezgif.com-optimize.gif',
         body: 'Rooted in the 1921 partition and systematic discrimination against the Catholic minority under Protestant rule. Civil unrest from 1969 escalated into armed conflict by both sides. British forces killed 14 unarmed civilians on Bloody Sunday, 30 January 1972, sharply accelerating IRA recruitment. Westminster assumed direct rule of the province in March 1972. The security situation is deteriorating.',
         positionFn: (s) => {
@@ -12079,7 +12081,7 @@ const _EVENT_DEFS = [
         type: 'war',
         label: 'Vietnam War',
         img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/0331_vietnam9.jpg',
-        body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. The political cost at home continues to mount.',
+        body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. It remains the key psychological inflection point in US history, and the turn to paranoia, cynicism and polarisation runs through the dividing lines of this conflict',
         country: 'VD',
         positionOffset: { x: 12, y: 25 },
         state: () => 1, // TEMP: was () => (typeof Vietnam !== 'undefined') && Vietnam <= 7 ? 1 : 3
@@ -12103,7 +12105,7 @@ const _EVENT_DEFS = [
         type: 'crisis',
         label: 'Khmer Rouge — Year Zero',
         img: null,
-        body: 'On 17 April 1975 the Khmer Rouge entered Phnom Penh, ending the civil war. Pol Pot\'s regime emptied the cities at gunpoint, abolished money and proclaimed "Year Zero". What follows is one of the worst genocides of the century: as much as a quarter of Cambodia\'s population will die in the killing fields. Washington, having backed Lon Nol, looks away.',
+        body: 'On 17 April 1975 the Khmer Rouge entered Phnom Penh. The insurgents did not smile and they did not celebrate amongst the crowds lining the streets to meet them. It was Year Zero on day one. By the afternoon, the city was being emptied by bullhorn and at gunpoint. The killing fields yawned open. The US looks away, while trying to exploit the wedge between the North Vietnamese and their erstwhile allies driven by Khmer chauvinism.',
         country: 'KH',
         positionOffset: { x: -10, y: -12 },
         state: () => khmer >= 2 ? 1 : 0,
@@ -12135,8 +12137,8 @@ const _EVENT_DEFS = [
         continent: 'North America',
         type: 'disaster',
         label: 'Managua Earthquake',
-        img: null, // TODO: e.g. 'https://file.garden/.../managua.jpg'
-        body: 'A 6.2-magnitude earthquake struck the Nicaraguan capital on December 23, 1972, killing over 10,000 and levelled much of the city centre.',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9817.jpeg',
+        body: 'A 6.2-magnitude earthquake struck the Nicaraguan capital on December 23, 1972, killing over 10,000 and levelling much of the city centre.',
         country: 'CR', // SVG id 'CR' is the northern shape = physical Nicaragua (ids swapped vs geography)
         positionOffset: { x: -12, y: -13 },
         // ── EVENT LIFESPAN worked example ──
@@ -12186,7 +12188,7 @@ const _EVENT_DEFS = [
         id: 'guatemala-quake',
         continent: 'North America',
         type: 'disaster',
-        label: '1976 Guatemalan Earthquake',
+        label: 'Guatemalan Earthquake',
         img: null,
         body: 'In the early hours of February 4th 1976, a magnitude 7.5 earthquake struck Guatemala, killing more than 23,000 people and leaving over a million homeless. Striking while the country slept, it devastated highland towns and shanty districts of Guatemala City alike.',
         country: 'GT',
@@ -12230,8 +12232,8 @@ const _EVENT_DEFS = [
         id: 'tangshan-quake',
         continent: 'Asia',
         type: 'disaster',
-        label: '1976 Tangshan Earthquake',
-        img: null,
+        label: 'Tangshan Earthquake',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9812.jpeg',
         body: 'A magnitude 7.6 earthquake struck the industrial city of Tangshan in northern China at 3:42 in the morning, killing an estimated 240,000 people. The city was almost completely levelled. Beijing refused all offers of foreign aid, and the CIA struggled to get any meaningful intelligence behind a Great Wall of deliberate concealment.',
         country: 'CN',
         positionOffset: { x: 66, y: -48 },
@@ -12264,7 +12266,7 @@ const _EVENT_DEFS = [
         continent: 'Africa',
         type: 'coup',
         label: 'Rwandan Coup',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/rwanda.jpg',
         body: 'Led by Major General Juvénal Habyarimana, deposing Rwanda\'s first elected president, Grégoire Kayibanda, and installing a Hutu-dominated totalitarian state. The new regime clamps down on intra-Hutu rivalry at the expense of the marginalised Tutsi minority, laying the structural foundations for the Rwandan genocide after Habyarimana\'s assassination in 1994.',
         country: 'RW',
         positionOffset: { x: -12, y: -13 },
@@ -12286,7 +12288,7 @@ const _EVENT_DEFS = [
         continent: 'Africa',
         type: 'coup',
         label: 'Nigerien Coup',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/niger.png',
         body: '15 April 1974. Lieutenant-Colonel Seyni Kountché led a military coup that ended the fourteen-year rule of President Diori. The army effectively distributes food aid hoarded by Diori to a population reeling from a 6 year long drought, winning much popular support.',
         country: 'NE',
         positionOffset: { x: -41, y: 9 },
@@ -12297,7 +12299,7 @@ const _EVENT_DEFS = [
         continent: 'Europe',
         type: 'coup',
         label: 'The Greek \'corrective revolution\'',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/ioannidis_1698362c.jpg',
         body: 'Brigadier Dimitrios Ioannidis, head of the military police, has overthrown George Papadopoulos in a palace coup. Papadopoulos had been cautiously liberalising the regime but Ioannidis wants to tear off the mask, enforcing an ultra nationalist, reactionary regime with torture, mass imprisonment and pervasive censorship. The social base of the Regime of the Colonels grows ever narrower.',
         country: 'GR',
         positionOffset: { x: -22, y: -22 },
@@ -12308,8 +12310,8 @@ const _EVENT_DEFS = [
         continent: 'Africa',
         type: 'insurgency',
         label: 'The Ethiopian Revolution',
-        img: null,
-        body: 'Ethiopia, one of the world\'s oldest nations, may be entering the first modern example of a polycrisis. War in Eritrea, ethnic conflict, famine in the Wollo, peasant uprisings against all of the above and against the anachronistic feudalism of Emperor Haile Selassie. Students burning down campuses and a demoralised and underpaid army, now turning openly to mutiny.',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/student-protests.jpg',
+        body: 'Ethiopia, one of the world\'s oldest nations, may be entering the first modern example of a polycrisis. War in Eritrea, ethnic conflict, famine in the Wollo, peasant uprisings against all of the above and against the anachronistic feudalism of Emperor Haile Selassie. Students are burning down campuses and a demoralised and underpaid army, now turning openly to mutiny.',
         country: 'ET',
         positionOffset: { x: -2, y: 17 },
         state: () => ethiopianRevolution,
@@ -12319,7 +12321,7 @@ const _EVENT_DEFS = [
         continent: 'Africa',
         type: 'coup',
         label: 'The Coup of the Derg',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/derg.jpg',
         body: 'Taking advantage of the collapsing legitimacy of the Ethiopian Empire, a group of junior officers place Haile Selassie under palace arrest. \'The Committee\', aka the Derg, create a Marxist dictatorship that turns in on itself, initiating a Red Terror akin to its Soviet and Stalinist namesakes.',
         country: 'ET',
         positionOffset: { x: -21, y: -6 },
@@ -12330,7 +12332,7 @@ const _EVENT_DEFS = [
         continent: 'South America',
         type: 'coup',
         label: 'The Uruguayan Self-Coup',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/uruguay.jpg',
         body: 'President Juan María Bordaberry dissolves parliament with military backing, banning political parties, trade unions and the press. The objective is the elimination of the left. Uruguay\'s democratic traditions are shredded and torture becomes institutionalised. The CIA raises no objection. After all, Uruguay is a founding member of Operation Condor.',
         country: 'UY',
         positionOffset: { x: -10, y: -5 },
@@ -12363,7 +12365,7 @@ const _EVENT_DEFS = [
         continent: 'South America',
         type: 'coup',
         label: 'Tacnazo — The Coup in Peru',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Tacnazo_de_1975.jpg',
         body: 'A general overthrows a general. The ailing President Velasco is overthrown by General Morales Bermúdez. The \'developmentalist\' Peruvian Revolution takes a right turn, stalling social and economic reforms. The other good news is that Peru becomes a fully fledged member of the Condor club.',
         country: 'PE',
         positionOffset: { x: -16, y: 4 },
@@ -12374,7 +12376,7 @@ const _EVENT_DEFS = [
         continent: 'South America',
         type: 'coup',
         label: 'The Argentine Coup',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/argentina.jpg',
         body: 'A rampaging military junta takes power, weakly grasped, from Isabel \'Isabelita\' Peron, Juan Peron\'s widow. Argentina is already roiling from the Dirty War, which now becomes fully institutionalised: more than 300 concentration camps sprout like grass in the Pampas. The Department of State aids and abets the generals in their struggle against communism.',
         country: 'AR',
         positionOffset: { x: 8, y: -36 },
@@ -12396,7 +12398,7 @@ const _EVENT_DEFS = [
         continent: 'Africa',
         type: 'insurgency',
         label: 'Oromo Uprising',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/500px-Flag_of_the_Oromo_Liberation_Front.svg.png',
         body: 'Ethiopia\'s largest ethnic group rises in armed resistance against centuries of subjugation. The Oromo Liberation Front, founded as the empire fractures, demands recognition, land and self-determination.',
         country: 'ET',
         positionOffset: { x: -18, y: 18 },
@@ -12407,8 +12409,8 @@ const _EVENT_DEFS = [
         continent: 'Africa',
         type: 'insurgency',
         label: 'Sahrawi Insurgency',
-        img: null,
-        body: 'Spain\'s Saharan colony is slipping from its grasp as the Franco regime enters its death throes. The Polisario Front fights for Sahrawi self-determination, but Morocco\'s King Hassan II has designs on the territory and Algeria is watching. When Hassan sends 350,000 civilians marching across the border in the \'Green March\', Spain folds and the Polisario are left fighting Moroccan and Mauritanian annexation across open desert. One of the last decolonisation struggles, almost entirely ignored by Washington.',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/western-sahara-war-740980bd-9326-4d1b-968f-5e6217cff16-resize-750.jpeg',
+        body: 'Spain\'s Saharan colony is slipping from its grasp and becoming an object for contestation between Morocco, Algeria and the people actually living there. The Polisario Front fights for Sahrawi self-determination, but Morocco\'s King Hassan II sends 350,000 civilians marching across the border in the \'Green March\'. One of the last decolonisation struggles, almost entirely ignored by Washington.',
         country: 'MA',
         positionOffset: { x: -46, y: 23 },
         state: () => sahrawiInsurgency,
@@ -12428,9 +12430,9 @@ const _EVENT_DEFS = [
         id: 'yom-kippur-golan',
         continent: 'Asia',
         type: 'war',
-        label: 'Yom Kippur War — Golan Heights',
+        label: ' October (Yom Kippur) War: Syria',
         img: null,
-        body: 'On 6 October 1973 — Yom Kippur, the Jewish Day of Atonement — Syria launched a massive armoured assault across the Purple Line into the Golan Heights, initially overwhelming Israeli defences. In three days of ferocious fighting, Israel\'s outnumbered tank crews halted the advance and counter-attacked toward Damascus. The Syrian offensive is broken but the shock to Israeli — and American — assumptions of invulnerability has been profound.',
+        body: 'On 6 October, Yom Kippur, the Jewish Day of Atonement, Syria launched a massive armoured assault across the Purple Line into the Golan Heights, initially overwhelming Israeli defences but getting bogged down in the rocky \'tells'\ of the northern Golan and pinned down by masterfully deployed Israeli firepower.',
         country: 'SY',
         positionOffset: { x: -30, y: 18 },
         state: () => yomKippurGolan,
@@ -12439,9 +12441,9 @@ const _EVENT_DEFS = [
         id: 'yom-kippur-suez',
         continent: 'Africa',
         type: 'war',
-        label: 'Yom Kippur War — Suez Canal',
+        label: 'Yom Kippur War: the Sinai',
         img: null,
-        body: 'Simultaneously with the Syrian assault, Egypt\'s Second and Third Armies crossed the Suez Canal in overwhelming force, breaching the Bar-Lev Line and routing Israeli forces in Sinai. Sadat\'s army held its bridgehead even as Israel recovered, and Sharon\'s counter-crossing west of the canal ultimately encircled Egypt\'s Third Army. The war ended with both sides exhausted and a ceasefire brokered under intense US–Soviet pressure — but the myth of Israeli invincibility was shattered for ever.',
+        body: 'Simultaneously with the Syrian assault, Egypt\'s Second and Third Armies crossed the Suez Canal in overwhelming force, breaching the 75ft tall Bar-Lev Line with firehoses and forcing a retreat by the IDF. The goal is the recapture of the Sinai penninsula lost in the Six Day War.  Regardless of the final outcome, the myths of Israeli invincibility, and of Arab incompetence, are shattered for ever.',
         country: 'EG',
         positionOffset: { x: 28, y: -22 },
         state: () => yomKippurSuez,
@@ -12451,8 +12453,8 @@ const _EVENT_DEFS = [
         continent: 'Asia',
         type: 'nuclear',
         label: 'Smiling Buddha — Indian Nuclear Test',
-        img: null,
-        body: 'On 18 May 1974, India detonated a 8-kiloton plutonium device at Pokhran in the Rajasthan desert, becoming the sixth nation to test a nuclear weapon and the first outside the five permanent members of the UN Security Council. Delhi called it a "peaceful nuclear explosion". Washington, blindsided, saw a non-proliferation framework crumbling. Pakistan\'s Zulfikar Ali Bhutto was watching and reportedly vowed to match it "even if we have to eat grass".',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9853.jpeg',
+        body: 'India has detonated a 8-kiloton plutonium device at Pokhran in the Rajasthan desert, becoming the sixth nation to test a nuclear weapon. US intelligence failed to track India\'s nuclear programme, so this blindsides analysts back in Washington.  Pakistan\'s Zulfikar Ali Bhutto was watching and reportedly vowed to match it "even if we have to eat grass".',
         country: 'IN',
         positionOffset: { x: -18, y: 8 },
         state: () => smilingBuddha,
@@ -16240,16 +16242,14 @@ function openWorldMap() {
     spacer.style.cssText = 'flex:1;';
     bar.appendChild(spacer);
 
-    // Pan/zoom state — declared here so nav buttons can close over them
+    // Pan/zoom state
     let tx = 0, ty = 0, scale = 0.55;
     let applyT = () => {};
     let allegiance = _wmAllegiance;
     let nightOn = _wmNightOn;
     let sigintOn = _wmSigintOn;
     let svgEl = null;
-    // Flags live in their own overlay SVG above the map so the SIGINT colour tint
-    // (applied to the map SVG only) leaves them in true colour. The CRT scanline/
-    // vignette stay on the viewport and so still pass over the flags.
+    // Flags in their own overlay SVG 
     let flagSvgEl = null;
     // Reassigned inside the SVG .then() once capitals exist; lets the night
     // toggle and the terminator tick re-evaluate which capitals are in darkness.
@@ -16261,7 +16261,6 @@ function openWorldMap() {
     let capitalsOn = _wmCapitalsOn;
 
     // Top bar — display / intelligence layer toggles. Built after the toggle
-    // state vars above so the buttons can read their initial on/off values.
     const topBar = document.createElement('div');
     topBar.style.cssText = 'flex-shrink:0;height:34px;background:#0a0a0a;border-bottom:1px solid #222;display:flex;align-items:center;gap:6px;padding:0 12px;font-family:TypewriterDry,monospace;font-size:11px;letter-spacing:1px;color:#555;';
     const topBarLabel = document.createElement('span');
@@ -16272,14 +16271,12 @@ function openWorldMap() {
         const b = document.createElement('button');
         b.textContent = label;
         b.style.cssText = 'cursor:pointer;padding:0 8px;height:24px;font-family:TypewriterDry,monospace;font-size:11px;letter-spacing:1px;background:#111;border:1px solid #333;color:#fff;';
-        // Text is always white (matching the bottom-bar buttons); the active
-        // state is shown by the outline + bold weight, not by colour.
         b.style.outline = active ? '2px solid #888' : '';
         b.style.fontWeight = active ? 'bold' : '';
         return b;
     };
 
-    // Night toggle (moved from bottom bar)
+    // Night toggle
     const nightBtn = _mkTopBtn('NIGHT', nightOn);
     nightBtn.addEventListener('click', () => {
         nightOn = !nightOn; _wmNightOn = nightOn;
@@ -16292,9 +16289,6 @@ function openWorldMap() {
     topBar.appendChild(nightBtn);
 
     // SIGINT — phosphor / war-room skin
-    // The colour tint is applied to the MAP svg only (not the whole viewport) so
-    // the flag overlay svg — a separate viewport child — keeps its true colours.
-    // The scanline + vignette CRT overlay stays on the viewport, above both.
     const _applySigint = (on) => {
         if (!viewport) return;
         if (svgEl) svgEl.style.filter = on ? 'sepia(0.3) hue-rotate(80deg) saturate(1.4) brightness(0.85)' : '';
@@ -16410,12 +16404,11 @@ function openWorldMap() {
         applyT();
     }
 
-    // ── Camera fly-to (eased tween of tx/ty/scale) ───────────────────────────
+    // Camera fly-to
     let _camAnim = null;
     const _cancelCam = () => { if (_camAnim) { cancelAnimationFrame(_camAnim); _camAnim = null; } };
     mapCleanup.push(_cancelCam);
     const _easeInOut = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-    // Eased pan+zoom that centres SVG-space point (px,py) in the viewport.
     function flyTo(px, py, targetScale, dur, done) {
         const vw = viewport.clientWidth || 989, vh = viewport.clientHeight || 581;
         const toS  = Math.max(0.08, Math.min(8, targetScale || scale));
@@ -16437,7 +16430,7 @@ function openWorldMap() {
         };
         _camAnim = requestAnimationFrame(step);
     }
-    // Fly the camera to an SVG element's centroid (used by country/event clicks).
+    // Fly  camera to centroid
     const flyToEl = el => {
         if (!el) return;
         try {
@@ -16448,7 +16441,6 @@ function openWorldMap() {
         } catch (_) {}
     };
 
-    // ── Colour helpers for the tweened allegiance choropleth ─────────────────
     const _parseRGB = s => {
         if (!s) return null;
         const m = s.match(/(\d+)[,\s]+(\d+)[,\s]+(\d+)/); // matches "rgb(r, g, b)" and "r g b"
@@ -16533,7 +16525,7 @@ function openWorldMap() {
     viewport.appendChild(allegLegend);
     const _updateAllegLegend = () => { allegLegend.style.display = allegiance ? 'flex' : 'none'; };
 
-    // ── DEFCON readiness banner (top-right, visible when SIGINT is on) ────────
+    // DEFCON
     const _defconCols = { 1:'#dc2626', 2:'#ea580c', 3:'#ca8a04', 4:'#16a34a', 5:'#1d4ed8' };
     const defconBanner = document.createElement('div');
     defconBanner.style.cssText = 'position:absolute;top:8px;right:16px;z-index:50;font-family:Tenada,TypewriterDry,monospace;font-size:11px;letter-spacing:2px;color:#999;display:none;align-items:center;pointer-events:none;';
@@ -16733,7 +16725,7 @@ function openWorldMap() {
             };
             applyT();
 
-            // ── Day/Night terminator ──────────────────────────────────────────
+            //  Day/Night terminator 
             // Solar declination from the current in-game question date.
             // Subsolar longitude (hour angle) from the player's real-time UTC clock.
             const _parseDeclination = () => {
@@ -17609,9 +17601,7 @@ function openWorldMap() {
                 CR: { x: -17, y:  -7 },   NI: { x: -11, y: -13 },
             };
 
-            // Capital city flavour images — populate with URLs as research is done.
-            // Format: { US: 'https://...', GB: 'https://...', ... }
-            // Clicking a capital roundel shows the image if a URL is present.
+            // Capital city flavour images 
             const CAPITAL_IMAGES = {
                 CA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ottawaC.jpeg',
                 CU: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/havanaC.jpg',
@@ -17851,7 +17841,7 @@ function openWorldMap() {
                         { tag: 'path', attrs: { fill: '#1F9823', d: 'M 152.4 120.133 L 245.675 120.133 C 255.879 120.133 264.857 126.401 268.358 136.017 L 282.225 173.825 C 284.209 179.31 280.523 184.667 274.658 184.667 L 136.267 184.667 C 131.701 184.667 128.2 181.166 128.2 176.6 L 128.2 144.333 C 128.2 130.878 138.945 120.133 152.4 120.133 Z M 288.525 144.333 L 410.533 144.333 L 410.533 152.4 L 291.55 152.4 Z M 152.4 200.8 L 257.267 200.8 L 257.267 208.867 L 152.4 208.867 Z M 104 281.467 C 113.01 281.467 120.133 288.59 120.133 297.6 C 120.133 306.61 113.01 313.733 104 313.733 C 94.99 313.733 87.867 306.61 87.867 297.6 C 87.867 288.59 94.99 281.467 104 281.467 Z M 184.667 281.467 C 193.677 281.467 200.8 288.59 200.8 297.6 C 200.8 306.61 193.677 313.733 184.667 313.733 C 175.656 313.733 168.533 306.61 168.533 297.6 C 168.533 288.59 175.656 281.467 184.667 281.467 Z M 265.333 281.467 C 274.344 281.467 281.467 288.59 281.467 297.6 C 281.467 306.61 274.344 313.733 265.333 313.733 C 256.323 313.733 249.2 306.61 249.2 297.6 C 249.2 288.59 256.323 281.467 265.333 281.467 Z M 346 281.467 C 355.01 281.467 362.133 288.59 362.133 297.6 C 362.133 306.61 355.01 313.733 346 313.733 C 336.99 313.733 329.867 306.61 329.867 297.6 C 329.867 288.59 336.99 281.467 346 281.467 Z' } },
                     ] },
                 ],
-                // Mushroom cloud — nuclear attack
+                // Mushroom cloud = nuclear event
                 nuclear: [
                     { tag: 'g', attrs: { transform: 'scale(0.17) translate(-50,-50)' }, children: [
                         { tag: 'path', attrs: { fill: '#E8E4E3', d: 'M23.353,34.17c1.168,3.312,4.326,5.688,8.039,5.688c2.765,0,5.222-1.318,6.779-3.359c1.246,1.686,3.118,2.88,5.273,3.241c1.047,4.205,4.848,7.321,9.376,7.321c4.103,0,7.603-2.555,9.008-6.161c1.035,0.411,2.163,0.638,3.343,0.638c4.299,0,7.899-2.99,8.839-7.004c0.979,0.336,2.027,0.522,3.121,0.522c5.305,0,9.606-4.3,9.606-9.604c0-5.269-4.243-9.545-9.498-9.603c-1.336-3.388-4.638-5.788-8.497-5.788c-3.855,0-7.149,2.388-8.491,5.764c-0.797-0.439-1.66-0.767-2.574-0.964c0.002-0.112,0.008-0.223,0.008-0.335C57.685,6.504,51.181,0,43.158,0c-7.814,0-14.185,6.17-14.51,13.905c-1.417-0.695-3.011-1.087-4.697-1.087c-5.902,0-10.685,4.784-10.685,10.685C13.264,29.205,17.729,33.861,23.353,34.17z' } },
@@ -18148,11 +18138,8 @@ function openWorldMap() {
                 shapeG.setAttribute('transform', 'scale(0.6)');
                 specs.forEach(spec => shapeG.appendChild(_mkEl(spec.tag, spec.attrs, spec.children)));
 
-                // ── Icon micro-animation by type ─────────────────────────────
-                // disaster → expanding seismic ripple; war → slow smoke pulse;
-                // coup → rhythmic flash. These play ONLY on the event's debut turn
-                // (the question pk at which it first appears active), so the map is
-                // a quiet board with motion drawing the eye only to what's new.
+                //  Icon animation
+                // disaster → expanding seismic ripple; war → slow smoke pulse coup → rhythmic flash. These play ONLY on the event's debut turn
                 let _animDebut = false;
                 try {
                     if (def.state() === 1) {
