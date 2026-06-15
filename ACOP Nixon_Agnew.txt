@@ -16515,15 +16515,8 @@ function openWorldMap() {
         bar.appendChild(b);
     });
 
-    // Allegiance legend — red→grey→blue loyalty gradient, shown when the layer is on.
-    const allegLegend = document.createElement('div');
-    allegLegend.style.cssText = 'position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:40;display:none;align-items:center;gap:8px;background:rgba(0,0,0,0.72);padding:6px 12px;border-radius:5px;font-family:TypewriterDry,monospace;font-size:10px;letter-spacing:1px;color:#ddd;box-shadow:0 2px 8px rgba(0,0,0,0.5);';
-    allegLegend.innerHTML =
-        '<span style="color:#dc2626;">BITTER ENEMY</span>' +
-        '<span style="width:160px;height:9px;border-radius:5px;display:inline-block;background:linear-gradient(to right,#dc2626,#a0a0a0,#1d4ed8);"></span>' +
-        '<span style="color:#1d4ed8;">ALLIED</span>';
-    viewport.appendChild(allegLegend);
-    const _updateAllegLegend = () => { allegLegend.style.display = allegiance ? 'flex' : 'none'; };
+    const allegLegend = document.createElement('div'); // kept as re-append target after innerHTML wipe
+    const _updateAllegLegend = () => {};
 
     // DEFCON
     const _defconCols = { 1:'#dc2626', 2:'#ea580c', 3:'#ca8a04', 4:'#16a34a', 5:'#1d4ed8' };
