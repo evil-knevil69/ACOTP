@@ -12432,7 +12432,7 @@ const _EVENT_DEFS = [
         type: 'war',
         label: ' October (Yom Kippur) War: Syria',
         img: null,
-        body: 'On 6 October, Yom Kippur, the Jewish Day of Atonement, Syria launched a massive armoured assault across the Purple Line into the Golan Heights, initially overwhelming Israeli defences but getting bogged down in the rocky \'tells'\ of the northern Golan and pinned down by masterfully deployed Israeli firepower.',
+        body: 'On 6 October, Yom Kippur, the Jewish Day of Atonement, Syria launched a massive armoured assault across the Purple Line into the Golan Heights, initially overwhelming Israeli defences but getting bogged down in the rocky \'tells\' of the northern Golan and pinned down by masterfully deployed Israeli firepower.',
         country: 'SY',
         positionOffset: { x: -30, y: 18 },
         state: () => yomKippurGolan,
