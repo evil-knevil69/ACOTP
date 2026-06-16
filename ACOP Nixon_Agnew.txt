@@ -13168,8 +13168,22 @@ const OFFICIALS_VARS = {
             height: 1px;
             background: #888;
         }
+        .oc-sub-row > .oc-card:first-child {
+            position: relative;
+            top: 10px;
+        }
+        .oc-sub-row > .oc-card:first-child::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 10px;
+            background: #888;
+        }
         .oc-card {
-            width: 118px;
+            width: 138px;
             height: 230px;
             overflow: hidden;
             border: 1px solid #888;
