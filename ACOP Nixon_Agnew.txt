@@ -13047,15 +13047,15 @@ function openEnemiesPanel(questions) {
 const OFFICIALS_ROSTER = {
     'Haldeman': {
         image: '',
-        bio: "H.R. Haldeman serves as Nixon's iron-fisted Chief of Staff, controlling all access to the Oval Office with methodical precision. A former advertising executive, he is Nixon's most trusted enforcer and the chief architect of the re-election campaign's machinery."
+        bio: "H.R. Haldeman controls all access to the Oval Office with methodical precision. A former advertising executive, he is Nixon's most trusted enforcer and wise to the optics of your decision making. [p][b]Expect to have clear command and control but limited policy expertise or an understanding of legal technicalities.[/b][/p]"
     },
     'Kissinger': {
         image: '',
-        bio: "Henry Kissinger serves as National Security Advisor, masterminding the secret backchannel diplomacy that opened China and reshaped détente with the Soviets. Calculating and media-savvy, he shapes foreign policy while carefully cultivating his own indispensability."
+        bio: "Kissinger has used his position at the NSA to usurp the State Department. He maintains control over his own backchannel diplomacy, which bore fruit with the opening of China and détente. Calculating and media-savvy, [b]expect subtle and clever decisions, which become increasingly insubordinate the more he becomes convinced of his indispensibility.[/b]"
     },
     'Rogers': {
         image: '',
-        bio: "William Rogers serves as Secretary of State, though his influence is systematically sidelined by Kissinger's parallel foreign policy apparatus. A loyal Nixon ally from the Eisenhower years, he handles formal diplomatic duties while real power flows elsewhere."
+        bio: "One of your oldest comrades, you once walked the streets together all night working out the Checkers Speech. You chose Rogers for State because he was loyal, and uninterested in foreign policy. Under him, State has been sidelined in favor of centralising decision making inside the White House. [p][b]With Rogers in post, expect more control over foreign policy decisions[/b][/p]."
     },
     'Laird': {
         image: '',
@@ -13071,7 +13071,7 @@ const OFFICIALS_ROSTER = {
     },
     'Gray': {
         image: '',
-        bio: "L. Patrick Gray serves as Acting FBI Director following J. Edgar Hoover's death, a Nixon loyalist without the institutional standing to resist White House pressure. His cooperation with the cover-up will eventually seal his own criminal fate."
+        bio: "Gray is a Nixon loyalist without the institutional standing to resist White House pressure. If you play him right he will let you have more control over the FBI than you ever imagined."
     },
     'Rockefeller': {
         image: '',
@@ -13079,11 +13079,11 @@ const OFFICIALS_ROSTER = {
     },
     'Haig': {
         image: '',
-        bio: "Alexander Haig serves as Kissinger's deputy at the NSC, a hard-driving Army general who bridges the military and the White House with unsentimental efficiency. In a counterfactual promotion he steps into the national security advisor role, bringing a soldier's instinct for chain of command to the most sensitive diplomatic levers of the Nixon presidency."
+        bio: "Alexander Haig came 214th out of 310 at West Point. Yet, he plays the bureaucratic game as a natural, while presenting a facade of unsentimental military efficiency. [p][b]Stepping up as National Security Advisor, expect more hawkish advice without Kissinger's intellectual ferocity and possibly, the masking of dissenting views within the ranks.[/b][/p]"
     },
     'Scowcroft': {
         image: '',
-        bio: "Brent Scowcroft serves as deputy NSA under Kissinger, a soft-spoken Air Force strategist who prizes rigorous process over personal celebrity. Where Kissinger improvises, Scowcroft systematises — a steady institutional hand on the NSC apparatus."
+        bio: "Brent Scowcroft is not an attention seeker. serves as deputy NSA under Kissinger, a soft-spoken Air Force strategist who prizes rigorous process over personal celebrity. Where Kissinger improvises, Scowcroft systematises — a steady institutional hand on the NSC apparatus."
     },
     'Richardson': {
         image: '',
@@ -13099,7 +13099,7 @@ const OFFICIALS_ROSTER = {
     },
     'Cox': {
         image: '',
-        bio: "Archibald Cox, the Harvard law professor appointed as Watergate Special Prosecutor, pursues Nixon's tapes with a methodical tenacity that will make him a constitutional martyr. His firing in the Saturday Night Massacre produces a public firestorm that accelerates the presidency's unravelling."
+        bio: "Archibald Cox, the Harvard law professor and Brahmin of the Eastern Establishment. The worst possible choice appointed as Watergate Special Prosecutor, pursues Nixon's tapes with a methodical tenacity that will make him a constitutional martyr. His firing in the Saturday Night Massacre produces a public firestorm that accelerates the presidency's unravelling."
     },
     'Jaworski': {
         image: '',
@@ -13119,7 +13119,7 @@ const OFFICIALS_ROSTER = {
     },
     'none': {
         image: '',
-        bio: "This position currently stands vacant. No individual has yet been appointed to fill the role."
+        bio: "This position currently stands vacant."
     }
 };
 
