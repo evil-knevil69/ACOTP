@@ -12080,7 +12080,7 @@ const _EVENT_DEFS = [
         continent: 'Asia',
         type: 'war',
         label: 'Vietnam War',
-        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/0331_vietnam9.jpg',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9788.jpg',
         body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. It remains the key psychological inflection point in US history, and the turn to paranoia, cynicism and polarisation runs through the dividing lines of this conflict',
         country: 'VD',
         positionOffset: { x: 12, y: 25 },
@@ -12432,7 +12432,7 @@ const _EVENT_DEFS = [
         type: 'war',
         label: ' October (Yom Kippur) War: Syria',
         img: null,
-        body: 'On 6 October, Yom Kippur, the Jewish Day of Atonement, Syria launched a massive armoured assault across the Purple Line into the Golan Heights, initially overwhelming Israeli defences but getting bogged down in the rocky \'tells'\ of the northern Golan and pinned down by masterfully deployed Israeli firepower.',
+        body: 'On 6 October, Yom Kippur, the Jewish Day of Atonement, Syria launched a massive armoured assault across the Purple Line into the Golan Heights, initially overwhelming Israeli defences but getting bogged down in the rocky \'tells\' of the northern Golan and pinned down by masterfully deployed Israeli firepower.',
         country: 'SY',
         positionOffset: { x: -30, y: 18 },
         state: () => yomKippurGolan,
@@ -13073,6 +13073,50 @@ const OFFICIALS_ROSTER = {
         image: '',
         bio: "L. Patrick Gray serves as Acting FBI Director following J. Edgar Hoover's death, a Nixon loyalist without the institutional standing to resist White House pressure. His cooperation with the cover-up will eventually seal his own criminal fate."
     },
+    'Rockefeller': {
+        image: '',
+        bio: "Nelson Rockefeller, the four-term Governor of New York and Nixon's most persistent rival for the Republican establishment's affections, brings a patrician internationalism and a vast personal network to the State Department. Nixon originally offered him Defense; Rocky turned it down and held out for State — and here, in this telling, he gets it. Long a force in foreign policy circles and Kissinger's original patron, he is as comfortable in European chancelleries as in domestic politics."
+    },
+    'Haig': {
+        image: '',
+        bio: "Alexander Haig serves as Kissinger's deputy at the NSC, a hard-driving Army general who bridges the military and the White House with unsentimental efficiency. In a counterfactual promotion he steps into the national security advisor role, bringing a soldier's instinct for chain of command to the most sensitive diplomatic levers of the Nixon presidency."
+    },
+    'Scowcroft': {
+        image: '',
+        bio: "Brent Scowcroft serves as deputy NSA under Kissinger, a soft-spoken Air Force strategist who prizes rigorous process over personal celebrity. Where Kissinger improvises, Scowcroft systematises — a steady institutional hand on the NSC apparatus."
+    },
+    'Richardson': {
+        image: '',
+        bio: "Elliot Richardson is Nixon's most trusted administrator, capable enough to be moved between the most demanding cabinet posts. His appointment to oversee the Watergate Special Prosecutor will eventually force an impossible choice between loyalty to Nixon and the rule of law — and Richardson will choose the law."
+    },
+    'Schlesinger': {
+        image: '',
+        bio: "James Schlesinger is a blunt defence intellectual who overhauls the CIA before moving to the Pentagon. As Secretary of Defense he clashes repeatedly with Kissinger over détente and nuclear policy, and is said to have quietly instructed the military to query any unusual White House orders in Nixon's final days."
+    },
+    'Saxbe': {
+        image: '',
+        bio: "William Saxbe, the plain-spoken Ohio senator, inherits the Justice Department in the wreckage left by the Saturday Night Massacre. With Cox already fired and Jaworski installed, his job is to keep a shattered institution standing while impeachment closes in on the White House."
+    },
+    'Cox': {
+        image: '',
+        bio: "Archibald Cox, the Harvard law professor appointed as Watergate Special Prosecutor, pursues Nixon's tapes with a methodical tenacity that will make him a constitutional martyr. His firing in the Saturday Night Massacre produces a public firestorm that accelerates the presidency's unravelling."
+    },
+    'Jaworski': {
+        image: '',
+        bio: "Leon Jaworski, the Texas corporate lawyer who replaces Cox, proves equally relentless in pursuit of the tapes. He takes the fight to the Supreme Court and secures the unanimous ruling that finally breaks Nixon's last line of defence."
+    },
+    'Ruckelshaus': {
+        image: '',
+        bio: "William Ruckelshaus serves briefly as acting FBI Director before moving to the Deputy Attorney General role. When ordered to fire Cox in the Saturday Night Massacre, he refuses without hesitation and resigns — one of the cleaner moments in the whole sordid affair."
+    },
+    'Kelley': {
+        image: '',
+        bio: "Clarence Kelley, the Kansas City police chief, is brought in as permanent FBI Director to restore stability after the chaos of Gray and Ruckelshaus. A career law enforcement professional with no Watergate entanglement, he is as much a symbol of institutional repair as an operational appointment."
+    },
+    'Colby': {
+        image: '',
+        bio: "William Colby, career CIA officer and Vietnam veteran of the agency's most brutal programmes, succeeds Schlesinger as Director. His willingness to open the agency's files to congressional oversight — the so-called Family Jewels — will enrage the intelligence old guard and define the post-Nixon reckoning."
+    },
     'none': {
         image: '',
         bio: "This position currently stands vacant. No individual has yet been appointed to fill the role."
@@ -13168,8 +13212,22 @@ const OFFICIALS_VARS = {
             height: 1px;
             background: #888;
         }
+        .oc-sub-row > .oc-card:first-child {
+            position: relative;
+            top: 10px;
+        }
+        .oc-sub-row > .oc-card:first-child::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 10px;
+            background: #888;
+        }
         .oc-card {
-            width: 118px;
+            width: 138px;
             height: 230px;
             overflow: hidden;
             border: 1px solid #888;
@@ -14785,6 +14843,7 @@ _tooltipPortal.id = 'tooltip-portal';
 document.body.appendChild(_tooltipPortal);
 
 let _hoveredTooltip = null;
+let _ttW = 0, _ttH = 0, _ttDirty = false; // cached tooltip size; remeasured only when content changes
 
 document.addEventListener('mouseover', (e) => {
     const src = e.target.closest('.mytooltip');
@@ -14792,7 +14851,7 @@ document.addEventListener('mouseover', (e) => {
     _hoveredTooltip = src;
     if (src) {
         const inner = src.querySelector('.mytooltiptext');
-        if (inner) _tooltipPortal.innerHTML = inner.innerHTML;
+        if (inner) { _tooltipPortal.innerHTML = inner.innerHTML; _ttDirty = true; }
     } else {
         _tooltipPortal.style.display = 'none';
     }
@@ -14802,8 +14861,11 @@ document.addEventListener('mousemove', (e) => {
     if (!_hoveredTooltip) return;
     _tooltipPortal.style.display = 'block';
     const pad = 16;
-    const tw = _tooltipPortal.offsetWidth;
-    const th = _tooltipPortal.offsetHeight;
+    // Measure only when the content changed; size is stable between swaps,
+    // so we avoid a forced layout on every mousemove.
+    if (_ttDirty) { _ttW = _tooltipPortal.offsetWidth; _ttH = _tooltipPortal.offsetHeight; _ttDirty = false; }
+    const tw = _ttW;
+    const th = _ttH;
     let x = e.clientX + pad;
     let y = e.clientY + pad;
     if (x + tw > window.innerWidth) x = e.clientX - tw - pad;
@@ -15518,7 +15580,6 @@ document.body.appendChild(honk);
     }
 
     const EPS = 8;
-    let _obs;
 
     /* ── Manual label nudges (SVG units from bbox centre) ─────────────────
        Add an entry whenever a label needs repositioning:
@@ -15566,9 +15627,7 @@ document.body.appendChild(honk);
             txt.textContent = abbr;
             frag.appendChild(txt);
         });
-        _obs.disconnect();
         svg.appendChild(frag);
-        _obs.observe(document.body, { childList: true, subtree: true });
     }
 
     function _addLampFilter(svg) {
@@ -15614,8 +15673,7 @@ document.body.appendChild(honk);
         _injectStateLabels();
     }
 
-    _obs = new MutationObserver(_checkAndSimplify);
-    _obs.observe(document.body, { childList: true, subtree: true });
+    window.__onGameWindowMutation(_checkAndSimplify);
 })();
 
 // [JETS_CYOA_CAMPAIGN_DATA_END]
@@ -16245,6 +16303,7 @@ function openWorldMap() {
     // Pan/zoom state
     let tx = 0, ty = 0, scale = 0.55;
     let applyT = () => {};
+    let _cachedVW = 989, _cachedVH = 581;
     let allegiance = _wmAllegiance;
     let nightOn = _wmNightOn;
     let sigintOn = _wmSigintOn;
@@ -16394,8 +16453,8 @@ function openWorldMap() {
     };
 
     function doZoom(factor) {
-        const vw = viewport.clientWidth || 989;
-        const vh = viewport.clientHeight || 581;
+        const vw = _cachedVW;
+        const vh = _cachedVH;
         const newScale = Math.max(0.08, Math.min(8, scale * factor));
         const ratio = newScale / scale;
         tx = Math.round(vw / 2 * (1 - ratio) + tx * ratio);
@@ -16410,7 +16469,7 @@ function openWorldMap() {
     mapCleanup.push(_cancelCam);
     const _easeInOut = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
     function flyTo(px, py, targetScale, dur, done) {
-        const vw = viewport.clientWidth || 989, vh = viewport.clientHeight || 581;
+        const vw = _cachedVW, vh = _cachedVH;
         const toS  = Math.max(0.08, Math.min(8, targetScale || scale));
         const toTx = vw / 2 - px * toS;
         const toTy = vh / 2 - py * toS;
@@ -16515,20 +16574,13 @@ function openWorldMap() {
         bar.appendChild(b);
     });
 
-    // Allegiance legend — red→grey→blue loyalty gradient, shown when the layer is on.
-    const allegLegend = document.createElement('div');
-    allegLegend.style.cssText = 'position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:40;display:none;align-items:center;gap:8px;background:rgba(0,0,0,0.72);padding:6px 12px;border-radius:5px;font-family:TypewriterDry,monospace;font-size:10px;letter-spacing:1px;color:#ddd;box-shadow:0 2px 8px rgba(0,0,0,0.5);';
-    allegLegend.innerHTML =
-        '<span style="color:#dc2626;">BITTER ENEMY</span>' +
-        '<span style="width:160px;height:9px;border-radius:5px;display:inline-block;background:linear-gradient(to right,#dc2626,#a0a0a0,#1d4ed8);"></span>' +
-        '<span style="color:#1d4ed8;">ALLIED</span>';
-    viewport.appendChild(allegLegend);
-    const _updateAllegLegend = () => { allegLegend.style.display = allegiance ? 'flex' : 'none'; };
+    const allegLegend = document.createElement('div'); // kept as re-append target after innerHTML wipe
+    const _updateAllegLegend = () => {};
 
     // DEFCON
     const _defconCols = { 1:'#dc2626', 2:'#ea580c', 3:'#ca8a04', 4:'#16a34a', 5:'#1d4ed8' };
     const defconBanner = document.createElement('div');
-    defconBanner.style.cssText = 'position:absolute;top:8px;right:16px;z-index:50;font-family:Tenada,TypewriterDry,monospace;font-size:11px;letter-spacing:2px;color:#999;display:none;align-items:center;pointer-events:none;';
+    defconBanner.style.cssText = 'position:absolute;top:8px;right:16px;z-index:9500;font-family:Tenada,TypewriterDry,monospace;font-size:13px;letter-spacing:2px;color:#ccc;display:none;align-items:center;pointer-events:none;';
     const _defconUpdate = () => {
         const lvl = Math.max(1, Math.min(5, defcon));
         defconBanner.innerHTML = 'DEFCON <span style="display:inline-block;min-width:16px;text-align:center;padding:0 4px;background:' + _defconCols[lvl] + ';color:#000;font-weight:bold;">' + lvl + '</span>';
@@ -16675,16 +16727,16 @@ function openWorldMap() {
             viewport.appendChild(flagSvgEl);
 
             // Centre the SVG in the viewport on first load
-            const vw = viewport.clientWidth || 989;
-            const vh = viewport.clientHeight || 581;
-            tx = Math.round((vw - 1800 * scale) / 2);
-            ty = Math.round((vh - 900 * scale) / 2);
+            _cachedVW = viewport.clientWidth  || 989;
+            _cachedVH = viewport.clientHeight || 581;
+            tx = Math.round((_cachedVW - 1800 * scale) / 2);
+            ty = Math.round((_cachedVH -  900 * scale) / 2);
 
             applyT = () => {
                 const W  = 1800 * scale;
                 const H  = 900  * scale;
-                const vw = viewport.clientWidth  || 989;
-                const vh = viewport.clientHeight || 581;
+                const vw = _cachedVW;
+                const vh = _cachedVH;
                 // Horizontal wrap: map loops east-west
                 while (tx > vw)      tx -= W;
                 while (tx + W < 0)   tx += W;
@@ -16699,7 +16751,7 @@ function openWorldMap() {
 
                 // Sync scrollbar thumbs
                 if (vScrollTrack && hScrollTrack) {
-                    const trackH = vScrollTrack.clientHeight || vh;
+                    const trackH = _cachedVH;
                     if (H > vh) {
                         vScrollTrack.style.display = '';
                         const thumbH = Math.max(20, Math.round(vh / H * trackH));
@@ -16710,7 +16762,7 @@ function openWorldMap() {
                         vScrollTrack.style.display = 'none';
                     }
 
-                    const trackW = hScrollTrack.clientWidth || vw;
+                    const trackW = _cachedVW - 12;
                     if (W > vw) {
                         hScrollTrack.style.display = '';
                         const thumbW = Math.max(20, Math.round(vw / W * trackW));
@@ -18599,7 +18651,18 @@ function openWorldMap() {
             hScrollThumb.style.cssText = 'position:absolute;top:0;height:12px;background:rgba(200,200,200,0.65);border-radius:6px;cursor:pointer;min-width:20px;';
             hScrollTrack.appendChild(hScrollThumb);
             viewport.appendChild(hScrollTrack);
+            _cachedVW = viewport.clientWidth  || 989;
+            _cachedVH = viewport.clientHeight || 581;
             applyT(); // sync thumb positions now that elements exist
+            if (window.ResizeObserver) {
+                const _ro = new ResizeObserver(() => {
+                    _cachedVW = viewport.clientWidth  || 989;
+                    _cachedVH = viewport.clientHeight || 581;
+                    applyT();
+                });
+                _ro.observe(viewport);
+                mapCleanup.push(() => _ro.disconnect());
+            }
 
             // Vertical scrollbar drag
             let vDrag = false, vDragY = 0, vDragTy = 0;
