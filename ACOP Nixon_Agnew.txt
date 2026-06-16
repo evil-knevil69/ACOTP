@@ -13342,7 +13342,10 @@ function openOfficialsPanel(questions) {
 
         const bioEl = document.createElement('div');
         bioEl.className = 'oc-bio';
-        bioEl.textContent = data.bio;
+        bioEl.innerHTML = data.bio
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>')
+            .replace(/\[p\]([\s\S]*?)\[\/p\]/g, '<p style="margin:4px 0 0;">$1</p>');
         card.appendChild(bioEl);
 
         return card;
