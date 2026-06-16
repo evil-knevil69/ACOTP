@@ -14785,6 +14785,7 @@ _tooltipPortal.id = 'tooltip-portal';
 document.body.appendChild(_tooltipPortal);
 
 let _hoveredTooltip = null;
+let _ttW = 0, _ttH = 0, _ttDirty = false; // cached tooltip size; remeasured only when content changes
 
 document.addEventListener('mouseover', (e) => {
     const src = e.target.closest('.mytooltip');
@@ -14792,7 +14793,7 @@ document.addEventListener('mouseover', (e) => {
     _hoveredTooltip = src;
     if (src) {
         const inner = src.querySelector('.mytooltiptext');
-        if (inner) _tooltipPortal.innerHTML = inner.innerHTML;
+        if (inner) { _tooltipPortal.innerHTML = inner.innerHTML; _ttDirty = true; }
     } else {
         _tooltipPortal.style.display = 'none';
     }
@@ -14802,8 +14803,11 @@ document.addEventListener('mousemove', (e) => {
     if (!_hoveredTooltip) return;
     _tooltipPortal.style.display = 'block';
     const pad = 16;
-    const tw = _tooltipPortal.offsetWidth;
-    const th = _tooltipPortal.offsetHeight;
+    // Measure only when the content changed; size is stable between swaps,
+    // so we avoid a forced layout on every mousemove.
+    if (_ttDirty) { _ttW = _tooltipPortal.offsetWidth; _ttH = _tooltipPortal.offsetHeight; _ttDirty = false; }
+    const tw = _ttW;
+    const th = _ttH;
     let x = e.clientX + pad;
     let y = e.clientY + pad;
     if (x + tw > window.innerWidth) x = e.clientX - tw - pad;
@@ -16391,8 +16395,8 @@ function openWorldMap() {
     };
 
     function doZoom(factor) {
-        const vw = viewport.clientWidth || 989;
-        const vh = viewport.clientHeight || 581;
+        const vw = _cachedVW;
+        const vh = _cachedVH;
         const newScale = Math.max(0.08, Math.min(8, scale * factor));
         const ratio = newScale / scale;
         tx = Math.round(vw / 2 * (1 - ratio) + tx * ratio);
@@ -16407,7 +16411,7 @@ function openWorldMap() {
     mapCleanup.push(_cancelCam);
     const _easeInOut = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
     function flyTo(px, py, targetScale, dur, done) {
-        const vw = viewport.clientWidth || 989, vh = viewport.clientHeight || 581;
+        const vw = _cachedVW, vh = _cachedVH;
         const toS  = Math.max(0.08, Math.min(8, targetScale || scale));
         const toTx = vw / 2 - px * toS;
         const toTy = vh / 2 - py * toS;
