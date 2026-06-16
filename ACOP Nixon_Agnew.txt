@@ -13073,6 +13073,46 @@ const OFFICIALS_ROSTER = {
         image: '',
         bio: "L. Patrick Gray serves as Acting FBI Director following J. Edgar Hoover's death, a Nixon loyalist without the institutional standing to resist White House pressure. His cooperation with the cover-up will eventually seal his own criminal fate."
     },
+    'Haig': {
+        image: '',
+        bio: "Alexander Haig serves as Kissinger's deputy at the NSC, a hard-driving Army general who bridges the military and the White House with unsentimental efficiency. In a counterfactual promotion he steps into the national security advisor role, bringing a soldier's instinct for chain of command to the most sensitive diplomatic levers of the Nixon presidency."
+    },
+    'Scowcroft': {
+        image: '',
+        bio: "Brent Scowcroft serves as deputy NSA under Kissinger, a soft-spoken Air Force strategist who prizes rigorous process over personal celebrity. Where Kissinger improvises, Scowcroft systematises — a steady institutional hand on the NSC apparatus."
+    },
+    'Richardson': {
+        image: '',
+        bio: "Elliot Richardson is Nixon's most trusted administrator, capable enough to be moved between the most demanding cabinet posts. His appointment to oversee the Watergate Special Prosecutor will eventually force an impossible choice between loyalty to Nixon and the rule of law — and Richardson will choose the law."
+    },
+    'Schlesinger': {
+        image: '',
+        bio: "James Schlesinger is a blunt defence intellectual who overhauls the CIA before moving to the Pentagon. As Secretary of Defense he clashes repeatedly with Kissinger over détente and nuclear policy, and is said to have quietly instructed the military to query any unusual White House orders in Nixon's final days."
+    },
+    'Saxbe': {
+        image: '',
+        bio: "William Saxbe, the plain-spoken Ohio senator, inherits the Justice Department in the wreckage left by the Saturday Night Massacre. With Cox already fired and Jaworski installed, his job is to keep a shattered institution standing while impeachment closes in on the White House."
+    },
+    'Cox': {
+        image: '',
+        bio: "Archibald Cox, the Harvard law professor appointed as Watergate Special Prosecutor, pursues Nixon's tapes with a methodical tenacity that will make him a constitutional martyr. His firing in the Saturday Night Massacre produces a public firestorm that accelerates the presidency's unravelling."
+    },
+    'Jaworski': {
+        image: '',
+        bio: "Leon Jaworski, the Texas corporate lawyer who replaces Cox, proves equally relentless in pursuit of the tapes. He takes the fight to the Supreme Court and secures the unanimous ruling that finally breaks Nixon's last line of defence."
+    },
+    'Ruckelshaus': {
+        image: '',
+        bio: "William Ruckelshaus serves briefly as acting FBI Director before moving to the Deputy Attorney General role. When ordered to fire Cox in the Saturday Night Massacre, he refuses without hesitation and resigns — one of the cleaner moments in the whole sordid affair."
+    },
+    'Kelley': {
+        image: '',
+        bio: "Clarence Kelley, the Kansas City police chief, is brought in as permanent FBI Director to restore stability after the chaos of Gray and Ruckelshaus. A career law enforcement professional with no Watergate entanglement, he is as much a symbol of institutional repair as an operational appointment."
+    },
+    'Colby': {
+        image: '',
+        bio: "William Colby, career CIA officer and Vietnam veteran of the agency's most brutal programmes, succeeds Schlesinger as Director. His willingness to open the agency's files to congressional oversight — the so-called Family Jewels — will enrage the intelligence old guard and define the post-Nixon reckoning."
+    },
     'none': {
         image: '',
         bio: "This position currently stands vacant. No individual has yet been appointed to fill the role."
