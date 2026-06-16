@@ -13075,7 +13075,7 @@ const OFFICIALS_ROSTER = {
     },
     'Rockefeller': {
         image: '',
-        bio: "Nelson Rockefeller, the four-term Governor of New York and Nixon's most persistent rival for the Republican establishment's affections, brings a patrician internationalism and a vast personal network to the State Department. Long a force in foreign policy circles — and Kissinger's original patron — he is as comfortable in the corridors of European chancelleries as in domestic politics."
+        bio: "Nelson Rockefeller, the four-term Governor of New York and Nixon's most persistent rival for the Republican establishment's affections, brings a patrician internationalism and a vast personal network to the State Department. Nixon originally offered him Defense; Rocky turned it down and held out for State — and here, in this telling, he gets it. Long a force in foreign policy circles and Kissinger's original patron, he is as comfortable in European chancelleries as in domestic politics."
     },
     'Haig': {
         image: '',
