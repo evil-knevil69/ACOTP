@@ -13073,6 +13073,10 @@ const OFFICIALS_ROSTER = {
         image: '',
         bio: "L. Patrick Gray serves as Acting FBI Director following J. Edgar Hoover's death, a Nixon loyalist without the institutional standing to resist White House pressure. His cooperation with the cover-up will eventually seal his own criminal fate."
     },
+    'Rockefeller': {
+        image: '',
+        bio: "Nelson Rockefeller, the four-term Governor of New York and Nixon's most persistent rival for the Republican establishment's affections, brings a patrician internationalism and a vast personal network to the State Department. Long a force in foreign policy circles — and Kissinger's original patron — he is as comfortable in the corridors of European chancelleries as in domestic politics."
+    },
     'Haig': {
         image: '',
         bio: "Alexander Haig serves as Kissinger's deputy at the NSC, a hard-driving Army general who bridges the military and the White House with unsentimental efficiency. In a counterfactual promotion he steps into the national security advisor role, bringing a soldier's instinct for chain of command to the most sensitive diplomatic levers of the Nixon presidency."
