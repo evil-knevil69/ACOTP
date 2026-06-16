@@ -2773,6 +2773,8 @@ function setupMusicPlayer() {
 
     // Button events
 playBtn.addEventListener('click', () => {
+        // Stop any playing national anthem and restore main audio before toggling play/pause
+        if (window.__activeAnthemStop) { window.__activeAnthemStop(false); audio.muted = false; }
         if (playbackState !== 'pause') {
             audio.pause();
             playbackState = 'pause';
