@@ -13041,9 +13041,18 @@ function openEnemiesPanel(questions) {
 }
 
 // ── Officials panel data ──────────────────────────────────────────────────────
-// Maps person name -> { image, bio }.  image is '' until a URL is supplied.
+// Maps person name -> { image, bio, roles }.  image is '' until a URL is supplied.
 // When a position variable changes (e.g. ChiefOfStaff = 'Haig'), re-opening
 // the panel will automatically show the new occupant.
+//
+// A person can hold different posts over the course of the game (Kissinger as
+// NSA then also Secretary of State; Haig as NSA then Chief of Staff; Rogers as
+// State then Special Prosecutor). `bio` is their default/primary-post text.
+// `roles` is an optional map of post varName -> bio that OVERRIDES `bio` when
+// they occupy that specific post. Valid post varNames:
+//   ChiefOfStaff, NSA, SOS, SOD, AttorneyGeneral, SP, FBI, CIA
+// Only add a `roles` entry for the secondary posts; the primary one falls
+// through to `bio`, so there's no need to duplicate it.
 const OFFICIALS_ROSTER = {
     'Haldeman': {
         image: '',
@@ -13051,7 +13060,11 @@ const OFFICIALS_ROSTER = {
     },
     'Kissinger': {
         image: '',
-        bio: "Kissinger has used his position at the NSA to usurp the State Department. He maintains control over his own backchannel diplomacy, which bore fruit with the opening of China and détente. Calculating and media-savvy, [b]expect subtle and clever decisions, which become increasingly insubordinate the more he becomes convinced of his indispensibility.[/b]"
+        // Default/primary post: National Security Advisor.
+        bio: "Kissinger has used his position at the NSA to usurp the State Department. He maintains control over his own backchannel diplomacy, which bore fruit with the opening of China and détente. Calculating and media-savvy, [b]expect subtle and clever decisions, which become increasingly insubordinate the more he becomes convinced of his indispensibility.[/b]",
+        roles: {
+            SOS: "With both State and the NSC now in his grip, Kissinger holds more control over foreign policy than any official since the war. The backchannels are now the front door. [b]Expect bold, unilateral diplomacy and even less tolerance for dissent — the one rival who could once check him down the hall is gone.[/b]"
+        }
     },
     'Rogers': {
         image: '',
@@ -13311,6 +13324,10 @@ function openOfficialsPanel(questions) {
         const person = OFFICIALS_VARS[varName] ? OFFICIALS_VARS[varName]() : null;
         const data = OFFICIALS_ROSTER[person] || { image: '', bio: 'No information available.' };
         const isVacant = (person === 'none' || person == null);
+        // A person may hold different posts over the game (e.g. Kissinger as NSA
+        // then SOS, Haig as NSA then ChiefOfStaff). data.roles[varName] gives the
+        // bio specific to the post they currently occupy; data.bio is the default.
+        const bioText = (data.roles && data.roles[varName]) || data.bio || 'No information available.';
 
         const card = document.createElement('div');
         card.className = 'oc-card' + (isVacant ? ' oc-vacant' : '');
@@ -13342,7 +13359,7 @@ function openOfficialsPanel(questions) {
 
         const bioEl = document.createElement('div');
         bioEl.className = 'oc-bio';
-        bioEl.innerHTML = data.bio
+        bioEl.innerHTML = bioText
             .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
             .replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>')
             .replace(/\[p\]([\s\S]*?)\[\/p\]/g, '<p style="margin:4px 0 0;">$1</p>');
