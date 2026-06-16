@@ -15518,7 +15518,6 @@ document.body.appendChild(honk);
     }
 
     const EPS = 8;
-    let _obs;
 
     /* ── Manual label nudges (SVG units from bbox centre) ─────────────────
        Add an entry whenever a label needs repositioning:
@@ -15566,9 +15565,7 @@ document.body.appendChild(honk);
             txt.textContent = abbr;
             frag.appendChild(txt);
         });
-        _obs.disconnect();
         svg.appendChild(frag);
-        _obs.observe(document.body, { childList: true, subtree: true });
     }
 
     function _addLampFilter(svg) {
@@ -15614,8 +15611,7 @@ document.body.appendChild(honk);
         _injectStateLabels();
     }
 
-    _obs = new MutationObserver(_checkAndSimplify);
-    _obs.observe(document.body, { childList: true, subtree: true });
+    window.__onGameWindowMutation(_checkAndSimplify);
 })();
 
 // [JETS_CYOA_CAMPAIGN_DATA_END]
@@ -16245,6 +16241,7 @@ function openWorldMap() {
     // Pan/zoom state
     let tx = 0, ty = 0, scale = 0.55;
     let applyT = () => {};
+    let _cachedVW = 989, _cachedVH = 581;
     let allegiance = _wmAllegiance;
     let nightOn = _wmNightOn;
     let sigintOn = _wmSigintOn;
@@ -16668,16 +16665,16 @@ function openWorldMap() {
             viewport.appendChild(flagSvgEl);
 
             // Centre the SVG in the viewport on first load
-            const vw = viewport.clientWidth || 989;
-            const vh = viewport.clientHeight || 581;
-            tx = Math.round((vw - 1800 * scale) / 2);
-            ty = Math.round((vh - 900 * scale) / 2);
+            _cachedVW = viewport.clientWidth  || 989;
+            _cachedVH = viewport.clientHeight || 581;
+            tx = Math.round((_cachedVW - 1800 * scale) / 2);
+            ty = Math.round((_cachedVH -  900 * scale) / 2);
 
             applyT = () => {
                 const W  = 1800 * scale;
                 const H  = 900  * scale;
-                const vw = viewport.clientWidth  || 989;
-                const vh = viewport.clientHeight || 581;
+                const vw = _cachedVW;
+                const vh = _cachedVH;
                 // Horizontal wrap: map loops east-west
                 while (tx > vw)      tx -= W;
                 while (tx + W < 0)   tx += W;
@@ -16692,7 +16689,7 @@ function openWorldMap() {
 
                 // Sync scrollbar thumbs
                 if (vScrollTrack && hScrollTrack) {
-                    const trackH = vScrollTrack.clientHeight || vh;
+                    const trackH = _cachedVH;
                     if (H > vh) {
                         vScrollTrack.style.display = '';
                         const thumbH = Math.max(20, Math.round(vh / H * trackH));
@@ -16703,7 +16700,7 @@ function openWorldMap() {
                         vScrollTrack.style.display = 'none';
                     }
 
-                    const trackW = hScrollTrack.clientWidth || vw;
+                    const trackW = _cachedVW - 12;
                     if (W > vw) {
                         hScrollTrack.style.display = '';
                         const thumbW = Math.max(20, Math.round(vw / W * trackW));
@@ -18592,7 +18589,18 @@ function openWorldMap() {
             hScrollThumb.style.cssText = 'position:absolute;top:0;height:12px;background:rgba(200,200,200,0.65);border-radius:6px;cursor:pointer;min-width:20px;';
             hScrollTrack.appendChild(hScrollThumb);
             viewport.appendChild(hScrollTrack);
+            _cachedVW = viewport.clientWidth  || 989;
+            _cachedVH = viewport.clientHeight || 581;
             applyT(); // sync thumb positions now that elements exist
+            if (window.ResizeObserver) {
+                const _ro = new ResizeObserver(() => {
+                    _cachedVW = viewport.clientWidth  || 989;
+                    _cachedVH = viewport.clientHeight || 581;
+                    applyT();
+                });
+                _ro.observe(viewport);
+                mapCleanup.push(() => _ro.disconnect());
+            }
 
             // Vertical scrollbar drag
             let vDrag = false, vDragY = 0, vDragTy = 0;
