@@ -13068,7 +13068,11 @@ const OFFICIALS_ROSTER = {
     },
     'Rogers': {
         image: '',
-        bio: "One of your oldest comrades, you once walked the streets together all night working out the Checkers Speech. You chose Rogers for State because he was loyal, and uninterested in foreign policy. Under him, State has been sidelined in favor of centralising decision making inside the White House. [p][b]With Rogers in post, expect more control over foreign policy decisions[/b][/p]."
+        // Default/primary post: Secretary of State.
+        bio: "One of your oldest comrades, you once walked the streets together all night working out the Checkers Speech. You chose Rogers for State because he was loyal, and uninterested in foreign policy. Under him, State has been sidelined in favor of centralising decision making inside the White House. [p][b]With Rogers in post, expect more control over foreign policy decisions[/b][/p].",
+        roles: {
+            SP: ""   // TODO: Rogers as Special Prosecutor
+        }
     },
     'Laird': {
         image: '',
@@ -13092,7 +13096,11 @@ const OFFICIALS_ROSTER = {
     },
     'Haig': {
         image: '',
-        bio: "Alexander Haig came 214th out of 310 at West Point. Yet, he plays the bureaucratic game as a natural, while presenting a facade of unsentimental military efficiency. [p][b]Stepping up as National Security Advisor, expect more hawkish advice without Kissinger's intellectual ferocity and possibly, the masking of dissenting views within the ranks.[/b][/p]"
+        // Default/primary post: National Security Advisor.
+        bio: "Alexander Haig came 214th out of 310 at West Point. Yet, he plays the bureaucratic game as a natural, while presenting a facade of unsentimental military efficiency. [p][b]Stepping up as National Security Advisor, expect more hawkish advice without Kissinger's intellectual ferocity and possibly, the masking of dissenting views within the ranks.[/b][/p]",
+        roles: {
+            ChiefOfStaff: ""   // TODO: Haig as Chief of Staff
+        }
     },
     'Scowcroft': {
         image: '',
@@ -13100,11 +13108,19 @@ const OFFICIALS_ROSTER = {
     },
     'Richardson': {
         image: '',
-        bio: "Elliot Richardson is Nixon's most trusted administrator, capable enough to be moved between the most demanding cabinet posts. His appointment to oversee the Watergate Special Prosecutor will eventually force an impossible choice between loyalty to Nixon and the rule of law — and Richardson will choose the law."
+        // Default/primary post: Secretary of Defense.
+        bio: "Elliot Richardson is Nixon's most trusted administrator, capable enough to be moved between the most demanding cabinet posts. His appointment to oversee the Watergate Special Prosecutor will eventually force an impossible choice between loyalty to Nixon and the rule of law — and Richardson will choose the law.",
+        roles: {
+            AttorneyGeneral: ""   // TODO: Richardson as Attorney General
+        }
     },
     'Schlesinger': {
         image: '',
-        bio: "James Schlesinger is a blunt defence intellectual who overhauls the CIA before moving to the Pentagon. As Secretary of Defense he clashes repeatedly with Kissinger over détente and nuclear policy, and is said to have quietly instructed the military to query any unusual White House orders in Nixon's final days."
+        // Default/primary post: CIA Director.
+        bio: "James Schlesinger is a blunt defence intellectual who overhauls the CIA before moving to the Pentagon. As Secretary of Defense he clashes repeatedly with Kissinger over détente and nuclear policy, and is said to have quietly instructed the military to query any unusual White House orders in Nixon's final days.",
+        roles: {
+            SOD: ""   // TODO: Schlesinger as Secretary of Defense
+        }
     },
     'Saxbe': {
         image: '',
