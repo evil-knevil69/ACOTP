@@ -16223,7 +16223,7 @@ function openWorldMap() {
         _allendeSpeechPlayed = true;
         const allendeTrack = new window.Song(
             'Last Speech', 'Salvador Allende',
-            '', 'ALLENDE_SPEECH_URL_PLACEHOLDER'
+            '', 'https://audio.jukehost.co.uk/019ed31c-9934-7032-afc3-1cba278a45ac'
         );
         window.playlist.addSong(allendeTrack);
         const idx = window.playlist.songs.length - 1;
