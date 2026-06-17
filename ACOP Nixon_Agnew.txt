@@ -15725,6 +15725,89 @@ document.body.appendChild(honk);
     window.__onGameWindowMutation(_checkAndSimplify);
 })();
 
+// ── Asset preloader ───────────────────────────────────────────────────────────
+// Warms the browser cache before the user opens any panel. Critical assets fire
+// immediately; everything else runs during idle time so it doesn't compete with
+// the initial game load. Capital photos (~130) are excluded — too many and
+// loaded on-demand via the world map hover; the browser caches them after first
+// visit. Audio is excluded — handled by the <audio> element itself.
+;(() => {
+    // Tier 1 — needed within the first few seconds of gameplay
+    const _CRITICAL = [
+        'https://file.garden/aXPgNT-ZRCxxpy0g/background.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/typewriterv1.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/feedback2.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif',
+    ];
+
+    // Tier 2 — panel assets, loaded when user opens Inner Circle / world map
+    const _IDLE = [
+        // Event icons (always-on events shown as soon as world map opens)
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Troubles-ezgif.com-optimize.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/0331_vietnam9.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/cambodia.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Laos3.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/rhodesia-ezgif.com-optimize.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9783.jpeg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9784.jpeg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Boat.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/guatemala.jpeg',
+        // Plane visit feedback
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback1.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback2.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback3.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback4.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback5.gif',
+        // Question feedback images
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback2.JPG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback3.PNG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback4.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback5.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback6.JPG',
+        // Organogram / Inner Circle photos
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/nixon.JPG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Haldeman.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/erlichman.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/dean.JPG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/colson.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Chapin.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/krogh.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Strachan.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Segretti.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/hunt.JPG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/liddy2.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/mitchell.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/macgruder.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/LARUE.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Maurice-Stans.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/klambach.JPG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/mccord.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/watergateburglars.JPG',
+        // Tooltip photos
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/kissinger.jpeg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/butz.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/oriana_fallaci.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/portrait-george-romney-39048741.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/melvinlaird.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/moynihan_slideshow.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/arthur-burnscrop.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/JFKpetersenH.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/Eisenhower.jpeg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/voorhis.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/IMG_9593.gif',
+        // Sign images (shown per question)
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk401.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk402.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/PK409.jpg',
+    ];
+
+    const _preload = urls => urls.forEach(src => { const i = new Image(); i.src = src; });
+
+    _preload(_CRITICAL);
+    const _idle = window.requestIdleCallback || (fn => setTimeout(fn, 200));
+    _idle(() => _preload(_IDLE));
+})();
+
 // [JETS_CYOA_CAMPAIGN_DATA_END]
 //#endcode
 
