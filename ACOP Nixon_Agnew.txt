@@ -13064,20 +13064,20 @@ const OFFICIALS_ROSTER = {
         // Default/primary post: National Security Advisor.
         bio: "Kissinger has used his position at the NSA to usurp the State Department. He maintains control over his own backchannel diplomacy, which bore fruit with the opening of China and détente. Calculating and media-savvy, [b]expect subtle and clever decisions, which become increasingly insubordinate the more he becomes convinced of his indispensibility.[/b]",
         roles: {
-            SOS: "With both State and the NSC now in his grip, Kissinger holds more control over foreign policy than any official since the war. The backchannels are now the front door. [b]Expect bold, unilateral diplomacy and even less tolerance for dissent — the one rival who could once check him down the hall is gone.[/b]"
+            SOS: "Kissinger now holds more control over foreign policy than any official since the war. Everywhere you turn, there he is. While you take scotch and soda in your study, he is out with the right people, ruthlessly shaping his public image. [b]Where your goals align, he will be your greatest ally. Where he is forthright, he will use every tactic from the library of history to get the upper hand.[/b]"
         }
     },
     'Rogers': {
         image: '',
         // Default/primary post: Secretary of State.
-        bio: "One of your oldest comrades, you once walked the streets together all night working out the Checkers Speech. You chose Rogers for State because he was loyal, and uninterested in foreign policy. Under him, State has been sidelined in favor of centralising decision making inside the White House. [p][b]With Rogers in post, expect more control over foreign policy decisions[/b][/p].",
+        bio: "One of your oldest comrades, you once walked the streets together all night working out the Checkers Speech. You chose Rogers for State because he was loyal, and uninterested in foreign policy. Under him, State has been sidelined in favor of centralising decision making inside the White House. [p][b]With Rogers in post, expect more direct control over foreign policy decisions[/b][/p].",
         roles: {
-            SP: ""   // TODO: Rogers as Special Prosecutor
+            SP: "Rogers is unfairly depicted as an old crony of yours. He is in fact a respected lawyer and a former Attorney General under Eisenhower. You do not know what to expect from him as special prosecutor, except to hope the blows land more softly than they would otherwise have done." 
         }
     },
     'Laird': {
         image: '',
-        bio: "Melvin Laird serves as Secretary of Defense, overseeing the gradual Vietnamization policy designed to withdraw American troops while preserving South Vietnam. A shrewd congressional veteran, he frequently pushes back against both the White House and the military brass."
+        bio: "Melvin Laird is proud of the successes under his belt, including Vietnamization and getting to the end of the hated draft. Defense spending is likely to fall for the first time in a decade under his administration. A veteran of the House, he has an excellent relationship with Congress and enough standing to push against the military brass and other Departments. Unfortunately he is exhausted and wants to go back into electoral politics as soon as possible."
     },
     'Kleindienst': {
         image: '',
@@ -13085,7 +13085,7 @@ const OFFICIALS_ROSTER = {
     },
     'Helms': {
         image: '',
-        bio: "Richard Helms serves as Director of the CIA, a career intelligence officer who built the agency through the Cold War's darkest operations. He walks a careful line between serving the White House and protecting the CIA from Nixon's more reckless demands."
+        bio: "Richard Helms is a career intelligence officer and relies on the institutional depth of the CIA to stand up to you. You have never got on with him and his streak of independence. [p][b]Helms will want to pursue a more activist approach from the CIA, including domestic spying and will use the Agency's vast network of analysts, operatives and other experts to challenge you if he feels it justified.[/b][/p]"
     },
     'Gray': {
         image: '',
@@ -13093,7 +13093,7 @@ const OFFICIALS_ROSTER = {
     },
     'Rockefeller': {
         image: '',
-        bio: "Nelson Rockefeller, the four-term Governor of New York and Nixon's most persistent rival for the Republican establishment's affections, brings a patrician internationalism and a vast personal network to the State Department. Nixon originally offered him Defense; Rocky turned it down and held out for State — and here, in this telling, he gets it. Long a force in foreign policy circles and Kissinger's original patron, he is as comfortable in European chancelleries as in domestic politics."
+        bio: "Nelson Rockefeller, the four-term Governor of New York and fading star of the Republican party. He has long had Nixon's most persistent rival for the Republican establishment's affections, brings a patrician internationalism and a vast personal network to the State Department. Nixon originally offered him Defense; Rocky turned it down and held out for State — and here, in this telling, he gets it. Long a force in foreign policy circles and Kissinger's original patron, he is as comfortable in European chancelleries as in domestic politics."
     },
     'Haig': {
         image: '',
