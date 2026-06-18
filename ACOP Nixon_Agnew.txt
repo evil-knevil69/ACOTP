@@ -13143,6 +13143,18 @@ const OFFICIALS_ROSTER = {
         image: '',
         bio: "Clarence Kelley, the Kansas City police chief, is brought in as permanent FBI Director to restore stability after the chaos of Gray and Ruckelshaus. A career law enforcement professional with no Watergate entanglement, he is as much a symbol of institutional repair as an operational appointment."
     },
+    'Sullivan': {
+        image: '',
+        bio: "William Sullivan ran the FBI's Intelligence Division for a decade and is the architect of COINTELPRO. He's a hardline anti-communist who cultivated White House ties and fell out with Hoover before his death. [p][b]He will give you more operational control over the Bureau than any other candidate — but his baggage is considerable, and career FBI men will never fully accept an insider who went outside.[/b][/p]"
+    },
+    'Wilson': {
+        image: '',
+        bio: "Jerry Wilson reformed the Washington DC Metropolitan Police from the inside and earned a national reputation as a moderniser. An outsider to the FBI's institutional culture, which is precisely the point. [p][b]He brings credibility with the public and none of Hoover's ghosts — but career Bureau men will regard him as an interloper, and managing the FBI's entrenched hierarchy will be his first and hardest test.[/b][/p]"
+    },
+    'Felt': {
+        image: '',
+        bio: "Mark Felt is the FBI's Associate Director and the anointed heir of the Hoover machine. He expected this job. Being passed over for the loyalist Gray has left a wound that will not close — and someone inside the Bureau is already feeding the Washington Post. [p][b]Appointing Felt means dealing with the old guard on their own terms. He knows where every body is buried. That cuts both ways.[/b][/p]"
+    },
     'Colby': {
         image: '',
         bio: "William Colby, career CIA officer and Vietnam veteran of the agency's most brutal programmes, succeeds Schlesinger as Director. His willingness to open the agency's files to congressional oversight — the so-called Family Jewels — will enrage the intelligence old guard and define the post-Nixon reckoning."
