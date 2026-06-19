@@ -12014,6 +12014,7 @@ var RelationswiththeSoviets = 5;
 var Economy = 7;
 var MentalState = 0;
 var ApprovalRating = 62;
+var MediaRelations = 5;
 var CongressionalSupport = 6;
 var RepublicanSupport = 9;
 var MEPeace = 0;
@@ -13041,9 +13042,18 @@ function openEnemiesPanel(questions) {
 }
 
 // ── Officials panel data ──────────────────────────────────────────────────────
-// Maps person name -> { image, bio }.  image is '' until a URL is supplied.
+// Maps person name -> { image, bio, roles }.  image is '' until a URL is supplied.
 // When a position variable changes (e.g. ChiefOfStaff = 'Haig'), re-opening
 // the panel will automatically show the new occupant.
+//
+// A person can hold different posts over the course of the game (Kissinger as
+// NSA then also Secretary of State; Haig as NSA then Chief of Staff; Rogers as
+// State then Special Prosecutor). `bio` is their default/primary-post text.
+// `roles` is an optional map of post varName -> bio that OVERRIDES `bio` when
+// they occupy that specific post. Valid post varNames:
+//   ChiefOfStaff, NSA, SOS, SOD, AttorneyGeneral, SP, FBI, CIA
+// Only add a `roles` entry for the secondary posts; the primary one falls
+// through to `bio`, so there's no need to duplicate it.
 const OFFICIALS_ROSTER = {
     'Haldeman': {
         image: '',
@@ -13051,15 +13061,23 @@ const OFFICIALS_ROSTER = {
     },
     'Kissinger': {
         image: '',
-        bio: "Kissinger has used his position at the NSA to usurp the State Department. He maintains control over his own backchannel diplomacy, which bore fruit with the opening of China and détente. Calculating and media-savvy, [b]expect subtle and clever decisions, which become increasingly insubordinate the more he becomes convinced of his indispensibility.[/b]"
+        // Default/primary post: National Security Advisor.
+        bio: "Kissinger has used his position at the NSA to usurp the State Department. He maintains control over his own backchannel diplomacy, which bore fruit with the opening of China and détente. Calculating and media-savvy, [b]expect subtle and clever decisions, which become increasingly insubordinate the more he becomes convinced of his indispensibility.[/b]",
+        roles: {
+            SOS: "Kissinger now holds more control over foreign policy than any official since the war. Everywhere you turn, there he is. While you take scotch and soda in your study, he is out with the right people, ruthlessly shaping his public image. [b]Where your goals align, he will be your greatest ally. Where he is forthright, he will use every tactic from the library of history to get the upper hand.[/b]"
+        }
     },
     'Rogers': {
         image: '',
-        bio: "One of your oldest comrades, you once walked the streets together all night working out the Checkers Speech. You chose Rogers for State because he was loyal, and uninterested in foreign policy. Under him, State has been sidelined in favor of centralising decision making inside the White House. [p][b]With Rogers in post, expect more control over foreign policy decisions[/b][/p]."
+        // Default/primary post: Secretary of State.
+        bio: "One of your oldest comrades, you once walked the streets together all night working out the Checkers Speech. You chose Rogers for State because he was loyal, and uninterested in foreign policy. Under him, State has been sidelined in favor of centralising decision making inside the White House. [p][b]With Rogers in post, expect more direct control over foreign policy decisions[/b][/p].",
+        roles: {
+            SP: "Rogers is unfairly depicted as an old crony of yours. He is in fact a respected lawyer and a former Attorney General under Eisenhower. You do not know what to expect from him as special prosecutor, except to hope the blows land more softly than they would otherwise have done." 
+        }
     },
     'Laird': {
         image: '',
-        bio: "Melvin Laird serves as Secretary of Defense, overseeing the gradual Vietnamization policy designed to withdraw American troops while preserving South Vietnam. A shrewd congressional veteran, he frequently pushes back against both the White House and the military brass."
+        bio: "Melvin Laird is proud of the successes under his belt, including Vietnamization and getting to the end of the hated draft. Defense spending is likely to fall for the first time in a decade under his administration. A veteran of the House, he has an excellent relationship with Congress and enough standing to push against the military brass and other Departments. Unfortunately he is exhausted and wants to go back into electoral politics as soon as possible."
     },
     'Kleindienst': {
         image: '',
@@ -13067,7 +13085,7 @@ const OFFICIALS_ROSTER = {
     },
     'Helms': {
         image: '',
-        bio: "Richard Helms serves as Director of the CIA, a career intelligence officer who built the agency through the Cold War's darkest operations. He walks a careful line between serving the White House and protecting the CIA from Nixon's more reckless demands."
+        bio: "Richard Helms is a career intelligence officer and relies on the institutional depth of the CIA to stand up to you. You have never got on with him and his streak of independence. [p][b]Helms will want to pursue a more activist approach from the CIA, including domestic spying and will use the Agency's vast network of analysts, operatives and other experts to challenge you if he feels it justified.[/b][/p]"
     },
     'Gray': {
         image: '',
@@ -13075,11 +13093,15 @@ const OFFICIALS_ROSTER = {
     },
     'Rockefeller': {
         image: '',
-        bio: "Nelson Rockefeller, the four-term Governor of New York and Nixon's most persistent rival for the Republican establishment's affections, brings a patrician internationalism and a vast personal network to the State Department. Nixon originally offered him Defense; Rocky turned it down and held out for State — and here, in this telling, he gets it. Long a force in foreign policy circles and Kissinger's original patron, he is as comfortable in European chancelleries as in domestic politics."
+        bio: "Nelson Rockefeller, the four-term Governor of New York and fading star of the Republican party. He has long had Nixon's most persistent rival for the Republican establishment's affections, brings a patrician internationalism and a vast personal network to the State Department. Nixon originally offered him Defense; Rocky turned it down and held out for State — and here, in this telling, he gets it. Long a force in foreign policy circles and Kissinger's original patron, he is as comfortable in European chancelleries as in domestic politics."
     },
     'Haig': {
         image: '',
-        bio: "Alexander Haig came 214th out of 310 at West Point. Yet, he plays the bureaucratic game as a natural, while presenting a facade of unsentimental military efficiency. [p][b]Stepping up as National Security Advisor, expect more hawkish advice without Kissinger's intellectual ferocity and possibly, the masking of dissenting views within the ranks.[/b][/p]"
+        // Default/primary post: National Security Advisor.
+        bio: "Alexander Haig came 214th out of 310 at West Point. Yet, he plays the bureaucratic game as a natural, while presenting a facade of unsentimental military efficiency. [p][b]Stepping up as National Security Advisor, expect more hawkish advice without Kissinger's intellectual ferocity and possibly, the masking of dissenting views within the ranks.[/b][/p]",
+        roles: {
+            ChiefOfStaff: ""   // TODO: Haig as Chief of Staff
+        }
     },
     'Scowcroft': {
         image: '',
@@ -13087,11 +13109,19 @@ const OFFICIALS_ROSTER = {
     },
     'Richardson': {
         image: '',
-        bio: "Elliot Richardson is Nixon's most trusted administrator, capable enough to be moved between the most demanding cabinet posts. His appointment to oversee the Watergate Special Prosecutor will eventually force an impossible choice between loyalty to Nixon and the rule of law — and Richardson will choose the law."
+        // Default/primary post: Secretary of Defense.
+        bio: "Elliot Richardson is Nixon's most trusted administrator, capable enough to be moved between the most demanding cabinet posts. His appointment to oversee the Watergate Special Prosecutor will eventually force an impossible choice between loyalty to Nixon and the rule of law — and Richardson will choose the law.",
+        roles: {
+            AttorneyGeneral: ""   // TODO: Richardson as Attorney General
+        }
     },
     'Schlesinger': {
         image: '',
-        bio: "James Schlesinger is a blunt defence intellectual who overhauls the CIA before moving to the Pentagon. As Secretary of Defense he clashes repeatedly with Kissinger over détente and nuclear policy, and is said to have quietly instructed the military to query any unusual White House orders in Nixon's final days."
+        // Default/primary post: CIA Director.
+        bio: "James Schlesinger is a blunt defence intellectual who overhauls the CIA before moving to the Pentagon. As Secretary of Defense he clashes repeatedly with Kissinger over détente and nuclear policy, and is said to have quietly instructed the military to query any unusual White House orders in Nixon's final days.",
+        roles: {
+            SOD: ""   // TODO: Schlesinger as Secretary of Defense
+        }
     },
     'Saxbe': {
         image: '',
@@ -13112,6 +13142,18 @@ const OFFICIALS_ROSTER = {
     'Kelley': {
         image: '',
         bio: "Clarence Kelley, the Kansas City police chief, is brought in as permanent FBI Director to restore stability after the chaos of Gray and Ruckelshaus. A career law enforcement professional with no Watergate entanglement, he is as much a symbol of institutional repair as an operational appointment."
+    },
+    'Sullivan': {
+        image: '',
+        bio: "William Sullivan ran the FBI's Intelligence Division for a decade and is the architect of COINTELPRO. He's a hardline anti-communist who cultivated White House ties and fell out with Hoover before his death. [p][b]He will give you more operational control over the Bureau than any other candidate — but his baggage is considerable, and career FBI men will never fully accept an insider who went outside.[/b][/p]"
+    },
+    'Wilson': {
+        image: '',
+        bio: "Jerry Wilson reformed the Washington DC Metropolitan Police from the inside and earned a national reputation as a moderniser. An outsider to the FBI's institutional culture, which is precisely the point. [p][b]He brings credibility with the public and none of Hoover's ghosts — but career Bureau men will regard him as an interloper, and managing the FBI's entrenched hierarchy will be his first and hardest test.[/b][/p]"
+    },
+    'Felt': {
+        image: '',
+        bio: "Mark Felt is the FBI's Associate Director and the anointed heir of the Hoover machine. He expected this job. Being passed over for the loyalist Gray has left a wound that will not close — and someone inside the Bureau is already feeding the Washington Post. [p][b]Appointing Felt means dealing with the old guard on their own terms. He knows where every body is buried. That cuts both ways.[/b][/p]"
     },
     'Colby': {
         image: '',
@@ -13311,6 +13353,10 @@ function openOfficialsPanel(questions) {
         const person = OFFICIALS_VARS[varName] ? OFFICIALS_VARS[varName]() : null;
         const data = OFFICIALS_ROSTER[person] || { image: '', bio: 'No information available.' };
         const isVacant = (person === 'none' || person == null);
+        // A person may hold different posts over the game (e.g. Kissinger as NSA
+        // then SOS, Haig as NSA then ChiefOfStaff). data.roles[varName] gives the
+        // bio specific to the post they currently occupy; data.bio is the default.
+        const bioText = (data.roles && data.roles[varName]) || data.bio || 'No information available.';
 
         const card = document.createElement('div');
         card.className = 'oc-card' + (isVacant ? ' oc-vacant' : '');
@@ -13342,7 +13388,10 @@ function openOfficialsPanel(questions) {
 
         const bioEl = document.createElement('div');
         bioEl.className = 'oc-bio';
-        bioEl.textContent = data.bio;
+        bioEl.innerHTML = bioText
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>')
+            .replace(/\[p\]([\s\S]*?)\[\/p\]/g, '<p style="margin:4px 0 0;">$1</p>');
         card.appendChild(bioEl);
 
         return card;
@@ -15277,6 +15326,7 @@ document.body.appendChild(honk);
         {
             getValue: () => ApprovalRating,
             label: 'Public Approval Rating',
+            suffix: '%',
             tiers: [
                 [40,       "Honk for impeachment", "#c0392b"],
                 [60,       "Indifference",          "#555555"],
@@ -15311,6 +15361,17 @@ document.body.appendChild(honk);
             ],
         },
         {
+            getValue: () => MediaRelations,
+            label: 'Media Relations',
+            prefix: 'they are',
+            tiers: [
+                [3,        "gouging us with a blade",           "#c0392b"],
+                [6,        "trying to screw us",                "#e18f0b"],
+                [8,        "looking at me with a proctoscope",  "#555555"],
+                [Infinity, "indifferent",                       "#1a7340"],
+            ],
+        },
+        {
             getValue: () => LawandOrder,
             label: 'The State on the Streets',
             tiers: [
@@ -15334,11 +15395,11 @@ document.body.appendChild(honk);
     /* ── Render ── */
     function _buildNation() {
         let h = `<p class="fd-head">State of the Nation</p>`;
-        for (const { getValue, label, tiers } of _STATS) {
+        for (const { getValue, label, tiers, prefix, suffix } of _STATS) {
             const v = Number(getValue?.()) || 0;
             const [text, color] = _matchTier(v, tiers);
             h += `<div class="fd-entry"><span class="fd-entry-label">${label}: </span>`;
-            h += `<span class="fd-entry-body">${_bold(text, color)} (${v})</span></div>`;
+            h += `<span class="fd-entry-body">${prefix ? prefix + ' ' : ''}${_bold(text, color)} (${v}${suffix || ''})</span></div>`;
         }
         return h;
     }
@@ -15674,6 +15735,89 @@ document.body.appendChild(honk);
     }
 
     window.__onGameWindowMutation(_checkAndSimplify);
+})();
+
+// ── Asset preloader ───────────────────────────────────────────────────────────
+// Warms the browser cache before the user opens any panel. Critical assets fire
+// immediately; everything else runs during idle time so it doesn't compete with
+// the initial game load. Capital photos (~130) are excluded — too many and
+// loaded on-demand via the world map hover; the browser caches them after first
+// visit. Audio is excluded — handled by the <audio> element itself.
+;(() => {
+    // Tier 1 — needed within the first few seconds of gameplay
+    const _CRITICAL = [
+        'https://file.garden/aXPgNT-ZRCxxpy0g/background.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/typewriterv1.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/feedback2.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif',
+    ];
+
+    // Tier 2 — panel assets, loaded when user opens Inner Circle / world map
+    const _IDLE = [
+        // Event icons (always-on events shown as soon as world map opens)
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Troubles-ezgif.com-optimize.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/0331_vietnam9.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/cambodia.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Laos3.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/rhodesia-ezgif.com-optimize.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9783.jpeg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9784.jpeg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Boat.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/guatemala.jpeg',
+        // Plane visit feedback
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback1.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback2.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback3.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback4.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback5.gif',
+        // Question feedback images
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback2.JPG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback3.PNG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback4.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback5.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback6.JPG',
+        // Organogram / Inner Circle photos
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/nixon.JPG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Haldeman.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/erlichman.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/dean.JPG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/colson.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Chapin.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/krogh.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Strachan.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Segretti.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/hunt.JPG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/liddy2.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/mitchell.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/macgruder.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/LARUE.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Maurice-Stans.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/klambach.JPG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/mccord.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/watergateburglars.JPG',
+        // Tooltip photos
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/kissinger.jpeg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/butz.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/oriana_fallaci.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/portrait-george-romney-39048741.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/melvinlaird.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/moynihan_slideshow.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/arthur-burnscrop.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/JFKpetersenH.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/Eisenhower.jpeg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/voorhis.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/IMG_9593.gif',
+        // Sign images (shown per question)
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk401.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk402.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/PK409.jpg',
+    ];
+
+    const _preload = urls => urls.forEach(src => { const i = new Image(); i.src = src; });
+
+    _preload(_CRITICAL);
+    const _idle = window.requestIdleCallback || (fn => setTimeout(fn, 200));
+    _idle(() => _preload(_IDLE));
 })();
 
 // [JETS_CYOA_CAMPAIGN_DATA_END]
@@ -16174,7 +16318,7 @@ function openWorldMap() {
         _allendeSpeechPlayed = true;
         const allendeTrack = new window.Song(
             'Last Speech', 'Salvador Allende',
-            '', 'ALLENDE_SPEECH_URL_PLACEHOLDER'
+            '', 'https://audio.jukehost.co.uk/019ed31c-9934-7032-afc3-1cba278a45ac'
         );
         window.playlist.addSong(allendeTrack);
         const idx = window.playlist.songs.length - 1;
@@ -16304,6 +16448,14 @@ function openWorldMap() {
     let tx = 0, ty = 0, scale = 0.55;
     let applyT = () => {};
     let _cachedVW = 989, _cachedVH = 581;
+    // Re-read the viewport's client box into the cache. Called at the distinct
+    // lifecycle moments where it can change: first load, after the scrollbar
+    // tracks are inserted, and on resize. applyT/doZoom/flyTo read the cache
+    // (not live clientWidth) to avoid forced reflows on the pan/zoom hot path.
+    const _refreshDims = () => {
+        _cachedVW = viewport.clientWidth  || 989;
+        _cachedVH = viewport.clientHeight || 581;
+    };
     let allegiance = _wmAllegiance;
     let nightOn = _wmNightOn;
     let sigintOn = _wmSigintOn;
@@ -16727,8 +16879,7 @@ function openWorldMap() {
             viewport.appendChild(flagSvgEl);
 
             // Centre the SVG in the viewport on first load
-            _cachedVW = viewport.clientWidth  || 989;
-            _cachedVH = viewport.clientHeight || 581;
+            _refreshDims();
             tx = Math.round((_cachedVW - 1800 * scale) / 2);
             ty = Math.round((_cachedVH -  900 * scale) / 2);
 
@@ -16762,7 +16913,7 @@ function openWorldMap() {
                         vScrollTrack.style.display = 'none';
                     }
 
-                    const trackW = _cachedVW - 12;
+                    const trackW = _cachedVW - 12; // 12 = vertical scrollbar width (vScrollTrack)
                     if (W > vw) {
                         hScrollTrack.style.display = '';
                         const thumbW = Math.max(20, Math.round(vw / W * trackW));
@@ -18651,13 +18802,11 @@ function openWorldMap() {
             hScrollThumb.style.cssText = 'position:absolute;top:0;height:12px;background:rgba(200,200,200,0.65);border-radius:6px;cursor:pointer;min-width:20px;';
             hScrollTrack.appendChild(hScrollThumb);
             viewport.appendChild(hScrollTrack);
-            _cachedVW = viewport.clientWidth  || 989;
-            _cachedVH = viewport.clientHeight || 581;
+            _refreshDims(); // scrollbar tracks just changed the client box
             applyT(); // sync thumb positions now that elements exist
             if (window.ResizeObserver) {
                 const _ro = new ResizeObserver(() => {
-                    _cachedVW = viewport.clientWidth  || 989;
-                    _cachedVH = viewport.clientHeight || 581;
+                    _refreshDims();
                     applyT();
                 });
                 _ro.observe(viewport);
