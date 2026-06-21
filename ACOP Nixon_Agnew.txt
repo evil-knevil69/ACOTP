@@ -19046,6 +19046,16 @@ function openCIAProfile(code, mapPanel, tooltip, military) {
     });
     bar.appendChild(indexBtn);
 
+    if (military && (code === 'VN' || code === 'VD')) {
+        const vrBtn = document.createElement('button');
+        vrBtn.textContent = 'Vietnam Report';
+        vrBtn.addEventListener('click', () => {
+            iframe.src = PAGES_BASE + '/Milbal/Vietnam%20Report.html';
+            lbl.textContent = 'Vietnam Report — SC-06971/73';
+        });
+        bar.appendChild(vrBtn);
+    }
+
     const lbl = document.createElement('span');
     lbl.textContent = COUNTRY_NAMES[code] || code;
     lbl.style.cssText = 'color:#fff;font-family:TypewriterDry,monospace;font-size:14px;';
