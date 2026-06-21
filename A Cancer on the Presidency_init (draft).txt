@@ -2520,6 +2520,7 @@ function updateUI() {
 let isDragging = false;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
+let _anchorRect = { left: 0, top: 0 }; // cached on mousedown; #player-anchor is fixed at 0,0 and doesn't move mid-drag
 let tapeRecorder;
 let playerAnchor;
 
@@ -2772,6 +2773,8 @@ function setupMusicPlayer() {
 
     // Button events
 playBtn.addEventListener('click', () => {
+        // Stop any playing national anthem and restore main audio before toggling play/pause
+        if (window.__activeAnthemStop) { window.__activeAnthemStop(false); audio.muted = false; }
         if (playbackState !== 'pause') {
             audio.pause();
             playbackState = 'pause';
@@ -2886,6 +2889,7 @@ playBtn.addEventListener('click', () => {
         const recRect = tapeRecorder.getBoundingClientRect();
         dragOffsetX = e.clientX - recRect.left;
         dragOffsetY = e.clientY - recRect.top;
+        _anchorRect = playerAnchor.getBoundingClientRect();
         tapeRecorder.style.cursor = 'grabbing';
         e.preventDefault();
     });
@@ -2937,9 +2941,8 @@ playBtn.addEventListener('click', () => {
 
 document.addEventListener('mousemove', (e) => {
     if (!isDragging) return;
-    const anchorRect = playerAnchor.getBoundingClientRect();
-    const newX = e.clientX - anchorRect.left - dragOffsetX;
-    const newY = e.clientY - anchorRect.top - dragOffsetY;
+    const newX = e.clientX - _anchorRect.left - dragOffsetX;
+    const newY = e.clientY - _anchorRect.top - dragOffsetY;
     tapeRecorder.style.left = newX + 'px';
     tapeRecorder.style.top = newY + 'px';
 });

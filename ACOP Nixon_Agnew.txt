@@ -12014,8 +12014,11 @@ var RelationswiththeSoviets = 5;
 var Economy = 7;
 var MentalState = 0;
 var ApprovalRating = 62;
+var MediaRelations = 5;
 var CongressionalSupport = 6;
 var RepublicanSupport = 9;
+var MEPeace = 0;
+
 // ── WORLD EVENTS ─────────────────────────────────────────────────────────────
 // To add a new event:
 //   1. Declare its variable here  (1 = showing, 0 = hidden, 3 = crossed out)
@@ -12026,9 +12029,7 @@ var chad           = 1;  // Chadian Civil War
 var khmer          = 1;  // Cambodia: 1 = Civil War, 2 = Khmer Rouge / Year Zero (set via question onShow)
 var laos           = 1;  // Laos: 1 = Civil War, 2 = Pathet Lao takeover (set via question onShow)
 var eritrea        = 1;  // Eritrean War of Independence
-var managua        = 1;  // Managua Earthquake — DEMO: starts active so the 3-turn
-                         // lifespan is visible from question 1; set back to 0 and
-                         // trigger via a question onShow once wired to the story
+var managua        = 0;  // Managua Earthquake — triggered by the Dec 23 1972 question onShow
 var cyprusInvasion = 0;  // Turkish Invasion of Cyprus (triggered by question onShow)
 var guatemalaQuake = 0;  // 1976 Guatemalan Earthquake (triggered by question onShow)
 var tangshan       = 0;  // 1976 Tangshan Earthquake   (triggered by question onShow)
@@ -12049,6 +12050,9 @@ var argentineCoup      = 0;  // Argentine Coup               (triggered by quest
 var northYemenCoup     = 0;  // 1974 North Yemen Coup        (triggered by question onShow)
 var oromoUprising      = 0;  // Oromo Uprising               (triggered by question onShow)
 var sahrawiInsurgency  = 0;  // Sahrawi Insurgency           (triggered by question onShow)
+var yomKippurGolan     = 0;  // Yom Kippur War — Golan Heights front (triggered by question onShow)
+var yomKippurSuez      = 0;  // Yom Kippur War — Suez Canal front    (triggered by question onShow)
+var smilingBuddha      = 0;  // Indian nuclear test 'Smiling Buddha' May 1974 (triggered by question onShow)
 var _allendeSpeechPlayed = false; // Easter egg: Allende's last speech plays once on first world map open after coup
 
 // ── EVENT DEFINITIONS ────────────────────────────────────────────────────────
@@ -12061,7 +12065,7 @@ const _EVENT_DEFS = [
         id: 'ni-troubles',
         continent: 'Europe',
         type: 'insurgency',
-        label: 'The Troubles — Northern Ireland',
+        label: 'The Troubles',
         img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Troubles-ezgif.com-optimize.gif',
         body: 'Rooted in the 1921 partition and systematic discrimination against the Catholic minority under Protestant rule. Civil unrest from 1969 escalated into armed conflict by both sides. British forces killed 14 unarmed civilians on Bloody Sunday, 30 January 1972, sharply accelerating IRA recruitment. Westminster assumed direct rule of the province in March 1972. The security situation is deteriorating.',
         positionFn: (s) => {
@@ -12077,8 +12081,8 @@ const _EVENT_DEFS = [
         continent: 'Asia',
         type: 'war',
         label: 'Vietnam War',
-        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/0331_vietnam9.jpg',
-        body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. The political cost at home continues to mount.',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9788.jpg',
+        body: 'America\'s longest war. US ground forces have been replaced by South Vietnamese troops under Vietnamization, but fighting continues across Indochina. It remains the key psychological inflection point in US history, and the turn to paranoia, cynicism and polarisation runs through the dividing lines of this conflict',
         country: 'VD',
         positionOffset: { x: 12, y: 25 },
         state: () => 1, // TEMP: was () => (typeof Vietnam !== 'undefined') && Vietnam <= 7 ? 1 : 3
@@ -12102,7 +12106,7 @@ const _EVENT_DEFS = [
         type: 'crisis',
         label: 'Khmer Rouge — Year Zero',
         img: null,
-        body: 'On 17 April 1975 the Khmer Rouge entered Phnom Penh, ending the civil war. Pol Pot\'s regime emptied the cities at gunpoint, abolished money and proclaimed "Year Zero". What follows is one of the worst genocides of the century: as much as a quarter of Cambodia\'s population will die in the killing fields. Washington, having backed Lon Nol, looks away.',
+        body: 'On 17 April 1975 the Khmer Rouge entered Phnom Penh. The insurgents did not smile and they did not celebrate amongst the crowds lining the streets to meet them. It was Year Zero on day one. By the afternoon, the city was being emptied by bullhorn and at gunpoint. The killing fields yawned open. The US looks away, while trying to exploit the wedge between the North Vietnamese and their erstwhile allies driven by Khmer chauvinism.',
         country: 'KH',
         positionOffset: { x: -10, y: -12 },
         state: () => khmer >= 2 ? 1 : 0,
@@ -12134,8 +12138,8 @@ const _EVENT_DEFS = [
         continent: 'North America',
         type: 'disaster',
         label: 'Managua Earthquake',
-        img: null, // TODO: e.g. 'https://file.garden/.../managua.jpg'
-        body: 'A 6.2-magnitude earthquake struck the Nicaraguan capital on December 23, 1972, killing over 10,000 and levelled much of the city centre.',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9817.jpeg',
+        body: 'A 6.2-magnitude earthquake struck the Nicaraguan capital on December 23, 1972, killing over 10,000 and levelling much of the city centre.',
         country: 'CR', // SVG id 'CR' is the northern shape = physical Nicaragua (ids swapped vs geography)
         positionOffset: { x: -12, y: -13 },
         // ── EVENT LIFESPAN worked example ──
@@ -12185,7 +12189,7 @@ const _EVENT_DEFS = [
         id: 'guatemala-quake',
         continent: 'North America',
         type: 'disaster',
-        label: '1976 Guatemalan Earthquake',
+        label: 'Guatemalan Earthquake',
         img: null,
         body: 'In the early hours of February 4th 1976, a magnitude 7.5 earthquake struck Guatemala, killing more than 23,000 people and leaving over a million homeless. Striking while the country slept, it devastated highland towns and shanty districts of Guatemala City alike.',
         country: 'GT',
@@ -12229,8 +12233,8 @@ const _EVENT_DEFS = [
         id: 'tangshan-quake',
         continent: 'Asia',
         type: 'disaster',
-        label: '1976 Tangshan Earthquake',
-        img: null,
+        label: 'Tangshan Earthquake',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9812.jpeg',
         body: 'A magnitude 7.6 earthquake struck the industrial city of Tangshan in northern China at 3:42 in the morning, killing an estimated 240,000 people. The city was almost completely levelled. Beijing refused all offers of foreign aid, and the CIA struggled to get any meaningful intelligence behind a Great Wall of deliberate concealment.',
         country: 'CN',
         positionOffset: { x: 66, y: -48 },
@@ -12263,7 +12267,7 @@ const _EVENT_DEFS = [
         continent: 'Africa',
         type: 'coup',
         label: 'Rwandan Coup',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/rwanda.jpg',
         body: 'Led by Major General Juvénal Habyarimana, deposing Rwanda\'s first elected president, Grégoire Kayibanda, and installing a Hutu-dominated totalitarian state. The new regime clamps down on intra-Hutu rivalry at the expense of the marginalised Tutsi minority, laying the structural foundations for the Rwandan genocide after Habyarimana\'s assassination in 1994.',
         country: 'RW',
         positionOffset: { x: -12, y: -13 },
@@ -12285,7 +12289,7 @@ const _EVENT_DEFS = [
         continent: 'Africa',
         type: 'coup',
         label: 'Nigerien Coup',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/niger.png',
         body: '15 April 1974. Lieutenant-Colonel Seyni Kountché led a military coup that ended the fourteen-year rule of President Diori. The army effectively distributes food aid hoarded by Diori to a population reeling from a 6 year long drought, winning much popular support.',
         country: 'NE',
         positionOffset: { x: -41, y: 9 },
@@ -12296,7 +12300,7 @@ const _EVENT_DEFS = [
         continent: 'Europe',
         type: 'coup',
         label: 'The Greek \'corrective revolution\'',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/ioannidis_1698362c.jpg',
         body: 'Brigadier Dimitrios Ioannidis, head of the military police, has overthrown George Papadopoulos in a palace coup. Papadopoulos had been cautiously liberalising the regime but Ioannidis wants to tear off the mask, enforcing an ultra nationalist, reactionary regime with torture, mass imprisonment and pervasive censorship. The social base of the Regime of the Colonels grows ever narrower.',
         country: 'GR',
         positionOffset: { x: -22, y: -22 },
@@ -12307,8 +12311,8 @@ const _EVENT_DEFS = [
         continent: 'Africa',
         type: 'insurgency',
         label: 'The Ethiopian Revolution',
-        img: null,
-        body: 'Ethiopia, one of the world\'s oldest nations, may be entering the first modern example of a polycrisis. War in Eritrea, ethnic conflict, famine in the Wollo, peasant uprisings against all of the above and against the anachronistic feudalism of Emperor Haile Selassie. Students burning down campuses and a demoralised and underpaid army, now turning openly to mutiny.',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/student-protests.jpg',
+        body: 'Ethiopia, one of the world\'s oldest nations, may be entering the first modern example of a polycrisis. War in Eritrea, ethnic conflict, famine in the Wollo, peasant uprisings against all of the above and against the anachronistic feudalism of Emperor Haile Selassie. Students are burning down campuses and a demoralised and underpaid army, now turning openly to mutiny.',
         country: 'ET',
         positionOffset: { x: -2, y: 17 },
         state: () => ethiopianRevolution,
@@ -12318,7 +12322,7 @@ const _EVENT_DEFS = [
         continent: 'Africa',
         type: 'coup',
         label: 'The Coup of the Derg',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/derg.jpg',
         body: 'Taking advantage of the collapsing legitimacy of the Ethiopian Empire, a group of junior officers place Haile Selassie under palace arrest. \'The Committee\', aka the Derg, create a Marxist dictatorship that turns in on itself, initiating a Red Terror akin to its Soviet and Stalinist namesakes.',
         country: 'ET',
         positionOffset: { x: -21, y: -6 },
@@ -12329,7 +12333,7 @@ const _EVENT_DEFS = [
         continent: 'South America',
         type: 'coup',
         label: 'The Uruguayan Self-Coup',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/uruguay.jpg',
         body: 'President Juan María Bordaberry dissolves parliament with military backing, banning political parties, trade unions and the press. The objective is the elimination of the left. Uruguay\'s democratic traditions are shredded and torture becomes institutionalised. The CIA raises no objection. After all, Uruguay is a founding member of Operation Condor.',
         country: 'UY',
         positionOffset: { x: -10, y: -5 },
@@ -12362,7 +12366,7 @@ const _EVENT_DEFS = [
         continent: 'South America',
         type: 'coup',
         label: 'Tacnazo — The Coup in Peru',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Tacnazo_de_1975.jpg',
         body: 'A general overthrows a general. The ailing President Velasco is overthrown by General Morales Bermúdez. The \'developmentalist\' Peruvian Revolution takes a right turn, stalling social and economic reforms. The other good news is that Peru becomes a fully fledged member of the Condor club.',
         country: 'PE',
         positionOffset: { x: -16, y: 4 },
@@ -12373,7 +12377,7 @@ const _EVENT_DEFS = [
         continent: 'South America',
         type: 'coup',
         label: 'The Argentine Coup',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/argentina.jpg',
         body: 'A rampaging military junta takes power, weakly grasped, from Isabel \'Isabelita\' Peron, Juan Peron\'s widow. Argentina is already roiling from the Dirty War, which now becomes fully institutionalised: more than 300 concentration camps sprout like grass in the Pampas. The Department of State aids and abets the generals in their struggle against communism.',
         country: 'AR',
         positionOffset: { x: 8, y: -36 },
@@ -12395,7 +12399,7 @@ const _EVENT_DEFS = [
         continent: 'Africa',
         type: 'insurgency',
         label: 'Oromo Uprising',
-        img: null,
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/500px-Flag_of_the_Oromo_Liberation_Front.svg.png',
         body: 'Ethiopia\'s largest ethnic group rises in armed resistance against centuries of subjugation. The Oromo Liberation Front, founded as the empire fractures, demands recognition, land and self-determination.',
         country: 'ET',
         positionOffset: { x: -18, y: 18 },
@@ -12406,8 +12410,8 @@ const _EVENT_DEFS = [
         continent: 'Africa',
         type: 'insurgency',
         label: 'Sahrawi Insurgency',
-        img: null,
-        body: 'Spain\'s Saharan colony is slipping from its grasp as the Franco regime enters its death throes. The Polisario Front fights for Sahrawi self-determination, but Morocco\'s King Hassan II has designs on the territory and Algeria is watching. When Hassan sends 350,000 civilians marching across the border in the \'Green March\', Spain folds and the Polisario are left fighting Moroccan and Mauritanian annexation across open desert. One of the last decolonisation struggles, almost entirely ignored by Washington.',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/western-sahara-war-740980bd-9326-4d1b-968f-5e6217cff16-resize-750.jpeg',
+        body: 'Spain\'s Saharan colony is slipping from its grasp and becoming an object for contestation between Morocco, Algeria and the people actually living there. The Polisario Front fights for Sahrawi self-determination, but Morocco\'s King Hassan II sends 350,000 civilians marching across the border in the \'Green March\'. One of the last decolonisation struggles, almost entirely ignored by Washington.',
         country: 'MA',
         positionOffset: { x: -46, y: 23 },
         state: () => sahrawiInsurgency,
@@ -12422,6 +12426,39 @@ const _EVENT_DEFS = [
         country: 'NE',
         positionOffset: { x: 0, y: 6 },
         state: () => 1,
+    },
+    {
+        id: 'yom-kippur-golan',
+        continent: 'Asia',
+        type: 'war',
+        label: ' October (Yom Kippur) War: Syria',
+        img: null,
+        body: 'On 6 October, Yom Kippur, the Jewish Day of Atonement, Syria launched a massive armoured assault across the Purple Line into the Golan Heights, initially overwhelming Israeli defences but getting bogged down in the rocky \'tells\' of the northern Golan and pinned down by masterfully deployed Israeli firepower.',
+        country: 'SY',
+        positionOffset: { x: -30, y: 18 },
+        state: () => yomKippurGolan,
+    },
+    {
+        id: 'yom-kippur-suez',
+        continent: 'Africa',
+        type: 'war',
+        label: 'Yom Kippur War: the Sinai',
+        img: null,
+        body: 'Simultaneously with the Syrian assault, Egypt\'s Second and Third Armies crossed the Suez Canal in overwhelming force, breaching the 75ft tall Bar-Lev Line with firehoses and forcing a retreat by the IDF. The goal is the recapture of the Sinai penninsula lost in the Six Day War.  Regardless of the final outcome, the myths of Israeli invincibility, and of Arab incompetence, are shattered for ever.',
+        country: 'EG',
+        positionOffset: { x: 28, y: -22 },
+        state: () => yomKippurSuez,
+    },
+    {
+        id: 'smiling-buddha',
+        continent: 'Asia',
+        type: 'nuclear',
+        label: 'Smiling Buddha — Indian Nuclear Test',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9853.jpeg',
+        body: 'India has detonated a 8-kiloton plutonium device at Pokhran in the Rajasthan desert, becoming the sixth nation to test a nuclear weapon. US intelligence failed to track India\'s nuclear programme, so this blindsides analysts back in Washington.  Pakistan\'s Zulfikar Ali Bhutto was watching and reportedly vowed to match it "even if we have to eat grass".',
+        country: 'IN',
+        positionOffset: { x: -18, y: 8 },
+        state: () => smilingBuddha,
     },
 ];
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
@@ -13005,25 +13042,42 @@ function openEnemiesPanel(questions) {
 }
 
 // ── Officials panel data ──────────────────────────────────────────────────────
-// Maps person name -> { image, bio }.  image is '' until a URL is supplied.
+// Maps person name -> { image, bio, roles }.  image is '' until a URL is supplied.
 // When a position variable changes (e.g. ChiefOfStaff = 'Haig'), re-opening
 // the panel will automatically show the new occupant.
+//
+// A person can hold different posts over the course of the game (Kissinger as
+// NSA then also Secretary of State; Haig as NSA then Chief of Staff; Rogers as
+// State then Special Prosecutor). `bio` is their default/primary-post text.
+// `roles` is an optional map of post varName -> bio that OVERRIDES `bio` when
+// they occupy that specific post. Valid post varNames:
+//   ChiefOfStaff, NSA, SOS, SOD, AttorneyGeneral, SP, FBI, CIA
+// Only add a `roles` entry for the secondary posts; the primary one falls
+// through to `bio`, so there's no need to duplicate it.
 const OFFICIALS_ROSTER = {
     'Haldeman': {
         image: '',
-        bio: "H.R. Haldeman serves as Nixon's iron-fisted Chief of Staff, controlling all access to the Oval Office with methodical precision. A former advertising executive, he is Nixon's most trusted enforcer and the chief architect of the re-election campaign's machinery."
+        bio: "H.R. Haldeman controls all access to the Oval Office with methodical precision. A former advertising executive, he is Nixon's most trusted enforcer and wise to the optics of your decision making. [p][b]Expect to have clear command and control but limited policy expertise or an understanding of legal technicalities.[/b][/p]"
     },
     'Kissinger': {
         image: '',
-        bio: "Henry Kissinger serves as National Security Advisor, masterminding the secret backchannel diplomacy that opened China and reshaped détente with the Soviets. Calculating and media-savvy, he shapes foreign policy while carefully cultivating his own indispensability."
+        // Default/primary post: National Security Advisor.
+        bio: "Kissinger has used his position at the NSA to usurp the State Department. He maintains control over his own backchannel diplomacy, which bore fruit with the opening of China and détente. Calculating and media-savvy, [b]expect subtle and clever decisions, which become increasingly insubordinate the more he becomes convinced of his indispensibility.[/b]",
+        roles: {
+            SOS: "Kissinger now holds more control over foreign policy than any official since the war. Everywhere you turn, there he is. While you take scotch and soda in your study, he is out with the right people, ruthlessly shaping his public image. [b]Where your goals align, he will be your greatest ally. Where he is forthright, he will use every tactic from the library of history to get the upper hand.[/b]"
+        }
     },
     'Rogers': {
         image: '',
-        bio: "William Rogers serves as Secretary of State, though his influence is systematically sidelined by Kissinger's parallel foreign policy apparatus. A loyal Nixon ally from the Eisenhower years, he handles formal diplomatic duties while real power flows elsewhere."
+        // Default/primary post: Secretary of State.
+        bio: "One of your oldest comrades, you once walked the streets together all night working out the Checkers Speech. You chose Rogers for State because he was loyal, and uninterested in foreign policy. Under him, State has been sidelined in favor of centralising decision making inside the White House. [p][b]With Rogers in post, expect more direct control over foreign policy decisions[/b][/p].",
+        roles: {
+            SP: "Rogers is unfairly depicted as an old crony of yours. He is in fact a respected lawyer and a former Attorney General under Eisenhower. You do not know what to expect from him as special prosecutor, except to hope the blows land more softly than they would otherwise have done." 
+        }
     },
     'Laird': {
         image: '',
-        bio: "Melvin Laird serves as Secretary of Defense, overseeing the gradual Vietnamization policy designed to withdraw American troops while preserving South Vietnam. A shrewd congressional veteran, he frequently pushes back against both the White House and the military brass."
+        bio: "Melvin Laird is proud of the successes under his belt, including Vietnamization and getting to the end of the hated draft. Defense spending is likely to fall for the first time in a decade under his administration. A veteran of the House, he has an excellent relationship with Congress and enough standing to push against the military brass and other Departments. Unfortunately he is exhausted and wants to go back into electoral politics as soon as possible."
     },
     'Kleindienst': {
         image: '',
@@ -13031,15 +13085,83 @@ const OFFICIALS_ROSTER = {
     },
     'Helms': {
         image: '',
-        bio: "Richard Helms serves as Director of the CIA, a career intelligence officer who built the agency through the Cold War's darkest operations. He walks a careful line between serving the White House and protecting the CIA from Nixon's more reckless demands."
+        bio: "Richard Helms is a career intelligence officer and relies on the institutional depth of the CIA to stand up to you. You have never got on with him and his streak of independence. [p][b]Helms will want to pursue a more activist approach from the CIA, including domestic spying and will use the Agency's vast network of analysts, operatives and other experts to challenge you if he feels it justified.[/b][/p]"
     },
     'Gray': {
         image: '',
-        bio: "L. Patrick Gray serves as Acting FBI Director following J. Edgar Hoover's death, a Nixon loyalist without the institutional standing to resist White House pressure. His cooperation with the cover-up will eventually seal his own criminal fate."
+        bio: "Gray is a Nixon loyalist without the institutional standing to resist White House pressure. If you play him right he will let you have more control over the FBI than you ever imagined."
+    },
+    'Rockefeller': {
+        image: '',
+        bio: "Nelson Rockefeller, the four-term Governor of New York and fading star of the Republican party. He has long had Nixon's most persistent rival for the Republican establishment's affections, brings a patrician internationalism and a vast personal network to the State Department. Nixon originally offered him Defense; Rocky turned it down and held out for State — and here, in this telling, he gets it. Long a force in foreign policy circles and Kissinger's original patron, he is as comfortable in European chancelleries as in domestic politics."
+    },
+    'Haig': {
+        image: '',
+        // Default/primary post: National Security Advisor.
+        bio: "Alexander Haig came 214th out of 310 at West Point. Yet, he plays the bureaucratic game as a natural, while presenting a facade of unsentimental military efficiency. [p][b]Stepping up as National Security Advisor, expect more hawkish advice without Kissinger's intellectual ferocity and possibly, the masking of dissenting views within the ranks.[/b][/p]",
+        roles: {
+            ChiefOfStaff: ""   // TODO: Haig as Chief of Staff
+        }
+    },
+    'Scowcroft': {
+        image: '',
+        bio: "Brent Scowcroft is not an attention seeker. serves as deputy NSA under Kissinger, a soft-spoken Air Force strategist who prizes rigorous process over personal celebrity. Where Kissinger improvises, Scowcroft systematises — a steady institutional hand on the NSC apparatus."
+    },
+    'Richardson': {
+        image: '',
+        // Default/primary post: Secretary of Defense.
+        bio: "Elliot Richardson is Nixon's most trusted administrator, capable enough to be moved between the most demanding cabinet posts. His appointment to oversee the Watergate Special Prosecutor will eventually force an impossible choice between loyalty to Nixon and the rule of law — and Richardson will choose the law.",
+        roles: {
+            AttorneyGeneral: ""   // TODO: Richardson as Attorney General
+        }
+    },
+    'Schlesinger': {
+        image: '',
+        // Default/primary post: CIA Director.
+        bio: "James Schlesinger is a blunt defence intellectual who overhauls the CIA before moving to the Pentagon. As Secretary of Defense he clashes repeatedly with Kissinger over détente and nuclear policy, and is said to have quietly instructed the military to query any unusual White House orders in Nixon's final days.",
+        roles: {
+            SOD: ""   // TODO: Schlesinger as Secretary of Defense
+        }
+    },
+    'Saxbe': {
+        image: '',
+        bio: "William Saxbe, the plain-spoken Ohio senator, inherits the Justice Department in the wreckage left by the Saturday Night Massacre. With Cox already fired and Jaworski installed, his job is to keep a shattered institution standing while impeachment closes in on the White House."
+    },
+    'Cox': {
+        image: '',
+        bio: "Archibald Cox, the Harvard law professor and Brahmin of the Eastern Establishment. The worst possible choice appointed as Watergate Special Prosecutor, pursues Nixon's tapes with a methodical tenacity that will make him a constitutional martyr. His firing in the Saturday Night Massacre produces a public firestorm that accelerates the presidency's unravelling."
+    },
+    'Jaworski': {
+        image: '',
+        bio: "Leon Jaworski, the Texas corporate lawyer who replaces Cox, proves equally relentless in pursuit of the tapes. He takes the fight to the Supreme Court and secures the unanimous ruling that finally breaks Nixon's last line of defence."
+    },
+    'Ruckelshaus': {
+        image: '',
+        bio: "William Ruckelshaus serves briefly as acting FBI Director before moving to the Deputy Attorney General role. When ordered to fire Cox in the Saturday Night Massacre, he refuses without hesitation and resigns — one of the cleaner moments in the whole sordid affair."
+    },
+    'Kelley': {
+        image: '',
+        bio: "Clarence Kelley, the Kansas City police chief, is brought in as permanent FBI Director to restore stability after the chaos of Gray and Ruckelshaus. A career law enforcement professional with no Watergate entanglement, he is as much a symbol of institutional repair as an operational appointment."
+    },
+    'Sullivan': {
+        image: '',
+        bio: "William Sullivan ran the FBI's Intelligence Division for a decade and is the architect of COINTELPRO. He's a hardline anti-communist who cultivated White House ties and fell out with Hoover before his death. [p][b]He will give you more operational control over the Bureau than any other candidate — but his baggage is considerable, and career FBI men will never fully accept an insider who went outside.[/b][/p]"
+    },
+    'Wilson': {
+        image: '',
+        bio: "Jerry Wilson reformed the Washington DC Metropolitan Police from the inside and earned a national reputation as a moderniser. An outsider to the FBI's institutional culture, which is precisely the point. [p][b]He brings credibility with the public and none of Hoover's ghosts — but career Bureau men will regard him as an interloper, and managing the FBI's entrenched hierarchy will be his first and hardest test.[/b][/p]"
+    },
+    'Felt': {
+        image: '',
+        bio: "Mark Felt is the FBI's Associate Director and the anointed heir of the Hoover machine. He expected this job. Being passed over for the loyalist Gray has left a wound that will not close — and someone inside the Bureau is already feeding the Washington Post. [p][b]Appointing Felt means dealing with the old guard on their own terms. He knows where every body is buried. That cuts both ways.[/b][/p]"
+    },
+    'Colby': {
+        image: '',
+        bio: "William Colby, career CIA officer and Vietnam veteran of the agency's most brutal programmes, succeeds Schlesinger as Director. His willingness to open the agency's files to congressional oversight — the so-called Family Jewels — will enrage the intelligence old guard and define the post-Nixon reckoning."
     },
     'none': {
         image: '',
-        bio: "This position currently stands vacant. No individual has yet been appointed to fill the role."
+        bio: "This position currently stands vacant."
     }
 };
 
@@ -13132,8 +13254,22 @@ const OFFICIALS_VARS = {
             height: 1px;
             background: #888;
         }
+        .oc-sub-row > .oc-card:first-child {
+            position: relative;
+            top: 10px;
+        }
+        .oc-sub-row > .oc-card:first-child::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 10px;
+            background: #888;
+        }
         .oc-card {
-            width: 118px;
+            width: 138px;
             height: 230px;
             overflow: hidden;
             border: 1px solid #888;
@@ -13217,6 +13353,10 @@ function openOfficialsPanel(questions) {
         const person = OFFICIALS_VARS[varName] ? OFFICIALS_VARS[varName]() : null;
         const data = OFFICIALS_ROSTER[person] || { image: '', bio: 'No information available.' };
         const isVacant = (person === 'none' || person == null);
+        // A person may hold different posts over the game (e.g. Kissinger as NSA
+        // then SOS, Haig as NSA then ChiefOfStaff). data.roles[varName] gives the
+        // bio specific to the post they currently occupy; data.bio is the default.
+        const bioText = (data.roles && data.roles[varName]) || data.bio || 'No information available.';
 
         const card = document.createElement('div');
         card.className = 'oc-card' + (isVacant ? ' oc-vacant' : '');
@@ -13248,7 +13388,10 @@ function openOfficialsPanel(questions) {
 
         const bioEl = document.createElement('div');
         bioEl.className = 'oc-bio';
-        bioEl.textContent = data.bio;
+        bioEl.innerHTML = bioText
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/\[b\]([\s\S]*?)\[\/b\]/g, '<strong>$1</strong>')
+            .replace(/\[p\]([\s\S]*?)\[\/p\]/g, '<p style="margin:4px 0 0;">$1</p>');
         card.appendChild(bioEl);
 
         return card;
@@ -14749,6 +14892,7 @@ _tooltipPortal.id = 'tooltip-portal';
 document.body.appendChild(_tooltipPortal);
 
 let _hoveredTooltip = null;
+let _ttW = 0, _ttH = 0, _ttDirty = false; // cached tooltip size; remeasured only when content changes
 
 document.addEventListener('mouseover', (e) => {
     const src = e.target.closest('.mytooltip');
@@ -14756,7 +14900,7 @@ document.addEventListener('mouseover', (e) => {
     _hoveredTooltip = src;
     if (src) {
         const inner = src.querySelector('.mytooltiptext');
-        if (inner) _tooltipPortal.innerHTML = inner.innerHTML;
+        if (inner) { _tooltipPortal.innerHTML = inner.innerHTML; _ttDirty = true; }
     } else {
         _tooltipPortal.style.display = 'none';
     }
@@ -14766,8 +14910,11 @@ document.addEventListener('mousemove', (e) => {
     if (!_hoveredTooltip) return;
     _tooltipPortal.style.display = 'block';
     const pad = 16;
-    const tw = _tooltipPortal.offsetWidth;
-    const th = _tooltipPortal.offsetHeight;
+    // Measure only when the content changed; size is stable between swaps,
+    // so we avoid a forced layout on every mousemove.
+    if (_ttDirty) { _ttW = _tooltipPortal.offsetWidth; _ttH = _tooltipPortal.offsetHeight; _ttDirty = false; }
+    const tw = _ttW;
+    const th = _ttH;
     let x = e.clientX + pad;
     let y = e.clientY + pad;
     if (x + tw > window.innerWidth) x = e.clientX - tw - pad;
@@ -15179,6 +15326,7 @@ document.body.appendChild(honk);
         {
             getValue: () => ApprovalRating,
             label: 'Public Approval Rating',
+            suffix: '%',
             tiers: [
                 [40,       "Honk for impeachment", "#c0392b"],
                 [60,       "Indifference",          "#555555"],
@@ -15213,6 +15361,17 @@ document.body.appendChild(honk);
             ],
         },
         {
+            getValue: () => MediaRelations,
+            label: 'Media Relations',
+            prefix: 'they are',
+            tiers: [
+                [3,        "gouging us with a blade",           "#c0392b"],
+                [6,        "trying to screw us",                "#e18f0b"],
+                [8,        "looking at me with a proctoscope",  "#555555"],
+                [Infinity, "indifferent",                       "#1a7340"],
+            ],
+        },
+        {
             getValue: () => LawandOrder,
             label: 'The State on the Streets',
             tiers: [
@@ -15236,11 +15395,11 @@ document.body.appendChild(honk);
     /* ── Render ── */
     function _buildNation() {
         let h = `<p class="fd-head">State of the Nation</p>`;
-        for (const { getValue, label, tiers } of _STATS) {
+        for (const { getValue, label, tiers, prefix, suffix } of _STATS) {
             const v = Number(getValue?.()) || 0;
             const [text, color] = _matchTier(v, tiers);
             h += `<div class="fd-entry"><span class="fd-entry-label">${label}: </span>`;
-            h += `<span class="fd-entry-body">${_bold(text, color)} (${v})</span></div>`;
+            h += `<span class="fd-entry-body">${prefix ? prefix + ' ' : ''}${_bold(text, color)} (${v}${suffix || ''})</span></div>`;
         }
         return h;
     }
@@ -15482,7 +15641,6 @@ document.body.appendChild(honk);
     }
 
     const EPS = 8;
-    let _obs;
 
     /* ── Manual label nudges (SVG units from bbox centre) ─────────────────
        Add an entry whenever a label needs repositioning:
@@ -15530,9 +15688,7 @@ document.body.appendChild(honk);
             txt.textContent = abbr;
             frag.appendChild(txt);
         });
-        _obs.disconnect();
         svg.appendChild(frag);
-        _obs.observe(document.body, { childList: true, subtree: true });
     }
 
     function _addLampFilter(svg) {
@@ -15578,8 +15734,90 @@ document.body.appendChild(honk);
         _injectStateLabels();
     }
 
-    _obs = new MutationObserver(_checkAndSimplify);
-    _obs.observe(document.body, { childList: true, subtree: true });
+    window.__onGameWindowMutation(_checkAndSimplify);
+})();
+
+// ── Asset preloader ───────────────────────────────────────────────────────────
+// Warms the browser cache before the user opens any panel. Critical assets fire
+// immediately; everything else runs during idle time so it doesn't compete with
+// the initial game load. Capital photos (~130) are excluded — too many and
+// loaded on-demand via the world map hover; the browser caches them after first
+// visit. Audio is excluded — handled by the <audio> element itself.
+;(() => {
+    // Tier 1 — needed within the first few seconds of gameplay
+    const _CRITICAL = [
+        'https://file.garden/aXPgNT-ZRCxxpy0g/background.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/typewriterv1.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/feedback2.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif',
+    ];
+
+    // Tier 2 — panel assets, loaded when user opens Inner Circle / world map
+    const _IDLE = [
+        // Event icons (always-on events shown as soon as world map opens)
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Troubles-ezgif.com-optimize.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/0331_vietnam9.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/cambodia.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Laos3.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/rhodesia-ezgif.com-optimize.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9783.jpeg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/IMG_9784.jpeg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Boat.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Events/guatemala.jpeg',
+        // Plane visit feedback
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback1.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback2.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback3.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback4.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback5.gif',
+        // Question feedback images
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback2.JPG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback3.PNG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback4.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback5.gif',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Feedback%20Images/Nixon/feedback6.JPG',
+        // Organogram / Inner Circle photos
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/nixon.JPG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Haldeman.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/erlichman.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/dean.JPG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/colson.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Chapin.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/krogh.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Strachan.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Segretti.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/hunt.JPG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/liddy2.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/mitchell.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/macgruder.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/LARUE.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Maurice-Stans.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/klambach.JPG',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/mccord.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/watergateburglars.JPG',
+        // Tooltip photos
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/kissinger.jpeg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/butz.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/oriana_fallaci.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/portrait-george-romney-39048741.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/melvinlaird.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/moynihan_slideshow.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/arthur-burnscrop.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/JFKpetersenH.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/Eisenhower.jpeg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/voorhis.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/IMG_9593.gif',
+        // Sign images (shown per question)
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk401.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk402.jpg',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/PK409.jpg',
+    ];
+
+    const _preload = urls => urls.forEach(src => { const i = new Image(); i.src = src; });
+
+    _preload(_CRITICAL);
+    const _idle = window.requestIdleCallback || (fn => setTimeout(fn, 200));
+    _idle(() => _preload(_IDLE));
 })();
 
 // [JETS_CYOA_CAMPAIGN_DATA_END]
@@ -16080,7 +16318,7 @@ function openWorldMap() {
         _allendeSpeechPlayed = true;
         const allendeTrack = new window.Song(
             'Last Speech', 'Salvador Allende',
-            '', 'ALLENDE_SPEECH_URL_PLACEHOLDER'
+            '', 'https://audio.jukehost.co.uk/019ed31c-9934-7032-afc3-1cba278a45ac'
         );
         window.playlist.addSong(allendeTrack);
         const idx = window.playlist.songs.length - 1;
@@ -16206,16 +16444,23 @@ function openWorldMap() {
     spacer.style.cssText = 'flex:1;';
     bar.appendChild(spacer);
 
-    // Pan/zoom state — declared here so nav buttons can close over them
+    // Pan/zoom state
     let tx = 0, ty = 0, scale = 0.55;
     let applyT = () => {};
+    let _cachedVW = 989, _cachedVH = 581;
+    // Re-read the viewport's client box into the cache. Called at the distinct
+    // lifecycle moments where it can change: first load, after the scrollbar
+    // tracks are inserted, and on resize. applyT/doZoom/flyTo read the cache
+    // (not live clientWidth) to avoid forced reflows on the pan/zoom hot path.
+    const _refreshDims = () => {
+        _cachedVW = viewport.clientWidth  || 989;
+        _cachedVH = viewport.clientHeight || 581;
+    };
     let allegiance = _wmAllegiance;
     let nightOn = _wmNightOn;
     let sigintOn = _wmSigintOn;
     let svgEl = null;
-    // Flags live in their own overlay SVG above the map so the SIGINT colour tint
-    // (applied to the map SVG only) leaves them in true colour. The CRT scanline/
-    // vignette stay on the viewport and so still pass over the flags.
+    // Flags in their own overlay SVG 
     let flagSvgEl = null;
     // Reassigned inside the SVG .then() once capitals exist; lets the night
     // toggle and the terminator tick re-evaluate which capitals are in darkness.
@@ -16227,7 +16472,6 @@ function openWorldMap() {
     let capitalsOn = _wmCapitalsOn;
 
     // Top bar — display / intelligence layer toggles. Built after the toggle
-    // state vars above so the buttons can read their initial on/off values.
     const topBar = document.createElement('div');
     topBar.style.cssText = 'flex-shrink:0;height:34px;background:#0a0a0a;border-bottom:1px solid #222;display:flex;align-items:center;gap:6px;padding:0 12px;font-family:TypewriterDry,monospace;font-size:11px;letter-spacing:1px;color:#555;';
     const topBarLabel = document.createElement('span');
@@ -16238,14 +16482,12 @@ function openWorldMap() {
         const b = document.createElement('button');
         b.textContent = label;
         b.style.cssText = 'cursor:pointer;padding:0 8px;height:24px;font-family:TypewriterDry,monospace;font-size:11px;letter-spacing:1px;background:#111;border:1px solid #333;color:#fff;';
-        // Text is always white (matching the bottom-bar buttons); the active
-        // state is shown by the outline + bold weight, not by colour.
         b.style.outline = active ? '2px solid #888' : '';
         b.style.fontWeight = active ? 'bold' : '';
         return b;
     };
 
-    // Night toggle (moved from bottom bar)
+    // Night toggle
     const nightBtn = _mkTopBtn('NIGHT', nightOn);
     nightBtn.addEventListener('click', () => {
         nightOn = !nightOn; _wmNightOn = nightOn;
@@ -16258,9 +16500,6 @@ function openWorldMap() {
     topBar.appendChild(nightBtn);
 
     // SIGINT — phosphor / war-room skin
-    // The colour tint is applied to the MAP svg only (not the whole viewport) so
-    // the flag overlay svg — a separate viewport child — keeps its true colours.
-    // The scanline + vignette CRT overlay stays on the viewport, above both.
     const _applySigint = (on) => {
         if (!viewport) return;
         if (svgEl) svgEl.style.filter = on ? 'sepia(0.3) hue-rotate(80deg) saturate(1.4) brightness(0.85)' : '';
@@ -16366,8 +16605,8 @@ function openWorldMap() {
     };
 
     function doZoom(factor) {
-        const vw = viewport.clientWidth || 989;
-        const vh = viewport.clientHeight || 581;
+        const vw = _cachedVW;
+        const vh = _cachedVH;
         const newScale = Math.max(0.08, Math.min(8, scale * factor));
         const ratio = newScale / scale;
         tx = Math.round(vw / 2 * (1 - ratio) + tx * ratio);
@@ -16376,14 +16615,13 @@ function openWorldMap() {
         applyT();
     }
 
-    // ── Camera fly-to (eased tween of tx/ty/scale) ───────────────────────────
+    // Camera fly-to
     let _camAnim = null;
     const _cancelCam = () => { if (_camAnim) { cancelAnimationFrame(_camAnim); _camAnim = null; } };
     mapCleanup.push(_cancelCam);
     const _easeInOut = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-    // Eased pan+zoom that centres SVG-space point (px,py) in the viewport.
     function flyTo(px, py, targetScale, dur, done) {
-        const vw = viewport.clientWidth || 989, vh = viewport.clientHeight || 581;
+        const vw = _cachedVW, vh = _cachedVH;
         const toS  = Math.max(0.08, Math.min(8, targetScale || scale));
         const toTx = vw / 2 - px * toS;
         const toTy = vh / 2 - py * toS;
@@ -16403,7 +16641,7 @@ function openWorldMap() {
         };
         _camAnim = requestAnimationFrame(step);
     }
-    // Fly the camera to an SVG element's centroid (used by country/event clicks).
+    // Fly  camera to centroid
     const flyToEl = el => {
         if (!el) return;
         try {
@@ -16414,7 +16652,6 @@ function openWorldMap() {
         } catch (_) {}
     };
 
-    // ── Colour helpers for the tweened allegiance choropleth ─────────────────
     const _parseRGB = s => {
         if (!s) return null;
         const m = s.match(/(\d+)[,\s]+(\d+)[,\s]+(\d+)/); // matches "rgb(r, g, b)" and "r g b"
@@ -16489,20 +16726,13 @@ function openWorldMap() {
         bar.appendChild(b);
     });
 
-    // Allegiance legend — red→grey→blue loyalty gradient, shown when the layer is on.
-    const allegLegend = document.createElement('div');
-    allegLegend.style.cssText = 'position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:40;display:none;align-items:center;gap:8px;background:rgba(0,0,0,0.72);padding:6px 12px;border-radius:5px;font-family:TypewriterDry,monospace;font-size:10px;letter-spacing:1px;color:#ddd;box-shadow:0 2px 8px rgba(0,0,0,0.5);';
-    allegLegend.innerHTML =
-        '<span style="color:#dc2626;">BITTER ENEMY</span>' +
-        '<span style="width:160px;height:9px;border-radius:5px;display:inline-block;background:linear-gradient(to right,#dc2626,#a0a0a0,#1d4ed8);"></span>' +
-        '<span style="color:#1d4ed8;">ALLIED</span>';
-    viewport.appendChild(allegLegend);
-    const _updateAllegLegend = () => { allegLegend.style.display = allegiance ? 'flex' : 'none'; };
+    const allegLegend = document.createElement('div'); // kept as re-append target after innerHTML wipe
+    const _updateAllegLegend = () => {};
 
-    // ── DEFCON readiness banner (top-right, visible when SIGINT is on) ────────
+    // DEFCON
     const _defconCols = { 1:'#dc2626', 2:'#ea580c', 3:'#ca8a04', 4:'#16a34a', 5:'#1d4ed8' };
     const defconBanner = document.createElement('div');
-    defconBanner.style.cssText = 'position:absolute;top:8px;right:16px;z-index:50;font-family:Tenada,TypewriterDry,monospace;font-size:11px;letter-spacing:2px;color:#999;display:none;align-items:center;pointer-events:none;';
+    defconBanner.style.cssText = 'position:absolute;top:8px;right:16px;z-index:9500;font-family:Tenada,TypewriterDry,monospace;font-size:13px;letter-spacing:2px;color:#ccc;display:none;align-items:center;pointer-events:none;';
     const _defconUpdate = () => {
         const lvl = Math.max(1, Math.min(5, defcon));
         defconBanner.innerHTML = 'DEFCON <span style="display:inline-block;min-width:16px;text-align:center;padding:0 4px;background:' + _defconCols[lvl] + ';color:#000;font-weight:bold;">' + lvl + '</span>';
@@ -16613,6 +16843,13 @@ function openWorldMap() {
     (_svgTextCache ? Promise.resolve(_svgTextCache) : fetch(SVG_URL).then(r => r.text()).then(t => (_svgTextCache = t, t)))
         .then(svgText => {
             viewport.innerHTML = svgText;
+            // innerHTML wipes all pre-existing viewport children; re-attach the overlay
+            // divs that were appended before the SVG loaded (vignette, grain, allegiance
+            // legend, DEFCON banner). Their z-indexes keep them above the SVG.
+            viewport.appendChild(vignetteFx);
+            viewport.appendChild(grainFx);
+            viewport.appendChild(allegLegend);
+            viewport.appendChild(defconBanner);
             const svg = viewport.querySelector('svg');
             if (!svg) return;
 
@@ -16621,6 +16858,9 @@ function openWorldMap() {
             svg.style.cssText = 'position:absolute;top:0;left:0;width:1800px;height:900px;transform-origin:0 0;pointer-events:all;';
 
             svgEl = svg;
+            // Re-apply SIGINT filter now that svgEl exists — the early _applySigint(true)
+            // call (before SVG loaded) couldn't set svgEl.style.filter because svgEl was null.
+            if (sigintOn) _applySigint(true);
 
             // Overlay SVG for flags and event icons — sits above the map SVG so
             // the SIGINT colour filter (applied to svgEl only) leaves them untinted.
@@ -16639,16 +16879,15 @@ function openWorldMap() {
             viewport.appendChild(flagSvgEl);
 
             // Centre the SVG in the viewport on first load
-            const vw = viewport.clientWidth || 989;
-            const vh = viewport.clientHeight || 581;
-            tx = Math.round((vw - 1800 * scale) / 2);
-            ty = Math.round((vh - 900 * scale) / 2);
+            _refreshDims();
+            tx = Math.round((_cachedVW - 1800 * scale) / 2);
+            ty = Math.round((_cachedVH -  900 * scale) / 2);
 
             applyT = () => {
                 const W  = 1800 * scale;
                 const H  = 900  * scale;
-                const vw = viewport.clientWidth  || 989;
-                const vh = viewport.clientHeight || 581;
+                const vw = _cachedVW;
+                const vh = _cachedVH;
                 // Horizontal wrap: map loops east-west
                 while (tx > vw)      tx -= W;
                 while (tx + W < 0)   tx += W;
@@ -16663,7 +16902,7 @@ function openWorldMap() {
 
                 // Sync scrollbar thumbs
                 if (vScrollTrack && hScrollTrack) {
-                    const trackH = vScrollTrack.clientHeight || vh;
+                    const trackH = _cachedVH;
                     if (H > vh) {
                         vScrollTrack.style.display = '';
                         const thumbH = Math.max(20, Math.round(vh / H * trackH));
@@ -16674,7 +16913,7 @@ function openWorldMap() {
                         vScrollTrack.style.display = 'none';
                     }
 
-                    const trackW = hScrollTrack.clientWidth || vw;
+                    const trackW = _cachedVW - 12; // 12 = vertical scrollbar width (vScrollTrack)
                     if (W > vw) {
                         hScrollTrack.style.display = '';
                         const thumbW = Math.max(20, Math.round(vw / W * trackW));
@@ -16689,7 +16928,7 @@ function openWorldMap() {
             };
             applyT();
 
-            // ── Day/Night terminator ──────────────────────────────────────────
+            //  Day/Night terminator 
             // Solar declination from the current in-game question date.
             // Subsolar longitude (hour angle) from the player's real-time UTC clock.
             const _parseDeclination = () => {
@@ -16899,13 +17138,13 @@ function openWorldMap() {
             termGlow.id = 'wm-term-glow';
             termGlow.setAttribute('fill', 'none');
             termGlow.setAttribute('stroke', '#ff9b3d');
-            termGlow.setAttribute('stroke-width', '7');
+            termGlow.setAttribute('stroke-width', '3.5');
             termGlow.setAttribute('stroke-linecap', 'round');
-            termGlow.setAttribute('stroke-opacity', '0.45');
+            termGlow.setAttribute('stroke-opacity', '0.22');
             termGlow.setAttribute('filter', 'url(#wm-term-glow-blur)');
             const termPulse = document.createElementNS(nightNS, 'animate');
             termPulse.setAttribute('attributeName', 'stroke-opacity');
-            termPulse.setAttribute('values', '0.30;0.55;0.30');
+            termPulse.setAttribute('values', '0.15;0.28;0.15');
             termPulse.setAttribute('dur', '6s');
             termPulse.setAttribute('repeatCount', 'indefinite');
             termGlow.appendChild(termPulse);
@@ -17380,6 +17619,7 @@ function openWorldMap() {
                     evTooltip.style.left = (vr.left + 12) + 'px';
                     evTooltip.style.top  = (vr.top  + 12) + 'px';
                 });
+                path.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
             });
 
             // Extend the SIGINT toggle to include this layer. _applySigint is
@@ -17564,9 +17804,7 @@ function openWorldMap() {
                 CR: { x: -17, y:  -7 },   NI: { x: -11, y: -13 },
             };
 
-            // Capital city flavour images — populate with URLs as research is done.
-            // Format: { US: 'https://...', GB: 'https://...', ... }
-            // Clicking a capital roundel shows the image if a URL is present.
+            // Capital city flavour images 
             const CAPITAL_IMAGES = {
                 CA: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/ottawaC.jpeg',
                 CU: 'https://file.garden/aXPgNT-ZRCxxpy0g/Capitals/havanaC.jpg',
@@ -17806,7 +18044,7 @@ function openWorldMap() {
                         { tag: 'path', attrs: { fill: '#1F9823', d: 'M 152.4 120.133 L 245.675 120.133 C 255.879 120.133 264.857 126.401 268.358 136.017 L 282.225 173.825 C 284.209 179.31 280.523 184.667 274.658 184.667 L 136.267 184.667 C 131.701 184.667 128.2 181.166 128.2 176.6 L 128.2 144.333 C 128.2 130.878 138.945 120.133 152.4 120.133 Z M 288.525 144.333 L 410.533 144.333 L 410.533 152.4 L 291.55 152.4 Z M 152.4 200.8 L 257.267 200.8 L 257.267 208.867 L 152.4 208.867 Z M 104 281.467 C 113.01 281.467 120.133 288.59 120.133 297.6 C 120.133 306.61 113.01 313.733 104 313.733 C 94.99 313.733 87.867 306.61 87.867 297.6 C 87.867 288.59 94.99 281.467 104 281.467 Z M 184.667 281.467 C 193.677 281.467 200.8 288.59 200.8 297.6 C 200.8 306.61 193.677 313.733 184.667 313.733 C 175.656 313.733 168.533 306.61 168.533 297.6 C 168.533 288.59 175.656 281.467 184.667 281.467 Z M 265.333 281.467 C 274.344 281.467 281.467 288.59 281.467 297.6 C 281.467 306.61 274.344 313.733 265.333 313.733 C 256.323 313.733 249.2 306.61 249.2 297.6 C 249.2 288.59 256.323 281.467 265.333 281.467 Z M 346 281.467 C 355.01 281.467 362.133 288.59 362.133 297.6 C 362.133 306.61 355.01 313.733 346 313.733 C 336.99 313.733 329.867 306.61 329.867 297.6 C 329.867 288.59 336.99 281.467 346 281.467 Z' } },
                     ] },
                 ],
-                // Mushroom cloud — nuclear attack
+                // Mushroom cloud = nuclear event
                 nuclear: [
                     { tag: 'g', attrs: { transform: 'scale(0.17) translate(-50,-50)' }, children: [
                         { tag: 'path', attrs: { fill: '#E8E4E3', d: 'M23.353,34.17c1.168,3.312,4.326,5.688,8.039,5.688c2.765,0,5.222-1.318,6.779-3.359c1.246,1.686,3.118,2.88,5.273,3.241c1.047,4.205,4.848,7.321,9.376,7.321c4.103,0,7.603-2.555,9.008-6.161c1.035,0.411,2.163,0.638,3.343,0.638c4.299,0,7.899-2.99,8.839-7.004c0.979,0.336,2.027,0.522,3.121,0.522c5.305,0,9.606-4.3,9.606-9.604c0-5.269-4.243-9.545-9.498-9.603c-1.336-3.388-4.638-5.788-8.497-5.788c-3.855,0-7.149,2.388-8.491,5.764c-0.797-0.439-1.66-0.767-2.574-0.964c0.002-0.112,0.008-0.223,0.008-0.335C57.685,6.504,51.181,0,43.158,0c-7.814,0-14.185,6.17-14.51,13.905c-1.417-0.695-3.011-1.087-4.697-1.087c-5.902,0-10.685,4.784-10.685,10.685C13.264,29.205,17.729,33.861,23.353,34.17z' } },
@@ -18103,11 +18341,8 @@ function openWorldMap() {
                 shapeG.setAttribute('transform', 'scale(0.6)');
                 specs.forEach(spec => shapeG.appendChild(_mkEl(spec.tag, spec.attrs, spec.children)));
 
-                // ── Icon micro-animation by type ─────────────────────────────
-                // disaster → expanding seismic ripple; war → slow smoke pulse;
-                // coup → rhythmic flash. These play ONLY on the event's debut turn
-                // (the question pk at which it first appears active), so the map is
-                // a quiet board with motion drawing the eye only to what's new.
+                //  Icon animation
+                // disaster → expanding seismic ripple; war → slow smoke pulse coup → rhythmic flash. These play ONLY on the event's debut turn
                 let _animDebut = false;
                 try {
                     if (def.state() === 1) {
@@ -18567,7 +18802,16 @@ function openWorldMap() {
             hScrollThumb.style.cssText = 'position:absolute;top:0;height:12px;background:rgba(200,200,200,0.65);border-radius:6px;cursor:pointer;min-width:20px;';
             hScrollTrack.appendChild(hScrollThumb);
             viewport.appendChild(hScrollTrack);
+            _refreshDims(); // scrollbar tracks just changed the client box
             applyT(); // sync thumb positions now that elements exist
+            if (window.ResizeObserver) {
+                const _ro = new ResizeObserver(() => {
+                    _refreshDims();
+                    applyT();
+                });
+                _ro.observe(viewport);
+                mapCleanup.push(() => _ro.disconnect());
+            }
 
             // Vertical scrollbar drag
             let vDrag = false, vDragY = 0, vDragTy = 0;
@@ -18801,6 +19045,16 @@ function openCIAProfile(code, mapPanel, tooltip, military) {
         lbl.textContent = indexLabel;
     });
     bar.appendChild(indexBtn);
+
+    if (military && (code === 'VN' || code === 'VD')) {
+        const vrBtn = document.createElement('button');
+        vrBtn.textContent = 'Vietnam Report';
+        vrBtn.addEventListener('click', () => {
+            iframe.src = PAGES_BASE + '/Milbal/Vietnam%20Report.html';
+            lbl.textContent = 'Vietnam Report — SC-06971/73';
+        });
+        bar.appendChild(vrBtn);
+    }
 
     const lbl = document.createElement('span');
     lbl.textContent = COUNTRY_NAMES[code] || code;
