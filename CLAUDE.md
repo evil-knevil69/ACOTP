@@ -103,3 +103,29 @@ No changes from this session — both Sandinista! and feature branch versions ar
 
 - `.gitignore`: excludes `__pycache__/` and `.claude/` (worktree directories)
 - `CLAUDE.md`: session-startup force-push instructions to prevent lost work from remote resets
+
+---
+
+## Pending — decided, not yet implemented
+
+**P1. Question counter display → show turns lapsed (`_questionCount`), drop "of 25"**
+Decision (23 Jun): change the on-screen question label from `Question X of 25` to just
+`Question X`, where X is the mod's turn counter `_questionCount` (line 14311) — NOT the
+engine's `question_number`. Rationale: the player should see *turns lapsed*, including free
+conditional/counterfactual (`corQuestion`) questions, which advance `_questionCount` but not
+`question_number`. The calendar dates convey how near the ending is; no ceiling is shown.
+
+Implementation notes for when wired:
+- Engine builds the label at `campaign_trail.js:1310`:
+  `<h3>Question ${e.question_number + 1} of ${PROPS.PARAMS.question_count}</h3>`
+- Do NOT fork the engine. Rewrite the `<h3>` text inside the existing mutation observer
+  (`__onGameWindowMutation`, around `ACOP Nixon_Agnew.txt:14600`), right after the
+  `_questionCount++` at line 14603 — at that point the counter is already bumped for the
+  question on screen, so label and counter stay in sync with no off-by-one. First question
+  reads "Question 1" (0 → 1).
+- Purely cosmetic: the end-of-run trigger (`campaign_trail.js:1787, 1800`) reads
+  `question_number` / `question_count` directly and never the label text, so the 25-slot
+  hard stop is unaffected.
+- Consequence to accept: because every free question increments `_questionCount`, the final
+  turn will read higher than 25 (e.g. "Question 31") depending on how many conditionals fired.
+  That is intended.
