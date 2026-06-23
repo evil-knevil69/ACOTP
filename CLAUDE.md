@@ -87,7 +87,7 @@ Many more countries added with accurate SVG centroids (GB, FR, DE, PT, ES, NL, U
 Many new `var` declarations and `_EVENT_DEFS` entries added (guatemalaQuake, tangshan, mississippi, hondurasCoup, bananagate, rwandaCoup, afghanCoup, nigerCoup, greekCoup, ethiopianRevolution, dergCoup, uruguayCoup, chileanCoup, upperVoltaCoup, tacnazo, argentineCoup, northYemenCoup, oromoUprising, sahrawiInsurgency, _allendeSpeechPlayed).
 
 **10. Allende Easter egg**
-On first world map open after `chileanCoup === 1`, Allende's last speech is injected into the music playlist. URL is placeholder `'ALLENDE_SPEECH_URL_PLACEHOLDER'`.
+On first world map open after `chileanCoup === 1`, Allende's last speech is injected into the music playlist. Live audio URL wired in (`https://audio.jukehost.co.uk/019ed31c-9934-7032-afc3-1cba278a45ac`) — no longer a placeholder.
 
 **11. SVG cache**
 `_svgTextCache` prevents re-fetching the SVG on every `openWorldMap()` call.
