@@ -129,3 +129,21 @@ Implementation notes for when wired:
 - Consequence to accept: because every free question increments `_questionCount`, the final
   turn will read higher than 25 (e.g. "Question 31") depending on how many conditionals fired.
   That is intended.
+
+**P2. Follow-along transcription box (tape player component)**
+Decision: build a standalone tape-player component that plays a White House tape audio clip
+while a transcript scrolls/highlights in sync — a consequence-reward beat surfaced after
+certain question outcomes. Parked until the question bank is tidied.
+
+Design as discussed:
+- Standalone entry point `openTapePlayer(key, container)` — self-contained, invoked from a
+  question's outcome/effect (not tied to the world map or Milbal plumbing).
+- Backing data structure `TAPE_EXCERPTS`: keyed by excerpt id, each holding the audio URL plus
+  a cue-timed transcript (array of `{ t, speaker, text }` cues) so the displayed line tracks
+  the audio position — highlight/auto-scroll the active cue.
+- Candidate excerpts the user already has in hand: "Cancer on the presidency"; Kissinger
+  apologising for the Fallaci interview; the 8 Jan 1973 pretrial conversations. The cancer tape
+  is intended to split across two question beats — Nixon's reaction to the cancer briefing, and
+  how he handles the hush money.
+- Reward framing: it's a consequence-reward (you earn the tape by reaching a state), not a
+  free-floating museum feature.
