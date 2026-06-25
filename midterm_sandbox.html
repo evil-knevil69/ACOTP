@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ACOP 1974 Midterm Sandbox — LBM seat model × primary interrupt</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; background:#2b2f44; color:#eee; margin:0; padding:24px; }
+  h1 { font-size:1.4rem; margin:0 0 4px; }
+  .sub { color:#9aa3c0; font-size:0.85rem; margin-bottom:20px; }
+  .wrap { display:grid; grid-template-columns: 320px 1fr; gap:24px; max-width:1100px; }
+  .panel { background:#353a55; border-radius:10px; padding:18px; }
+  label { display:block; font-size:0.8rem; color:#c7cde6; margin:14px 0 4px; }
+  input[type=range] { width:100%; }
+  .val { float:right; font-weight:bold; color:#fff; }
+  .swing { font-size:1.6rem; font-weight:bold; text-align:center; margin:18px 0 6px; }
+  .swingsub { text-align:center; font-size:0.75rem; color:#9aa3c0; }
+  button { background:#5566cc; color:#fff; border:0; border-radius:6px; padding:9px 14px; font-weight:bold; cursor:pointer; margin-top:14px; width:100%; }
+  button.alt { background:#444a6b; }
+  .chamber-section { background:#2b2f44; border-radius:8px; padding:14px; margin-bottom:14px; }
+  .chamber-header { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+  .chamber-title { font-size:1.1rem; font-weight:bold; }
+  .big-number-row { display:flex; justify-content:space-between; font-size:2rem; font-weight:bold; margin-bottom:8px; }
+  .dem-score { color:#5b8def; } .rep-score { color:#e0556b; }
+  .delta-sup { font-size:0.9rem; vertical-align:super; color:#9aa3c0; margin-left:4px; }
+  .visual-bar { display:flex; height:22px; border-radius:4px; overflow:hidden; position:relative; background:#1f2236; }
+  .bar-dem { background:#5b8def; } .bar-rep { background:#e0556b; }
+  .threshold-marker { position:absolute; left:50%; top:0; bottom:0; width:2px; background:#fff; }
+  .calib { font-size:0.8rem; margin-top:10px; line-height:1.6; }
+  .calib b { color:#fff; }
+  table { border-collapse:collapse; width:100%; font-size:0.72rem; margin-top:8px; }
+  th,td { padding:2px 6px; text-align:right; } th:first-child,td:first-child{ text-align:left; }
+  tr.D td:first-child{ border-left:3px solid #5b8def; } tr.R td:first-child{ border-left:3px solid #e0556b; }
+  .flip { color:#ffd24a; font-weight:bold; font-size:0.65rem; margin-left:5px; }
+  .note { font-size:0.72rem; color:#9aa3c0; margin-top:16px; line-height:1.5; }
+  .cols { column-count:2; column-gap:18px; }
+</style>
+</head>
+<body>
+<h1>ACOP 1974 Midterm Sandbox</h1>
+<div class="sub">Little Big Man's elastic-proportional House + two-party Senate math, driven by a Watergate-derived national swing. <b>1974 substrate:</b> 1970 Census apportionment (435 seats), 34 Class&nbsp;3 Senate races, 93rd&nbsp;Congress baselines (D&nbsp;242&nbsp;/&nbsp;R&nbsp;192 House; D&nbsp;56&nbsp;/&nbsp;R&nbsp;42&nbsp;Senate). Historical anchor: Damaged scenario (approval≈38, watergate≈0.7) → D+16.9% → House R&nbsp;192→144 (Δ−48) ✓</div>
+
+<div class="wrap">
+  <div class="panel">
+    <div style="font-weight:bold; margin-bottom:6px;">Watergate pressure → swing</div>
+
+    <label>Approval Rating <span class="val" id="vAppr">38</span></label>
+    <input type="range" id="appr" min="20" max="70" value="38">
+
+    <label>Watergate exposure (0–1) <span class="val" id="vWg">0.70</span></label>
+    <input type="range" id="wg" min="0" max="1" step="0.05" value="0.70">
+
+    <div class="swing" id="swingOut">D+16.9%</div>
+    <div class="swingsub">national two-party swing toward Democrats<br>(+ = Republicans lose seats)</div>
+
+    <button id="reroll">Re-roll (new noise draw)</button>
+    <button id="expected" class="alt">Show expected value (no noise)</button>
+
+    <div class="calib" id="calib"></div>
+  </div>
+
+  <div class="panel">
+    <div style="font-weight:bold; margin-bottom:12px;">In other news… <span style="font-size:0.75rem;color:#9aa3c0;">(the slide the primary-interrupt renders)</span></div>
+
+    <div class="chamber-section">
+      <div class="chamber-header"><span class="chamber-title">House</span><span style="font-size:0.8rem;color:#9aa3c0;">218 to win</span></div>
+      <div class="big-number-row">
+        <span class="dem-score"><span id="hD">291</span><span class="delta-sup" id="hDg">+49</span></span>
+        <span class="rep-score"><span id="hR">144</span><span class="delta-sup" id="hRg">−48</span></span>
+      </div>
+      <div class="visual-bar"><div class="bar-dem" id="hBar" style="width:67%"></div><div class="threshold-marker"></div><div class="bar-rep" style="flex:1"></div></div>
+    </div>
+
+    <div class="chamber-section">
+      <div class="chamber-header"><span class="chamber-title">Senate</span><span style="font-size:0.8rem;color:#9aa3c0;">51 to control</span></div>
+      <div class="big-number-row">
+        <span class="dem-score"><span id="sD">60</span><span class="delta-sup" id="sDg">+4</span></span>
+        <span class="rep-score"><span id="sR">38</span><span class="delta-sup" id="sRg">−4</span></span>
+      </div>
+      <div class="visual-bar"><div class="bar-dem" id="sBar" style="width:60%"></div><div class="threshold-marker"></div><div class="bar-rep" style="flex:1"></div></div>
+    </div>
+
+    <div style="font-weight:bold; font-size:0.8rem; margin-top:8px;">Senate races (Class 3 — 34 seats)</div>
+    <div class="cols"><table id="senTable"><tbody></tbody></table></div>
+  </div>
+</div>
+
+<div class="note">
+  <b>Two lean tables:</b> House uses 2012 Obama/Romney margins (correct seat-swing sensitivity with 1970 apportionment — 1972 Nixon landslide map would give absurd seat counts due to split-ticket voting). Senate uses 1972 Nixon/McGovern two-party D margins with calibrated <code>dem_off</code> values per race.<br>
+  <b>LBM formulas (verbatim):</b> <code>houseMargin = presMargin + bias×1.1 − 0.03 + N(0,0.015)</code>; <code>share = 0.5 + houseMargin×2.0</code>, clamp [0.15,0.85] for ≥5 seats. <code>sen2pMargin = clamp(pm2p + keep×off + N(0,0.006), −0.90, 0.90)</code>.<br>
+  <b>Senate seed:</b> D=37, R=27, I=2 (Byrd VA, Buckley NY) → 66 non-Class-3 seats from 93rd Congress + 34 races = 100.
+</div>
+
+<script>
+// ===== model (identical math to midterm_model.js) =====
+const num=x=>Number.isFinite(x)?x:0, clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+let _rng=Math.random;
+const rndN=(mu,s)=>{let u=0,v=0;while(u===0)u=_rng();while(v===0)v=_rng();return mu+s*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
+
+// House leans: 2012 Obama/Romney two-party D margins (seat-sensitivity calibration)
+const SLH={AL:-0.46,AK:-0.28,AZ:-0.10,AR:-0.25,CA:+0.24,CO:+0.055,CT:+0.18,DE:+0.20,FL:+0.009,GA:-0.08,HI:+0.43,ID:-0.33,IL:+0.18,IN:-0.11,IA:+0.06,KS:-0.22,KY:-0.24,LA:-0.18,ME:+0.16,MD:+0.27,MA:+0.24,MI:+0.095,MN:+0.078,MS:-0.12,MO:-0.097,MT:-0.14,NE:-0.22,NV:+0.069,NH:+0.058,NJ:+0.18,NM:+0.10,NY:+0.29,NC:-0.02,ND:-0.20,OH:+0.03,OK:-0.34,OR:+0.13,PA:+0.054,RI:+0.28,SC:-0.11,SD:-0.18,TN:-0.21,TX:-0.16,UT:-0.49,VT:+0.36,VA:+0.039,WA:+0.15,WV:-0.27,WI:+0.069,WY:-0.42};
+
+// Senate leans: 1972 Nixon/McGovern two-party D margins (approximate)
+const SL74={AL:-0.490,AK:-0.240,AZ:-0.345,AR:-0.370,CA:-0.105,CO:-0.295,CT:-0.163,DE:-0.155,FL:-0.315,GA:-0.450,HI:-0.050,ID:-0.345,IL:-0.195,IN:-0.305,IA:-0.128,KS:-0.305,KY:-0.278,LA:-0.430,ME:-0.100,MD:-0.100,MA:+0.089,MI:-0.140,MN:-0.080,MS:-0.555,MO:-0.224,MT:-0.225,NE:-0.368,NV:-0.245,NH:-0.175,NJ:-0.150,NM:-0.283,NY:-0.170,NC:-0.378,ND:-0.320,OH:-0.210,OK:-0.371,OR:-0.130,PA:-0.197,RI:-0.063,SC:-0.460,SD:-0.220,TN:-0.400,TX:-0.331,UT:-0.423,VT:-0.155,VA:-0.313,WA:-0.195,WV:-0.200,WI:-0.110,WY:-0.385};
+
+// House: 1970 Census apportionment (sum=435) + 1974-era structural biases
+// [seats, bias]  bias+=Dem; Solid South flipped mildly +Dem vs LBM 2012 baseline
+const HD={AL:[7,+0.10],AK:[1,-0.15],AZ:[4,-0.05],AR:[4,+0.12],CA:[43,+0.12],CO:[5,+0.02],CT:[6,+0.15],DE:[1,+0.15],FL:[15,-0.04],GA:[10,+0.10],HI:[2,+0.25],ID:[2,-0.25],IL:[24,+0.10],IN:[11,-0.10],IA:[6,+0.02],KS:[5,-0.18],KY:[7,-0.05],LA:[8,+0.10],ME:[2,+0.08],MD:[8,+0.18],MA:[12,+0.20],MI:[19,-0.02],MN:[8,+0.05],MS:[5,+0.05],MO:[10,-0.08],MT:[2,-0.10],NE:[3,-0.15],NV:[1,+0.04],NH:[2,+0.05],NJ:[15,+0.08],NM:[2,+0.08],NY:[39,+0.15],NC:[11,-0.08],ND:[1,-0.15],OH:[23,-0.08],OK:[6,-0.20],OR:[4,+0.10],PA:[25,-0.06],RI:[2,+0.20],SC:[6,-0.05],SD:[2,-0.15],TN:[8,-0.15],TX:[24,-0.05],UT:[2,-0.20],VT:[1,+0.25],VA:[10,-0.05],WA:[7,+0.10],WV:[4,-0.10],WI:[9,-0.05],WY:[1,-0.25]};
+
+// 34 Class 3 Senate races: [lean, dem_off, split_keep]
+// dem_off calibrated from actual 1974 margins vs SL74 + historical D+16.9% swing
+const SEN={
+  // Deep South (huge dem_off — Solid South incumbents ran far ahead of Nixon map)
+  "Alabama":       ['AL',+1.051,0.80],
+  "Arkansas":      ['AR',+1.371,0.65], // Bumpers, open D
+  "Georgia":       ['GA',+0.901,0.80],
+  "Louisiana":     ['LA',+1.264,0.80], // Long, near-walkover
+  "NorthCarolina": ['NC',+0.691,0.65], // Morgan, open D
+  "SouthCarolina": ['SC',+0.864,0.80],
+  // D incumbents hold
+  "Alaska":        ['AK',+0.351,0.80],
+  "California":    ['CA',+0.228,0.80],
+  "Connecticut":   ['CT',+0.343,0.80],
+  "Hawaii":        ['HI',+0.676,0.80], // no R opponent
+  "Idaho":         ['ID',+0.445,0.80],
+  "Illinois":      ['IL',+0.358,0.80], // Stevenson III
+  "Indiana":       ['IN',+0.231,0.80],
+  "Iowa":          ['IA',+0.014,0.65], // Culver, open D
+  "Missouri":      ['MO',+0.330,0.80],
+  "SouthDakota":   ['SD',+0.139,0.80], // McGovern
+  "Washington":    ['WA',+0.355,0.80],
+  "Wisconsin":     ['WI',+0.261,0.80],
+  // R seats flipped to D in the wave
+  "Colorado":      ['CO',+0.465,0.65], // Hart beat Dominick
+  "Florida":       ['FL',+0.343,0.60], // Stone, open (Gurney R)
+  "Kentucky":      ['KY',+0.291,0.65], // Ford beat Cook
+  "Ohio":          ['OH',+0.568,0.60], // Glenn, open (Saxbe R)
+  "Vermont":       ['VT',+0.110,0.60], // Leahy, open (Aiken R)
+  // R holds (survived the wave)
+  "Arizona":       ['AZ',+0.023,0.70], // Goldwater
+  "Kansas":        ['KS',+0.169,0.70], // Dole ~51%
+  "Maryland":      ['MD',-0.299,0.70], // Mathias, liberal R
+  "NewHampshire":  ['NH',+0.007,0.60], // Wyman (R) 355-vote margin
+  "NewYork":       ['NY',-0.124,0.70], // Javits, liberal R
+  "NorthDakota":   ['ND',+0.214,0.70], // Young, barely held
+  "Oklahoma":      ['OK',+0.274,0.70], // Bellmon, barely held
+  "Oregon":        ['OR',-0.213,0.70], // Packwood
+  "Pennsylvania":  ['PA',-0.063,0.70], // Schweiker
+  "Utah":          ['UT',+0.292,0.65], // Garn, open R
+  // D→R flip (only flip against the wave)
+  "Nevada":        ['NV',+0.115,0.60]  // Laxalt beat Reid by 611 votes
+};
+
+const HBASE={dem:242,rep:192};   // 93rd Congress pre-election House
+const SBASE={dem:56,rep:42};     // 93rd Congress Senate (I=2 Byrd VA, Buckley NY)
+
+function computeHouse(sw){
+  let d=0;
+  for(const a in HD){
+    const[seats,bias]=HD[a];
+    const pm=(SLH[a]||0)+sw;
+    const hm=pm+bias*1.1-0.03+rndN(0,0.015);
+    if(seats===1){if(hm>0)d++;}
+    else{let sh=0.5+hm*2.0;sh=seats>=5?clamp(sh,0.15,0.85):clamp(sh,0,1);d+=Math.round(seats*sh);}
+  }
+  return{dem:clamp(d,0,435),rep:435-clamp(d,0,435)};
+}
+
+function computeSenate(sw){
+  let D=37,R=27,I=2; // 93rd Congress non-Class-3 seed (66 seats)
+  const races=[];
+  for(const n in SEN){
+    const[lean,dem_off,keep0]=SEN[n];
+    const pm2p=(SL74[lean]||0)+sw;
+    const keep=clamp(num(keep0),0.40,0.98);
+    const m=clamp(pm2p+keep*num(dem_off)+rndN(0,0.006),-0.90,0.90);
+    const w=m>0?'D':'R';
+    if(w==='D')D++;else R++;
+    races.push({n,m,w});
+  }
+  const tot=D+R+I; if(tot!==100)D+=100-tot;
+  return{dem:D,rep:R,ind:I,races};
+}
+
+// Coefficients: Damaged (appr=38, wg=0.7) → D+16.9% → House R 144 (Δ−48) ✓
+function nationalSwing(appr,wg){
+  const MID=0.040, AC=0.130, WC=0.105;
+  return MID+clamp(55-appr,0,40)/40*AC+clamp(wg,0,1)*WC;
+}
+
+// ===== render =====
+let useNoise=true;
+function draw(){
+  const appr=+document.getElementById('appr').value, wg=+document.getElementById('wg').value;
+  document.getElementById('vAppr').textContent=appr;
+  document.getElementById('vWg').textContent=wg.toFixed(2);
+  const sw=nationalSwing(appr,wg);
+  document.getElementById('swingOut').textContent='D+'+(sw*100).toFixed(1)+'%';
+  _rng=useNoise?Math.random:()=>0.5;
+  const h=computeHouse(sw), s=computeSenate(sw); _rng=Math.random;
+  const set=(id,v)=>document.getElementById(id).textContent=v;
+  const dlt=n=>n>0?'+'+n:n<0?String(n):'NC';
+  set('hD',h.dem); set('hR',h.rep);
+  set('hDg',dlt(h.dem-HBASE.dem)); set('hRg',dlt(h.rep-HBASE.rep));
+  set('sD',s.dem); set('sR',s.rep);
+  set('sDg',dlt(s.dem-SBASE.dem)); set('sRg',dlt(s.rep-SBASE.rep));
+  document.getElementById('hBar').style.width=(h.dem/435*100)+'%';
+  document.getElementById('sBar').style.width=s.dem+'%';
+  // calibration readout
+  _rng=()=>0.5;
+  const swHist=nationalSwing(38,0.7);
+  const hHist=computeHouse(swHist);
+  _rng=Math.random;
+  document.getElementById('calib').innerHTML=
+    `<b>Calibration</b><br>`+
+    `swing = D+${(sw*100).toFixed(1)}%<br>`+
+    `House R: <b>${h.rep}</b> (Δ${dlt(h.rep-HBASE.rep)})<br>`+
+    `Senate R: <b>${s.rep}</b> (Δ${dlt(s.rep-SBASE.rep)})<br>`+
+    `<span style="color:#9aa3c0">Historical 1974 anchor (Damaged appr=38, wg=0.7):<br>`+
+    `D+${(swHist*100).toFixed(1)}% → House R <b>${hHist.rep}</b> (Δ${dlt(hHist.rep-HBASE.rep)}) ← target: R 144 (Δ−48)</span>`;
+  // senate race table — sorted closest first
+  const tb=document.querySelector('#senTable tbody'); tb.innerHTML='';
+  s.races.sort((a,b)=>Math.abs(a.m)-Math.abs(b.m));
+  for(const r of s.races){
+    const tr=document.createElement('tr'); tr.className=r.w;
+    tr.innerHTML=`<td>${r.n}</td><td>${r.w}</td><td>${(Math.abs(r.m)*100).toFixed(1)}%</td>`;
+    tb.appendChild(tr);
+  }
+}
+document.getElementById('appr').oninput=draw;
+document.getElementById('wg').oninput=draw;
+document.getElementById('reroll').onclick=()=>{useNoise=true;draw();};
+document.getElementById('expected').onclick=()=>{useNoise=false;draw();};
+draw();
+</script>
+</body>
+</html>
