@@ -14497,6 +14497,298 @@ _everyTurn(() => {
     if (typeof window._syncOrgStates === 'function') window._syncOrgStates();
 });
 // ── END WATERGATE PRESSURE ENGINE ─────────────────────────────────────────────
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── 1974 MIDTERM ELECTIONS ────────────────────────────────────────────────────
+// A consequence beat: an election-night overlay where the 34 Class-3 Senate seats
+// call in over a poll-closing roll with a live tally, then a "Congressional
+// Scoreboard" button reveals the LBM House+Senate board. Driven by the live
+// ApprovalRating and a Watergate-exposure index derived from the pressure engine.
+//
+// Model + data mirror midterm_model.js / midterm_flow_sandbox.html exactly.
+// Calibration anchor: approval 47 + watergate 0.75 → D+16.9% → House R 144
+// (Δ−48 vs 93rd Congress), Senate R ~38 (Δ−4) — the real 1974 result.
+//
+// HOW IT FIRES: nothing auto-fires yet (the question bank has no Nov-1974 anchor).
+// Test it now from the browser console with  _midtermTest()  . To arm it later,
+// either set _MIDTERM.TURN and uncomment the _everyTurn block at the foot of this
+// section, or call _MIDTERM.open() from a Nov-1974 question's onShow.
+//
+// EVERYTHING EDITABLE (wording, dials, leans, seats, the 34 races) IS IN _MIDTERM.CFG.
+// ══════════════════════════════════════════════════════════════════════════════
+var _MIDTERM = {
+  TURN: null,        // turn (_questionCount) to auto-fire on; null = manual only
+  _fired: false,
+
+  CFG: {
+    // ---- on-screen wording (every string the player sees) ----
+    TEXT: {
+      title:        "THE 1974 MIDTERMS",
+      boardLabel:   "SENATE SEATS DECIDED TONIGHT",
+      indNote:      "Byrd (VA) and Buckley (NY) sit as independents and are not up.",
+      scoreboardBtn:"View the new Congress ▸",
+      continueBtn:  "Back to the campaign ▸",
+      cardTitle:    "The new balance of power",
+      callPrefix:   "Called: ",
+      // {SW}=swing% {HR}=House R {HD}=House D {SD}=Senate D {SR}=Senate R {HG}/{SG}=R deltas
+      verdictWave:  "A bloodbath, Mr. President. The Democrats take a {HD}-seat House and a {SD}-seat Senate. The Watergate wave has crested over us. (D+{SW}% nationally.)",
+      verdictHold:  "We are bruised but standing — down {HG} in the House, {SG} in the Senate. It could have been a rout. (D+{SW}% nationally.)",
+      cardSub:      "Result at a D+{SW}% national swing — House Δ{HG}, Senate Δ{SG} against the 93rd Congress."
+    },
+
+    // ---- swing dials (Ford anchor: approval 47, watergate 0.75 → D+16.9%) ----
+    SWING: { MID:0.030, APPROVAL_REF:60, AC:0.174, WC:0.110 },
+
+    // ---- baselines (93rd Congress, going into Nov 1974) ----
+    HBASE: { dem:242, rep:192 },
+    SBASE: { dem:56,  rep:42  },
+    SEED:  { D:37, R:27, I:2 },   // the 66 Senate seats NOT up in 1974
+
+    // ---- House leans: 2012 Obama/Romney two-party D margin (seat-sensitivity calib) ----
+    SLH:{AL:-0.46,AK:-0.28,AZ:-0.10,AR:-0.25,CA:0.24,CO:0.055,CT:0.18,DE:0.20,FL:0.009,GA:-0.08,HI:0.43,ID:-0.33,IL:0.18,IN:-0.11,IA:0.06,KS:-0.22,KY:-0.24,LA:-0.18,ME:0.16,MD:0.27,MA:0.24,MI:0.095,MN:0.078,MS:-0.12,MO:-0.097,MT:-0.14,NE:-0.22,NV:0.069,NH:0.058,NJ:0.18,NM:0.10,NY:0.29,NC:-0.02,ND:-0.20,OH:0.03,OK:-0.34,OR:0.13,PA:0.054,RI:0.28,SC:-0.11,SD:-0.18,TN:-0.21,TX:-0.16,UT:-0.49,VT:0.36,VA:0.039,WA:0.15,WV:-0.27,WI:0.069,WY:-0.42},
+
+    // ---- Senate leans: 1972 Nixon/McGovern two-party D margin ----
+    SL74:{AL:-0.490,AK:-0.240,AZ:-0.345,AR:-0.370,CA:-0.105,CO:-0.295,CT:-0.163,DE:-0.155,FL:-0.315,GA:-0.450,HI:-0.050,ID:-0.345,IL:-0.195,IN:-0.305,IA:-0.128,KS:-0.305,KY:-0.278,LA:-0.430,ME:-0.100,MD:-0.100,MA:0.089,MI:-0.140,MN:-0.080,MS:-0.555,MO:-0.224,MT:-0.225,NE:-0.368,NV:-0.245,NH:-0.175,NJ:-0.150,NM:-0.283,NY:-0.170,NC:-0.378,ND:-0.320,OH:-0.210,OK:-0.371,OR:-0.130,PA:-0.197,RI:-0.063,SC:-0.460,SD:-0.220,TN:-0.400,TX:-0.331,UT:-0.423,VT:-0.155,VA:-0.313,WA:-0.195,WV:-0.200,WI:-0.110,WY:-0.385},
+
+    // ---- House per-state: [seats(1970 apportionment, sum=435), structural bias] ----
+    HD:{AL:[7,0.10],AK:[1,-0.15],AZ:[4,-0.05],AR:[4,0.12],CA:[43,0.12],CO:[5,0.02],CT:[6,0.15],DE:[1,0.15],FL:[15,-0.04],GA:[10,0.10],HI:[2,0.25],ID:[2,-0.25],IL:[24,0.10],IN:[11,-0.10],IA:[6,0.02],KS:[5,-0.18],KY:[7,-0.05],LA:[8,0.10],ME:[2,0.08],MD:[8,0.18],MA:[12,0.20],MI:[19,-0.02],MN:[8,0.05],MS:[5,0.05],MO:[10,-0.08],MT:[2,-0.10],NE:[3,-0.15],NV:[1,0.04],NH:[2,0.05],NJ:[15,0.08],NM:[2,0.08],NY:[39,0.15],NC:[11,-0.08],ND:[1,-0.15],OH:[23,-0.08],OK:[6,-0.20],OR:[4,0.10],PA:[25,-0.06],RI:[2,0.20],SC:[6,-0.05],SD:[2,-0.15],TN:[8,-0.15],TX:[24,-0.05],UT:[2,-0.20],VT:[1,0.25],VA:[10,-0.05],WA:[7,0.10],WV:[4,-0.10],WI:[9,-0.05],WY:[1,-0.25]},
+
+    // ---- the 34 Class-3 Senate races: name → [lean, dem_off, split_keep, wave, heldBy] ----
+    // wave = poll-closing group 1(earliest East)…8(latest AK/HI), drives reveal order.
+    SEN:{
+      "Alabama":['AL',1.051,0.80,3,'D'], "Arkansas":['AR',1.371,0.65,4,'D'],
+      "Georgia":['GA',0.901,0.80,1,'D'], "Louisiana":['LA',1.264,0.80,5,'D'],
+      "N. Carolina":['NC',0.691,0.65,2,'D'], "S. Carolina":['SC',0.864,0.80,1,'D'],
+      "Alaska":['AK',0.351,0.80,8,'D'], "California":['CA',0.228,0.80,7,'D'],
+      "Connecticut":['CT',0.343,0.80,3,'D'], "Hawaii":['HI',0.676,0.80,8,'D'],
+      "Idaho":['ID',0.445,0.80,7,'D'], "Illinois":['IL',0.358,0.80,3,'D'],
+      "Indiana":['IN',0.231,0.80,1,'D'], "Iowa":['IA',0.014,0.65,6,'D'],
+      "Missouri":['MO',0.330,0.80,3,'D'], "S. Dakota":['SD',0.139,0.80,5,'D'],
+      "Washington":['WA',0.355,0.80,7,'D'], "Wisconsin":['WI',0.261,0.80,5,'D'],
+      "Colorado":['CO',0.465,0.65,5,'R'], "Florida":['FL',0.343,0.60,3,'R'],
+      "Kentucky":['KY',0.291,0.65,1,'R'], "Ohio":['OH',0.568,0.60,2,'R'],
+      "Vermont":['VT',0.110,0.60,1,'R'], "Arizona":['AZ',0.023,0.70,5,'R'],
+      "Kansas":['KS',0.169,0.70,5,'R'], "Maryland":['MD',-0.299,0.70,3,'R'],
+      "New Hampshire":['NH',0.007,0.60,3,'R'], "New York":['NY',-0.124,0.70,5,'R'],
+      "N. Dakota":['ND',0.214,0.70,5,'R'], "Oklahoma":['OK',0.274,0.70,3,'R'],
+      "Oregon":['OR',-0.213,0.70,7,'R'], "Pennsylvania":['PA',-0.063,0.70,3,'R'],
+      "Utah":['UT',0.292,0.65,5,'R'], "Nevada":['NV',0.115,0.60,6,'D']
+    }
+  },
+
+  // ---- noise (Box-Muller, verbatim LBM). Live game runs WITH noise. ----
+  _useNoise: true,
+  _rndN: function(mu, s){
+    if(!this._useNoise) return mu;
+    var u=0,v=0; while(u===0)u=Math.random(); while(v===0)v=Math.random();
+    return mu + s*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+  },
+
+  // ---- Watergate exposure → 0..1, derived from the live pressure engine ----
+  // Inner-circle exposure carries most of the weight; flips and the Saturday
+  // Night Massacre push it toward 1. Tune the coefficients freely.
+  watergate01: function(){
+    try {
+      var inner=['Haldeman','Erlichman','Dean','Colson','Mitchell'], sum=0, n=0;
+      for(var i=0;i<inner.length;i++){
+        var p=(typeof _ORG_PRESSURE!=='undefined') && _ORG_PRESSURE[inner[i]];
+        if(p){ sum+=p.exp(); n++; }
+      }
+      var base = n ? (sum/n)/10 : 0;                       // avg inner exposure, 0..1
+      var flips = (typeof _innerCircleFlips!=='undefined') ? _innerCircleFlips.length : 0;
+      var x = base + 0.06*flips
+            + ((typeof SaturdayNightMassacre!=='undefined' && SaturdayNightMassacre) ? 0.10 : 0)
+            + ((typeof oojHush!=='undefined' && oojHush) ? 0.05 : 0);
+      return Math.max(0, Math.min(1, x));
+    } catch(err){ return 0.5; }
+  },
+
+  // ---- model math (mirrors midterm_model.js) ----
+  swing: function(appr, wg){
+    var S=this.CFG.SWING;
+    return S.MID + Math.max(0,Math.min(40,S.APPROVAL_REF-appr))/40*S.AC + Math.max(0,Math.min(1,wg))*S.WC;
+  },
+  _clamp: function(v,lo,hi){ return Math.max(lo,Math.min(hi,v)); },
+  house: function(sw){
+    var d=0, HD=this.CFG.HD, SLH=this.CFG.SLH;
+    for(var a in HD){
+      var seats=HD[a][0], bias=HD[a][1];
+      var hm=((SLH[a]||0)+sw) + bias*1.1 - 0.03 + this._rndN(0,0.015);
+      if(seats===1){ if(hm>0)d++; }
+      else { var sh=0.5+hm*2.0; sh=seats>=5?this._clamp(sh,0.15,0.85):this._clamp(sh,0,1); d+=Math.round(seats*sh); }
+    }
+    d=this._clamp(d,0,435); return { dem:d, rep:435-d };
+  },
+  senate: function(sw){
+    var D=this.CFG.SEED.D, R=this.CFG.SEED.R, I=this.CFG.SEED.I, races=[];
+    var SEN=this.CFG.SEN, SL74=this.CFG.SL74;
+    for(var n in SEN){
+      var row=SEN[n], lean=row[0], off=row[1], keep0=row[2], wave=row[3], held=row[4];
+      var keep=this._clamp(keep0,0.40,0.98);
+      var m=this._clamp(((SL74[lean]||0)+sw) + keep*off + this._rndN(0,0.006), -0.90, 0.90);
+      var w=m>0?'D':'R';
+      if(w==='D')D++; else R++;
+      races.push({ name:n, ab:lean, margin:m, winner:w, wave:wave, held:held, flip:(w!==held) });
+    }
+    var tot=D+R+I; if(tot!==100)D+=100-tot;
+    return { dem:D, rep:R, ind:I, races:races };
+  },
+
+  // ---- run the whole thing off the live game state ----
+  run: function(opts){
+    opts=opts||{};
+    var appr=(opts.approval!=null)?opts.approval:(typeof ApprovalRating!=='undefined'?ApprovalRating:50);
+    var wg  =(opts.watergate!=null)?opts.watergate:this.watergate01();
+    this._useNoise=(opts.noise!==false);
+    var sw=this.swing(appr,wg);
+    var h=this.house(sw), s=this.senate(sw);
+    this._useNoise=true;
+    return { approval:appr, watergate:wg, swing:sw, house:h, senate:s };
+  },
+
+  // ---- the election-night overlay (self-contained; no engine coupling) ----
+  open: function(opts){
+    var R=this.run(opts), T=this.CFG.TEXT, self=this;
+    var dlt=function(x){ return x>0?'+'+x:(x<0?''+x:'NC'); };
+    var hg=R.house.rep-this.CFG.HBASE.rep, sg=R.senate.rep-this.CFG.SBASE.rep;
+
+    // ----- styles (injected once) -----
+    if(!document.getElementById('_mt_css')){
+      var st=document.createElement('style'); st.id='_mt_css';
+      st.textContent=
+      '#_mt_ov{position:fixed;inset:0;z-index:9999;background:rgba(10,12,22,.94);color:#eee;'+
+      'font-family:Arial,Helvetica,sans-serif;overflow:auto;padding:26px;box-sizing:border-box;}'+
+      '#_mt_ov h2{font-size:1.5rem;margin:0 0 2px;letter-spacing:.04em;text-align:center;}'+
+      '#_mt_ov .mtsub{color:#9aa3c0;font-size:.8rem;text-align:center;margin-bottom:16px;}'+
+      '#_mt_ov .mthead{display:flex;justify-content:space-between;align-items:baseline;max-width:780px;margin:0 auto 6px;border-bottom:1px solid #3d425c;padding-bottom:8px;}'+
+      '#_mt_ov .mtlab{font-size:.95rem;font-weight:bold;letter-spacing:.04em;}'+
+      '#_mt_ov .mttally{font-size:1.5rem;font-weight:bold;}'+
+      '#_mt_ov .mtd{color:#5b8def;} #_mt_ov .mtr{color:#e0556b;} #_mt_ov .mttally small{font-size:.7rem;color:#9aa3c0;font-weight:normal;}'+
+      '#_mt_ov .mtcall{max-width:780px;margin:0 auto;font-size:.78rem;color:#9aa3c0;min-height:1.1em;}'+
+      '#_mt_ov .mtboard{display:flex;flex-wrap:wrap;gap:6px;max-width:780px;margin:10px auto;justify-content:center;}'+
+      '#_mt_ov .mttile{width:60px;height:44px;border-radius:5px;background:#3a3f5c;display:flex;flex-direction:column;'+
+      'align-items:center;justify-content:center;font-size:.7rem;color:#aab;transition:background .25s,color .25s;position:relative;}'+
+      '#_mt_ov .mttile .ab{font-weight:bold;font-size:.8rem;} #_mt_ov .mttile .mg{font-size:.58rem;opacity:0;transition:opacity .25s;}'+
+      '#_mt_ov .mttile.called .mg{opacity:.85;} #_mt_ov .mttile.D{background:#2f4d8a;color:#dce6ff;} #_mt_ov .mttile.R{background:#8a2f3f;color:#ffdce2;}'+
+      '#_mt_ov .mttile.flip{box-shadow:0 0 0 2px #ffd24a;} #_mt_ov .mttile .seat{position:absolute;top:1px;right:3px;font-size:.5rem;color:#ffd24a;}'+
+      '#_mt_ov .mtadv{max-width:780px;margin:14px auto;background:#1c2036;border-left:3px solid #5566cc;border-radius:6px;padding:11px 13px;font-size:.85rem;line-height:1.5;color:#cfd6f0;min-height:1.2em;}'+
+      '#_mt_ov .mtfoot{max-width:780px;margin:0 auto;display:flex;gap:10px;justify-content:center;}'+
+      '#_mt_ov button{background:#5566cc;color:#fff;border:0;border-radius:6px;padding:10px 16px;font-weight:bold;cursor:pointer;font-size:.85rem;}'+
+      '#_mt_ov button.alt{background:#444a6b;} #_mt_ov button:disabled{opacity:.4;cursor:default;}'+
+      '#_mt_card{position:fixed;inset:0;z-index:10000;background:rgba(8,10,18,.86);display:none;align-items:center;justify-content:center;}'+
+      '#_mt_card.show{display:flex;} #_mt_card .card{background:#2b2f44;border-radius:12px;padding:22px;width:520px;max-width:92vw;}'+
+      '#_mt_card h3{margin:0 0 2px;font-size:1.2rem;} #_mt_card .csub{color:#9aa3c0;font-size:.78rem;margin-bottom:16px;}'+
+      '#_mt_card .ch{background:#1d2030;border-radius:8px;padding:14px;margin-bottom:12px;}'+
+      '#_mt_card .chh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}'+
+      '#_mt_card .chh .t{font-size:1.05rem;font-weight:bold;} #_mt_card .chh .w{font-size:.72rem;color:#9aa3c0;}'+
+      '#_mt_card .nums{display:flex;justify-content:space-between;font-size:1.9rem;font-weight:bold;margin-bottom:8px;}'+
+      '#_mt_card .sup{font-size:.8rem;vertical-align:super;color:#9aa3c0;margin-left:3px;}'+
+      '#_mt_card .bar{display:flex;height:20px;border-radius:4px;overflow:hidden;position:relative;background:#11131f;}'+
+      '#_mt_card .bd{background:#5b8def;} #_mt_card .br{background:#e0556b;flex:1;} #_mt_card .mk{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#fff;}';
+      document.head.appendChild(st);
+    }
+
+    // ----- remove any prior instance, build overlay -----
+    var old=document.getElementById('_mt_ov'); if(old)old.remove();
+    var oc=document.getElementById('_mt_card'); if(oc)oc.remove();
+
+    var ov=document.createElement('div'); ov.id='_mt_ov';
+    var tiles='';
+    for(var nm in this.CFG.SEN){ var ab=this.CFG.SEN[nm][0];
+      tiles+='<div class="mttile" id="_mt_t_'+ab+'"><span class="ab">'+ab+'</span><span class="mg"></span></div>'; }
+    ov.innerHTML=
+      '<h2>'+T.title+'</h2>'+
+      '<div class="mtsub">'+T.indNote+'</div>'+
+      '<div class="mthead"><span class="mtlab">'+T.boardLabel+'</span>'+
+      '<span class="mttally"><span class="mtd" id="_mt_tD">'+this.CFG.SEED.D+'</span>'+
+      '<small> D &mdash; R </small><span class="mtr" id="_mt_tR">'+this.CFG.SEED.R+'</span></span></div>'+
+      '<div class="mtcall" id="_mt_call"></div>'+
+      '<div class="mtboard">'+tiles+'</div>'+
+      '<div class="mtadv" id="_mt_adv"></div>'+
+      '<div class="mtfoot">'+
+      '<button class="alt" id="_mt_score" disabled>'+T.scoreboardBtn+'</button>'+
+      '<button id="_mt_cont" disabled>'+T.continueBtn+'</button></div>';
+    document.body.appendChild(ov);
+
+    var card=document.createElement('div'); card.id='_mt_card';
+    card.innerHTML=
+      '<div class="card"><h3>'+T.cardTitle+'</h3><div class="csub" id="_mt_csub"></div>'+
+      '<div class="ch"><div class="chh"><span class="t">House</span><span class="w">218 to control</span></div>'+
+      '<div class="nums"><span class="mtd"><span id="_mt_chD"></span><span class="sup" id="_mt_chDg"></span></span>'+
+      '<span class="mtr"><span id="_mt_chR"></span><span class="sup" id="_mt_chRg"></span></span></div>'+
+      '<div class="bar"><div class="bd" id="_mt_chBar"></div><div class="mk"></div><div class="br"></div></div></div>'+
+      '<div class="ch"><div class="chh"><span class="t">Senate</span><span class="w">51 to control</span></div>'+
+      '<div class="nums"><span class="mtd"><span id="_mt_csD"></span><span class="sup" id="_mt_csDg"></span></span>'+
+      '<span class="mtr"><span id="_mt_csR"></span><span class="sup" id="_mt_csRg"></span></span></div>'+
+      '<div class="bar"><div class="bd" id="_mt_csBar"></div><div class="mk"></div><div class="br"></div></div></div>'+
+      '<div style="text-align:right;"><button class="alt" id="_mt_close">Close</button></div></div>';
+    document.body.appendChild(card);
+
+    // ----- reveal roll (poll-closing order) -----
+    var order=R.senate.races.slice().sort(function(a,b){return a.wave-b.wave;});
+    var liveD=this.CFG.SEED.D, liveR=this.CFG.SEED.R, i=0;
+    var step=function(){
+      if(i>=order.length){ finish(); return; }
+      var r=order[i++], t=document.getElementById('_mt_t_'+r.ab);
+      if(t){ t.className='mttile called '+r.winner+(r.flip?' flip':'');
+        t.querySelector('.mg').textContent=r.winner+'+'+Math.round(Math.abs(r.margin)*100);
+        if(r.flip){ var sp=document.createElement('span'); sp.className='seat'; sp.textContent='FLIP'; t.appendChild(sp); } }
+      if(r.winner==='D')liveD++; else liveR++;
+      document.getElementById('_mt_tD').textContent=liveD;
+      document.getElementById('_mt_tR').textContent=liveR;
+      document.getElementById('_mt_call').textContent=
+        T.callPrefix+r.name+' — '+(r.winner==='D'?'Democratic':'Republican')+' '+(r.flip?'PICKUP':'hold');
+      setTimeout(step,150);
+    };
+    var finish=function(){
+      var demHeldHouse=R.house.dem>=218;
+      var msg=(demHeldHouse?T.verdictWave:T.verdictHold)
+        .replace('{SW}',(R.swing*100).toFixed(1)).replace('{HR}',R.house.rep).replace('{HD}',R.house.dem)
+        .replace('{SD}',R.senate.dem).replace('{SR}',R.senate.rep).replace('{HG}',dlt(hg)).replace('{SG}',dlt(sg));
+      document.getElementById('_mt_adv').textContent=msg;
+      document.getElementById('_mt_call').textContent='All seats called.';
+      document.getElementById('_mt_score').disabled=false;
+      document.getElementById('_mt_cont').disabled=false;
+    };
+    setTimeout(step,600);
+
+    // ----- wire buttons -----
+    document.getElementById('_mt_score').onclick=function(){
+      document.getElementById('_mt_csub').textContent=T.cardSub
+        .replace('{SW}',(R.swing*100).toFixed(1)).replace('{HG}',dlt(hg)).replace('{SG}',dlt(sg));
+      document.getElementById('_mt_chD').textContent=R.house.dem;
+      document.getElementById('_mt_chR').textContent=R.house.rep;
+      document.getElementById('_mt_chDg').textContent=dlt(R.house.dem-self.CFG.HBASE.dem);
+      document.getElementById('_mt_chRg').textContent=dlt(R.house.rep-self.CFG.HBASE.rep);
+      document.getElementById('_mt_csD').textContent=R.senate.dem;
+      document.getElementById('_mt_csR').textContent=R.senate.rep;
+      document.getElementById('_mt_csDg').textContent=dlt(R.senate.dem-self.CFG.SBASE.dem);
+      document.getElementById('_mt_csRg').textContent=dlt(R.senate.rep-self.CFG.SBASE.rep);
+      document.getElementById('_mt_chBar').style.width=(R.house.dem/435*100)+'%';
+      document.getElementById('_mt_csBar').style.width=R.senate.dem+'%';
+      document.getElementById('_mt_card').classList.add('show');
+    };
+    document.getElementById('_mt_close').onclick=function(){ document.getElementById('_mt_card').classList.remove('show'); };
+    document.getElementById('_mt_cont').onclick=function(){
+      var c=document.getElementById('_mt_card'); if(c)c.remove();
+      var o=document.getElementById('_mt_ov'); if(o)o.remove();
+    };
+    return R;
+  }
+};
+
+// Manual test hook — run  _midtermTest()  (or _midtermTest({approval:47,watergate:0.75,noise:false}))
+// from the browser console to preview the screen against the live or forced state.
+function _midtermTest(opts){ return _MIDTERM.open(opts||{}); }
+
+// AUTO-FIRE (disabled until a Nov-1974 anchor is chosen). To arm: set _MIDTERM.TURN
+// to the desired turn and uncomment this block.
+// _everyTurn(function(turn){
+//   if(_MIDTERM.TURN==null || _MIDTERM._fired) return;
+//   if(turn>=_MIDTERM.TURN){ _MIDTERM._fired=true; _MIDTERM.open(); }
+// });
+// ── END 1974 MIDTERM ──────────────────────────────────────────────────────────
+
 // Shared #game_window observer (defined idempotently in Code 1; redefined here
 // so Code 2 works even if loaded first). One MutationObserver, many subscribers.
 window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
