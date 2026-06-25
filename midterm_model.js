@@ -190,13 +190,17 @@ function computeSenate(nationalSwing) {
 }
 
 // --- Watergate / approval → nationalSwing (the calibrated lever) -------------
-// Coefficients calibrated so "Damaged" scenario (approval≈38, watergate≈0.7)
-// → D+16.9% swing → House R 192→~144 (Δ−48), Senate R 42→~38 (Δ−4).
+// Historic anchor is the FORD presidency in Nov 1974: approval ≈ 47 (he was more
+// popular than Nixon — the post-pardon slump from ~71% had bottomed near 47–50),
+// watergate exposure ≈ 0.75. That point reproduces the real result:
+//   approval 47, watergate 0.75 → D+16.9% → House R 192→144 (Δ−48), Senate R ~38.
+// Reference approval is 60 (the "no bleeding" point); deficit measured from there.
 function nationalSwing({ approval = 50, watergate = 0 } = {}) {
-  const MIDTERM_PENALTY = 0.040;   // structural loss for party holding White House
-  const APPROVAL_COEF   = 0.130;   // weight of approval below 55 (max 40-pt deficit)
-  const WATERGATE_COEF  = 0.105;   // weight of cumulative exposure (0..1)
-  const approvalTerm  = clamp((55 - approval), 0, 40) / 40 * APPROVAL_COEF;
+  const MIDTERM_PENALTY = 0.030;   // structural loss for party holding White House
+  const APPROVAL_REF    = 60;      // approval at/above which no approval-driven loss
+  const APPROVAL_COEF   = 0.174;   // weight of approval below REF (max 40-pt deficit)
+  const WATERGATE_COEF  = 0.110;   // weight of cumulative exposure (0..1)
+  const approvalTerm  = clamp((APPROVAL_REF - approval), 0, 40) / 40 * APPROVAL_COEF;
   const watergateTerm = clamp(watergate, 0, 1) * WATERGATE_COEF;
   return MIDTERM_PENALTY + approvalTerm + watergateTerm;
 }
@@ -245,11 +249,11 @@ if (typeof require !== 'undefined' && require.main === module) {
     return { houseRep: h / n, senateRep: sR / n };
   };
   const scenarios = {
-    'Contained (appr 60, wg 0.0)': { approval: 60, watergate: 0.0 },
-    'Baseline  (appr 50, wg 0.0)': { approval: 50, watergate: 0.0 },
-    'Slipping  (appr 45, wg 0.4)': { approval: 45, watergate: 0.4 },
-    'Damaged   (appr 38, wg 0.7)': { approval: 38, watergate: 0.7 },
-    'Collapse  (appr 25, wg 1.0)': { approval: 25, watergate: 1.0 },
+    'Ford steadies   (appr 60, wg 0.30)': { approval: 60, watergate: 0.30 },
+    'Pardon backlash (appr 52, wg 0.55)': { approval: 52, watergate: 0.55 },
+    'HISTORIC 1974   (appr 47, wg 0.75)': { approval: 47, watergate: 0.75 },
+    'Deeper rot      (appr 40, wg 0.90)': { approval: 40, watergate: 0.90 },
+    'Collapse        (appr 30, wg 1.00)': { approval: 30, watergate: 1.00 },
   };
   for (const [label, st] of Object.entries(scenarios)) {
     const sw = nationalSwing(st);
@@ -261,5 +265,5 @@ if (typeof require !== 'undefined' && require.main === module) {
       `  Senate R ${a.senateRep.toFixed(0)} (Δ${sg>=0?'+':''}${sg.toFixed(0)})`
     );
   }
-  console.log('\nHistorical 1974: Damaged → D+16.9% → House R 144 (Δ−48), Senate R 38 (Δ−4)');
+  console.log('\nHistorical 1974: Ford anchor (appr 47, wg 0.75) → D+16.9% → House R 144 (Δ−48), Senate R 38 (Δ−4)');
 }
