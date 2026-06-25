@@ -15168,10 +15168,35 @@ function applyTooltips(str) {
     return result;
 }
 
+// "One-bit flip": wrap an occurrence in  <span data-tip>Johnson</span>  to render
+// that term's `alt` variant instead of its default. Presence of data-tip is the
+// whole signal — the value is ignored (data-tip, data-tip="", data-tip="dead" all
+// flip). applyTooltips above is untouched: we just hide marked occurrences from it,
+// let it auto-match everything else, then drop the alt card back in. Give a
+// tooltipList entry an `alt: { body, img, label }` — any field omitted from `alt`
+// falls back to the default.
+function applyTooltipsMarked(str) {
+    const saved = [];
+    str = str.replace(/<span\b[^>]*\bdata-tip\b[^>]*>([\s\S]*?)<\/span>/gi, (whole, term) => {
+        const t = tooltipList.find(x => x.searchString === term.trim());
+        if (t) {
+            const a = t.alt || {};
+            const img   = ('img'   in a) ? a.img   : t.img;
+            const label = ('label' in a) ? a.label : t.label;
+            const body  = ('body'  in a) ? a.body  : t.body;
+            saved.push(`<span class='mytooltip' style='position:relative'>${term}${generatePenStroke()}<span class='mytooltiptext'>${img ? `<img src='${img}'/>` : ''}<span class='tt-label'>${label}</span><span class='tt-body'><span class='tt-body-text'>${body}</span></span></span></span>`);
+        } else {
+            saved.push(whole); // wrapped text isn't a known term — leave as authored
+        }
+        return 'ZZTIPZZ' + (saved.length - 1) + 'ZZTIPZZ';
+    });
+    return applyTooltips(str).replace(/ZZTIPZZ(\d+)ZZTIPZZ/g, (m, i) => saved[+i]);
+}
+
 function applyTooltipsToObject(obj) {
     for (let key in obj) {
         if (typeof obj[key] === 'string') {
-            obj[key] = applyTooltips(obj[key]);
+            obj[key] = applyTooltipsMarked(obj[key]);
         } else if (typeof obj[key] === 'object' && obj[key] !== null) {
             applyTooltipsToObject(obj[key]);
         }
