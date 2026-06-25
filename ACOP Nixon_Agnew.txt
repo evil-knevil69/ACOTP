@@ -14509,10 +14509,9 @@ _everyTurn(() => {
 // Calibration anchor: approval 47 + watergate 0.75 → D+16.9% → House R 144
 // (Δ−48 vs 93rd Congress), Senate R ~38 (Δ−4) — the real 1974 result.
 //
-// HOW IT FIRES: nothing auto-fires yet (the question bank has no Nov-1974 anchor).
-// Test it now from the browser console with  _midtermTest()  . To arm it later,
-// either set _MIDTERM.TURN and uncomment the _everyTurn block at the foot of this
-// section, or call _MIDTERM.open() from a Nov-1974 question's onShow.
+// HOW IT FIRES: wired to pk 429's onShow (questionData, ~line 14828) — placeholder
+// anchor until a dedicated Nov-1974 beat exists; _MIDTERM._fired guards a single
+// showing. Still testable any time from the console with  _midtermTest()  .
 //
 // EVERYTHING EDITABLE (wording, dials, leans, seats, the 34 races) IS IN _MIDTERM.CFG.
 // ══════════════════════════════════════════════════════════════════════════════
@@ -14825,7 +14824,11 @@ const questionData = {
     402: { date: "11 November 1972",  signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk402.jpg", historical: null },
     409: { date: "20 November 1972", signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/PK409.jpg",
             historical: `<p>This interview really happened, and Nixon did debate cutting Henry loose.</p><p>In the end, Kissinger had to make a grovelling apology to Nixon but not before calling her a bitch, a liar and worse. He backed down when she offered to release the tape transcripts from their interview.</p><p>A copy of the interview is available <a href="https://scrapsfromtheloft.com/history/oriana-fallaci-henry-kissinger-interview/" target="_blank">here</a>.</p>` },
-    429: { date: "October 1975",       historical: null },
+    429: { date: "October 1975",
+            // The 1974 midterm election-night screen fires here (placeholder anchor;
+            // move to a dedicated Nov-1974 beat later). Guarded so it shows once.
+            onShow: () => { if (!_MIDTERM._fired) { _MIDTERM._fired = true; _MIDTERM.open(); } },
+            historical: null },
     430: {
         date: "September 1976",
         transition: {
