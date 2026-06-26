@@ -36,6 +36,51 @@ Always push here. Never push to main/master.
 
 ---
 
+## How-to: alternate (alt) tooltip for a term — "one-bit flip"
+
+Any Q&A term with a tooltip can show a **second** version of its card on demand,
+chosen per-occurrence when you write the text. Default occurrence → normal card;
+an occurrence you mark → alt card. (e.g. Kissinger normally "Read a book.",
+marked "Former National Security Adviser, current professional gossiper.")
+
+**Step 1 — give the `tooltipList` entry an `alt` (in `ACOP Nixon_Agnew.txt`, the
+`const tooltipList = [` array, ~line 14947).** Only put the fields that change;
+anything omitted from `alt` falls back to the default. Usually just `body`:
+
+```js
+{
+    searchString: "Kissinger",
+    img: "…/kissinger.jpeg",
+    label: "Henry Kissinger",
+    body: "You know who he is. Read a book.",
+    alt: { body: "Former National Security Adviser, current professional gossiper." }
+    // alt can also override img and/or label, e.g. alt: { body:"…", img:"…/memorial.jpg" }
+},
+```
+
+**Step 2 — in the question / answer / feedback text, wrap the occurrence you want
+flipped** in `<span data-tip>…</span>`:
+
+```
+Normal:  …I spoke to Kissinger about it…                  → default card
+Flipped: …<span data-tip>Kissinger</span> is talking again → alt card
+```
+
+Notes:
+- The marker's **value is ignored** — `data-tip`, `data-tip=""`, `data-tip="dead"`
+  all flip identically. Presence is the whole signal.
+- It's **per-occurrence and decided at write time** (not a runtime game-state flag),
+  so the alive/before and dead/after versions can live in different question beats.
+  If you ever need the SAME on-screen text to change as the game progresses, that's
+  a different mechanism (make the body a function of a state flag) — ask for it.
+- The text inside the span **must exactly equal the `searchString`** (`Kissinger`).
+  A mismatch fails safe: the span is left as written, no card, no crash.
+- Mechanics: `applyTooltips` is untouched; a wrapper `applyTooltipsMarked`
+  (~line 15176) hides marked occurrences, runs the normal auto-matcher, then
+  restores them as the alt. Don't worry about it — just use `alt` + `data-tip`.
+
+---
+
 ## Change log — session starting ~23:30 BST 7 Jun 2026
 
 ### ACOP Nixon_Agnew.txt
