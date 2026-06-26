@@ -14949,13 +14949,15 @@ const tooltipList = [
         searchString: "Henry Kissinger",
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/kissinger.jpeg",
         label: "Henry Kissinger",
-        body: "You know who he is. Read a book."
+        body: "You know who he is. Read a book.",
+        alt: { body: "Former National Security Adviser, current professional gossiper." }
     },
     {
         searchString: "Kissinger",
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/kissinger.jpeg",
         label: "Henry Kissinger",
-        body: "You know who he is. Read a book."
+        body: "You know who he is. Read a book.",
+        alt: { body: "Former National Security Adviser, current professional gossiper." }
     },
     {
         searchString: "Earl Butz",
