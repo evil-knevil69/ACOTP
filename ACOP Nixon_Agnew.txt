@@ -12077,6 +12077,17 @@ const _EVENT_DEFS = [
         state: () => 1,
     },
     {
+        id: 'years-of-lead',
+        continent: 'Europe',
+        type: 'insurgency',
+        label: 'The Years of Lead',
+        img: null, // PLACEHOLDER — drop in a GIF/still later
+        body: 'PLACEHOLDER. Anni di piombo — a wave of political terrorism convulsing Italy, with bombings, kidnappings and assassinations by both far-left (Red Brigades) and neo-fascist militants. The "strategy of tension" and shadowy state and NATO-linked involvement keep the Republic permanently on edge.',
+        country: 'IT',
+        positionOffset: { x: 0, y: 0 }, // tune with the Move Icons tool
+        state: () => 1, // permanent, like the Troubles
+    },
+    {
         id: 'vietnam-war',
         continent: 'Asia',
         type: 'war',
