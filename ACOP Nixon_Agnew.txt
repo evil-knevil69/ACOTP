@@ -14553,6 +14553,7 @@ var _MIDTERM = {
     HBASE: { dem:242, rep:192 },
     SBASE: { dem:56,  rep:42  },
     SEED:  { D:37, R:27, I:2 },   // the 66 Senate seats NOT up in 1974
+    WAVE_RLOSS: 30,               // House R seat losses ≥ this read as a "wave" (verdictWave); fewer → verdictHold. Dems always control the House here, so the verdict must key off loss magnitude, not control.
 
     // ---- House leans: 2012 Obama/Romney two-party D margin (seat-sensitivity calib) ----
     SLH:{AL:-0.46,AK:-0.28,AZ:-0.10,AR:-0.25,CA:0.24,CO:0.055,CT:0.18,DE:0.20,FL:0.009,GA:-0.08,HI:0.43,ID:-0.33,IL:0.18,IN:-0.11,IA:0.06,KS:-0.22,KY:-0.24,LA:-0.18,ME:0.16,MD:0.27,MA:0.24,MI:0.095,MN:0.078,MS:-0.12,MO:-0.097,MT:-0.14,NE:-0.22,NV:0.069,NH:0.058,NJ:0.18,NM:0.10,NY:0.29,NC:-0.02,ND:-0.20,OH:0.03,OK:-0.34,OR:0.13,PA:0.054,RI:0.28,SC:-0.11,SD:-0.18,TN:-0.21,TX:-0.16,UT:-0.49,VT:0.36,VA:0.039,WA:0.15,WV:-0.27,WI:0.069,WY:-0.42},
@@ -14751,8 +14752,11 @@ var _MIDTERM = {
       setTimeout(step,150);
     };
     var finish=function(){
-      var demHeldHouse=R.house.dem>=218;
-      var msg=(demHeldHouse?T.verdictWave:T.verdictHold)
+      // hg is the R House seat delta (negative = losses). A big enough rout reads
+      // as a "wave"; a modest loss as "bruised but standing". (Dems always control
+      // the House at these baselines, so control can't be the trigger.)
+      var wave=(-hg)>=self.CFG.WAVE_RLOSS;
+      var msg=(wave?T.verdictWave:T.verdictHold)
         .replace('{SW}',(R.swing*100).toFixed(1)).replace('{HR}',R.house.rep).replace('{HD}',R.house.dem)
         .replace('{SD}',R.senate.dem).replace('{SR}',R.senate.rep).replace('{HG}',dlt(hg)).replace('{SG}',dlt(sg));
       document.getElementById('_mt_adv').textContent=msg;
