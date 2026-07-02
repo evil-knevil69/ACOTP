@@ -11931,6 +11931,11 @@ function answerSwapper(pk1, pk2, takeEffects = true) {
 }
 
 // CYOA Variables
+// Nixon's own Watergate exposure (0–10, starts at 1). The presidential master
+// dial: future mechanics hang off it (impeachment pressure, exposure travelling
+// up the chain from flipped subordinates). Shown on the back of Nixon's card in
+// the org chart and atop the High Crimes & Misdemeanours page.
+var WatergateExposure = 1;
 var Haldemanexposure = 0;
 var Erlichmanexposure = 0;
 var Deanexposure = 0;
@@ -12891,7 +12896,13 @@ function _lpCrimesHTML() {
         { level: 2, heading: 'Before the Grand Jury' },
         { level: 1, heading: 'Known Crimes' },
     ];
-    let html = '';
+    // The President's own exposure, above the tier subheadings (both surfaces:
+    // the legal-pad panel and the file-drawer Crimes tab share this builder).
+    let html = `<div style="margin-bottom:12px;border-bottom:2px solid #7a1f1f;padding-bottom:6px;">
+        <div style="font-family:'TypewriterDry',monospace;font-size:12px;font-weight:bold;
+                    text-transform:uppercase;letter-spacing:1.2px;color:#7a1f1f;">
+            Presidential Watergate Exposure — ${WatergateExposure} / 10</div>
+    </div>`;
     tiers.forEach(({ level, heading }) => {
         const items = _LP_CRIMES.filter(c => c.val() === level);
         if (!items.length) return;
@@ -14635,10 +14646,18 @@ var _RESHUFFLE = {
 
         function _updateOrgBack(node) {
             const id = node.dataset.person;
-            const loyalty  = window._getOrgStat(id, 'loyalty');
-            const exposure = window._getOrgStat(id, 'exposure');
             const back = node.querySelector('.nw-card-back');
             if (!back) return;
+            if (id === 'Nixon') {
+                back.innerHTML = '<div class="nw-back-content"><div class="nw-back-stat">'
+                    + '<div class="nw-back-label">Watergate Exposure</div>'
+                    + '<div class="nw-back-value">' + WatergateExposure + ' / 10</div>'
+                    + '<div class="nw-back-bar"><div class="nw-back-fill nw-fill-exposure" style="width:' + (WatergateExposure * 10) + '%"></div></div>'
+                    + '</div></div>';
+                return;
+            }
+            const loyalty  = window._getOrgStat(id, 'loyalty');
+            const exposure = window._getOrgStat(id, 'exposure');
             if (loyalty == null && exposure == null) {
                 back.innerHTML = '<div class="nw-back-content nw-back-na"><em>No data</em></div>';
                 return;
@@ -15581,6 +15600,7 @@ window.__onGameWindowMutation(() => {
                     HushMoneyStack = 0; CutThemLooseStack = 0;
                     OfferClemencyStack = 0; PinTheBlameStack = 0;
                     _clemencies.length = 0;
+                    WatergateExposure = 1;
                 }
                 _lastQNum = _gs.question_number;
 
