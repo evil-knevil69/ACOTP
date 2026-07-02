@@ -1485,10 +1485,17 @@ function replaceRadioButtons() {
     radio.remove();
 });
 
-    // Patch the CONTINUE button to read checkbox value back into engine
+    // Patch the CONTINUE button to read checkbox value back into engine.
+    // Bind-once (proxyHooked) — this runs once per question render, and if the
+    // engine reuses the button element the listeners stacked up, one per
+    // question, each closing over a stale form. The form is looked up live in
+    // the handler for the same reason.
     const continueBtn = document.getElementById('answer_select_button');
-    if (continueBtn) {
+    if (continueBtn && !continueBtn.dataset.proxyHooked) {
+        continueBtn.dataset.proxyHooked = 'true';
         continueBtn.addEventListener('click', () => {
+            const form = document.querySelector('form[name="question"]');
+            if (!form) return;
             const checked = form.querySelector('input[type="checkbox"]:checked');
             if (checked) {
                 let hidden = form.querySelector('input[type="radio"].checkbox-proxy');
@@ -1548,9 +1555,15 @@ let __dragState = null;
 document.addEventListener('mousemove', (e) => {
     const d = __dragState;
     if (!d) return;
-    d.el.style.left = (d.startLeft + e.clientX - d.startX) + 'px';
-    d.el.style.top  = (d.startTop  + e.clientY - d.startY) + 'px';
-    d.updatePin();
+    const nl = d.startLeft + e.clientX - d.startX;
+    const nt = d.startTop  + e.clientY - d.startY;
+    d.el.style.left = nl + 'px';
+    d.el.style.top  = nt + 'px';
+    // Pin follows from the same math — no offsetLeft/offsetWidth reads (forced
+    // layout) on the move hot path; halfW was cached at mousedown. The style
+    // observer still covers non-drag repositioning.
+    d.pin.style.left = (nl + d.halfW - 10) + 'px';
+    d.pin.style.top  = (nt - 20) + 'px';
 });
 document.addEventListener('mouseup', () => {
     const d = __dragState;
@@ -1571,8 +1584,11 @@ function makeDraggable(elId, savedPos) {
     el.style.top = savedPos.top;
     el.style.cursor = 'grab';
 
-    // create pushpin
+    // create pushpin (id'd so a recreated panel replaces its old pin instead of
+    // orphaning it in the persistent container)
+    document.getElementById(elId + '-pin')?.remove();
     const pin = document.createElement('div');
+    pin.id = elId + '-pin';
     pin.className = 'map-pin';
     pin.innerHTML = `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='28' viewBox='0 0 20 28'><circle cx='10' cy='8' r='7' fill='#cc2200' stroke='#881100' stroke-width='1.5'/><ellipse cx='10' cy='7' rx='3' ry='2.5' fill='#ff6644' opacity='0.5'/><rect x='9' y='14' width='2' height='12' rx='1' fill='#888'/></svg>`;
     const parent = document.getElementById('main_content_area') || el.parentElement;
@@ -1589,9 +1605,10 @@ function makeDraggable(elId, savedPos) {
     el.addEventListener('mousedown', (e) => {
         if (e.target.tagName === 'BUTTON') return;
         __dragState = {
-            el, savedPos, updatePin,
+            el, pin, savedPos, updatePin,
             startX: e.clientX, startY: e.clientY,
             startLeft: el.offsetLeft, startTop: el.offsetTop,
+            halfW: el.offsetWidth / 2,
         };
         el.style.cursor = 'grabbing';
         e.preventDefault();
@@ -1917,9 +1934,14 @@ function __mapVisitTick() {
             }
             `;
             document.head.appendChild(s);
+        }
 
 //tv features from https://webartisan.info/
 
+        // Own guard, OUTSIDE the logo-hide-style block above: the map SVG is
+        // injected async, so on the first tick it may not exist yet — nested
+        // inside the style guard this never retried (the style already existed),
+        // leaving the whole CRT overlay missing for the rest of the map session.
         if (!document.getElementById('map-glass-overlay')) {
         const mapSvg = document.querySelector('#map_container svg');
         if (mapSvg) {
@@ -2031,6 +2053,7 @@ function __mapVisitTick() {
         mapSvg.appendChild(fo);
 
         const interlaceStyle = document.createElement('style');
+        interlaceStyle.id = 'crt-interlace-style';
         interlaceStyle.textContent = `
         @keyframes lines {
             0% {background-position: 0px 0px}
@@ -2050,10 +2073,10 @@ function __mapVisitTick() {
             animation: lines 0.066666666s linear infinite;
         }
         `;
-        document.head.appendChild(interlaceStyle);
+        if (!document.getElementById('crt-interlace-style')) document.head.appendChild(interlaceStyle);
 
         const mapContainerEl = document.getElementById('map_container');
-        if (mapContainerEl) {
+        if (mapContainerEl && !document.getElementById('map-scanlines')) {
             const scanlineDiv = document.createElement('div');
             scanlineDiv.id = 'map-scanlines';
             scanlineDiv.style.cssText = `
@@ -2073,10 +2096,18 @@ function __mapVisitTick() {
         }
         }
                     }
-                }
             } else {
             const s = document.getElementById('logo-hide-style');
             if (s) s.remove();
+            // CRT teardown — the glass foreignObject dies with the map SVG, but
+            // the scanline/interlace divs live on #map_container and the keyframes
+            // <style> in <head>; without this they persisted (one infinitely
+            // animating 15 Hz element) and duplicated on the next map open.
+            document.getElementById('map-glass-overlay')?.remove();
+            document.getElementById('crt-curve-clip')?.parentElement?.remove();
+            document.getElementById('map-scanlines')?.remove();
+            document.getElementById('interlaced')?.remove();
+            document.getElementById('crt-interlace-style')?.remove();
         }
     //visit screen changes
             const visitVisible = !!document.querySelector('.visit_text');
@@ -2348,6 +2379,7 @@ function __mapVisitTick() {
                                     clearTimeout(_plopTimer);
                                     mapSvg.removeEventListener('click', _planeClickHandler, true);
                                     delete mapSvg.dataset.planeHooked;
+                                    delete mapSvg._planeCtl;
                                     plane.remove();
                                     ev.stopPropagation();
                                     const _passthru = new MouseEvent('click', {
@@ -2357,6 +2389,10 @@ function __mapVisitTick() {
                                     _passthru._synthetic = true;
                                     ev.target.dispatchEvent(_passthru);
                                 }
+                                // A raw click mid-flight must never reach the engine: _flyTimer
+                                // will deliver the ORIGINAL click in a moment, and letting this
+                                // one through meant two state visits from one intended action.
+                                ev.stopPropagation();
                                 return;
                             }
                             plane.dataset.lastClick = now;
@@ -2394,9 +2430,22 @@ function __mapVisitTick() {
                                 _passthru._synthetic = true;
                                 originalTarget.dispatchEvent(_passthru);
                                 delete mapSvg.dataset.planeHooked;
+                                delete mapSvg._planeCtl;
                             }, 5000);
                         }
                         mapSvg.addEventListener('click', _planeClickHandler, true);
+                        // Detach hook for the screen-exit cleanup: the handler and
+                        // timers are closure-scoped, so without this the exit branch
+                        // could only delete the dataset flag — re-entering then
+                        // stacked a second live handler (double visits), and an
+                        // in-flight exit left _flyTimer to fire on a stale target.
+                        mapSvg._planeCtl = {
+                            detach() {
+                                clearTimeout(_flyTimer);
+                                clearTimeout(_plopTimer);
+                                mapSvg.removeEventListener('click', _planeClickHandler, true);
+                            }
+                        };
                  }
                             }
                         } else {
@@ -2417,7 +2466,10 @@ function __mapVisitTick() {
                                 const ps = document.getElementById('visit-plane-style');
                                 if (ps) ps.remove();
                                 const mapSvg = document.querySelector('#map_container svg:not(#visit-noise-overlay)');
-                                if (mapSvg) delete mapSvg.dataset.planeHooked;
+                                if (mapSvg) {
+                                    if (mapSvg._planeCtl) { mapSvg._planeCtl.detach(); delete mapSvg._planeCtl; }
+                                    delete mapSvg.dataset.planeHooked;
+                                }
                                 const easterZone = document.getElementById('visit-easter-zone');
                                 if (easterZone) easterZone.remove();
                             }
@@ -2819,6 +2871,9 @@ playBtn.addEventListener('click', () => {
         setReelAnimation('rw');
         clearInterval(_seekInterval);
         _seekInterval = setInterval(() => {
+            // Before metadata loads duration is NaN and assigning NaN to
+            // currentTime throws a TypeError every tick.
+            if (!audio.duration || isNaN(audio.duration)) return;
             audio.currentTime = Math.max(0, audio.currentTime - 2);
             updateTapeVisuals();
         }, 100);
@@ -2831,6 +2886,7 @@ playBtn.addEventListener('click', () => {
         setReelAnimation('ff');
         clearInterval(_seekInterval);
         _seekInterval = setInterval(() => {
+            if (!audio.duration || isNaN(audio.duration)) return;
             audio.currentTime = Math.min(audio.duration, audio.currentTime + 2);
             updateTapeVisuals();
         }, 100);
