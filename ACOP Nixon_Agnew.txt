@@ -12966,6 +12966,67 @@ function openLegalPad() {
     document.getElementById('game_window').appendChild(panel);
 }
 
+// ── TEAM ACTIONS (All the President's Men screen) ─────────────────────────────
+// Four charge-based actions, shown as buttons pinned to the top-left of the
+// President's Men window (above the Dean column). Each button embeds the number
+// of uses remaining. Question answers grant charges — from cyoAdventure or an
+// onShow, either bump the var directly (HushMoneyStack += 1) or call
+// _addTeamAction('hush', 1), which also refreshes the buttons if the panel is
+// open. Console test:  _addTeamAction('blame', 2)
+//
+// Charges are per-run resources: reset to 0 on New Game.
+var HushMoneyStack     = 0;
+var CutThemLooseStack  = 0;
+var OfferClemencyStack = 0;
+var PinTheBlameStack   = 0;
+
+const _TEAM_ACTIONS = [
+    { key: 'hush',     label: 'Hush Money',     get: () => HushMoneyStack,     set: v => { HushMoneyStack = v; } },
+    { key: 'cut',      label: 'Cut Them Loose', get: () => CutThemLooseStack,  set: v => { CutThemLooseStack = v; } },
+    { key: 'clemency', label: 'Offer Clemency', get: () => OfferClemencyStack, set: v => { OfferClemencyStack = v; } },
+    { key: 'blame',    label: 'Pin the Blame',  get: () => PinTheBlameStack,   set: v => { PinTheBlameStack = v; } },
+];
+
+function _teamAction(key) { return _TEAM_ACTIONS.find(a => a.key === key); }
+
+// Grant charges (answers call this — or bump the var and call _syncTeamActionBtns()).
+function _addTeamAction(key, n) {
+    const a = _teamAction(key);
+    if (a) { a.set(Math.max(0, a.get() + (n == null ? 1 : n))); _syncTeamActionBtns(); }
+}
+
+// Spend one charge. Returns true if a charge was available. The click handler
+// does NOT call this yet — effects/targeting aren't designed; wire them in
+// _teamActionClicked below and spend there.
+function _spendTeamAction(key) {
+    const a = _teamAction(key);
+    if (!a || a.get() <= 0) return false;
+    a.set(a.get() - 1);
+    _syncTeamActionBtns();
+    return true;
+}
+
+// TODO(game design): the click effect. Hush Money will likely target a man via
+// _payOff(name); Cut Them Loose / Offer Clemency / Pin the Blame need their
+// mechanics defined. Until then a click on an armed button does nothing.
+function _teamActionClicked(key) {
+    // e.g. future shape: enter target-select mode, then _spendTeamAction(key)
+    // + apply the effect to the chosen conspirator.
+}
+
+// Refresh counts/disabled state on the rendered buttons (no-op if panel closed).
+function _syncTeamActionBtns() {
+    const box = document.getElementById('nw-team-actions');
+    if (!box) return;
+    _TEAM_ACTIONS.forEach(a => {
+        const btn = box.querySelector('[data-action="' + a.key + '"]');
+        if (!btn) return;
+        btn.querySelector('.nw-ta-count').textContent = a.get();
+        btn.disabled = a.get() <= 0;
+    });
+}
+// ── END TEAM ACTIONS ──────────────────────────────────────────────────────────
+
 function openInnerCircle() {
     const questions = document.querySelector('.inner_window_question');
     if (questions) questions.style.display = 'none';
@@ -12977,6 +13038,19 @@ function openInnerCircle() {
     const title = document.createElement('h2');
     title.textContent = "All the President's Men";
     panel.appendChild(title);
+
+    // Team action buttons, pinned top-left (above the Dean column)
+    const taBox = document.createElement('div');
+    taBox.id = 'nw-team-actions';
+    _TEAM_ACTIONS.forEach(a => {
+        const btn = document.createElement('button');
+        btn.className = 'nw-ta-btn';
+        btn.dataset.action = a.key;
+        btn.innerHTML = a.label + ' <span class="nw-ta-count"></span>';
+        btn.addEventListener('click', () => _teamActionClicked(a.key));
+        taBox.appendChild(btn);
+    });
+    panel.appendChild(taBox);
 
     const chartWrapper = document.createElement('div');
     if (typeof window._renderOrgChart === 'function') window._renderOrgChart(chartWrapper);
@@ -13013,6 +13087,7 @@ function openInnerCircle() {
 
     panel.appendChild(btnRow);
     document.getElementById('game_window').appendChild(panel);
+    _syncTeamActionBtns();
     requestAnimationFrame(() => requestAnimationFrame(() => {
         if (typeof window._drawOrgLinks  === 'function') window._drawOrgLinks();
         if (typeof window._syncOrgStates === 'function') window._syncOrgStates();
@@ -13842,6 +13917,36 @@ var _RESHUFFLE = {
             margin: 0 0 10px;
             font-size: 18px;
             flex-shrink: 0;
+        }
+        /* Team action buttons — pinned top-left, above the Dean column */
+        #nw-team-actions {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 15;
+        }
+        #nw-team-actions .nw-ta-btn {
+            text-align: left;
+            font-size: 12px;
+            padding: 4px 8px;
+            cursor: pointer;
+        }
+        #nw-team-actions .nw-ta-btn:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+        #nw-team-actions .nw-ta-count {
+            display: inline-block;
+            min-width: 16px;
+            text-align: center;
+            font-weight: bold;
+            background: rgba(0,0,0,0.14);
+            border-radius: 8px;
+            padding: 0 4px;
+            margin-left: 4px;
         }
         /* overflow: auto on both axes — avoids the CSS spec rule that forces
            overflow-y:visible to computed auto when overflow-x is non-visible */
@@ -15312,6 +15417,8 @@ window.__onGameWindowMutation(() => {
                     _allendeSpeechPlayed = false;
                     _pressureOn = false;
                     _RESHUFFLE.reset();
+                    HushMoneyStack = 0; CutThemLooseStack = 0;
+                    OfferClemencyStack = 0; PinTheBlameStack = 0;
                 }
                 _lastQNum = _gs.question_number;
 
