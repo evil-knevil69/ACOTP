@@ -17502,13 +17502,13 @@ function _spendDiploAction(key) {
 
 // ---- targeting rules --------------------------------------------------------
 // Aid programmes need a working relationship: Send Aid and Reduce Aid are only
-// possible where relations (COUNTRY_LOYAL) are 26 or better. Send Aid is
-// additionally impossible toward the rich developed allies who don't take
-// American money: Western Europe, Australia, Japan, Singapore, New Zealand.
-// (Greece, Turkey, Malta and Yugoslavia deliberately stay aid-eligible — all
-// real US aid recipients of the era. Reduce Aid has no exclusion list.)
+// possible where relations (COUNTRY_LOYAL) are 26 or better. BOTH aid actions
+// are additionally impossible toward the rich developed allies who neither
+// take nor depend on American money: Western Europe, Australia, Japan,
+// Singapore, New Zealand. (Greece, Turkey, Malta and Yugoslavia deliberately
+// stay aid-eligible — all real US aid recipients of the era.)
 const _DIPLO_AID_GATE = 26;
-const _DIPLO_NO_SEND_AID = new Set([
+const _DIPLO_NO_AID = new Set([
     // Western Europe: the developed core, Nordics and micro-states
     'AD', 'AT', 'BE', 'CH', 'DE', 'DK', 'ES', 'FI', 'FR', 'GB', 'IE', 'IS',
     'IT', 'LI', 'LU', 'MC', 'NL', 'NO', 'PT', 'SE', 'SM', 'VA',
@@ -17524,7 +17524,7 @@ function _diploCanTarget(key, code) {
     if (loyal == null) return false;
     if (key === 'sendaid' || key === 'reduceaid') {
         if (loyal < _DIPLO_AID_GATE) return false;
-        if (key === 'sendaid' && _DIPLO_NO_SEND_AID.has(code)) return false;
+        if (_DIPLO_NO_AID.has(code)) return false;
     }
     return true;
 }
