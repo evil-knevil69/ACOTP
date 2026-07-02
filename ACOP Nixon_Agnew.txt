@@ -13752,6 +13752,8 @@ function openOfficialsPanel(questions) {
 //   })
 // varNames: ChiefOfStaff, NSA, SOS, SOD, AttorneyGeneral, SP, FBI, CIA.
 // Candidates are OFFICIALS_ROSTER keys. delay = turns until they take office.
+// NOT choosing has a cost: when the offer lapses at end of turn, every slot the
+// player left unfilled falls VACANT ('none').
 // Console test:  _RESHUFFLE.offer({ SOS: { candidates: ['Rockefeller'], delay: 2 } })
 // ──────────────────────────────────────────────────────────────────────────────
 const OFFICIALS_SETTERS = {
@@ -13790,6 +13792,15 @@ var _RESHUFFLE = {
     clear() {
         this.active = null;
         document.getElementById('inner_circle_button')?.classList.remove('rs-glow');
+    },
+    // Offer lapsed without a choice: every unfilled slot falls VACANT — the
+    // incumbent was leaving either way; ignoring the decision means the office
+    // sits empty ('none' → "(Vacant)" card, _VACANT effects text).
+    expire() {
+        if (this.active) Object.keys(this.active.slots).forEach(vn => {
+            if (OFFICIALS_SETTERS[vn]) OFFICIALS_SETTERS[vn]('none');
+        });
+        this.clear();
     },
     reset() { this.clear(); this.pending.length = 0; },  // New Game
 };
@@ -14682,7 +14693,7 @@ function _runTurnTicks() {
 // when their turn comes up. Ticks run before onShow, so a delay of d chosen on
 // turn T seats the new official at the top of turn T+d.
 _everyTurn(turn => {
-    if (_RESHUFFLE.active && turn > _RESHUFFLE.active.turn) _RESHUFFLE.clear();
+    if (_RESHUFFLE.active && turn > _RESHUFFLE.active.turn) _RESHUFFLE.expire();
     for (let i = _RESHUFFLE.pending.length - 1; i >= 0; i--) {
         const p = _RESHUFFLE.pending[i];
         if (turn >= p.dueTurn) {
