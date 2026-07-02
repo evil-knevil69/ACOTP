@@ -3289,8 +3289,8 @@ var EDU_TOOLTIPS = [
 ];
 // ── end of the editable list — machinery below ───────────────────────────────
 
-var _eduTipsOn = true;
-try { _eduTipsOn = localStorage.getItem('acop_edu_tips') !== '0'; } catch (e) {}
+var _eduTipsOn = false;   // OFF by default — opt in via the checkbox
+try { _eduTipsOn = localStorage.getItem('acop_edu_tips') === '1'; } catch (e) {}
 if (document.body) document.body.classList.toggle('edu-tips-off', !_eduTipsOn);
 
 // Double pen stroke — same hand-drawn language as Code 2's generatePenStroke,
