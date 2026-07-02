@@ -13176,20 +13176,25 @@ const OFFICIALS_ROSTER = {
     }
 };
 
-// Row order: CoS -> NSA -> SOS -> SOD -> AG (with SP + FBI beneath) -> CIA
+// Explicit rows, left edges aligned. Row 1: CoS, NSA, SOS, SOD.
+// Row 2: CIA sits under the leftmost card (CoS), then the AG group (SP + FBI beneath).
 const OFFICIALS_LAYOUT = [
-    { varName: 'ChiefOfStaff',    role: 'Chief of Staff' },
-    { varName: 'NSA',              role: 'Nat. Security Advisor' },
-    { varName: 'SOS',              role: 'Secretary of State' },
-    { varName: 'SOD',              role: 'Secretary of Defense' },
-    {
-        varName: 'AttorneyGeneral', role: 'Attorney General',
-        subordinates: [
-            { varName: 'SP',  role: 'Special Prosecutor' },
-            { varName: 'FBI', role: 'FBI Director' }
-        ]
-    },
-    { varName: 'CIA', role: 'CIA Director' }
+    [
+        { varName: 'ChiefOfStaff',    role: 'Chief of Staff' },
+        { varName: 'NSA',              role: 'Nat. Security Advisor' },
+        { varName: 'SOS',              role: 'Secretary of State' },
+        { varName: 'SOD',              role: 'Secretary of Defense' },
+    ],
+    [
+        { varName: 'CIA', role: 'CIA Director' },
+        {
+            varName: 'AttorneyGeneral', role: 'Attorney General',
+            subordinates: [
+                { varName: 'SP',  role: 'Special Prosecutor' },
+                { varName: 'FBI', role: 'FBI Director' }
+            ]
+        },
+    ]
 ];
 
 // Direct closure getters — window[varName] is unreliable inside new Function() scope
@@ -13227,65 +13232,79 @@ const OFFICIALS_VARS = {
             font-size: 18px;
         }
         .oc-grid {
+            /* Column of rows sharing one left edge, centered as a block —
+               row 2's first card (CIA) sits exactly under row 1's first (CoS). */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: max-content;
+            margin: 20px auto 0;
+            gap: 16px;
+        }
+        .oc-row {
             display: flex;
             flex-direction: row;
-            flex-wrap: wrap;
             gap: 10px;
-            justify-content: center;
             align-items: flex-start;
-            flex: 1;
-            margin-top: 20px;
         }
         .oc-ag-group {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        .oc-ag-group > .oc-card {
-            margin-bottom: 0;
-        }
         .oc-connector {
             width: 1px;
-            height: 30px;
+            height: 14px;
             background: #888;
             margin: 0 auto;
         }
         .oc-sub-row {
             display: flex;
             flex-direction: row;
-            gap: 8px;
-            position: relative;
         }
-        .oc-sub-row::before {
+        /* Each subordinate sits in a cell that draws its own riser plus its half
+           of the horizontal bar, so the lines meet the card centres exactly at
+           any card size (the old 25%/75% bar missed the risers). */
+        .oc-sub-cell {
+            position: relative;
+            padding-top: 14px;
+        }
+        .oc-sub-cell + .oc-sub-cell {
+            margin-left: 10px;
+        }
+        .oc-sub-cell::before {
             content: '';
             position: absolute;
             top: 0;
-            left: 25%;
-            right: 25%;
+            left: 50%;
+            width: 1px;
+            height: 14px;
+            background: #888;
+        }
+        .oc-sub-cell:first-child::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            right: -5px;
             height: 1px;
             background: #888;
         }
-        .oc-sub-row > .oc-card:first-child {
-            position: relative;
-            top: 10px;
-        }
-        .oc-sub-row > .oc-card:first-child::before {
+        .oc-sub-cell:last-child::after {
             content: '';
             position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 1px;
-            height: 10px;
+            top: 0;
+            right: 50%;
+            left: -5px;
+            height: 1px;
             background: #888;
         }
         .oc-card {
-            width: 138px;
-            height: 230px;
-            overflow: hidden;
+            width: 210px;
+            min-height: 230px;
             border: 1px solid #888;
             border-radius: 3px;
-            padding: 7px 6px 6px;
+            padding: 9px 8px 8px;
             background: rgba(255,255,255,0.84);
             text-align: center;
             box-shadow: 1px 1px 4px rgba(0,0,0,0.18);
@@ -13321,7 +13340,7 @@ const OFFICIALS_VARS = {
             font-family: Arial, sans-serif;
         }
         .oc-role {
-            font-size: 8.5px;
+            font-size: 9px;
             text-transform: uppercase;
             letter-spacing: 0.7px;
             color: #666;
@@ -13330,17 +13349,17 @@ const OFFICIALS_VARS = {
             margin-bottom: 2px;
         }
         .oc-name {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
             color: #111;
             font-family: 'TypewriterDry', sans-serif;
             margin-bottom: 4px;
         }
         .oc-bio {
-            font-size: 8.5px;
+            font-size: 9.5px;
             color: #444;
             font-family: 'TypewriterDry', sans-serif;
-            line-height: 1.35;
+            line-height: 1.4;
             text-align: left;
         }
     `;
@@ -13408,25 +13427,37 @@ function openOfficialsPanel(questions) {
         return card;
     }
 
-    OFFICIALS_LAYOUT.forEach(item => {
-        if (item.subordinates) {
-            const group = document.createElement('div');
-            group.className = 'oc-ag-group';
-            group.appendChild(makeCard(item.varName, item.role));
+    OFFICIALS_LAYOUT.forEach(rowItems => {
+        const row = document.createElement('div');
+        row.className = 'oc-row';
+        rowItems.forEach(item => {
+            if (item.subordinates) {
+                const group = document.createElement('div');
+                group.className = 'oc-ag-group';
+                group.appendChild(makeCard(item.varName, item.role));
 
-            const connector = document.createElement('div');
-            connector.className = 'oc-connector';
-            group.appendChild(connector);
+                const connector = document.createElement('div');
+                connector.className = 'oc-connector';
+                group.appendChild(connector);
 
-            const subRow = document.createElement('div');
-            subRow.className = 'oc-sub-row';
-            item.subordinates.forEach(sub => subRow.appendChild(makeCard(sub.varName, sub.role)));
-            group.appendChild(subRow);
+                const subRow = document.createElement('div');
+                subRow.className = 'oc-sub-row';
+                item.subordinates.forEach(sub => {
+                    // Cell wrapper draws the riser + its half of the horizontal
+                    // bar; see the .oc-sub-cell CSS.
+                    const cell = document.createElement('div');
+                    cell.className = 'oc-sub-cell';
+                    cell.appendChild(makeCard(sub.varName, sub.role));
+                    subRow.appendChild(cell);
+                });
+                group.appendChild(subRow);
 
-            grid.appendChild(group);
-        } else {
-            grid.appendChild(makeCard(item.varName, item.role));
-        }
+                row.appendChild(group);
+            } else {
+                row.appendChild(makeCard(item.varName, item.role));
+            }
+        });
+        grid.appendChild(row);
     });
 
     panel.appendChild(grid);
