@@ -17500,8 +17500,38 @@ function _spendDiploAction(key) {
     return true;
 }
 
+// ---- targeting rules --------------------------------------------------------
+// Aid programmes need a working relationship: Send Aid and Reduce Aid are only
+// possible where relations (COUNTRY_LOYAL) are 26 or better. Send Aid is
+// additionally impossible toward the rich developed allies who don't take
+// American money: Western Europe, Australia, Japan, Singapore, New Zealand.
+// (Greece, Turkey, Malta and Yugoslavia deliberately stay aid-eligible — all
+// real US aid recipients of the era. Reduce Aid has no exclusion list.)
+const _DIPLO_AID_GATE = 26;
+const _DIPLO_NO_SEND_AID = new Set([
+    // Western Europe: the developed core, Nordics and micro-states
+    'AD', 'AT', 'BE', 'CH', 'DE', 'DK', 'ES', 'FI', 'FR', 'GB', 'IE', 'IS',
+    'IT', 'LI', 'LU', 'MC', 'NL', 'NO', 'PT', 'SE', 'SM', 'VA',
+    // Developed Pacific allies
+    'AU', 'JP', 'SG', 'NZ',
+]);
+
+// Per-action country predicate — the country-target mode consults this when it
+// is wired (mirrors the President's Men canTarget pattern). Improve Relations
+// and Destabilise carry no extra rules yet.
+function _diploCanTarget(key, code) {
+    const loyal = COUNTRY_LOYAL[code];
+    if (loyal == null) return false;
+    if (key === 'sendaid' || key === 'reduceaid') {
+        if (loyal < _DIPLO_AID_GATE) return false;
+        if (key === 'sendaid' && _DIPLO_NO_SEND_AID.has(code)) return false;
+    }
+    return true;
+}
+
 // TODO(game design): country-target mode + effects (relations/aid/destabilise
-// presumably move COUNTRY_LOYAL / dispositions). Spend via _spendDiploAction.
+// presumably move COUNTRY_LOYAL / dispositions). Spend via _spendDiploAction;
+// gate targets through _diploCanTarget.
 function _diploActionClicked(key) {
 }
 
