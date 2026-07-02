@@ -269,6 +269,17 @@ document.body.background = "https://file.garden/aXPgNT-ZRCxxpy0g/backgroundv69.g
 
 
 
+// ENGINE DEPENDENCY — do not remove. campaign_trail.js renders
+// `<div class="game_header">${window.corrr}</div>` on every screen (12 call
+// sites); this bare assignment is what creates window.corrr. Without it the
+// header shows the literal text "undefined".
+corrr = `
+<div style="font-size: 11px; font-family: monospace; color: black;">
+<h2 style="font-style: normal;">
+  <img src="https://file.garden/aXPgNT-ZRCxxpy0g/logo8.png" alt="A CANCER ON THE PRESIDENCY" style="width: 989px; object-fit: contain;">
+</h2>
+</div>
+`;
 document.getElementById("inner_window_1").children[0].innerHTML = `<div class="typewriter" style="margin-top: 5px;"><h1>November 1972</h1></div>`;
 document.getElementById("inner_window_1").children[1].innerHTML = `<div class="blurtosharp"><p align="left"><br>Commentators often consider the '72 election to be the final death knell of the utopian dreams of the 1960s. The crest of Hunter Thompson's famous wave finally rolled back by the silent majority.<br>
 <br>
