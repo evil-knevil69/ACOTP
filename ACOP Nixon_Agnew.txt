@@ -14312,6 +14312,7 @@ const _visitAdvisorImages = [
 ].filter(Boolean);
 
 let _lastQuestionPK = null;
+let _lastQNum = null; // engine question_number last seen — a decrease means New Game without reload
 const _newEvents = new Set(); // event ids that became active this question — shown red
 function _markEventNew(id) { _newEvents.add(id); }
 
@@ -14739,37 +14740,43 @@ var _MIDTERM = {
     var order=R.senate.races.slice().sort(function(a,b){return a.wave-b.wave;});
     var liveD=this.CFG.SEED.D, liveR=this.CFG.SEED.R, i=0;
     var step=function(){
+      // If THIS overlay instance left the DOM (re-entrant open replaced it, or it
+      // was removed manually), the chain must die rather than write into the
+      // replacement's identical IDs. All lookups are scoped to `ov` for the same
+      // reason.
+      if(!ov.isConnected) return;
       if(i>=order.length){ finish(); return; }
-      var r=order[i++], t=document.getElementById('_mt_t_'+r.ab);
+      var r=order[i++], t=ov.querySelector('#_mt_t_'+r.ab);
       if(t){ t.className='mttile called '+r.winner+(r.flip?' flip':'');
         t.querySelector('.mg').textContent=r.winner+'+'+Math.round(Math.abs(r.margin)*100);
         if(r.flip){ var sp=document.createElement('span'); sp.className='seat'; sp.textContent='FLIP'; t.appendChild(sp); } }
       if(r.winner==='D')liveD++; else liveR++;
-      document.getElementById('_mt_tD').textContent=liveD;
-      document.getElementById('_mt_tR').textContent=liveR;
-      document.getElementById('_mt_call').textContent=
+      ov.querySelector('#_mt_tD').textContent=liveD;
+      ov.querySelector('#_mt_tR').textContent=liveR;
+      ov.querySelector('#_mt_call').textContent=
         T.callPrefix+r.name+' — '+(r.winner==='D'?'Democratic':'Republican')+' '+(r.flip?'PICKUP':'hold');
       setTimeout(step,150);
     };
     var finish=function(){
+      if(!ov.isConnected) return;
       // hg is the R House seat delta (negative = losses). A big enough rout reads
       // as a "wave"; a modest loss as "bruised but standing". (Dems always control
       // the House at these baselines, so control can't be the trigger.)
       var wave=(-hg)>=self.CFG.WAVE_RLOSS;
       var msg=(wave?T.verdictWave:T.verdictHold)
-        .replace('{SW}',(R.swing*100).toFixed(1)).replace('{HR}',R.house.rep).replace('{HD}',R.house.dem)
-        .replace('{SD}',R.senate.dem).replace('{SR}',R.senate.rep).replace('{HG}',dlt(hg)).replace('{SG}',dlt(sg));
-      document.getElementById('_mt_adv').textContent=msg;
-      document.getElementById('_mt_call').textContent='All seats called.';
-      document.getElementById('_mt_score').disabled=false;
-      document.getElementById('_mt_cont').disabled=false;
+        .replaceAll('{SW}',(R.swing*100).toFixed(1)).replaceAll('{HR}',R.house.rep).replaceAll('{HD}',R.house.dem)
+        .replaceAll('{SD}',R.senate.dem).replaceAll('{SR}',R.senate.rep).replaceAll('{HG}',dlt(hg)).replaceAll('{SG}',dlt(sg));
+      ov.querySelector('#_mt_adv').textContent=msg;
+      ov.querySelector('#_mt_call').textContent='All seats called.';
+      ov.querySelector('#_mt_score').disabled=false;
+      ov.querySelector('#_mt_cont').disabled=false;
     };
     setTimeout(step,600);
 
     // ----- wire buttons -----
     document.getElementById('_mt_score').onclick=function(){
       document.getElementById('_mt_csub').textContent=T.cardSub
-        .replace('{SW}',(R.swing*100).toFixed(1)).replace('{HG}',dlt(hg)).replace('{SG}',dlt(sg));
+        .replaceAll('{SW}',(R.swing*100).toFixed(1)).replaceAll('{HG}',dlt(hg)).replaceAll('{SG}',dlt(sg));
       document.getElementById('_mt_chD').textContent=R.house.dem;
       document.getElementById('_mt_chR').textContent=R.house.rep;
       document.getElementById('_mt_chDg').textContent=dlt(R.house.dem-self.CFG.HBASE.dem);
@@ -14907,8 +14914,27 @@ window.__onGameWindowMutation(() => {
 
             const _gs = _liveGameState();
             if (_gs) {
+                // New Game without a page reload: the engine resets question_number
+                // to 0, so a decrease means a fresh run — reset all per-run mod state
+                // (otherwise transitions/midterm never re-fire and the pressure engine
+                // starts hot with a turn counter carried over from the last run).
+                if (_lastQNum != null && _gs.question_number < _lastQNum) {
+                    _questionCount = 0;
+                    _lastQuestionPK = null;
+                    _shownTransitions.clear();
+                    Object.keys(_pausedUntil).forEach(k => { delete _pausedUntil[k]; });
+                    _MIDTERM._fired = false;
+                    _allendeSpeechPlayed = false;
+                    _pressureOn = false;
+                }
+                _lastQNum = _gs.question_number;
+
                 const currentPK = _gs.questions_json?.[_gs.question_number]?.pk ?? null;
-                if (currentPK !== _lastQuestionPK) {
+                // currentPK !== null: past the last question (results screen) the PK
+                // computes to null — without the guard that registered as a phantom
+                // "new question", bumping the turn counter and ticking the pressure
+                // engine once on the end screen.
+                if (currentPK !== null && currentPK !== _lastQuestionPK) {
                     _lastQuestionPK = currentPK;
                     _questionCount++;
                     _runTurnTicks();
@@ -15150,7 +15176,10 @@ function getTooltips(str) {
     let matches = [];
     tooltipList.forEach((tooltip, index) => {
         const escaped = tooltip.searchString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(`(?<=[\\b\\s]|^)${escaped}(?=[.,;!?]?(?:[\\s\\b]|$))`, 'g');
+        // Word-edge match. NB: inside a character class \b means backspace, not a
+        // word boundary — the old `[\b\s]` pattern silently required literal
+        // whitespace, so "Butz's", "Kissinger)" or "Butz:" never got a tooltip.
+        const regex = new RegExp(`(?<!\\w)${escaped}(?!\\w)`, 'g');
         let match;
         while ((match = regex.exec(str)) !== null) {
             matches.push({
@@ -15224,6 +15253,16 @@ applyTooltipsToObject(campaignTrail_temp.questions_json);
 applyTooltipsToObject(campaignTrail_temp.answers_json);
 applyTooltipsToObject(campaignTrail_temp.answer_feedback_json);
 
+// Failsafe: the full tooltip-card CSS lives in the init file. If that file isn't
+// loaded, .mytooltiptext loses its display:none and every baked card renders as
+// visible inline text inside the questions — this one rule prevents that.
+if (!document.getElementById('_tt_failsafe_css')) {
+    const _ttFs = document.createElement('style');
+    _ttFs.id = '_tt_failsafe_css';
+    _ttFs.textContent = '.mytooltiptext{display:none;}';
+    document.head.appendChild(_ttFs);
+}
+
 const _tooltipPortal = document.createElement('div');
 _tooltipPortal.id = 'tooltip-portal';
 document.body.appendChild(_tooltipPortal);
@@ -15237,7 +15276,14 @@ document.addEventListener('mouseover', (e) => {
     _hoveredTooltip = src;
     if (src) {
         const inner = src.querySelector('.mytooltiptext');
-        if (inner) { _tooltipPortal.innerHTML = inner.innerHTML; _ttDirty = true; }
+        if (inner) {
+            _tooltipPortal.innerHTML = inner.innerHTML;
+            _ttDirty = true;
+            // The card image loads async and grows the portal after we've measured;
+            // remeasure on load or the edge-clamp works with a stale (smaller) size.
+            const im = _tooltipPortal.querySelector('img');
+            if (im && !im.complete) im.onload = () => { _ttDirty = true; };
+        }
     } else {
         _tooltipPortal.style.display = 'none';
     }
