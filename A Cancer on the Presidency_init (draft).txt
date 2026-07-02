@@ -269,13 +269,6 @@ document.body.background = "https://file.garden/aXPgNT-ZRCxxpy0g/backgroundv69.g
 
 
 
-corrr = `
-<div style="font-size: 11px; font-family: monospace; color: black;">
-<h2 style="font-style: normal;">
-  <img src="https://file.garden/aXPgNT-ZRCxxpy0g/logo8.png" alt="A CANCER ON THE PRESIDENCY" style="width: 989px; object-fit: contain;">
-</h2>
-</div>
-`;
 document.getElementById("inner_window_1").children[0].innerHTML = `<div class="typewriter" style="margin-top: 5px;"><h1>November 1972</h1></div>`;
 document.getElementById("inner_window_1").children[1].innerHTML = `<div class="blurtosharp"><p align="left"><br>Commentators often consider the '72 election to be the final death knell of the utopian dreams of the 1960s. The crest of Hunter Thompson's famous wave finally rolled back by the silent majority.<br>
 <br>
@@ -425,11 +418,6 @@ style.innerHTML = `
     stroke-dasharray: var(--a, 86.12);
     stroke-dashoffset: var(--o, 86.12);
     transition: stroke-dasharray .6s, stroke-dashoffset .6s;
-}
-@keyframes bounce {
-    50% { transform: scale(1.2); }
-    75% { transform: scale(.9); }
-    100% { transform: scale(1); }
 }
 .game_answer_row {
     display: flex;
@@ -1183,8 +1171,10 @@ e.creditsPage = () => {
     <p>Sound FX & Recordings: Evil Knevil69</p><br>
     <p>Music: PLACEHOLDER</p>
   `
+  if (document.getElementById("SOTUheader")) return; // already open — a second click stacked duplicate ids
   changeGameDisp(true);
   var spacer = document.createElement("amongusspacerthisisntarealelement");
+  spacer.id = "SOTUspacer";
   spacer.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
   document
     .getElementsByClassName("inner_window_w_desc")[0]
@@ -1210,6 +1200,7 @@ e.creditsPage = () => {
       document.getElementById("SOTUheader").remove();
       document.getElementById("SOTUmenu").remove();
       document.getElementById("backSOTUBtn").remove();
+      document.getElementById("SOTUspacer")?.remove(); // was appended per open and never removed
       changeGameDisp(false);
     };
     z.appendChild(menuHeader);
@@ -1225,8 +1216,10 @@ e.watergatePage = () => {
     <p><font color='#010101'>Evil_Knevil69</font></p>
     <p><font color='#010101'>Philip (aged 9)</font></p>
   `
+  if (document.getElementById("WATERGATEheader")) return; // already open
   changeGameDisp(true);
   var spacer = document.createElement("amongusspacerthisisntarealelement");
+  spacer.id = "WATERGATEspacer";
   spacer.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
   document
     .getElementsByClassName("inner_window_w_desc")[0]
@@ -1253,6 +1246,7 @@ e.watergatePage = () => {
       document.getElementById("WATERGATEheader").remove();
       document.getElementById("WATERGATEmenu").remove();
       document.getElementById("backWATERGATEBtn").remove();
+      document.getElementById("WATERGATEspacer")?.remove(); // was appended per open and never removed
       changeGameDisp(false);
     };
     z.appendChild(menuHeader);
@@ -1263,8 +1257,11 @@ e.watergatePage = () => {
 // Wait for the engine to render the election screen, then inject credits and watergate buttons and autoselect, replace radio buttons bloody fools errand that was 
 function replaceButtonText() {
     document.querySelectorAll("button").forEach(btn => {
-        if (btn.innerText.trim().toUpperCase() === "CONTINUE") btn.innerText = "⏎";
-        if (btn.innerText.trim() === "Latest Polls/Electoral Map") btn.innerText = "Electoral Map";
+        // textContent, not innerText: innerText forces layout per read and this
+        // sweep runs on every game-window mutation batch.
+        const t = btn.textContent.trim();
+        if (t.toUpperCase() === "CONTINUE") btn.textContent = "⏎";
+        if (t === "Latest Polls/Electoral Map") btn.textContent = "Electoral Map";
     });
     document.querySelectorAll('.overlay_window_content h3').forEach(h3 => {
     if (h3.textContent.includes('Advisor Feedback')) {
@@ -1272,15 +1269,15 @@ function replaceButtonText() {
     }
     });
     document.querySelectorAll(".person_summary ul li:first-child").forEach(el => {
-        if (el.innerText.startsWith("Name:")) {
-            const name = el.innerText.replace("Name:", "").trim();
+        if (el.textContent.startsWith("Name:")) {
+            const name = el.textContent.replace("Name:", "").trim();
             el.innerHTML = `<span class="typewriter-name">${name}</span>`;
         }
     });
     document.querySelectorAll(".person_summary ul li:nth-child(2)").forEach(el => {
-        if (el.innerText.includes("Republican")) {
+        if (el.textContent.includes("Republican")) {
             el.style.color = "#0000FF";
-        } else if (el.innerText.includes("Democratic")) {
+        } else if (el.textContent.includes("Democratic")) {
             el.style.color = "#ff0000";
         }
     });
@@ -1327,7 +1324,6 @@ function replaceButtonText() {
         const marginBtn = document.getElementById('margin_switcher');
         if (marginBtn && !marginBtn.dataset.knobReplaced) {
         marginBtn.dataset.knobReplaced = 'true';
-        const isOn = true;
         const marginKnob = document.createElement('div');
         marginKnob.innerHTML = `
             <div class="control-knob">
@@ -1644,6 +1640,7 @@ window.playCreditsMusic = function() {
 function __mapVisitTick() {
     const mapVisible = !!document.getElementById('resume_questions_button');
     if (mapVisible) {
+        _ensureGsap();
         if (!document.getElementById('logo-hide-style')) {
             const s = document.createElement('style');
             s.id = 'logo-hide-style';
@@ -2278,21 +2275,6 @@ function __mapVisitTick() {
                         if (mapContainerEl) mapContainerEl.appendChild(el);
                     });
                 }
-                    if (!document.getElementById('visit-easter-zone')) {
-                    const easterZone = document.createElement('div');
-                    easterZone.id = 'visit-easter-zone';
-                    easterZone.style.cssText = `
-                        position: absolute;
-                        left: 680px;
-                        top: 335px;
-                        width: 245px;
-                        height: 167px;
-                        pointer-events: none;
-                        z-index: 6;
-                    `;
-                    const mapContainerEl = document.getElementById('map_container');
-                    if (mapContainerEl) mapContainerEl.appendChild(easterZone);
-                }
                 const mapImg = document.getElementById('map_image');
                 if (mapImg) mapImg.disabled = true;
                 if (!document.getElementById('visit-plane')) {
@@ -2470,8 +2452,6 @@ function __mapVisitTick() {
                                     if (mapSvg._planeCtl) { mapSvg._planeCtl.detach(); delete mapSvg._planeCtl; }
                                     delete mapSvg.dataset.planeHooked;
                                 }
-                                const easterZone = document.getElementById('visit-easter-zone');
-                                if (easterZone) easterZone.remove();
                             }
                         }
 window.__onGameWindowMutation(__mapVisitTick);
@@ -2534,12 +2514,10 @@ class Song {
     constructor(title, artist, coverLink, audioLink) {
         this.title = title;
         this.artist = artist;
-        this.coverLink = coverLink;
         this.audioLink = audioLink;
     }
     getTitle()     { return this.title; }
     getArtist()    { return this.artist; }
-    getCoverLink() { return this.coverLink; }
     getAudioLink() { return this.audioLink; }
 }
 
@@ -3009,7 +2987,8 @@ document.addEventListener('mouseup', () => {
 });
 setTimeout(() => {
     const introSound = new Audio('https://audio.jukehost.co.uk/NE7w9YDoEIdJ34UobP0V9ZmPnE5dLmLm');
-    introSound.play();
+    // Pre-gesture autoplay is rejected by browser policy; swallow the rejection.
+    introSound.play().catch(() => {});
     window._introSound = introSound;
 }, 2500);
 
@@ -3215,9 +3194,6 @@ mplayerstyle.textContent = `
 #nextBtn    { left: 422px; top: 323px; }
 
 /* Reel animations */
-.stop {
-    animation-play-state: paused !important;
-}
 .normal {
     animation-duration: 2.5s !important;
 }
@@ -3246,9 +3222,16 @@ document.head.appendChild(mplayerstyle);
 //end music player code
 
 // Add TV turn off animation taken from codepen courtesy @hodd
-const gsapScript = document.createElement('script');
-gsapScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js';
-document.head.appendChild(gsapScript);
+// GSAP TweenMax (~110KB) is only used by the TV-off animation on the map screen,
+// so it is injected on first map open (__mapVisitTick) rather than at load; the
+// switch handler already falls back to a plain click if it hasn't arrived yet.
+function _ensureGsap() {
+    if (document.getElementById('gsap-tweenmax') || typeof TimelineMax !== 'undefined') return;
+    const gsapScript = document.createElement('script');
+    gsapScript.id = 'gsap-tweenmax';
+    gsapScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js';
+    document.head.appendChild(gsapScript);
+}
 
 //Custom map background style- thanks to Strawberry Master for putting this in the Discord
 const customStyling = document.createElement("style");
