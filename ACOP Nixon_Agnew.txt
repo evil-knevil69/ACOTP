@@ -11931,10 +11931,11 @@ function answerSwapper(pk1, pk2, takeEffects = true) {
 }
 
 // CYOA Variables
-// Nixon's own Watergate exposure (0–10, starts at 1). The presidential master
-// dial: future mechanics hang off it (impeachment pressure, exposure travelling
-// up the chain from flipped subordinates). Shown on the back of Nixon's card in
-// the org chart and atop the High Crimes & Misdemeanours page.
+// Nixon's own Watergate exposure (0–20, starts at 1). The presidential master
+// dial: impeachment pressure, exposure travelling up the chain from flipped
+// subordinates, the midterm swing, and Pin the Blame (available above 10) all
+// hang off it. Shown on the back of Nixon's card in the org chart and atop the
+// High Crimes & Misdemeanours page.
 var WatergateExposure = 1;
 var Haldemanexposure = 0;
 var Erlichmanexposure = 0;
@@ -12897,7 +12898,7 @@ function _lpCrimesHTML() {
     let html = `<div style="margin-bottom:12px;border-bottom:2px solid #7a1f1f;padding-bottom:6px;">
         <div style="font-family:'TypewriterDry',monospace;font-size:12px;font-weight:bold;
                     text-transform:uppercase;letter-spacing:1.2px;color:#7a1f1f;">
-            Presidential Watergate Exposure — ${WatergateExposure} / 10</div>
+            Presidential Watergate Exposure — ${WatergateExposure} / 20</div>
     </div>`;
     tiers.forEach(({ level, heading }) => {
         const items = _LP_CRIMES.filter(c => c.val() === level);
@@ -13073,7 +13074,24 @@ const _TA_WIRED = {
             return 'Clemency dangled before ' + key + ' — loyalty +2 for 4 turns, void if his situation changes.';
         }
     },
-    // blame: {...}  — TODO(game design)
+    blame: {
+        prompt: 'Pin the blame: pick a wavering man (loyalty 3 or less) to hang it on (click the button again to cancel).',
+        // Desperation move: only on the table once the President's own exposure
+        // is serious (above 10 of 20).
+        available() { return typeof WatergateExposure !== 'undefined' && WatergateExposure > 10; },
+        unavailableHint: 'Available once the President\'s Watergate exposure is above 10.',
+        canTarget(key) {
+            const p = _ORG_PRESSURE[key];
+            return !!(p && p.loy) && p.loy() <= 3;
+        },
+        apply(key) {
+            const p = _ORG_PRESSURE[key];
+            p.setExp(Math.min(10, p.exp() + 2));
+            p.setLoy(Math.max(0, p.loy() - 2));
+            WatergateExposure = Math.max(0, WatergateExposure - 1);
+            return 'Pinned the blame on ' + key + ' — his exposure +2 and loyalty −2; the President\'s exposure eases to ' + WatergateExposure + ' / 20.';
+        }
+    },
 };
 
 // Active clemency promises: { key, boost, expiresTurn, statusAtGrant }.
@@ -13104,6 +13122,7 @@ function _teamActionClicked(key) {
     if (!a || a.get() <= 0) return;
     const wired = _TA_WIRED[key];
     if (!wired) return;   // mechanic not designed yet
+    if (wired.available && !wired.available()) return;   // e.g. blame below the exposure gate
     _taMode = key;
     const btn = document.querySelector('#nw-team-actions [data-action="' + key + '"]');
     if (btn) btn.classList.add('nw-ta-armed');
@@ -13140,14 +13159,20 @@ function _taHandleNodeClick(node) {
 }
 
 // Refresh counts/disabled state on the rendered buttons (no-op if panel closed).
+// A wired action with an available() gate (e.g. Pin the Blame below the
+// exposure threshold) shows disabled even with charges, with the reason as a
+// hover title.
 function _syncTeamActionBtns() {
     const box = document.getElementById('nw-team-actions');
     if (!box) return;
     _TEAM_ACTIONS.forEach(a => {
         const btn = box.querySelector('[data-action="' + a.key + '"]');
         if (!btn) return;
+        const wired = _TA_WIRED[a.key];
+        const locked = !!(wired && wired.available && !wired.available());
         btn.querySelector('.nw-ta-count').textContent = a.get();
-        btn.disabled = a.get() <= 0;
+        btn.disabled = a.get() <= 0 || locked;
+        btn.title = locked ? (wired.unavailableHint || '') : '';
     });
 }
 // ── END TEAM ACTIONS ──────────────────────────────────────────────────────────
@@ -14647,8 +14672,8 @@ var _RESHUFFLE = {
             if (id === 'Nixon') {
                 back.innerHTML = '<div class="nw-back-content"><div class="nw-back-stat">'
                     + '<div class="nw-back-label">Watergate Exposure</div>'
-                    + '<div class="nw-back-value">' + WatergateExposure + ' / 10</div>'
-                    + '<div class="nw-back-bar"><div class="nw-back-fill nw-fill-exposure" style="width:' + (WatergateExposure * 10) + '%"></div></div>'
+                    + '<div class="nw-back-value">' + WatergateExposure + ' / 20</div>'
+                    + '<div class="nw-back-bar"><div class="nw-back-fill nw-fill-exposure" style="width:' + (WatergateExposure * 5) + '%"></div></div>'
                     + '</div></div>';
                 return;
             }
@@ -15181,7 +15206,7 @@ _everyTurn(() => {
 // A consequence beat: an election-night overlay where the 34 Class-3 Senate seats
 // call in over a poll-closing roll with a live tally, then a "Congressional
 // Scoreboard" button reveals the LBM House+Senate board. Driven by the live
-// ApprovalRating and the President's own WatergateExposure dial (0–10 → 0–1).
+// ApprovalRating and the President's own WatergateExposure dial (0–20 → 0–1).
 //
 // Model + data mirror midterm_model.js / midterm_flow_sandbox.html exactly.
 // Calibration anchor: approval 47 + watergate 0.75 → D+16.9% → House R 144
@@ -15263,13 +15288,13 @@ var _MIDTERM = {
   },
 
   // ---- Watergate exposure → 0..1: the President's own dial ----
-  // Reads the global WatergateExposure (0–10) — the presidential master
+  // Reads the global WatergateExposure (0–20) — the presidential master
   // variable shown on Nixon's card back and the High Crimes page. The
-  // historic-1974 calibration (0.75) therefore means WatergateExposure 7.5
-  // on midterm night; the game-start value of 1 reads as 0.10.
+  // historic-1974 calibration (0.75) therefore means WatergateExposure 15
+  // on midterm night; the game-start value of 1 reads as 0.05.
   watergate01: function(){
     try {
-      var x = (typeof WatergateExposure !== 'undefined') ? WatergateExposure / 10 : 0.5;
+      var x = (typeof WatergateExposure !== 'undefined') ? WatergateExposure / 20 : 0.5;
       return Math.max(0, Math.min(1, x));
     } catch(err){ return 0.5; }
   },
