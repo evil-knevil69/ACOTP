@@ -15646,6 +15646,8 @@ window.__onGameWindowMutation(() => {
                     OfferClemencyStack = 0; PinTheBlameStack = 0;
                     _clemencies.length = 0;
                     WatergateExposure = 1;
+                    ImproveRelationsStack = 0; SendAidStack = 0;
+                    ReduceAidStack = 0; DestabiliseStack = 0;
                 }
                 _lastQNum = _gs.question_number;
 
@@ -17463,6 +17465,61 @@ var _wmOceanMaskEl = null;   // cached SVG <mask>; built once, re-appended on ea
 var _wmPrevLoyal   = null;   // snapshot of COUNTRY_LOYAL from the previous map open; drives allegiance delta flashes
 var _wmEventDebutPk = {};    // event id -> question pk at which it first appeared; icon micro-animations play only on the debut turn
 
+// ── DIPLOMACY ACTIONS (world map) ─────────────────────────────────────────────
+// Charge-based actions in the Diplomacy dropdown on the world-map toolbar —
+// same logic as the President's Men team actions. Answers grant charges: bump
+// the var directly or call _addDiploAction('improve', 1) (refreshes the menu if
+// the map is open). Console test:  _addDiploAction('destabilise', 2)
+// Effects/targeting are NOT wired yet — _diploActionClicked is the hook, and
+// the natural shape is a country-target mode on the map. Per-run resources:
+// reset to 0 on New Game.
+var ImproveRelationsStack = 0;
+var SendAidStack          = 0;
+var ReduceAidStack        = 0;
+var DestabiliseStack      = 0;
+
+const _DIPLO_ACTIONS = [
+    { key: 'improve',     label: 'Improve Relations', get: () => ImproveRelationsStack, set: v => { ImproveRelationsStack = v; } },
+    { key: 'sendaid',     label: 'Send Aid',          get: () => SendAidStack,          set: v => { SendAidStack = v; } },
+    { key: 'reduceaid',   label: 'Reduce Aid',        get: () => ReduceAidStack,        set: v => { ReduceAidStack = v; } },
+    { key: 'destabilise', label: 'Destabilise',       get: () => DestabiliseStack,      set: v => { DestabiliseStack = v; } },
+];
+
+function _diploAction(key) { return _DIPLO_ACTIONS.find(a => a.key === key); }
+
+function _addDiploAction(key, n) {
+    const a = _diploAction(key);
+    if (a) { a.set(Math.max(0, a.get() + (n == null ? 1 : n))); _syncDiploBtns(); }
+}
+
+function _spendDiploAction(key) {
+    const a = _diploAction(key);
+    if (!a || a.get() <= 0) return false;
+    a.set(a.get() - 1);
+    _syncDiploBtns();
+    return true;
+}
+
+// TODO(game design): country-target mode + effects (relations/aid/destabilise
+// presumably move COUNTRY_LOYAL / dispositions). Spend via _spendDiploAction.
+function _diploActionClicked(key) {
+}
+
+function _syncDiploBtns() {
+    const menu = document.getElementById('wm-diplo-menu');
+    if (!menu) return;
+    _DIPLO_ACTIONS.forEach(a => {
+        const btn = menu.querySelector('[data-action="' + a.key + '"]');
+        if (!btn) return;
+        btn.querySelector('.wm-diplo-count').textContent = a.get();
+        const empty = a.get() <= 0;
+        btn.disabled = empty;
+        btn.style.opacity = empty ? '0.45' : '1';
+        btn.style.cursor = empty ? 'default' : 'pointer';
+    });
+}
+// ── END DIPLOMACY ACTIONS ─────────────────────────────────────────────────────
+
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
     // Easter egg: Allende's last speech injected into the music player once,
@@ -17710,6 +17767,49 @@ function openWorldMap() {
     topBar.appendChild(sigintBtn);
     if (sigintOn) _applySigint(true);
     mapCleanup.push(() => { const st = document.getElementById('wm-sigint-css'); if (st) st.remove(); if (svgEl) svgEl.style.filter = ''; if (flagSvgEl) { flagSvgEl.remove(); flagSvgEl = null; } });
+
+    // Diplomacy dropdown — just right of SIGINT. Semi-transparent black panel,
+    // bordered like the toolbar buttons; charge-count badges as on the
+    // President's Men team actions (see _DIPLO_ACTIONS).
+    const diploWrap = document.createElement('div');
+    diploWrap.style.cssText = 'position:relative;display:inline-block;margin-left:6px;';
+    const diploBtn = _mkTopBtn('DIPLOMACY ▾', false);
+    const diploMenu = document.createElement('div');
+    diploMenu.id = 'wm-diplo-menu';
+    diploMenu.style.cssText = 'position:absolute;top:27px;left:0;display:none;flex-direction:column;gap:6px;'
+        + 'padding:8px;background:rgba(0,0,0,0.72);border:1px solid #333;z-index:9500;min-width:190px;';
+    _DIPLO_ACTIONS.forEach(a => {
+        const b = document.createElement('button');
+        b.className = 'wm-diplo-btn';
+        b.dataset.action = a.key;
+        b.style.cssText = 'cursor:pointer;padding:0 8px;height:24px;font-family:TypewriterDry,monospace;'
+            + 'font-size:11px;letter-spacing:1px;background:#111;border:1px solid #333;color:#fff;'
+            + 'display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;';
+        b.innerHTML = a.label + ' <span class="wm-diplo-count" style="min-width:16px;text-align:center;'
+            + 'font-weight:bold;background:rgba(255,255,255,0.15);border-radius:8px;padding:0 4px;"></span>';
+        b.addEventListener('click', () => _diploActionClicked(a.key));
+        diploMenu.appendChild(b);
+    });
+    diploBtn.addEventListener('click', () => {
+        const open = diploMenu.style.display !== 'none' && diploMenu.style.display !== '';
+        diploMenu.style.display = open ? 'none' : 'flex';
+        diploBtn.style.outline = open ? '' : '2px solid #888';
+        diploBtn.style.fontWeight = open ? '' : 'bold';
+        if (!open) _syncDiploBtns();
+    });
+    // Click-away closes the menu (removed with the map).
+    const _diploAway = (e) => {
+        if (!diploWrap.contains(e.target) && diploMenu.style.display === 'flex') {
+            diploMenu.style.display = 'none';
+            diploBtn.style.outline = '';
+            diploBtn.style.fontWeight = '';
+        }
+    };
+    document.addEventListener('click', _diploAway);
+    mapCleanup.push(() => document.removeEventListener('click', _diploAway));
+    diploWrap.appendChild(diploBtn);
+    diploWrap.appendChild(diploMenu);
+    topBar.appendChild(diploWrap);
     let _capEditMode = false;
     // Live references to the events / capitals <g> layers. Assigned in the SVG
     // .then() below and closed over by the toggle buttons. LOCAL closure vars
