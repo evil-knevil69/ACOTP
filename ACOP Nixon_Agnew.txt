@@ -13032,7 +13032,20 @@ const _TA_WIRED = {
             return 'Paid off ' + key + ' — loyalty +1, pressure frozen for 4 turns.';
         }
     },
-    // cut: {...}, clemency: {...}, blame: {...}  — TODO(game design)
+    cut: {
+        prompt: 'Cut them loose: pick the man to disown (click the button again to cancel).',
+        // Only men still ACTIVE (status >= 5): "cutting loose" someone already
+        // indicted or imprisoned would paradoxically upgrade his status pill.
+        canTarget(key) {
+            const p = _ORG_PRESSURE[key];
+            return !!(p && p.st) && p.st() >= 5;
+        },
+        apply(key) {
+            _ORG_PRESSURE[key].setSt(4);   // 4 = cut loose (green pill via _syncOrgStates)
+            return 'Cut ' + key + ' loose — he is on his own now.';
+        }
+    },
+    // clemency: {...}, blame: {...}  — TODO(game design)
 };
 
 var _taMode = null;   // action key while picking a target, else null
@@ -13066,7 +13079,10 @@ function _teamActionClicked(key) {
     if (w) {
         w.classList.add('ta-mode');
         w.querySelectorAll('.nw-node[data-person]').forEach(n => {
-            if (_taEligible(n.dataset.person)) n.classList.add('nw-ta-eligible');
+            const p = n.dataset.person;
+            if (_taEligible(p) && (!wired.canTarget || wired.canTarget(_taKeyFor(p)))) {
+                n.classList.add('nw-ta-eligible');
+            }
         });
     }
     _taHint(wired.prompt);
@@ -13077,7 +13093,11 @@ function _teamActionClicked(key) {
 function _taHandleNodeClick(node) {
     if (!_taMode) return false;
     const person = node.dataset.person;
-    if (!_taEligible(person)) return true;   // swallow the click; no flip mid-mode
+    const wired = _TA_WIRED[_taMode];
+    if (!_taEligible(person)
+        || (wired.canTarget && !wired.canTarget(_taKeyFor(person)))) {
+        return true;   // swallow the click; no flip mid-mode
+    }
     const mode = _taMode;
     if (!_spendTeamAction(mode)) { _taExitMode(); _taHint(''); return true; }
     const msg = _TA_WIRED[mode].apply(_taKeyFor(person));
