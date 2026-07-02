@@ -15624,6 +15624,10 @@ function applyTooltipsMarked(str) {
     // term text inside the cards themselves and shred their markup. The old
     // regex was idempotent by accident; make it explicit.
     if (str.indexOf("class='mytooltip'") !== -1) return str;
+    // Educational tooltips (Code 1) bake first, so the people-matcher below sees
+    // their tags and skips them. No-op when Code 1 isn't loaded; the edu pass is
+    // itself idempotent (it walks text nodes and skips existing tip spans).
+    if (typeof window.applyEduTooltips === 'function') str = window.applyEduTooltips(str);
     const saved = [];
     str = str.replace(/<span\b[^>]*\bdata-tip\b[^>]*>([\s\S]*?)<\/span>/gi, (whole, term) => {
         const t = tooltipList.find(x => x.searchString === term.trim());
