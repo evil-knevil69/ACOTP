@@ -13487,6 +13487,12 @@ const OFFICIALS_VARS = {
             font-size: 12px;
             font-weight: bold;
             color: #f4d58d;
+            margin-bottom: 3px;
+        }
+        #rs-picker .rs-warn {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 10px;
+            color: #ff8a80;
             margin-bottom: 8px;
         }
         #rs-picker .rs-cands {
@@ -13674,6 +13680,11 @@ function openOfficialsPanel(questions) {
                 ? ' — takes office ' + slot.delay + (slot.delay === 1 ? ' turn' : ' turns') + ' from now'
                 : ' — takes office immediately');
         pick.appendChild(head);
+
+        const warn = document.createElement('div');
+        warn.className = 'rs-warn';
+        warn.textContent = 'Left unfilled at the end of this turn, the post falls vacant.';
+        pick.appendChild(warn);
 
         const cands = document.createElement('div');
         cands.className = 'rs-cands';
