@@ -13045,8 +13045,33 @@ const _TA_WIRED = {
             return 'Cut ' + key + ' loose — he is on his own now.';
         }
     },
-    // clemency: {...}, blame: {...}  — TODO(game design)
+    clemency: {
+        prompt: 'Offer clemency: pick a loyal man under indictment or in prison (click the button again to cancel).',
+        // Only loyalists (loyalty above 5) who are indicted (3) or imprisoned (2),
+        // and not already holding a clemency promise.
+        canTarget(key) {
+            const p = _ORG_PRESSURE[key];
+            if (!p || !p.st || !p.loy) return false;
+            const st = p.st();
+            return p.loy() > 5 && (st === 2 || st === 3)
+                && !_clemencies.some(c => c.key === key);
+        },
+        apply(key) {
+            const p = _ORG_PRESSURE[key];
+            const before = p.loy();
+            p.setLoy(Math.min(10, before + 2));
+            // Store the boost ACTUALLY applied (cap-aware) so wearing off removes
+            // exactly what was granted; remember status to detect the deal voiding.
+            _clemencies.push({ key, boost: p.loy() - before, expiresTurn: _questionCount + 4, statusAtGrant: p.st() });
+            return 'Clemency dangled before ' + key + ' — loyalty +2 for 4 turns, void if his situation changes.';
+        }
+    },
+    // blame: {...}  — TODO(game design)
 };
+
+// Active clemency promises: { key, boost, expiresTurn, statusAtGrant }.
+// The wear-off tick lives with the other _everyTurn registrations (turn engine).
+const _clemencies = [];
 
 var _taMode = null;   // action key while picking a target, else null
 
@@ -14939,6 +14964,22 @@ _everyTurn(turn => {
     }
 });
 
+// Clemency wear-off (see _TA_WIRED.clemency): the +2 loyalty lasts 4 turns, or
+// evaporates immediately if the man's status changed since the offer (the deal
+// is off — including a flip to state's witness). Removes exactly the boost that
+// was actually applied, clamped at 0.
+_everyTurn(turn => {
+    for (let i = _clemencies.length - 1; i >= 0; i--) {
+        const c = _clemencies[i];
+        const p = _ORG_PRESSURE[c.key];
+        const voided = !p || turn >= c.expiresTurn || (p.st && p.st() !== c.statusAtGrant);
+        if (voided) {
+            if (p && p.loy) p.setLoy(Math.max(0, p.loy() - c.boost));
+            _clemencies.splice(i, 1);
+        }
+    }
+});
+
 // ── EVENT LIFESPANS ───────────────────────────────────────────────────────────
 // Timed world events declare three extra fields on their _EVENT_DEFS entry:
 //   duration: n     — expires n turns after state() is first seen at 1
@@ -15539,6 +15580,7 @@ window.__onGameWindowMutation(() => {
                     _RESHUFFLE.reset();
                     HushMoneyStack = 0; CutThemLooseStack = 0;
                     OfferClemencyStack = 0; PinTheBlameStack = 0;
+                    _clemencies.length = 0;
                 }
                 _lastQNum = _gs.question_number;
 
