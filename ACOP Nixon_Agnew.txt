@@ -13006,12 +13006,85 @@ function _spendTeamAction(key) {
     return true;
 }
 
-// TODO(game design): the click effect. Hush Money will likely target a man via
-// _payOff(name); Cut Them Loose / Offer Clemency / Pin the Blame need their
-// mechanics defined. Until then a click on an armed button does nothing.
+// ---- targeting ---------------------------------------------------------------
+// ALL team actions may only target staff BELOW the Haldeman / Erlichman /
+// Colson / Mitchell row — Dean IS eligible. (Nixon and the inner four are not.)
+// Flipped men (state's witnesses) are beyond reach too.
+const _TA_EXCLUDED = ['Nixon', 'Haldeman', 'Erlichman', 'Colson', 'Mitchell'];
+// DOM node data-person → _ORG_PRESSURE key, where they differ.
+const _TA_KEYMAP = { WatergateBurglars: 'Burglars' };
+
+function _taKeyFor(person) { return _TA_KEYMAP[person] || person; }
+function _taEligible(person) {
+    const k = _taKeyFor(person);
+    return !_TA_EXCLUDED.includes(person)
+        && !!_ORG_PRESSURE[k]
+        && !_flipped.has(k);
+}
+
+// Which actions have a wired effect. The other three keep their charges and
+// buttons but do nothing until their mechanics are designed.
+const _TA_WIRED = {
+    hush: {
+        prompt: 'Hush money: pick the man to pay off (click the button again to cancel).',
+        apply(key) {
+            _payOff(key);   // +1 loyalty, decay/radiation frozen 4 turns (per the manual)
+            return 'Paid off ' + key + ' — loyalty +1, pressure frozen for 4 turns.';
+        }
+    },
+    // cut: {...}, clemency: {...}, blame: {...}  — TODO(game design)
+};
+
+var _taMode = null;   // action key while picking a target, else null
+
+function _taHint(text) {
+    const h = document.getElementById('nw-ta-hint');
+    if (h) h.textContent = text || '';
+}
+
+function _taExitMode() {
+    _taMode = null;
+    document.querySelectorAll('#nw-team-actions .nw-ta-armed').forEach(b => b.classList.remove('nw-ta-armed'));
+    const w = document.getElementById('nw-chart-wrapper');
+    if (w) {
+        w.classList.remove('ta-mode');
+        w.querySelectorAll('.nw-ta-eligible').forEach(n => n.classList.remove('nw-ta-eligible'));
+    }
+}
+
 function _teamActionClicked(key) {
-    // e.g. future shape: enter target-select mode, then _spendTeamAction(key)
-    // + apply the effect to the chosen conspirator.
+    if (_taMode === key) { _taExitMode(); _taHint(''); return; }   // second click cancels
+    _taExitMode();
+    const a = _teamAction(key);
+    if (!a || a.get() <= 0) return;
+    const wired = _TA_WIRED[key];
+    if (!wired) return;   // mechanic not designed yet
+    _taMode = key;
+    const btn = document.querySelector('#nw-team-actions [data-action="' + key + '"]');
+    if (btn) btn.classList.add('nw-ta-armed');
+    const w = document.getElementById('nw-chart-wrapper');
+    if (w) {
+        w.classList.add('ta-mode');
+        w.querySelectorAll('.nw-node[data-person]').forEach(n => {
+            if (_taEligible(n.dataset.person)) n.classList.add('nw-ta-eligible');
+        });
+    }
+    _taHint(wired.prompt);
+}
+
+// Called from the org chart's click handler BEFORE flip handling.
+// Returns true if the click was consumed by target-select mode.
+function _taHandleNodeClick(node) {
+    if (!_taMode) return false;
+    const person = node.dataset.person;
+    if (!_taEligible(person)) return true;   // swallow the click; no flip mid-mode
+    const mode = _taMode;
+    if (!_spendTeamAction(mode)) { _taExitMode(); _taHint(''); return true; }
+    const msg = _TA_WIRED[mode].apply(_taKeyFor(person));
+    _taExitMode();
+    _taHint(msg);
+    if (typeof window._syncOrgStates === 'function') window._syncOrgStates();
+    return true;
 }
 
 // Refresh counts/disabled state on the rendered buttons (no-op if panel closed).
@@ -13040,6 +13113,7 @@ function openInnerCircle() {
     panel.appendChild(title);
 
     // Team action buttons, pinned top-left (above the Dean column)
+    _taMode = null;   // never carry target-select mode across panel opens
     const taBox = document.createElement('div');
     taBox.id = 'nw-team-actions';
     _TEAM_ACTIONS.forEach(a => {
@@ -13050,6 +13124,9 @@ function openInnerCircle() {
         btn.addEventListener('click', () => _teamActionClicked(a.key));
         taBox.appendChild(btn);
     });
+    const taHint = document.createElement('div');
+    taHint.id = 'nw-ta-hint';
+    taBox.appendChild(taHint);
     panel.appendChild(taBox);
 
     const chartWrapper = document.createElement('div');
@@ -13948,6 +14025,27 @@ var _RESHUFFLE = {
             padding: 0 4px;
             margin-left: 4px;
         }
+        #nw-team-actions .nw-ta-btn.nw-ta-armed {
+            outline: 2px solid #ffd24a;
+            box-shadow: 0 0 8px 2px rgba(255, 210, 74, 0.6);
+        }
+        #nw-ta-hint {
+            max-width: 170px;
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 10px;
+            line-height: 1.35;
+            color: #333;
+        }
+        /* Target-select mode: eligible men pop, everyone else recedes */
+        #nw-chart-wrapper.ta-mode .nw-node { opacity: 0.4; }
+        #nw-chart-wrapper.ta-mode .nw-node.nw-ta-eligible {
+            opacity: 1;
+            cursor: pointer;
+        }
+        #nw-chart-wrapper.ta-mode .nw-node.nw-ta-eligible .nw-flip-area {
+            border-radius: 3px;
+            animation: rs-pulse 1.1s ease-in-out infinite;
+        }
         /* overflow: auto on both axes — avoids the CSS spec rule that forces
            overflow-y:visible to computed auto when overflow-x is non-visible */
         #nw-chart-wrapper {
@@ -14510,6 +14608,8 @@ var _RESHUFFLE = {
         wrapper.addEventListener('click', function(e) {
             const node = e.target.closest('.nw-node');
             if (!node) return;
+            // Team-action target-select mode eats the click (no flip mid-mode).
+            if (typeof _taHandleNodeClick === 'function' && _taHandleNodeClick(node)) return;
             if (!node.classList.contains('nw-flipped')) _updateOrgBack(node);
             node.classList.toggle('nw-flipped');
         });
