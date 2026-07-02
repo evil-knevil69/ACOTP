@@ -13176,6 +13176,45 @@ const OFFICIALS_ROSTER = {
     }
 };
 
+// ── OFFICIALS CARD-BACK TEXT (flip feature) ──────────────────────────────────
+// Clicking a card on the Officials screen flips it (same mechanic as All the
+// President's Men) to show the gameplay effects of having that person in post.
+// PURE CUSTOM TEXT — not linked to any game variables. Edit freely.
+//
+// Keyed by PERSON (same keys as OFFICIALS_ROSTER above). A value can be:
+//   - a string                       → shown whatever post they hold
+//   - { default: "…", SOS: "…", … }  → per-post override (varNames: ChiefOfStaff,
+//     NSA, SOS, SOD, AttorneyGeneral, SP, FBI, CIA), falling back to `default`.
+// Anyone without an entry gets OFFICIALS_EFFECTS._DEFAULT.
+const OFFICIALS_EFFECTS = {
+    _DEFAULT: "Effects of this appointment have not been catalogued yet.",
+    _VACANT:  "The office stands vacant. Its duties fall to deputies and acting men — and nothing gets decided.",
+
+    Kissinger: "Kissinger will give you more diplomatic opportunities on the World Map but some foreign policy options will be closed off to you as he becomes more insubordinate.",
+
+    Haldeman:    "PLACEHOLDER — effects text to come.",
+    Rogers:      "PLACEHOLDER — effects text to come.",
+    Laird:       "PLACEHOLDER — effects text to come.",
+    Kleindienst: "PLACEHOLDER — effects text to come.",
+    Helms:       "PLACEHOLDER — effects text to come.",
+    Gray:        "PLACEHOLDER — effects text to come.",
+    Rockefeller: "PLACEHOLDER — effects text to come.",
+    Haig:        "PLACEHOLDER — effects text to come.",
+    Scowcroft:   "PLACEHOLDER — effects text to come.",
+    Richardson:  "PLACEHOLDER — effects text to come.",
+    Schlesinger: "PLACEHOLDER — effects text to come.",
+    Saxbe:       "PLACEHOLDER — effects text to come.",
+    Cox:         "PLACEHOLDER — effects text to come.",
+    Jaworski:    "PLACEHOLDER — effects text to come.",
+    Ruckelshaus: "PLACEHOLDER — effects text to come.",
+    Kelley:      "PLACEHOLDER — effects text to come.",
+    Sullivan:    "PLACEHOLDER — effects text to come.",
+    Wilson:      "PLACEHOLDER — effects text to come.",
+    Felt:        "PLACEHOLDER — effects text to come.",
+    Colby:       "PLACEHOLDER — effects text to come.",
+};
+// ── END OFFICIALS CARD-BACK TEXT ─────────────────────────────────────────────
+
 // Explicit rows, left edges aligned. Row 1: CoS, NSA, SOS, SOD.
 // Row 2: CIA sits under the leftmost card (CoS), then the AG group (SP + FBI beneath).
 const OFFICIALS_LAYOUT = [
@@ -13362,6 +13401,52 @@ const OFFICIALS_VARS = {
             line-height: 1.4;
             text-align: left;
         }
+        /* Card flip (same mechanic as All the President's Men). The .oc-card is
+           the FRONT face; the back shows OFFICIALS_EFFECTS text. */
+        .oc-flip {
+            perspective: 800px;
+            cursor: pointer;
+        }
+        .oc-flip-inner {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.45s ease;
+        }
+        .oc-flip.oc-flipped .oc-flip-inner { transform: rotateY(180deg); }
+        .oc-card, .oc-card-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .oc-card-back {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            transform: rotateY(180deg);
+            border: 1px solid #888;
+            border-radius: 3px;
+            background: rgba(255,250,238,0.96);
+            box-shadow: 1px 1px 4px rgba(0,0,0,0.18);
+            padding: 14px 12px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .oc-back-label {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 8.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #997a4d;
+            margin-bottom: 8px;
+        }
+        .oc-back-text {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 10.5px;
+            line-height: 1.5;
+            color: #333;
+            text-align: left;
+        }
     `;
     document.head.appendChild(_ocStyle);
 })();
@@ -13424,7 +13509,32 @@ function openOfficialsPanel(questions) {
             .replace(/\[p\]([\s\S]*?)\[\/p\]/g, '<p style="margin:4px 0 0;">$1</p>');
         card.appendChild(bioEl);
 
-        return card;
+        // Flip wrapper: the card above is the front face; the back shows the
+        // custom OFFICIALS_EFFECTS text for whoever holds the post.
+        let fx = isVacant ? OFFICIALS_EFFECTS._VACANT
+               : (OFFICIALS_EFFECTS[person] ?? OFFICIALS_EFFECTS._DEFAULT);
+        if (fx && typeof fx === 'object') fx = fx[varName] ?? fx.default ?? OFFICIALS_EFFECTS._DEFAULT;
+
+        const back = document.createElement('div');
+        back.className = 'oc-card-back';
+        const backLabel = document.createElement('div');
+        backLabel.className = 'oc-back-label';
+        backLabel.textContent = isVacant ? 'Vacancy' : 'In post: ' + role;
+        back.appendChild(backLabel);
+        const backText = document.createElement('div');
+        backText.className = 'oc-back-text';
+        backText.textContent = fx;
+        back.appendChild(backText);
+
+        const flipInner = document.createElement('div');
+        flipInner.className = 'oc-flip-inner';
+        flipInner.appendChild(card);
+        flipInner.appendChild(back);
+        const flip = document.createElement('div');
+        flip.className = 'oc-flip';
+        flip.title = 'Click to flip';
+        flip.appendChild(flipInner);
+        return flip;
     }
 
     OFFICIALS_LAYOUT.forEach(rowItems => {
@@ -13461,6 +13571,12 @@ function openOfficialsPanel(questions) {
     });
 
     panel.appendChild(grid);
+
+    // Flip on click — same delegated pattern as the President's Men chart.
+    grid.addEventListener('click', (e) => {
+        const f = e.target.closest('.oc-flip');
+        if (f) f.classList.toggle('oc-flipped');
+    });
 
     const btnRow = document.createElement('div');
     btnRow.className = 'ic-panel-buttons';
