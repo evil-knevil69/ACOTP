@@ -2213,8 +2213,13 @@ function __mapVisitTick() {
                             height: 0 !important;
                         }
                         .visit_text {
+                            /* SINGLE OWNER of this label's position (the inline
+                               style Code 2 used to set was dead — !important
+                               here beats inline). Vertical position = this
+                               bottom value, from the foot of the 692px-tall
+                               #game_window. */
                             position: absolute !important;
-                            bottom: 80px !important;
+                            bottom: 30px !important;
                             left: 0 !important;
                             width: 1113px !important;
                             margin: 0 !important;

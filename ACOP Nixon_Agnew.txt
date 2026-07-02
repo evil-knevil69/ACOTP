@@ -12690,13 +12690,9 @@ function updateTypewriterVisibility() {
     const mapVisible = !!document.getElementById('resume_questions_button');
     const visitVisible = !!document.querySelector('.visit_text');
     let tw = document.getElementById('typewriter-overlay');
-    if (visitVisible) {
-        const vt = document.querySelector('p.visit_text');
-        if (vt && !vt.dataset.repositioned) {
-            vt.dataset.repositioned = '1';
-            vt.style.cssText = 'position:fixed;bottom:185px;left:0;right:0;text-align:center;z-index:6;margin:0;pointer-events:none;';
-        }
-    }
+    // .visit_text positioning is owned by Code 1's visit-hide-style
+    // (.visit_text { bottom: … !important }) — an inline style here could
+    // never win against it and only obscured where the position came from.
 
     if (mapVisible || visitVisible) {
         if (tw) tw.style.display = 'none';
