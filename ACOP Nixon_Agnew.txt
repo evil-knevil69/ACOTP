@@ -15825,14 +15825,24 @@ document.body.appendChild(honk);
         return h;
     }
 
+    // The observer subscriber calls _refresh on every #game_window mutation while
+    // the pad is open. Rebuild the HTML string each time (cheap), but only assign
+    // innerHTML when it actually changed — the assignment is what destroys scroll
+    // position/text selection and re-attaches the globe listener at rAF rate.
+    let _lastPadHTML = '';
     function _refresh() {
         const pad = document.getElementById('fd-pad');
         if (!pad) return;
         const which = document.querySelector('.fd-tab.fd-active')?.dataset.tab;
-        if (which === 'nation') pad.innerHTML = _buildNation();
-        else if (which === 'crimes') pad.innerHTML = _buildCrimes();
+        if (which !== 'nation' && which !== 'crimes' && which !== 'world') return;
+        const h = which === 'nation' ? _buildNation() : which === 'crimes' ? _buildCrimes() : _buildWorld();
+        if (h === _lastPadHTML && pad.dataset.renderedTab === which) return;
+        _lastPadHTML = h;
+        pad.dataset.renderedTab = which;
+        if (which === 'nation') pad.innerHTML = h;
+        else if (which === 'crimes') pad.innerHTML = h;
         else if (which === 'world') {
-            pad.innerHTML = _buildWorld();
+            pad.innerHTML = h;
             const gb = pad.querySelector('#fd-world-globe-btn');
             if (gb) gb.addEventListener('click', () => {
                 _close();
@@ -16614,6 +16624,26 @@ campaignTrail_temp.jet_data = [{
 const PAGES_BASE = 'https://evil-knevil69.github.io/ACOTP';
 const SVG_URL    = PAGES_BASE + '/worldmapNEW_labeledv2.svg';
 let _svgTextCache = null;
+// Largest-element bbox per country code, cached across map opens — the SVG text
+// is itself cached, so the geometry never changes. Saves ~340 getBBox forced
+// layouts per open (flag overlay + capital sweeps). null = code not in the SVG.
+var _wmBBoxCache = {};
+function _wmBestBBox(svg, code) {
+    var c = _wmBBoxCache[code];
+    if (c !== undefined) return c;
+    var els = svg.querySelectorAll('[id="' + code + '"]');
+    var best = null, bestArea = 0;
+    for (var i = 0; i < els.length; i++) {
+        try {
+            var b = els[i].getBBox();
+            var a = b.width * b.height;
+            if (a > bestArea) { bestArea = a; best = b; }
+        } catch (ignore) {}
+    }
+    c = best ? { x: best.x, y: best.y, width: best.width, height: best.height } : null;
+    _wmBBoxCache[code] = c;
+    return c;
+}
 
 const COUNTRY_NAMES = Object.fromEntries(
     Object.entries(COUNTRIES).filter(([, v]) => v.name != null).map(([k, v]) => [k, v.name])
@@ -16716,10 +16746,15 @@ function openWorldMap() {
         window.loadAndPlay();
     }
 
+    // A previous map may still be live (globe button + its 3s fallback can both
+    // fire). Run its FULL close — the raw removes below only catch orphaned DOM
+    // and would leak that instance's document listeners and _nightInterval.
+    if (window._wmActiveClose) { try { window._wmActiveClose(); } catch (err) {} window._wmActiveClose = null; }
     document.getElementById('world-map-container')?.remove();
     document.getElementById('wm-tooltip')?.remove();
     document.getElementById('wm-event-tooltip')?.remove();
     document.getElementById('wm-capital-tooltip')?.remove();
+    document.getElementById('wm-capimg-panel')?.remove();
 
     const gw = document.getElementById('game_window');
 
@@ -16746,6 +16781,7 @@ function openWorldMap() {
     document.body.appendChild(capTooltip);
 
     const capImgPanel = document.createElement('div');
+    capImgPanel.id = 'wm-capimg-panel';
     capImgPanel.style.cssText = 'position:fixed;z-index:9999;background:rgba(15,10,5,0.9);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:6px;display:none;box-shadow:2px 3px 10px rgba(0,0,0,0.6);pointer-events:auto;';
     capImgPanel.addEventListener('click', e => e.stopPropagation());
     document.body.appendChild(capImgPanel);
@@ -16809,17 +16845,28 @@ function openWorldMap() {
     let _activeDragEnd = null;
     mapCleanup.push(() => { if (_activeDragEnd) _activeDragEnd(); });
 
-    const backBtn = document.createElement('button');
-    backBtn.textContent = '<- Electoral Map';
-    backBtn.addEventListener('click', () => {
-        mapCleanup.forEach(fn => fn());
+    // Single close path for THIS map instance. _mapClosed also gates the async
+    // SVG .then() — if the map is closed before the fetch resolves, the build
+    // must not run (it would register document listeners and start the night
+    // interval on a detached map, unrecoverable once the back button is gone).
+    let _mapClosed = false;
+    const _closeThisMap = () => {
+        if (_mapClosed) return;
+        _mapClosed = true;
+        mapCleanup.forEach(fn => { try { fn(); } catch (err) {} });
         container.remove();
         tooltip.remove();
         evTooltip.remove();
         capTooltip.remove();
         capImgPanel.remove();
         hiddenEls.forEach(el => { el.style.display = ''; });
-    });
+        if (window._wmActiveClose === _closeThisMap) window._wmActiveClose = null;
+    };
+    window._wmActiveClose = _closeThisMap;
+
+    const backBtn = document.createElement('button');
+    backBtn.textContent = '<- Electoral Map';
+    backBtn.addEventListener('click', _closeThisMap);
     bar.appendChild(backBtn);
 
     // Spacer
@@ -16962,7 +17009,6 @@ function openWorldMap() {
             capGroupEl.remove();
         }
     };
-    const smallFlagCodes = new Set();
     let flagOverlayG = null;
     let vScrollTrack, vScrollThumb, hScrollTrack, hScrollThumb;
     let _updateIconVis = () => {};
@@ -17225,6 +17271,9 @@ function openWorldMap() {
     // Load SVG
     (_svgTextCache ? Promise.resolve(_svgTextCache) : fetch(SVG_URL).then(r => r.text()).then(t => (_svgTextCache = t, t)))
         .then(svgText => {
+            // Map closed (or replaced) while the SVG was in flight — abort the
+            // build; running it would leak document listeners + _nightInterval.
+            if (_mapClosed || !container.isConnected) return;
             viewport.innerHTML = svgText;
             // innerHTML wipes all pre-existing viewport children; re-attach the overlay
             // divs that were appended before the SVG loaded (vignette, grain, allegiance
@@ -17928,14 +17977,9 @@ function openWorldMap() {
                     evTooltip.style.left = (vr.left + 12) + 'px';
                     evTooltip.style.top  = (vr.top  + 12) + 'px';
                 });
-                chip.addEventListener('mousemove', (ev) => {
-                    if (_chipEditMode) return;
-                    const vr = viewport.getBoundingClientRect();
-                    // Pinned to the top-left of the world-map window (viewport),
-                    // not the cursor or the global screen corner.
-                    evTooltip.style.left = (vr.left + 12) + 'px';
-                    evTooltip.style.top  = (vr.top  + 12) + 'px';
-                });
+                // No mousemove handler: the tooltip is pinned to the viewport
+                // corner (set once on mouseenter), so re-setting the same
+                // coordinates per move was a pure forced-layout cost.
                 chip.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
 
                 // Drag to reposition (Move Chips edit mode)
@@ -17994,14 +18038,8 @@ function openWorldMap() {
                     evTooltip.style.left = (vr.left + 12) + 'px';
                     evTooltip.style.top  = (vr.top  + 12) + 'px';
                 });
-                path.addEventListener('mousemove', (ev) => {
-                    if (!sigintOn) return;
-                    const vr = viewport.getBoundingClientRect();
-                    // Pinned to the top-left of the world-map window (viewport),
-                    // not the cursor or the global screen corner.
-                    evTooltip.style.left = (vr.left + 12) + 'px';
-                    evTooltip.style.top  = (vr.top  + 12) + 'px';
-                });
+                // No mousemove handler: position is corner-pinned on mouseenter;
+                // re-setting identical coordinates per move forced layout for nothing.
                 path.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
             });
 
@@ -18332,7 +18370,6 @@ function openWorldMap() {
             // Build SVG flag overlay (flags as <image> elements inside the SVG)
             function buildFlagOverlay() {
                 if (flagOverlayG) { flagOverlayG.remove(); flagOverlayG = null; }
-                smallFlagCodes.clear();
                 const ns = 'http://www.w3.org/2000/svg';
                 const g = document.createElementNS(ns, 'g');
                 g.id = 'wm-flag-overlay';
@@ -18341,26 +18378,12 @@ function openWorldMap() {
                 const _bigFlagCodes = new Set(['IN','BR','SU','CN','US','CA','AU']);
 
                 Object.keys(FLAG_URLS).forEach(code => {
-                    const els = Array.from(svg.querySelectorAll('[id="' + code + '"]'));
-                    if (!els.length) return;
-
-                    // Find element with the largest bounding box (discounts tiny overseas territory shapes)
-                    let best = null, bestArea = 0;
-                    els.forEach(el => {
-                        try {
-                            const bb = el.getBBox();
-                            const a = bb.width * bb.height;
-                            if (a > bestArea) { bestArea = a; best = el; }
-                        } catch (ignore) {}
-                    });
-                    if (!best) return;
-
-                    const bb = best.getBBox();
+                    // Largest bounding box for the code (discounts tiny overseas
+                    // territory shapes), cached across opens.
+                    const bb = _wmBestBBox(svg, code);
+                    if (!bb) return;
                     // Countries narrower than 18 SVG units get flag in tooltip instead
-                    if (bb.width < 18 || bb.height < 6) {
-                        smallFlagCodes.add(code);
-                        return;
-                    }
+                    if (bb.width < 18 || bb.height < 6) return;
 
                     // Large countries 25% of bbox area; all others 15% (2:3 aspect ratio)
                     const _areaPct = _bigFlagCodes.has(code) ? 0.375 : 0.225;
@@ -18469,17 +18492,15 @@ function openWorldMap() {
             _capGlowFilter.appendChild(_capGlowMerge);
             const _capDefs = document.createElementNS(_evNS, 'defs');
             _capDefs.appendChild(_capGlowFilter);
-            capGroup.appendChild(_capDefs);
+            // On the svg root, NOT capGroup: _applyCapVis removes capGroup when
+            // capitals are toggled off (the default), and an unresolvable
+            // filter="url(#wm-cap-glow)" makes browsers skip rendering entirely —
+            // the SIGINT satellite icons reference this filter and went invisible.
+            svg.appendChild(_capDefs);
 
             Object.entries(CAPITAL_DATA).forEach(([code, cityName]) => {
-                const paths = Array.from(svg.querySelectorAll('[id="' + code + '"]'));
-                if (!paths.length) return;
-                let best = null, bestArea = 0;
-                paths.forEach(el => {
-                    try { const b = el.getBBox(); const a = b.width * b.height; if (a > bestArea) { bestArea = a; best = el; } } catch (ignore) {}
-                });
-                if (!best) return;
-                const bb = best.getBBox();
+                const bb = _wmBestBBox(svg, code);
+                if (!bb) return;
                 const off = CAPITAL_OFFSETS[code] || { x: 0, y: 0 };
                 const baseCx = bb.x + bb.width / 2;
                 const baseCy = bb.y + bb.height / 2;
