@@ -15048,7 +15048,9 @@ _everyTurn(turn => {
 //             org chart: every 2 turns at exposure 8-10, every 4 at 5-7,
 //             every 6 at 2-4, never at 0-1. Cut Loose (STATUS 4) doubles his
 //             intervals (half impact). Receivers at exposure <=2 are
-//             firewalled — they absorb nothing from below.
+//             firewalled — they absorb nothing from below. The SAME rules run
+//             on a final rung from the inner circle to the President himself
+//             (WatergateExposure, 0-20; firewalled while <=2).
 //  EXP DECAY  exposure below 3 fades -1 every 3 turns (down to 0) unless the
 //             man is indicted or imprisoned (STATUS <=3), which keeps him in
 //             the papers. Exposure 3+ never fades.
@@ -15060,10 +15062,12 @@ _everyTurn(turn => {
 //             chance per turn until he flips (STATUS -> 1, state's witness).
 //             Leaving the danger zone resets the count.
 //  CONTAGION  a flip gives +2 exposure (minimum result 3 — testimony puts
-//             you on the radar) along the flipper's edges. The inner circle
-//             (Haldeman, Erlichman, Colson, Mitchell, Dean) has no edges;
-//             their flips are recorded in _innerCircleFlips for the Nixon
-//             mechanic (TBD) — Dean's also drives question swaps (TBD).
+//             you on the radar) along the flipper's edges. An inner-circle
+//             flip (Haldeman, Erlichman, Colson, Mitchell, Dean) carries the
+//             same contagion straight to the President: WatergateExposure +2
+//             (minimum 3 — pierces his firewall and opens the radiation tap).
+//             Inner flips are also recorded in _innerCircleFlips — Dean's
+//             drives question swaps (TBD).
 //  PAY-OFF    call _payOff('Hunt') from a question effect for hush money or
 //             a clemency offer: +1 loyalty and a 4-turn pause on his loyalty
 //             decay and outbound radiation.
@@ -15131,7 +15135,13 @@ function _flipWitness(name) {
         const t = _ORG_PRESSURE[tgt];
         t.setExp(Math.min(10, Math.max(3, t.exp() + 2)));
     });
-    if (p.inner) _innerCircleFlips.push(name);
+    if (p.inner) {
+        _innerCircleFlips.push(name);
+        // Same contagion the org edges carry, aimed at the President: his
+        // testimony implicates Nixon directly (+2, minimum 3 — pierces the
+        // clean-receiver firewall and opens the radiation tap above).
+        WatergateExposure = Math.min(20, Math.max(3, WatergateExposure + 2));
+    }
 }
 
 _everyTurn(() => {
@@ -15156,6 +15166,27 @@ _everyTurn(() => {
                 t.setExp(Math.min(10, t.exp() + 1));
             }
         });
+    });
+
+    // 1b. The last rung — the five inner-circle men radiate to the President
+    // himself by the SAME rules: same intervals from their exposure, same
+    // cut-loose halving (STATUS 4, set via question effects), same pay-off
+    // pause, same ≤2 receiver firewall on Nixon's own dial (flip contagion
+    // pierces it — see _flipWitness). Nixon's dial is WatergateExposure, 0–20.
+    ['Haldeman', 'Erlichman', 'Dean', 'Colson', 'Mitchell'].forEach(src => {
+        if (_flipped.has(src) || paused(src)) return;
+        const s = _ORG_PRESSURE[src];
+        const e = s.exp();
+        let interval = e >= 8 ? 2 : e >= 5 ? 4 : e >= 2 ? 6 : 0;
+        if (!interval) return;
+        if (s.st() === 4) interval *= 2; // cut loose: half impact upward
+        if (WatergateExposure <= 2) return; // firewalled while the President is clean
+        const key = src + '>Nixon';
+        _edgeClocks[key] = (_edgeClocks[key] || 0) + 1;
+        if (_edgeClocks[key] >= interval) {
+            _edgeClocks[key] = 0;
+            WatergateExposure = Math.min(20, WatergateExposure + 1);
+        }
     });
 
     Object.keys(_ORG_PRESSURE).forEach(name => {
