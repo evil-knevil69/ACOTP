@@ -15174,6 +15174,15 @@ tooltipList.sort((a, b) => b.searchString.length - a.searchString.length);
 
 function getTooltips(str) {
     let matches = [];
+    // Ranges covered by HTML tags: a term inside a tag (e.g. in an src/title
+    // attribute) must never be wrapped — inserting the card markup there splits
+    // the attribute at its quote and collapses the element. The old whitespace
+    // lookarounds excluded these by accident; the word-edge ones below do not.
+    const tagRanges = [];
+    const tagRe = /<[^>]*>/g;
+    let tagM;
+    while ((tagM = tagRe.exec(str)) !== null) tagRanges.push([tagM.index, tagM.index + tagM[0].length]);
+    const inTag = (s, e) => tagRanges.some(r => s < r[1] && e > r[0]);
     tooltipList.forEach((tooltip, index) => {
         const escaped = tooltip.searchString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         // Word-edge match. NB: inside a character class \b means backspace, not a
@@ -15182,6 +15191,7 @@ function getTooltips(str) {
         const regex = new RegExp(`(?<!\\w)${escaped}(?!\\w)`, 'g');
         let match;
         while ((match = regex.exec(str)) !== null) {
+            if (inTag(match.index, match.index + match[0].length)) continue;
             matches.push({
                 start: match.index,
                 end: match.index + match[0].length,
@@ -15222,6 +15232,12 @@ function applyTooltips(str) {
 // tooltipList entry an `alt: { body, img, label }` — any field omitted from `alt`
 // falls back to the default.
 function applyTooltipsMarked(str) {
+    // Idempotency guard: if this string already carries baked card markup, a
+    // second pass (loader executing the mod code again against the same
+    // campaignTrail_temp — Play twice, preview + play, New Game) would re-match
+    // term text inside the cards themselves and shred their markup. The old
+    // regex was idempotent by accident; make it explicit.
+    if (str.indexOf("class='mytooltip'") !== -1) return str;
     const saved = [];
     str = str.replace(/<span\b[^>]*\bdata-tip\b[^>]*>([\s\S]*?)<\/span>/gi, (whole, term) => {
         const t = tooltipList.find(x => x.searchString === term.trim());
