@@ -15185,7 +15185,7 @@ _everyTurn(() => {
 // A consequence beat: an election-night overlay where the 34 Class-3 Senate seats
 // call in over a poll-closing roll with a live tally, then a "Congressional
 // Scoreboard" button reveals the LBM House+Senate board. Driven by the live
-// ApprovalRating and a Watergate-exposure index derived from the pressure engine.
+// ApprovalRating and the President's own WatergateExposure dial (0–10 → 0–1).
 //
 // Model + data mirror midterm_model.js / midterm_flow_sandbox.html exactly.
 // Calibration anchor: approval 47 + watergate 0.75 → D+16.9% → House R 144
@@ -15266,21 +15266,14 @@ var _MIDTERM = {
     return mu + s*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
   },
 
-  // ---- Watergate exposure → 0..1, derived from the live pressure engine ----
-  // Inner-circle exposure carries most of the weight; flips and the Saturday
-  // Night Massacre push it toward 1. Tune the coefficients freely.
+  // ---- Watergate exposure → 0..1: the President's own dial ----
+  // Reads the global WatergateExposure (0–10) — the presidential master
+  // variable shown on Nixon's card back and the High Crimes page. The
+  // historic-1974 calibration (0.75) therefore means WatergateExposure 7.5
+  // on midterm night; the game-start value of 1 reads as 0.10.
   watergate01: function(){
     try {
-      var inner=['Haldeman','Erlichman','Dean','Colson','Mitchell'], sum=0, n=0;
-      for(var i=0;i<inner.length;i++){
-        var p=(typeof _ORG_PRESSURE!=='undefined') && _ORG_PRESSURE[inner[i]];
-        if(p){ sum+=p.exp(); n++; }
-      }
-      var base = n ? (sum/n)/10 : 0;                       // avg inner exposure, 0..1
-      var flips = (typeof _innerCircleFlips!=='undefined') ? _innerCircleFlips.length : 0;
-      var x = base + 0.06*flips
-            + ((typeof SaturdayNightMassacre!=='undefined' && SaturdayNightMassacre) ? 0.10 : 0)
-            + ((typeof oojHush!=='undefined' && oojHush) ? 0.05 : 0);
+      var x = (typeof WatergateExposure !== 'undefined') ? WatergateExposure / 10 : 0.5;
       return Math.max(0, Math.min(1, x));
     } catch(err){ return 0.5; }
   },
