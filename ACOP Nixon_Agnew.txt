@@ -12089,7 +12089,7 @@ const _EVENT_DEFS = [
         img: null, // PLACEHOLDER — drop in a GIF/still later
         body: 'PLACEHOLDER. Anni di piombo — a wave of political terrorism convulsing Italy, with bombings, kidnappings and assassinations by both far-left (Red Brigades) and neo-fascist militants. The "strategy of tension" and shadowy state and NATO-linked involvement keep the Republic permanently on edge.',
         country: 'IT',
-        positionOffset: { x: 0, y: 0 }, // tune with the Move Icons tool
+        positionOffset: { x: -22, y: -32 },
         state: () => 1, // permanent, like the Troubles
     },
     {
