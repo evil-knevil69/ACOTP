@@ -12860,6 +12860,9 @@ function addInnerCircleButton() {
     btn.textContent = 'Enemies/Friends';
     btn.style.marginLeft = '10px';
     btn.addEventListener('click', openInnerCircle);
+    // The button is recreated on every engine render; re-apply the reshuffle
+    // glow while an offer is live this turn.
+    if (typeof _RESHUFFLE !== 'undefined' && _RESHUFFLE.isActive()) btn.classList.add('rs-glow');
     ref.insertAdjacentElement('afterend', btn);
 }
 
@@ -12996,6 +12999,7 @@ function openInnerCircle() {
         panel.remove();
         openOfficialsPanel(questions);
     });
+    if (typeof _RESHUFFLE !== 'undefined' && _RESHUFFLE.isActive()) officialsBtn.classList.add('rs-glow');
     btnRow.appendChild(officialsBtn);
 
     const backBtn = document.createElement('button');
@@ -13447,6 +13451,64 @@ const OFFICIALS_VARS = {
             color: #333;
             text-align: left;
         }
+        /* ── Cabinet reshuffle (see _RESHUFFLE) ── */
+        .rs-glow {
+            animation: rs-pulse 1.1s ease-in-out infinite;
+            border-radius: 3px;
+        }
+        @keyframes rs-pulse {
+            0%, 100% { box-shadow: 0 0 3px 1px  rgba(255, 200, 60, 0.55); }
+            50%      { box-shadow: 0 0 12px 5px rgba(255, 200, 60, 0.95); }
+        }
+        .oc-pending {
+            margin-top: 6px;
+            padding: 3px 5px;
+            border: 1px dashed #997a4d;
+            border-radius: 3px;
+            background: rgba(255, 235, 195, 0.75);
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 9px;
+            color: #6b4f1d;
+        }
+        #rs-picker {
+            position: sticky;
+            bottom: 10px;
+            align-self: flex-start;
+            z-index: 30;
+            background: rgba(22, 24, 34, 0.94);
+            border: 1px solid #997a4d;
+            border-radius: 6px;
+            padding: 10px 12px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.5);
+            max-width: 96%;
+        }
+        #rs-picker .rs-head {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            color: #f4d58d;
+            margin-bottom: 8px;
+        }
+        #rs-picker .rs-cands {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            align-items: flex-start;
+            overflow-x: auto;
+        }
+        #rs-picker .rs-cand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        #rs-picker .rs-cand button,
+        #rs-picker .rs-close {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        #rs-picker .rs-close { margin-top: 8px; }
     `;
     document.head.appendChild(_ocStyle);
 })();
@@ -13464,8 +13526,9 @@ function openOfficialsPanel(questions) {
     const grid = document.createElement('div');
     grid.className = 'oc-grid';
 
-    function makeCard(varName, role) {
-        const person = OFFICIALS_VARS[varName] ? OFFICIALS_VARS[varName]() : null;
+    // Build a flippable card for an arbitrary person in a given post. Used for
+    // the live office-holders (via makeCard) AND for reshuffle candidates.
+    function makePersonCard(person, role, varName) {
         const data = OFFICIALS_ROSTER[person] || { image: '', bio: 'No information available.' };
         const isVacant = (person === 'none' || person == null);
         // A person may hold different posts over the game (e.g. Kissinger as NSA
@@ -13537,6 +13600,23 @@ function openOfficialsPanel(questions) {
         return flip;
     }
 
+    // Card for the CURRENT holder of a post (dataset.varName marks it as a live
+    // slot — the reshuffle glow/picker targets these, never candidate cards).
+    function makeCard(varName, role) {
+        const person = OFFICIALS_VARS[varName] ? OFFICIALS_VARS[varName]() : null;
+        const flip = makePersonCard(person, role, varName);
+        flip.dataset.varName = varName;
+        const pend = _RESHUFFLE.pendingFor(varName);
+        if (pend) {
+            const badge = document.createElement('div');
+            badge.className = 'oc-pending';
+            const turns = pend.dueTurn - _questionCount;
+            badge.textContent = '→ ' + pend.person + ' takes office in ' + turns + (turns === 1 ? ' turn' : ' turns');
+            flip.querySelector('.oc-card').appendChild(badge);
+        }
+        return flip;
+    }
+
     OFFICIALS_LAYOUT.forEach(rowItems => {
         const row = document.createElement('div');
         row.className = 'oc-row';
@@ -13572,10 +13652,75 @@ function openOfficialsPanel(questions) {
 
     panel.appendChild(grid);
 
-    // Flip on click — same delegated pattern as the President's Men chart.
+    // Reshuffle: glow the swappable role cards while an offer is live.
+    if (_RESHUFFLE.isActive()) {
+        Object.keys(_RESHUFFLE.active.slots).forEach(vn => {
+            const f = grid.querySelector('.oc-flip[data-var-name="' + vn + '"]');
+            if (f) f.classList.add('rs-glow');
+        });
+    }
+
+    // Candidate picker, pinned bottom-left of the screen (sticky: it hugs the
+    // visible bottom edge even while the panel scrolls).
+    function openPicker(varName, role, slot) {
+        panel.querySelector('#rs-picker')?.remove();
+        const pick = document.createElement('div');
+        pick.id = 'rs-picker';
+
+        const head = document.createElement('div');
+        head.className = 'rs-head';
+        head.textContent = 'Appoint ' + role
+            + (slot.delay > 0
+                ? ' — takes office ' + slot.delay + (slot.delay === 1 ? ' turn' : ' turns') + ' from now'
+                : ' — takes office immediately');
+        pick.appendChild(head);
+
+        const cands = document.createElement('div');
+        cands.className = 'rs-cands';
+        (slot.candidates || []).forEach(person => {
+            const cell = document.createElement('div');
+            cell.className = 'rs-cand';
+            cell.appendChild(makePersonCard(person, role, varName)); // flippable: bio front, effects back
+            const b = document.createElement('button');
+            b.textContent = 'Appoint ' + person;
+            b.addEventListener('click', () => {
+                _RESHUFFLE.choose(varName, person);
+                panel.remove();
+                openOfficialsPanel(questions); // re-render: new holder / pending badge, glows cleared
+            });
+            cell.appendChild(b);
+            cands.appendChild(cell);
+        });
+        pick.appendChild(cands);
+
+        // Flip candidate cards on click (they live outside the grid delegation).
+        cands.addEventListener('click', (e) => {
+            if (e.target.closest('button')) return;
+            const f = e.target.closest('.oc-flip');
+            if (f) f.classList.toggle('oc-flipped');
+        });
+
+        const closeB = document.createElement('button');
+        closeB.className = 'rs-close';
+        closeB.textContent = 'Not now';
+        closeB.addEventListener('click', () => pick.remove());
+        pick.appendChild(closeB);
+
+        panel.appendChild(pick);
+    }
+
+    // Flip on click — but a glowing (swappable) role opens the picker instead.
     grid.addEventListener('click', (e) => {
         const f = e.target.closest('.oc-flip');
-        if (f) f.classList.toggle('oc-flipped');
+        if (!f) return;
+        const slot = _RESHUFFLE.slotFor(f.dataset.varName);
+        if (slot) {
+            const item = OFFICIALS_LAYOUT.flat().flatMap(i => [i, ...(i.subordinates || [])])
+                .find(i => i.varName === f.dataset.varName);
+            openPicker(f.dataset.varName, item ? item.role : f.dataset.varName, slot);
+            return;
+        }
+        f.classList.toggle('oc-flipped');
     });
 
     const btnRow = document.createElement('div');
@@ -13592,6 +13737,62 @@ function openOfficialsPanel(questions) {
 
     document.getElementById('game_window').appendChild(panel);
 }
+
+// ── CABINET RESHUFFLE ─────────────────────────────────────────────────────────
+// Offer the player a partial reshuffle via the Officials screen, armed from a
+// question's onShow and live FOR THAT TURN ONLY. While live, the glow trail is:
+// Enemies/Friends button → Officials button → the swappable role cards. Clicking
+// a glowing role opens the candidate picker (bottom-left); an appointment can
+// take effect immediately (delay 0) or N turns later.
+//
+// USAGE from questionData:
+//   onShow: () => _RESHUFFLE.offer({
+//       SOS: { candidates: ['Rockefeller', 'Kissinger'], delay: 2 },
+//       FBI: { candidates: ['Kelley', 'Felt', 'Wilson'], delay: 0 },
+//   })
+// varNames: ChiefOfStaff, NSA, SOS, SOD, AttorneyGeneral, SP, FBI, CIA.
+// Candidates are OFFICIALS_ROSTER keys. delay = turns until they take office.
+// Console test:  _RESHUFFLE.offer({ SOS: { candidates: ['Rockefeller'], delay: 2 } })
+// ──────────────────────────────────────────────────────────────────────────────
+const OFFICIALS_SETTERS = {
+    ChiefOfStaff:    v => { ChiefOfStaff = v; },
+    NSA:             v => { NSA = v; },
+    SOS:             v => { SOS = v; },
+    SOD:             v => { SOD = v; },
+    AttorneyGeneral: v => { AttorneyGeneral = v; },
+    SP:              v => { SP = v; },
+    FBI:             v => { FBI = v; },
+    CIA:             v => { CIA = v; },
+};
+
+var _RESHUFFLE = {
+    active: null,   // { slots: { varName: {candidates, delay} }, turn } — this turn's offer
+    pending: [],    // [{ varName, person, dueTurn }] — appointments not yet in office
+
+    offer(slots) {
+        this.active = { slots: Object.assign({}, slots), turn: _questionCount };
+        const b = document.getElementById('inner_circle_button');
+        if (b) b.classList.add('rs-glow');
+    },
+    isActive() { return !!(this.active && Object.keys(this.active.slots).length); },
+    slotFor(varName) { return (this.active && this.active.slots[varName]) || null; },
+    pendingFor(varName) { return this.pending.find(p => p.varName === varName) || null; },
+
+    choose(varName, person) {
+        const slot = this.slotFor(varName);
+        if (!slot) return;
+        const delay = slot.delay | 0;
+        if (delay <= 0) OFFICIALS_SETTERS[varName](person);
+        else this.pending.push({ varName, person, dueTurn: _questionCount + delay });
+        delete this.active.slots[varName];
+        if (!this.isActive()) this.clear();
+    },
+    clear() {
+        this.active = null;
+        document.getElementById('inner_circle_button')?.classList.remove('rs-glow');
+    },
+    reset() { this.clear(); this.pending.length = 0; },  // New Game
+};
 
 // =============================================
 // NETWORK / ORGANOGRAM — renderer used by openInnerCircle
@@ -14476,6 +14677,21 @@ function _runTurnTicks() {
     }
 }
 
+// Cabinet reshuffle housekeeping (see _RESHUFFLE above): an unused offer glows
+// and lives only for the turn it was armed on; delayed appointments take office
+// when their turn comes up. Ticks run before onShow, so a delay of d chosen on
+// turn T seats the new official at the top of turn T+d.
+_everyTurn(turn => {
+    if (_RESHUFFLE.active && turn > _RESHUFFLE.active.turn) _RESHUFFLE.clear();
+    for (let i = _RESHUFFLE.pending.length - 1; i >= 0; i--) {
+        const p = _RESHUFFLE.pending[i];
+        if (turn >= p.dueTurn) {
+            if (OFFICIALS_SETTERS[p.varName]) OFFICIALS_SETTERS[p.varName](p.person);
+            _RESHUFFLE.pending.splice(i, 1);
+        }
+    }
+});
+
 // ── EVENT LIFESPANS ───────────────────────────────────────────────────────────
 // Timed world events declare three extra fields on their _EVENT_DEFS entry:
 //   duration: n     — expires n turns after state() is first seen at 1
@@ -15073,6 +15289,7 @@ window.__onGameWindowMutation(() => {
                     _MIDTERM._fired = false;
                     _allendeSpeechPlayed = false;
                     _pressureOn = false;
+                    _RESHUFFLE.reset();
                 }
                 _lastQNum = _gs.question_number;
 
