@@ -1104,6 +1104,22 @@ body.edu-tips-off .edu-tip > svg.edu-stroke { display: none; }
     cursor: pointer;
     user-select: none;
 }
+/* [EXPLETIVE DELETED] mode (toggle below Historicity; body.expletive-on gates
+   it — see the section at the foot of this file). .expl-del spans are baked
+   into question/answer text at load: toggle off, they render as the plain
+   word; toggle on, the word is swapped for a Blue-Book-transcript redaction.
+   Hovering a redaction plays the raw tape. */
+.expl-del .expl-mark { display: none; }
+body.expletive-on .expl-del .expl-word { display: none; }
+body.expletive-on .expl-del .expl-mark { display: inline; letter-spacing: 0.03em; white-space: nowrap; }
+body.expletive-on .expl-del:hover .expl-word {
+    display: inline;
+    background: #2b2b2b;
+    color: #f5f0e6;
+    border-radius: 2px;
+    padding: 0 3px;
+}
+body.expletive-on .expl-del:hover .expl-mark { display: none; }
 .game_answer_row span {
     text-decoration: underline;
     text-decoration-color: transparent;
@@ -3398,6 +3414,109 @@ window.applyEduTooltips = function (html) {
     return changed ? tpl.innerHTML : html;
 };
 
+// ── [EXPLETIVE DELETED] MODE ─────────────────────────────────────────────────
+// Silly toggle, styled after the 1974 Blue Book transcripts: with the checkbox
+// on, the occasional word of question/answer text is published as
+// [EXPLETIVE DELETED], and hovering a redaction reveals what the typist heard
+// on the raw tape. Which words get the treatment is deterministic — a hash of
+// the word and its position — so the same words are redacted every
+// playthrough; a shortlist of genuinely salty words is ALWAYS redacted.
+// Spans are baked at load through the same pipeline as the edu tooltips above
+// (see the composition at the end of this section); the checkbox only flips
+// body.expletive-on, so toggling is instant and costs nothing when off.
+var _explOn = false;
+try { _explOn = localStorage.getItem('acop_expletive') === '1'; } catch (e) {}
+if (document.body) document.body.classList.toggle('expletive-on', _explOn);
+
+// Always redacted, exactly as the real transcripts would have.
+var _EXPL_ALWAYS = ['damn', 'damned', 'goddamn', 'goddamned', 'hell', 'hells',
+                    'bastard', 'bastards', 'crap', 'crook', 'crooks', 'screwed'];
+// Never redacted even on a hash hit — glue words whose loss reads as a typo
+// rather than a cover-up. The joke needs nouns and adjectives.
+var _EXPL_STOP = ['there', 'their', 'which', 'would', 'could', 'should',
+                  'about', 'after', 'before', 'because', 'where', 'while',
+                  'these', 'those', 'other', 'others', 'being', 'again',
+                  'still', 'never', 'every', 'since', 'until', 'though',
+                  'although', 'through', 'between', 'during', 'against',
+                  'within', 'without', 'under', 'above', 'however', 'might',
+                  'shall', 'doesn\'t', 'don\'t', 'won\'t', 'can\'t', 'isn\'t'];
+var _EXPL_RATE = 24;   // 1 in N eligible words gets the treatment
+
+function _explHash(s) {
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+    return h;
+}
+
+// Wrap chosen words within one text node; returns a fragment or null if
+// nothing was redacted. Only fully-lowercase words are eligible, so names
+// (and anything Code 2's people-matcher could target) are never touched.
+function _explWrapText(text) {
+    const re = /(?<![\w'])[a-z]+(?:'[a-z]+)*(?![\w'])/g;
+    const seed = _explHash(text);
+    const frag = document.createDocumentFragment();
+    let m, last = 0, found = false;
+    while ((m = re.exec(text)) !== null) {
+        const w = m[0];
+        if (_EXPL_ALWAYS.indexOf(w) === -1) {
+            if (w.length < 5 || _EXPL_STOP.indexOf(w) !== -1) continue;
+            if ((seed ^ _explHash(w + ':' + m.index)) % _EXPL_RATE !== 0) continue;
+        }
+        found = true;
+        if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+        const s = document.createElement('span');
+        s.className = 'expl-del';
+        const word = document.createElement('span');
+        word.className = 'expl-word';
+        word.textContent = w;
+        const mark = document.createElement('span');
+        mark.className = 'expl-mark';
+        mark.textContent = '[EXPLETIVE DELETED]';
+        s.appendChild(word);
+        s.appendChild(mark);
+        frag.appendChild(s);
+        last = m.index + w.length;
+    }
+    if (!found) return null;
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    return frag;
+}
+
+// Bake .expl-del spans into an HTML string. Same DOM-walking approach as the
+// edu pass: attributes/tags can't be corrupted, and skipping already-wrapped
+// subtrees makes it idempotent. data-tip spans are skipped because Code 2's
+// non-greedy data-tip regex would stop at a nested </span> and shred them.
+function _applyExpletives(html) {
+    if (typeof html !== 'string' || !html || html.indexOf('expl-del') !== -1) return html;
+    const tpl = document.createElement('template');
+    tpl.innerHTML = html;
+    let changed = false;
+    (function walk(node) {
+        Array.from(node.childNodes).forEach(ch => {
+            if (ch.nodeType === 1) {
+                const cl = ch.classList;
+                if (cl.contains('expl-del') || cl.contains('edu-tip') ||
+                    cl.contains('mytooltip') || cl.contains('mytooltiptext') ||
+                    ch.hasAttribute('data-tip')) return;
+                walk(ch);
+            } else if (ch.nodeType === 3) {
+                const frag = _explWrapText(ch.nodeValue);
+                if (frag) { ch.replaceWith(frag); changed = true; }
+            }
+        });
+    })(tpl.content);
+    return changed ? tpl.innerHTML : html;
+}
+
+// Ride Code 2's existing bake hook: it already calls applyEduTooltips on every
+// question/answer/feedback string, so composing here means zero Code 2 edits.
+// Edu spans go in first so the expletive walk sees and skips them.
+var _applyEduOnlyPass = window.applyEduTooltips;
+window.applyEduTooltips = function (html) {
+    return _applyExpletives(_applyEduOnlyPass(html));
+};
+// ── END [EXPLETIVE DELETED] MODE ─────────────────────────────────────────────
+
 // Hover display — reuses Code 2's #tooltip-portal element (and this file's
 // portal CSS), creating it only if Code 2 hasn't. The two hover systems don't
 // fight: each one's mouseover ignores the other's spans, and each mousemove
@@ -3515,6 +3634,38 @@ window.__onGameWindowMutation(() => {
     hWrap.addEventListener('mouseenter', () => { hTip.style.display = 'block'; });
     hWrap.addEventListener('mouseleave', () => { hTip.style.display = 'none'; });
     diff.appendChild(hWrap);
+
+    const xWrap = document.createElement('label');
+    xWrap.id = 'expletive-toggle-wrap';
+    xWrap.style.cssText = 'display:block;margin-top:4px;position:relative;';
+    const xCb = document.createElement('input');
+    xCb.type = 'checkbox';
+    xCb.id = 'expletive-toggle';
+    xCb.checked = _explOn;
+    xCb.addEventListener('change', () => {
+        _explOn = xCb.checked;
+        try { localStorage.setItem('acop_expletive', xCb.checked ? '1' : '0'); } catch (e) {}
+        document.body.classList.toggle('expletive-on', _explOn);
+    });
+    xWrap.appendChild(xCb);
+    xWrap.appendChild(document.createTextNode(' [Expletive deleted]'));
+    // Hover card, matching the two above. The sample redaction is styled
+    // inline (not via .expl-del) so it always shows regardless of the toggle.
+    const xTip = document.createElement('span');
+    xTip.id = 'expletive-hovertip';
+    xTip.style.cssText = 'display:none;position:absolute;bottom:calc(100% + 6px);left:0;width:280px;'
+        + 'background:rgba(255,255,255,0.97);border:1px solid #999;border-radius:3px;'
+        + 'box-shadow:1px 2px 6px rgba(0,0,0,0.3);padding:7px 9px;z-index:1000;'
+        + 'font-family:TypewriterDry,monospace;font-size:11px;line-height:1.45;color:#222;'
+        + 'text-align:left;pointer-events:none;font-weight:normal;';
+    xTip.innerHTML = 'Publishes the transcript the way the White House did in 1974: '
+        + 'the odd word is deemed unfit for the American public and printed as '
+        + '<span style="white-space:nowrap;">[EXPLETIVE DELETED]</span>. '
+        + 'Hover a redaction to hear the raw tape. Purely cosmetic.';
+    xWrap.appendChild(xTip);
+    xWrap.addEventListener('mouseenter', () => { xTip.style.display = 'block'; });
+    xWrap.addEventListener('mouseleave', () => { xTip.style.display = 'none'; });
+    diff.appendChild(xWrap);
 });
 // ── END EDUCATIONAL TOOLTIPS ──────────────────────────────────────────────────
 
