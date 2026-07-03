@@ -13403,6 +13403,10 @@ const OFFICIALS_ROSTER = {
         image: '',
         bio: "William Colby, career CIA officer and Vietnam veteran of the agency's most brutal programmes, succeeds Schlesinger as Director. His willingness to open the agency's files to congressional oversight — the so-called Family Jewels — will enrage the intelligence old guard and define the post-Nixon reckoning."
     },
+    'Connally': {
+        image: '',
+        bio: "PLACEHOLDER — John Connally, the Texas Democrat turned Nixon favourite. LBJ's protégé, wounded in the Kennedy motorcade, Treasury Secretary who took America off gold. Nixon's preferred heir; a bruiser with a chequebook. Proper bio to come."
+    },
     'none': {
         image: '',
         bio: "This position currently stands vacant."
@@ -13445,6 +13449,7 @@ const OFFICIALS_EFFECTS = {
     Wilson:      "PLACEHOLDER — effects text to come.",
     Felt:        "PLACEHOLDER — effects text to come.",
     Colby:       "PLACEHOLDER — effects text to come.",
+    Connally:    "PLACEHOLDER — effects text to come. (At State: Improve Relations +1 and Send Aid +1 every 3 turns, Reduce Aid +1 every 2.)",
 };
 // ── END OFFICIALS CARD-BACK TEXT ─────────────────────────────────────────────
 
