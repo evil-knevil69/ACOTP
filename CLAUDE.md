@@ -192,3 +192,24 @@ Design as discussed:
   how he handles the hush money.
 - Reward framing: it's a consequence-reward (you earn the tape by reaching a state), not a
   free-floating museum feature.
+
+**P3. Historicity highlights — question-bank import pipeline**
+The TOGGLE and CSS are already built (init file): a "Historicity" checkbox sits under
+the Educational-tooltips checkbox on the pre-game screen, OFF by default, persisted in
+localStorage (`acop_historicity`), gating `body.historicity-on`. Two span classes are
+live and styled:
+- `<span class="hist-v">…</span>`  — POWDER BLUE: verbatim text from the very
+  date/meeting the question depicts.
+- `<span class="hist-vo">…</span>` — LIGHT YELLOW: verbatim text, but from another
+  time/occasion.
+With the toggle off the spans are invisible (plain text) — safe to bake in freely.
+
+STILL TO DO when the question bank arrives: the user will deliver the full Q&A text in
+ONE docx, with the two categories marked as text highlights (blue-ish highlight →
+`hist-v`, yellow highlight → `hist-vo`). Convert the docx runs to spans on import
+(docx = zip; `word/document.xml` runs carry `<w:highlight w:val="…"/>` in `w:rPr` —
+map cyan/blue vals → hist-v, yellow → hist-vo), then splice the span-marked text into
+questions_json / answers_json / answer_feedback_json entries. Watch interactions:
+tooltip baking (people + edu) walks/regexes over this HTML — the tooltip matcher skips
+inside tags (safe) and the edu DOM-walker wraps text nodes inside the hist spans
+(fine — nested spans render correctly).

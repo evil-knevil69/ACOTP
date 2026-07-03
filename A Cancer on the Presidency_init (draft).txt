@@ -1074,6 +1074,21 @@ div.center img#header {
     letter-spacing: 0.05em;
     text-align: left;
 }
+/* Historicity highlights (toggle injected next to the educational-tooltips
+   checkbox; body.historicity-on gates them). Spans are baked into question/
+   answer text: hist-v = verbatim from the date/meeting shown (powder blue),
+   hist-vo = verbatim but from another time/occasion (light yellow). With the
+   toggle off the spans are invisible, plain text. */
+body.historicity-on .hist-v {
+    background: #b0e0e6;
+    border-radius: 2px;
+    padding: 0 1px;
+}
+body.historicity-on .hist-vo {
+    background: #fdf3b3;
+    border-radius: 2px;
+    padding: 0 1px;
+}
 /* Educational tooltips (see the EDUCATIONAL TOOLTIPS section at the foot of
    this file). Same card look, no image, DOUBLE pen-stroke underline. */
 .edu-tip { cursor: pointer; }
@@ -3418,8 +3433,18 @@ document.addEventListener('mouseleave', () => {
     if (_eduHover) { _eduPortal().style.display = 'none'; _eduHover = null; }
 }, true);
 
-// "Educational tooltips" checkbox, injected next to the difficulty selector on
-// the pre-game screen (id-guarded; the shared observer retries until it lands).
+// Historicity highlights — OFF by default, opt-in. When on, spans baked into
+// the question/answer text are tinted: .hist-v (powder blue) = verbatim from
+// the very date/meeting depicted; .hist-vo (light yellow) = verbatim but from
+// another time or occasion. The spans arrive with the question bank (see
+// CLAUDE.md: authored in a highlighted docx, converted to spans on import).
+var _historicityOn = false;
+try { _historicityOn = localStorage.getItem('acop_historicity') === '1'; } catch (e) {}
+if (document.body) document.body.classList.toggle('historicity-on', _historicityOn);
+
+// "Educational tooltips" + "Historicity" checkboxes, injected next to the
+// difficulty selector on the pre-game screen (id-guarded; the shared observer
+// retries until it lands).
 window.__onGameWindowMutation(() => {
     const diff = document.getElementById('difficulty_level');
     if (!diff || document.getElementById('edu-tips-toggle')) return;
@@ -3437,6 +3462,23 @@ window.__onGameWindowMutation(() => {
     wrap.appendChild(cb);
     wrap.appendChild(document.createTextNode(' Educational tooltips'));
     diff.appendChild(wrap);
+
+    const hWrap = document.createElement('label');
+    hWrap.id = 'historicity-toggle-wrap';
+    hWrap.style.cssText = 'display:block;margin-top:4px;';
+    const hCb = document.createElement('input');
+    hCb.type = 'checkbox';
+    hCb.id = 'historicity-toggle';
+    hCb.checked = _historicityOn;
+    hCb.addEventListener('change', () => {
+        _historicityOn = hCb.checked;
+        try { localStorage.setItem('acop_historicity', hCb.checked ? '1' : '0'); } catch (e) {}
+        document.body.classList.toggle('historicity-on', _historicityOn);
+    });
+    hWrap.appendChild(hCb);
+    hWrap.appendChild(document.createTextNode(' Historicity'));
+    hWrap.title = 'Highlight verbatim primary-source text: blue = from this very date/meeting, yellow = verbatim from another occasion.';
+    diff.appendChild(hWrap);
 });
 // ── END EDUCATIONAL TOOLTIPS ──────────────────────────────────────────────────
 
