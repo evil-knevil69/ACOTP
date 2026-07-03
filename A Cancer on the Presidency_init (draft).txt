@@ -3463,6 +3463,23 @@ window.__onGameWindowMutation(() => {
     });
     wrap.appendChild(cb);
     wrap.appendChild(document.createTextNode(' Educational tooltips'));
+    // Hover card, matching the Historicity one. "allusions" carries the actual
+    // edu underline stroke so the tip doubles as a legend (always visible,
+    // regardless of the toggle — it sits outside any .edu-tip span).
+    wrap.style.position = 'relative';
+    const eduTip = document.createElement('span');
+    eduTip.id = 'edu-tips-hovertip';
+    eduTip.style.cssText = 'display:none;position:absolute;bottom:calc(100% + 6px);left:0;width:280px;'
+        + 'background:rgba(255,255,255,0.97);border:1px solid #999;border-radius:3px;'
+        + 'box-shadow:1px 2px 6px rgba(0,0,0,0.3);padding:7px 9px;z-index:1000;'
+        + 'font-family:TypewriterDry,monospace;font-size:11px;line-height:1.45;color:#222;'
+        + 'text-align:left;pointer-events:none;font-weight:normal;';
+    eduTip.innerHTML = 'Adds additional tooltips for the '
+        + '<span style="position:relative;display:inline-block;">allusions' + _EDU_STROKE + '</span>'
+        + ' and more obscure historical references. Not recommended for first playthrough.';
+    wrap.appendChild(eduTip);
+    wrap.addEventListener('mouseenter', () => { eduTip.style.display = 'block'; });
+    wrap.addEventListener('mouseleave', () => { eduTip.style.display = 'none'; });
     diff.appendChild(wrap);
 
     const hWrap = document.createElement('label');
