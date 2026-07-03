@@ -17678,10 +17678,14 @@ function _syncDiploBtns() {
 // at once earns all three lines; Rogers at State + Kissinger at NSA both pay).
 // Cadence is turn-number modulo: "every 2" pays on even _questionCount turns.
 const _DIPLO_INCOME = [
-    { holder: 'Kissinger', post: 'SOS', every: 2, grants: { improve: 1 } },
-    { holder: 'Kissinger', post: 'SOS', every: 3, grants: { sendaid: 1, reduceaid: 1 } },
-    { holder: 'Kissinger', post: 'NSA', every: 3, grants: { improve: 1 } },
-    { holder: 'Rogers',    post: 'SOS', every: 3, grants: { improve: 1, sendaid: 1, reduceaid: 1 } },
+    { holder: 'Kissinger',   post: 'SOS', every: 2, grants: { improve: 1 } },
+    { holder: 'Kissinger',   post: 'SOS', every: 3, grants: { sendaid: 1, reduceaid: 1 } },
+    { holder: 'Kissinger',   post: 'NSA', every: 3, grants: { improve: 1 } },
+    { holder: 'Rogers',      post: 'SOS', every: 3, grants: { improve: 1, sendaid: 1, reduceaid: 1 } },
+    { holder: 'Rockefeller', post: 'SOS', every: 2, grants: { sendaid: 1, reduceaid: 1 } },
+    { holder: 'Rockefeller', post: 'SOS', every: 3, grants: { improve: 1 } },
+    { holder: 'Connally',    post: 'SOS', every: 3, grants: { improve: 1, sendaid: 1 } },
+    { holder: 'Connally',    post: 'SOS', every: 2, grants: { reduceaid: 1 } },
 ];
 _everyTurn(turn => {
     if (turn <= 0) return;
