@@ -16279,6 +16279,29 @@ document.addEventListener('keydown', (e) => {
 });
 document.body.appendChild(honk);
 
+// Open the world map the RIGHT way — through the engine's electoral-map screen,
+// which builds the map container/layout the map depends on. Calling
+// openWorldMap() straight from the Q&A screen skips that and renders wrong.
+// (Shared by the Legal Pad globe button and the 'W' shortcut.) Tunnel: click the
+// engine's electoral-map button, wait for #world_map_button to appear, click it;
+// fall back to a direct open if the engine button is absent or never resolves.
+function _openWorldMapViaTunnel() {
+    if (document.getElementById('world-map-container')) return; // already open
+    const mapsBtn = document.getElementById('view_electoral_map');
+    if (!mapsBtn) { openWorldMap(); return; }
+    const gw = document.getElementById('game_window');
+    if (gw) gw.style.visibility = 'hidden'; // avoid a flash of the electoral screen
+    let _done = false;
+    const _obs = new MutationObserver(() => {
+        if (_done) return;
+        const wmBtn = document.getElementById('world_map_button');
+        if (wmBtn) { _done = true; _obs.disconnect(); if (gw) gw.style.visibility = ''; wmBtn.click(); }
+    });
+    _obs.observe(document.body, { childList: true, subtree: true });
+    mapsBtn.click();
+    setTimeout(() => { if (!_done) { _done = true; _obs.disconnect(); if (gw) gw.style.visibility = ''; openWorldMap(); } }, 3000);
+}
+
 // ── KEYBOARD SHORTCUTS ────────────────────────────────────────────────────────
 // Q = questions · W = world map · A = All the President's Men · Z = Officials.
 // One delegated listener, early-exit on every non-shortcut key. Skips typing
@@ -16314,7 +16337,7 @@ document.addEventListener('keydown', (e) => {
         if (document.getElementById('world-map-container')) return;  // already there
         closePanels();
         if (q) q.style.display = '';
-        openWorldMap();
+        _openWorldMapViaTunnel(); // same path as the Legal Pad globe button (renders correctly)
     } else if (k === 'a') {
         if (document.getElementById('inner_circle_panel')) return;
         closeMap();
@@ -16650,19 +16673,7 @@ document.addEventListener('keydown', (e) => {
             const gb = pad.querySelector('#fd-world-globe-btn');
             if (gb) gb.addEventListener('click', () => {
                 _close();
-                const mapsBtn = document.getElementById('view_electoral_map');
-                if (!mapsBtn) { openWorldMap(); return; }
-                const gw = document.getElementById('game_window');
-                gw.style.visibility = 'hidden';
-                let _done = false;
-                const _obs = new MutationObserver(() => {
-                    if (_done) return;
-                    const wmBtn = document.getElementById('world_map_button');
-                    if (wmBtn) { _done = true; _obs.disconnect(); gw.style.visibility = ''; wmBtn.click(); }
-                });
-                _obs.observe(document.body, { childList: true, subtree: true });
-                mapsBtn.click();
-                setTimeout(() => { if (!_done) { _done = true; _obs.disconnect(); gw.style.visibility = ''; openWorldMap(); } }, 3000);
+                _openWorldMapViaTunnel();
             });
         }
     }
