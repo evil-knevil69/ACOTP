@@ -15648,6 +15648,8 @@ window.__onGameWindowMutation(() => {
                     WatergateExposure = 1;
                     ImproveRelationsStack = 0; SendAidStack = 0;
                     ReduceAidStack = 0; DestabiliseStack = 0;
+                    _diploMode = null;
+                    Object.keys(_diploCooldown).forEach(k => { delete _diploCooldown[k]; });
                 }
                 _lastQNum = _gs.question_number;
 
@@ -17529,10 +17531,95 @@ function _diploCanTarget(key, code) {
     return true;
 }
 
-// TODO(game design): country-target mode + effects (relations/aid/destabilise
-// presumably move COUNTRY_LOYAL / dispositions). Spend via _spendDiploAction;
-// gate targets through _diploCanTarget.
+// ---- effects: Improve Relations / Send Aid ----------------------------------
+// Both raise the target's relations by a random 1–5 weighted slightly toward
+// the upper end. Anti-spam: the two actions share a per-country cooldown — for
+// 3 turns after a full-strength boost, further boosts on that country are worth
+// only 0.1–1.0 (same upper-weighted shape). Diminished uses still cost a charge
+// and do NOT extend the cooldown. Reduce Aid / Destabilise effects are TBD.
+var _diploMode = null;       // action key while picking a country, else null
+var _diploCooldown = {};     // code -> _questionCount of the last FULL boost
+
+function _diploBoostAmount(code) {
+    const last = (code in _diploCooldown) ? _diploCooldown[code] : -999;
+    const saturated = (_questionCount - last) < 3;
+    // Math.pow(r, 0.7) skews the roll toward the top of the range.
+    const r = Math.pow(Math.random(), 0.7);
+    const amount = saturated ? 0.1 + 0.9 * r : 1 + 4 * r;
+    if (!saturated) _diploCooldown[code] = _questionCount;
+    return { amount: Math.round(amount * 10) / 10, saturated };
+}
+
+function _diploHint(text, sticky) {
+    const vp = document.getElementById('wm-viewport');
+    if (!vp) return;
+    let h = document.getElementById('wm-diplo-hint');
+    if (!h) {
+        h = document.createElement('div');
+        h.id = 'wm-diplo-hint';
+        h.style.cssText = 'position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:9600;'
+            + 'background:rgba(0,0,0,0.72);border:1px solid #333;color:#fff;padding:5px 12px;'
+            + 'font-family:TypewriterDry,monospace;font-size:11px;letter-spacing:1px;pointer-events:none;'
+            + 'white-space:nowrap;';
+        vp.appendChild(h);
+    }
+    h.textContent = text || '';
+    h.style.display = text ? 'block' : 'none';
+    clearTimeout(h._fade);
+    if (text && !sticky) h._fade = setTimeout(() => { h.style.display = 'none'; }, 6000);
+}
+
+function _diploExitMode() {
+    _diploMode = null;
+    const dbtn = document.getElementById('wm-diplo-btn');
+    if (dbtn) { dbtn.style.outline = ''; dbtn.style.fontWeight = ''; }
+    _diploHint('');
+}
+
 function _diploActionClicked(key) {
+    if (_diploMode === key) { _diploExitMode(); return; }   // second click cancels
+    _diploExitMode();
+    const a = _diploAction(key);
+    if (!a || a.get() <= 0) return;
+    if (key !== 'improve' && key !== 'sendaid') return;     // reduceaid/destabilise TBD
+    _diploMode = key;
+    const menu = document.getElementById('wm-diplo-menu');
+    if (menu) menu.style.display = 'none';
+    const dbtn = document.getElementById('wm-diplo-btn');
+    if (dbtn) { dbtn.style.outline = '2px solid #ffd24a'; dbtn.style.fontWeight = 'bold'; }
+    _diploHint(a.label + ': click a target country (open the menu and click the action again to cancel).', true);
+}
+
+// Called from the map's country/icon click handlers BEFORE selectCountry.
+// Returns true if the click was consumed by diplomacy target mode.
+function _diploHandleCountryClick(el) {
+    if (!_diploMode) return false;
+    const code = el && el.id;
+    if (!code || !(code in COUNTRY_LOYAL)) return true;   // swallow; not a country
+    const mode = _diploMode;
+    if (!_diploCanTarget(mode, code)) {
+        _diploHint((COUNTRY_NAMES[code] || code) + ' is not a valid target for ' + _diploAction(mode).label + '.');
+        _diploMode = null;
+        const dbtn = document.getElementById('wm-diplo-btn');
+        if (dbtn) { dbtn.style.outline = ''; dbtn.style.fontWeight = ''; }
+        return true;
+    }
+    if (!_spendDiploAction(mode)) { _diploExitMode(); return true; }
+    const { amount, saturated } = _diploBoostAmount(code);
+    const nv = Math.min(100, Math.round((COUNTRY_LOYAL[code] + amount) * 10) / 10);
+    COUNTRY_LOYAL[code] = nv;
+    if (typeof COUNTRIES !== 'undefined' && COUNTRIES[code]) COUNTRIES[code].loyal = nv; // keep the source of truth aligned
+    // Live repaint (all paths of the country) when the allegiance view is on.
+    if (_wmAllegiance) {
+        document.querySelectorAll('#world-map-container [id="' + code + '"]').forEach(p => {
+            if (p.tagName && p.id === code) p.style.fill = _loyalColour(nv);
+        });
+    }
+    _diploExitMode();
+    _diploHint(_diploAction(mode).label + ': ' + (COUNTRY_NAMES[code] || code) + ' +' + amount
+        + ' → ' + nv
+        + (saturated ? ' (channel saturated — full effect returns 3 turns after the last full push)' : '') + '.');
+    return true;
 }
 
 function _syncDiploBtns() {
@@ -17804,6 +17891,8 @@ function openWorldMap() {
     const diploWrap = document.createElement('div');
     diploWrap.style.cssText = 'position:relative;display:inline-block;margin-left:6px;';
     const diploBtn = _mkTopBtn('DIPLOMACY ▾', false);
+    diploBtn.id = 'wm-diplo-btn';
+    _diploMode = null;   // never carry target mode across map opens
     const diploMenu = document.createElement('div');
     diploMenu.id = 'wm-diplo-menu';
     diploMenu.style.cssText = 'position:absolute;top:27px;left:0;display:none;flex-direction:column;gap:6px;'
@@ -19708,6 +19797,7 @@ function openWorldMap() {
                     if (_editMode) return;
                     e.stopPropagation();
                     const cel = _countryElForEvent(e.clientX, e.clientY);
+                    if (cel && _diploHandleCountryClick(cel)) return; // diplomacy target mode
                     const wasSel = selectedEl === cel;
                     selectCountry(cel);
                     if (cel && !wasSel) flyToEl(cel); // glide to the event's country
@@ -20242,6 +20332,7 @@ function openWorldMap() {
                 });
                 el.addEventListener('click', e => {
                     e.stopPropagation();
+                    if (_diploHandleCountryClick(el)) return; // diplomacy target mode eats the click
                     const wasSel = selectedEl === el;
                     selectCountry(el);
                     if (!wasSel) flyToEl(el); // glide-centre on the selected country
