@@ -13431,7 +13431,7 @@ const OFFICIALS_EFFECTS = {
 
     Haldeman:    "PLACEHOLDER — effects text to come.",
     Rogers:      "PLACEHOLDER — effects text to come.",
-    Laird:       "PLACEHOLDER — effects text to come.",
+    Laird:       "The old congressman never really left the Hill. With Laird at Defense, Congressional relations improve by 1 every 5 turns.",
     Kleindienst: "PLACEHOLDER — effects text to come.",
     Helms:       "PLACEHOLDER — effects text to come.",
     Gray:        "PLACEHOLDER — effects text to come.",
@@ -17700,6 +17700,14 @@ _everyTurn(turn => {
         if (!getter || getter() !== r.holder) return;
         Object.entries(r.grants).forEach(([k, n]) => _addDiploAction(k, n));
     });
+});
+
+// Officeholder passives beyond the diplomacy stacks: Laird at Defense works
+// his old friends on the Hill — +1 CongressionalSupport (cap 10) every 5 turns.
+_everyTurn(turn => {
+    if (turn > 0 && turn % 5 === 0 && OFFICIALS_VARS.SOD && OFFICIALS_VARS.SOD() === 'Laird') {
+        CongressionalSupport = Math.min(10, CongressionalSupport + 1);
+    }
 });
 // ── END DIPLOMACY ACTIONS ─────────────────────────────────────────────────────
 
