@@ -1089,6 +1089,12 @@ body.historicity-on .hist-vo {
     border-radius: 2px;
     padding: 0 1px;
 }
+/* Expletives Deleted (toggle: body.expletives-on). Both the original word and
+   the redaction are baked into every .xpl span; the class just swaps which
+   shows — instant, reversible, non-destructive. */
+.xpl-c { display: none; }
+body.expletives-on .xpl-w { display: none; }
+body.expletives-on .xpl-c { display: inline; }
 /* Educational tooltips (see the EDUCATIONAL TOOLTIPS section at the foot of
    this file). Same card look, no image, DOUBLE pen-stroke underline. */
 .edu-tip { cursor: pointer; }
@@ -3387,7 +3393,7 @@ window.applyEduTooltips = function (html) {
         Array.from(node.childNodes).forEach(ch => {
             if (ch.nodeType === 1) {
                 const cl = ch.classList;
-                if (cl.contains('edu-tip') || cl.contains('mytooltip') || cl.contains('mytooltiptext')) return;
+                if (cl.contains('edu-tip') || cl.contains('mytooltip') || cl.contains('mytooltiptext') || cl.contains('xpl')) return;
                 walk(ch);
             } else if (ch.nodeType === 3) {
                 const frag = _eduWrapText(ch.nodeValue);
@@ -3397,6 +3403,75 @@ window.applyEduTooltips = function (html) {
     })(tpl.content);
     return changed ? tpl.innerHTML : html;
 };
+
+// ── EXPLETIVES DELETED ────────────────────────────────────────────────────────
+// "Expletives Deleted" pre-game toggle (Nixon's own transcript euphemism). Each
+// listed word is baked into a span carrying BOTH the original and the redaction;
+// CSS (body.expletives-on) swaps which shows, so the toggle is instant and
+// reversible with no destructive edits — same architecture as edu/historicity.
+// Word-edge, case-insensitive; longest/most-specific first so phrases and
+// inflected forms win over their substrings.
+var _EXPLETIVES = [
+    'son of a bitch', 'sonofabitch', 'jesus christ', 'cocksucker', 'horseshit',
+    'bullshit', 'goddamn', 'jackass', 'bastard', 'shitting', 'fucked',
+    'bitch', 'damn', 'shit', 'fuck', 'hell', 'ass',
+];
+var _EXPL_RE = new RegExp('(?<![\\w-])(' +
+    _EXPLETIVES.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ /g, '\\s+')).join('|') +
+    ')(?![\\w-])', 'gi');
+
+function _explWrapText(text) {
+    _EXPL_RE.lastIndex = 0;
+    if (!_EXPL_RE.test(text)) return null;
+    _EXPL_RE.lastIndex = 0;
+    const frag = document.createDocumentFragment();
+    let last = 0, m;
+    while ((m = _EXPL_RE.exec(text)) !== null) {
+        if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+        const wrap = document.createElement('span');
+        wrap.className = 'xpl';
+        const raw = document.createElement('span');
+        raw.className = 'xpl-w';
+        raw.textContent = m[0];                       // original word, case preserved
+        const clean = document.createElement('span');
+        clean.className = 'xpl-c';
+        clean.textContent = '[EXPLETIVE DELETED]';
+        wrap.appendChild(raw); wrap.appendChild(clean);
+        frag.appendChild(wrap);
+        last = m.index + m[0].length;
+    }
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    return frag;
+}
+
+// Bake .xpl spans. Runs in Code 2's pipeline; DOM-walks text nodes (tags/
+// attributes never corrupted) and skips existing tip/xpl subtrees (idempotent).
+window.applyExpletiveMarkup = function (html) {
+    if (typeof html !== 'string' || !html) return html;
+    _EXPL_RE.lastIndex = 0;
+    if (!_EXPL_RE.test(html)) return html;            // common case: byte-identical
+    const tpl = document.createElement('template');
+    tpl.innerHTML = html;
+    let changed = false;
+    (function walk(node) {
+        Array.from(node.childNodes).forEach(ch => {
+            if (ch.nodeType === 1) {
+                const cl = ch.classList;
+                if (cl.contains('edu-tip') || cl.contains('mytooltip') || cl.contains('mytooltiptext') || cl.contains('xpl')) return;
+                walk(ch);
+            } else if (ch.nodeType === 3) {
+                const frag = _explWrapText(ch.nodeValue);
+                if (frag) { ch.replaceWith(frag); changed = true; }
+            }
+        });
+    })(tpl.content);
+    return changed ? tpl.innerHTML : html;
+};
+
+var _expletivesOn = false;   // OFF by default — opt in via the checkbox
+try { _expletivesOn = localStorage.getItem('acop_expletives') === '1'; } catch (e) {}
+if (document.body) document.body.classList.toggle('expletives-on', _expletivesOn);
+// ── END EXPLETIVES DELETED ────────────────────────────────────────────────────
 
 // Hover display — reuses Code 2's #tooltip-portal element (and this file's
 // portal CSS), creating it only if Code 2 hasn't. The two hover systems don't
@@ -3480,6 +3555,36 @@ window.__onGameWindowMutation(() => {
     wrap.appendChild(eduTip);
     wrap.addEventListener('mouseenter', () => { eduTip.style.display = 'block'; });
     wrap.addEventListener('mouseleave', () => { eduTip.style.display = 'none'; });
+
+    // "Expletives Deleted" — sits to the LEFT of Educational tooltips (appended
+    // first). Redacts the listed profanity in the baked question/answer text.
+    const xWrap = document.createElement('label');
+    xWrap.id = 'expletives-toggle-wrap';
+    xWrap.style.cssText = 'display:inline-flex;align-items:center;gap:6px;margin-top:8px;'
+        + 'margin-right:16px;position:relative;cursor:pointer;user-select:none;';
+    const xCb = document.createElement('input');
+    xCb.type = 'checkbox';
+    xCb.id = 'expletives-toggle';
+    xCb.checked = _expletivesOn;
+    xCb.addEventListener('change', () => {
+        _expletivesOn = xCb.checked;
+        try { localStorage.setItem('acop_expletives', xCb.checked ? '1' : '0'); } catch (e) {}
+        document.body.classList.toggle('expletives-on', _expletivesOn);
+    });
+    xWrap.appendChild(xCb);
+    xWrap.appendChild(document.createTextNode(' Expletives Deleted'));
+    const xTip = document.createElement('span');
+    xTip.style.cssText = 'display:none;position:absolute;bottom:calc(100% + 6px);left:0;width:220px;'
+        + 'background:rgba(255,255,255,0.97);border:1px solid #999;border-radius:3px;'
+        + 'box-shadow:1px 2px 6px rgba(0,0,0,0.3);padding:7px 9px;z-index:1000;'
+        + 'font-family:TypewriterDry,monospace;font-size:11px;line-height:1.45;color:#222;'
+        + 'text-align:left;pointer-events:none;font-weight:normal;';
+    xTip.textContent = 'Act like the true son of Quakers.';
+    xWrap.appendChild(xTip);
+    xWrap.addEventListener('mouseenter', () => { xTip.style.display = 'block'; });
+    xWrap.addEventListener('mouseleave', () => { xTip.style.display = 'none'; });
+    diff.appendChild(xWrap);
+
     diff.appendChild(wrap);
 
     const hWrap = document.createElement('label');
