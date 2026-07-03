@@ -213,3 +213,14 @@ questions_json / answers_json / answer_feedback_json entries. Watch interactions
 tooltip baking (people + edu) walks/regexes over this HTML — the tooltip matcher skips
 inside tags (safe) and the edu DOM-walker wraps text nodes inside the hist spans
 (fine — nested spans render correctly).
+
+**P4. Reactive diegetic soundtrack**
+Full implementation handoff written up in `SOUNDTRACK_PLAN.md` (repo root). Summary:
+per-section playlists that swap in gracefully (current song finishes first, then the
+new section list takes over); scripted question stingers that fade out and inject a
+song as next-and-play (e.g. Patton theme on the Yom Kippur question); and darker/
+lighter mood tracks injected ONLY at section boundaries (gated on ApprovalRating +
+WatergateExposure, not per-turn). Primitives go in Code 1 with the player, config +
+triggers in Code 2 (the Allende-egg split). Decisions still needed before coding are
+listed in §8 of the plan (Part IV pk, per-section track URLs, the stinger pk→song map,
+mood thresholds, fade duration). Not started.
