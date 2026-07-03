@@ -3465,7 +3465,7 @@ window.__onGameWindowMutation(() => {
 
     const hWrap = document.createElement('label');
     hWrap.id = 'historicity-toggle-wrap';
-    hWrap.style.cssText = 'display:block;margin-top:4px;';
+    hWrap.style.cssText = 'display:block;margin-top:4px;position:relative;';
     const hCb = document.createElement('input');
     hCb.type = 'checkbox';
     hCb.id = 'historicity-toggle';
@@ -3477,7 +3477,24 @@ window.__onGameWindowMutation(() => {
     });
     hWrap.appendChild(hCb);
     hWrap.appendChild(document.createTextNode(' Historicity'));
-    hWrap.title = 'Highlight verbatim primary-source text: blue = from this very date/meeting, yellow = verbatim from another occasion.';
+    // Custom hover card (a native title can't carry the colour swatches). The
+    // blue/yellow words are tinted with the same hues the highlights use, and
+    // always show regardless of the toggle state.
+    const hTip = document.createElement('span');
+    hTip.id = 'historicity-hovertip';
+    hTip.style.cssText = 'display:none;position:absolute;bottom:calc(100% + 6px);left:0;width:280px;'
+        + 'background:rgba(255,255,255,0.97);border:1px solid #999;border-radius:3px;'
+        + 'box-shadow:1px 2px 6px rgba(0,0,0,0.3);padding:7px 9px;z-index:1000;'
+        + 'font-family:TypewriterDry,monospace;font-size:11px;line-height:1.45;color:#222;'
+        + 'text-align:left;pointer-events:none;font-weight:normal;';
+    hTip.innerHTML = 'Shows direct excerpts from primary sources in '
+        + '<span style="background:#b0e0e6;border-radius:2px;padding:0 2px;">blue</span> '
+        + '(at the meeting/on date referred to), or '
+        + '<span style="background:#fdf3b3;border-radius:2px;padding:0 2px;">yellow</span> '
+        + '(verbatim but used another time). For completeness only.';
+    hWrap.appendChild(hTip);
+    hWrap.addEventListener('mouseenter', () => { hTip.style.display = 'block'; });
+    hWrap.addEventListener('mouseleave', () => { hTip.style.display = 'none'; });
     diff.appendChild(hWrap);
 });
 // ── END EDUCATIONAL TOOLTIPS ──────────────────────────────────────────────────
