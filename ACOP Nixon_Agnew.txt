@@ -15650,6 +15650,7 @@ window.__onGameWindowMutation(() => {
                     ReduceAidStack = 0; DestabiliseStack = 0;
                     _diploMode = null;
                     Object.keys(_diploCooldown).forEach(k => { delete _diploCooldown[k]; });
+                    Object.keys(COUNTRY_LOYAL).forEach(c => { window[c + '_STAB'] = 0; });
                 }
                 _lastQNum = _gs.question_number;
 
@@ -17518,9 +17519,13 @@ const _DIPLO_NO_AID = new Set([
     'AU', 'JP', 'SG', 'NZ',
 ]);
 
-// Per-action country predicate — the country-target mode consults this when it
-// is wired (mirrors the President's Men canTarget pattern). Improve Relations
-// and Destabilise carry no extra rules yet.
+// Destabilise only works where relations are already bad (below 30) — you
+// don't run covert ops against friends.
+const _DIPLO_DESTAB_MAX = 30;
+
+// Per-action country predicate — consulted by the country-target mode
+// (mirrors the President's Men canTarget pattern). Improve Relations carries
+// no extra rules.
 function _diploCanTarget(key, code) {
     const loyal = COUNTRY_LOYAL[code];
     if (loyal == null) return false;
@@ -17528,8 +17533,16 @@ function _diploCanTarget(key, code) {
         if (loyal < _DIPLO_AID_GATE) return false;
         if (_DIPLO_NO_AID.has(code)) return false;
     }
+    if (key === 'destabilise' && loyal >= _DIPLO_DESTAB_MAX) return false;
     return true;
 }
+
+// Per-country destabilisation counters, window-global as {CODE}_STAB (SU_STAB,
+// CL_STAB, …), +1 per Destabilise. Window globals (not module vars) so that
+// conditional-question gates can reference them as bare identifiers for ANY
+// country without ReferenceErrors — they all exist from load. Do NOT declare a
+// module-level `var XX_STAB` anywhere or it will shadow the live counter.
+Object.keys(COUNTRY_LOYAL).forEach(c => { if (window[c + '_STAB'] == null) window[c + '_STAB'] = 0; });
 
 // ---- effects: Improve Relations / Send Aid ----------------------------------
 // Both raise the target's relations by a random 1–5 weighted slightly toward
@@ -17581,7 +17594,7 @@ function _diploActionClicked(key) {
     _diploExitMode();
     const a = _diploAction(key);
     if (!a || a.get() <= 0) return;
-    if (key !== 'improve' && key !== 'sendaid' && key !== 'reduceaid') return;   // destabilise TBD
+    // all four actions are wired
     _diploMode = key;
     const menu = document.getElementById('wm-diplo-menu');
     if (menu) menu.style.display = 'none';
@@ -17607,7 +17620,16 @@ function _diploHandleCountryClick(el) {
     if (!_spendDiploAction(mode)) { _diploExitMode(); return true; }
 
     let nv, msg;
-    if (mode === 'reduceaid') {
+    if (mode === 'destabilise') {
+        // Covert pressure: a small relations hit (0–2 uniform) plus a permanent
+        // +1 on the country's destabilisation counter ({CODE}_STAB) — the gate
+        // for conditional questions (coups, uprisings) later.
+        const amount = Math.round((2 * Math.random()) * 10) / 10;
+        nv = Math.max(0, Math.round((COUNTRY_LOYAL[code] - amount) * 10) / 10);
+        window[code + '_STAB'] = (window[code + '_STAB'] || 0) + 1;
+        msg = 'Destabilise: ' + (COUNTRY_NAMES[code] || code) + ' −' + amount + ' → ' + nv
+            + ' (destabilisation level ' + window[code + '_STAB'] + ').';
+    } else if (mode === 'reduceaid') {
         // Withdrawing aid stings: −3 to −6 (uniform), floored at 0. The withheld
         // budget goes back into the Send Aid pile (+1 charge). No cooldown — the
         // scarcity of Reduce Aid charges is the constraint.
