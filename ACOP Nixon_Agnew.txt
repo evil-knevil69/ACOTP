@@ -17581,7 +17581,7 @@ function _diploActionClicked(key) {
     _diploExitMode();
     const a = _diploAction(key);
     if (!a || a.get() <= 0) return;
-    if (key !== 'improve' && key !== 'sendaid') return;     // reduceaid/destabilise TBD
+    if (key !== 'improve' && key !== 'sendaid' && key !== 'reduceaid') return;   // destabilise TBD
     _diploMode = key;
     const menu = document.getElementById('wm-diplo-menu');
     if (menu) menu.style.display = 'none';
@@ -17605,8 +17605,24 @@ function _diploHandleCountryClick(el) {
         return true;
     }
     if (!_spendDiploAction(mode)) { _diploExitMode(); return true; }
-    const { amount, saturated } = _diploBoostAmount(code);
-    const nv = Math.min(100, Math.round((COUNTRY_LOYAL[code] + amount) * 10) / 10);
+
+    let nv, msg;
+    if (mode === 'reduceaid') {
+        // Withdrawing aid stings: −3 to −6 (uniform), floored at 0. The withheld
+        // budget goes back into the Send Aid pile (+1 charge). No cooldown — the
+        // scarcity of Reduce Aid charges is the constraint.
+        const amount = Math.round((3 + 3 * Math.random()) * 10) / 10;
+        nv = Math.max(0, Math.round((COUNTRY_LOYAL[code] - amount) * 10) / 10);
+        _addDiploAction('sendaid', 1);
+        msg = 'Reduce Aid: ' + (COUNTRY_NAMES[code] || code) + ' −' + amount + ' → ' + nv
+            + ' (aid budget freed: Send Aid +1).';
+    } else {
+        const { amount, saturated } = _diploBoostAmount(code);
+        nv = Math.min(100, Math.round((COUNTRY_LOYAL[code] + amount) * 10) / 10);
+        msg = _diploAction(mode).label + ': ' + (COUNTRY_NAMES[code] || code) + ' +' + amount
+            + ' → ' + nv
+            + (saturated ? ' (channel saturated — full effect returns 3 turns after the last full push)' : '') + '.';
+    }
     COUNTRY_LOYAL[code] = nv;
     if (typeof COUNTRIES !== 'undefined' && COUNTRIES[code]) COUNTRIES[code].loyal = nv; // keep the source of truth aligned
     // Live repaint (all paths of the country) when the allegiance view is on.
@@ -17616,9 +17632,7 @@ function _diploHandleCountryClick(el) {
         });
     }
     _diploExitMode();
-    _diploHint(_diploAction(mode).label + ': ' + (COUNTRY_NAMES[code] || code) + ' +' + amount
-        + ' → ' + nv
-        + (saturated ? ' (channel saturated — full effect returns 3 turns after the last full push)' : '') + '.');
+    _diploHint(msg);
     return true;
 }
 
