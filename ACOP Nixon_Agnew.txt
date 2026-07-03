@@ -17671,6 +17671,27 @@ function _syncDiploBtns() {
         btn.style.cursor = empty ? 'default' : 'pointer';
     });
 }
+
+// ---- passive charge income from the State/NSA officeholders ------------------
+// Checked LIVE every turn, so reshuffles and event appointments change the
+// income stream automatically. Rules stack (e.g. Kissinger holding SOS and NSA
+// at once earns all three lines; Rogers at State + Kissinger at NSA both pay).
+// Cadence is turn-number modulo: "every 2" pays on even _questionCount turns.
+const _DIPLO_INCOME = [
+    { holder: 'Kissinger', post: 'SOS', every: 2, grants: { improve: 1 } },
+    { holder: 'Kissinger', post: 'SOS', every: 3, grants: { sendaid: 1, reduceaid: 1 } },
+    { holder: 'Kissinger', post: 'NSA', every: 3, grants: { improve: 1 } },
+    { holder: 'Rogers',    post: 'SOS', every: 3, grants: { improve: 1, sendaid: 1, reduceaid: 1 } },
+];
+_everyTurn(turn => {
+    if (turn <= 0) return;
+    _DIPLO_INCOME.forEach(r => {
+        if (turn % r.every !== 0) return;
+        const getter = OFFICIALS_VARS[r.post];
+        if (!getter || getter() !== r.holder) return;
+        Object.entries(r.grants).forEach(([k, n]) => _addDiploAction(k, n));
+    });
+});
 // ── END DIPLOMACY ACTIONS ─────────────────────────────────────────────────────
 
 // ── World Map panel ──────────────────────────────────────────────────────────
