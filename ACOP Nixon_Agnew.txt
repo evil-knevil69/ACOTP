@@ -16277,6 +16277,58 @@ document.addEventListener('keydown', (e) => {
 });
 document.body.appendChild(honk);
 
+// ── KEYBOARD SHORTCUTS ────────────────────────────────────────────────────────
+// Q = questions · W = world map · A = All the President's Men · Z = Officials.
+// One delegated listener, early-exit on every non-shortcut key. Skips typing
+// contexts (inputs/textareas), modifier chords, an in-progress Konami entry
+// (konamiIndex > 0 — so the final 'a' of the code doesn't also open a screen),
+// and does nothing until the game is actually on screen.
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    const tgt = e.target;
+    if (tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.tagName === 'SELECT' || tgt.isContentEditable)) return;
+    if (konamiIndex > 0) return;
+    const k = e.key.toLowerCase();
+    if (k !== 'q' && k !== 'w' && k !== 'a' && k !== 'z') return;
+    if (!document.querySelector('.inner_window_question, #resume_questions_button, #world-map-container, #inner_circle_panel, #officials_panel, #enemies_panel')) return;
+
+    const q = document.querySelector('.inner_window_question');
+    const closePanels = () => {
+        document.getElementById('officials_panel')?.remove();
+        document.getElementById('enemies_panel')?.remove();
+        document.getElementById('inner_circle_panel')?.remove();
+    };
+    const closeMap = () => {
+        if (window._wmActiveClose) { try { window._wmActiveClose(); } catch (err) {} window._wmActiveClose = null; }
+    };
+
+    if (k === 'q') {
+        closeMap();
+        closePanels();
+        if (q) q.style.display = '';
+        addInnerCircleButton();
+        document.getElementById('resume_questions_button')?.click(); // electoral-map screen → back to questions
+    } else if (k === 'w') {
+        if (document.getElementById('world-map-container')) return;  // already there
+        closePanels();
+        if (q) q.style.display = '';
+        openWorldMap();
+    } else if (k === 'a') {
+        if (document.getElementById('inner_circle_panel')) return;
+        closeMap();
+        closePanels();
+        openInnerCircle(); // hides the question window + removes the button itself
+    } else { // z
+        if (document.getElementById('officials_panel')) return;
+        closeMap();
+        closePanels();
+        if (q) q.style.display = 'none';
+        document.getElementById('inner_circle_button')?.remove();
+        openOfficialsPanel(q);
+    }
+});
+// ── END KEYBOARD SHORTCUTS ────────────────────────────────────────────────────
+
 // [JETS_CYOA_CAMPAIGN_DATA_START]
 ;(() => {
     /* Load Permanent Marker from Google Fonts */
