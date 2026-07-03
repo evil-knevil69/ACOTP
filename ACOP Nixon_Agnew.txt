@@ -16354,6 +16354,130 @@ document.addEventListener('keydown', (e) => {
 });
 // ── END KEYBOARD SHORTCUTS ────────────────────────────────────────────────────
 
+// ── GAME MANUAL ───────────────────────────────────────────────────────────────
+// A floating, draggable player's manual (like the Legal Pad), opened by a
+// "Manual" button injected just below the host page's "Achievements" button.
+// NB: "Achievements" is host-page chrome (not in the mod files), so the button
+// is found by text — if it lands in the wrong place, set _MANUAL_ANCHOR (a CSS
+// selector) and it'll anchor to that instead.
+var _MANUAL_ANCHOR = null; // e.g. '#achievements-btn' — overrides the text search
+;(() => {
+    const st = document.createElement('style');
+    st.id = '_manual_css';
+    st.textContent =
+        '#manual_panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:560px;max-width:94vw;'+
+        'max-height:86vh;z-index:100000;background:#f5ecd6;color:#241c0e;border:1px solid #8a6d3b;border-radius:6px;'+
+        'box-shadow:0 10px 40px rgba(0,0,0,.55);display:flex;flex-direction:column;font-family:TypewriterDry,monospace;}'+
+        '#manual_panel .man-head{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;'+
+        'background:#3a2c14;color:#f2e6c8;cursor:move;border-top-left-radius:6px;border-top-right-radius:6px;letter-spacing:1px;}'+
+        '#manual_panel .man-head b{font-size:14px;}'+
+        '#manual_panel .man-close{cursor:pointer;border:0;background:#6b4f1d;color:#fff;font-weight:bold;border-radius:4px;padding:2px 9px;}'+
+        '#manual_panel .man-body{overflow-y:auto;padding:14px 16px;line-height:1.5;font-size:12.5px;}'+
+        '#manual_panel h3{margin:15px 0 5px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#6b4f1d;'+
+        'border-bottom:1px solid #c8b87a;padding-bottom:3px;} #manual_panel h3:first-child{margin-top:0;}'+
+        '#manual_panel .man-key{display:inline-block;min-width:18px;text-align:center;font-weight:bold;background:#241c0e;'+
+        'color:#f2e6c8;border-radius:3px;padding:1px 6px;margin-right:6px;}'+
+        '#manual_panel ul{margin:4px 0 4px 2px;padding-left:16px;} #manual_panel li{margin:3px 0;} #manual_panel p{margin:4px 0;}';
+    document.head.appendChild(st);
+})();
+
+function openGameManual() {
+    document.getElementById('manual_panel')?.remove();
+    const panel = document.createElement('div');
+    panel.id = 'manual_panel';
+    panel.innerHTML =
+        '<div class="man-head"><b>A Cancer on the Presidency — Field Manual</b><button class="man-close">Close</button></div>'+
+        '<div class="man-body">'+
+        '<h3>Keyboard shortcuts</h3><ul>'+
+        '<li><span class="man-key">Q</span> Questions &amp; answers (the main screen)</li>'+
+        '<li><span class="man-key">W</span> World map</li>'+
+        '<li><span class="man-key">A</span> All the President’s Men</li>'+
+        '<li><span class="man-key">Z</span> Officials</li></ul>'+
+        '<h3>The four screens</h3><ul>'+
+        '<li><b>Questions &amp; Answers</b> — the heart of the game: your decisions as President.</li>'+
+        '<li><b>World Map</b> — the world’s alignment to the US, live events, and your foreign-policy tools.</li>'+
+        '<li><b>All the President’s Men</b> — the Watergate conspiracy: loyalty, exposure, and who might crack.</li>'+
+        '<li><b>Officials</b> — your cabinet. Click any card to flip it and read what that appointment does for you.</li></ul>'+
+        '<h3>All the President’s Men</h3>'+
+        '<p>Every man has a <b>Loyalty</b> and an <b>Exposure</b> — flip his card to see them. Nixon’s own card shows your <b>Watergate Exposure</b>. Exposure spreads upward through the organisation and, in the end, reaches you.</p>'+
+        '<p>Four actions sit top-left, each with a limited number of uses earned through the game (they only work on the junior staff — below the top row, though Dean counts):</p><ul>'+
+        '<li><b>Hush Money</b> — pay a man off: +1 loyalty and his pressure freezes for a few turns.</li>'+
+        '<li><b>Cut Them Loose</b> — disown a still-active man.</li>'+
+        '<li><b>Offer Clemency</b> — shore up a loyal man who’s been indicted or jailed: a temporary loyalty boost, lost if his situation changes.</li>'+
+        '<li><b>Pin the Blame</b> — available only once your own exposure is high; shifts blame downward (his exposure up, yours down).</li></ul>'+
+        '<h3>Officials</h3>'+
+        '<p>Your cabinet — State, Defense, Justice, National Security, CIA, FBI. Flip a card for the effects of that person in post. At certain moments you’ll be invited to <b>reshuffle</b>: the Enemies/Friends and Officials buttons glow, and the swappable roles glow — click one to choose a successor. Ignore it and the post falls <b>vacant</b>.</p>'+
+        '<h3>World map</h3>'+
+        '<p>Toggle display layers along the bars: <b>Allegiance</b> (colours by how pro-US a country is), <b>Flags</b>, <b>Events</b>, <b>Capitals</b>, <b>Night</b>, <b>SIGINT</b>, and <b>N.os</b> (shows the exact relations number and destabilisation count in a country’s hover).</p>'+
+        '<p>The <b>Diplomacy</b> dropdown holds four actions — arm one, then click a target country:</p><ul>'+
+        '<li><b>Improve Relations</b> / <b>Send Aid</b> — raise relations (aid needs relations ≥ 26 and can’t go to the wealthy allies).</li>'+
+        '<li><b>Reduce Aid</b> — withdraw aid (relations drop; the freed budget returns a Send Aid charge).</li>'+
+        '<li><b>Destabilise</b> — covert pressure on a hostile country (relations below 30 only); builds toward later events.</li></ul>'+
+        '<p>Your Secretary of State and NSA quietly earn you diplomacy charges each turn — who holds those chairs matters.</p>'+
+        '<h3>Before you begin</h3>'+
+        '<p>Optional switches sit by the difficulty selector: <b>Educational tooltips</b> (notes on allusions and obscure references), <b>Historicity</b> (highlights verbatim primary-source text), and <b>Expletives Deleted</b> (redacts the language, in the President’s own style).</p>'+
+        '</div>';
+    panel.querySelector('.man-close').onclick = () => panel.remove();
+    // Drag by the header.
+    const head = panel.querySelector('.man-head');
+    head.addEventListener('mousedown', e => {
+        if (e.target.classList.contains('man-close')) return;
+        const r = panel.getBoundingClientRect();
+        panel.style.transform = 'none';
+        panel.style.left = r.left + 'px';
+        panel.style.top = r.top + 'px';
+        const ox = e.clientX - r.left, oy = e.clientY - r.top;
+        const mv = ev => { panel.style.left = (ev.clientX - ox) + 'px'; panel.style.top = (ev.clientY - oy) + 'px'; };
+        const up = () => { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); };
+        document.addEventListener('mousemove', mv);
+        document.addEventListener('mouseup', up);
+        e.preventDefault();
+    });
+    document.body.appendChild(panel);
+}
+
+// Find the host "Achievements" element and drop a matching "Manual" button just
+// below it. _MANUAL_ANCHOR (a selector) wins if set; otherwise search buttons/
+// links by text.
+function _placeManualButton() {
+    if (document.getElementById('game-manual-button')) return true;
+    let ach = null;
+    if (_MANUAL_ANCHOR) ach = document.querySelector(_MANUAL_ANCHOR);
+    if (!ach) {
+        const cands = document.querySelectorAll('button, a, [role="button"]');
+        for (const el of cands) {
+            if ((el.textContent || '').trim().toLowerCase() === 'achievements') { ach = el; break; }
+        }
+    }
+    if (!ach) return false;
+    const btn = document.createElement(ach.tagName.toLowerCase() === 'a' ? 'a' : 'button');
+    btn.id = 'game-manual-button';
+    btn.textContent = 'Manual';
+    if (ach.className) btn.className = ach.className;   // inherit the host's button look
+    if (ach.getAttribute('style')) btn.setAttribute('style', ach.getAttribute('style'));
+    if (btn.tagName === 'A') btn.href = '#';
+    btn.addEventListener('click', e => { e.preventDefault(); openGameManual(); });
+    ach.insertAdjacentElement('afterend', btn);
+    return true;
+}
+// The Achievements button is host chrome (may appear after load / re-render), so
+// watch for it; stop watching once placed or after a grace period.
+;(() => {
+    if (_placeManualButton()) return;
+    const obs = new MutationObserver(() => { if (_placeManualButton()) obs.disconnect(); });
+    obs.observe(document.body, { childList: true, subtree: true });
+    setTimeout(() => obs.disconnect(), 20000);
+})();
+// Fallback so the manual is always reachable while wiring the button: press 'M'.
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    if (e.key.toLowerCase() !== 'm') return;
+    document.getElementById('manual_panel') ? document.getElementById('manual_panel').remove() : openGameManual();
+});
+// ── END GAME MANUAL ───────────────────────────────────────────────────────────
+
 // [JETS_CYOA_CAMPAIGN_DATA_START]
 ;(() => {
     /* Load Permanent Marker from Google Fonts */
