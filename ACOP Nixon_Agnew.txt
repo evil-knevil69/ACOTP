@@ -16398,13 +16398,16 @@ function openGameManual() {
         '<li><b>World Map</b> — the world’s alignment to the US, live events, and your foreign-policy tools.</li>'+
         '<li><b>All the President’s Men</b> — the Watergate conspiracy: loyalty, exposure, and who might crack.</li>'+
         '<li><b>Officials</b> — your cabinet. Click any card to flip it and read what that appointment does for you.</li></ul>'+
-        '<h3>All the President’s Men</h3>'+
-        '<p>Every man has a <b>Loyalty</b> and an <b>Exposure</b> — flip his card to see them. Nixon’s own card shows your <b>Watergate Exposure</b>. Exposure spreads upward through the organisation and, in the end, reaches you.</p>'+
-        '<p>Four actions sit top-left, each with a limited number of uses earned through the game (they only work on the junior staff — below the top row, though Dean counts):</p><ul>'+
-        '<li><b>Hush Money</b> — pay a man off: +1 loyalty and his pressure freezes for a few turns.</li>'+
-        '<li><b>Cut Them Loose</b> — disown a still-active man.</li>'+
-        '<li><b>Offer Clemency</b> — shore up a loyal man who’s been indicted or jailed: a temporary loyalty boost, lost if his situation changes.</li>'+
-        '<li><b>Pin the Blame</b> — available only once your own exposure is high; shifts blame downward (his exposure up, yours down).</li></ul>'+
+        '<h3>All the President’s Men — the pressure</h3>'+
+        '<p>Every man in the conspiracy has two numbers, shown when you flip his card: <b>Loyalty</b> (10 = a true believer, 0 = ready to talk) and <b>Exposure</b> (how far the investigation has reached him). Nixon’s own card shows your <b>Watergate Exposure</b> — the number that ultimately decides your fate.</p>'+
+        '<p><b>Exposure climbs.</b> Each turn a man’s exposure leaks upward to the men above him on the chart — the more exposed he is, the faster it spreads. A man who is still clean is shielded and absorbs nothing from below. Left unchecked it works its way up the chain and, in the end, to the President himself.</p>'+
+        '<p><b>Men crack.</b> The more exposed a man is, the faster his loyalty erodes — and once his loyalty bottoms out while his exposure is high, he may turn <b>state’s witness</b>. A witness is a catastrophe: his testimony throws fresh exposure onto everyone he was tied to, and if one of the inner circle (Haldeman, Ehrlichman, Colson, Mitchell, Dean) flips, it lands directly on you. Minor exposure fades on its own over time — unless the man has been indicted or jailed, which keeps him in the headlines.</p>'+
+        '<p><b>Your tools.</b> Four actions sit at the top-left of the screen, each with limited uses earned through the game. They only work on the junior staff — the men below the top row (Dean included), never the President or the inner four:</p><ul>'+
+        '<li><b>Hush Money</b> — buy a man off: +1 loyalty, and his loyalty stops eroding and his exposure stops spreading for a few turns.</li>'+
+        '<li><b>Cut Them Loose</b> — publicly disown a man still in post; distances him, but does nothing to stop him cracking.</li>'+
+        '<li><b>Offer Clemency</b> — dangle a pardon before a loyal man who’s been indicted or jailed: a temporary loyalty boost that evaporates the moment his situation changes.</li>'+
+        '<li><b>Pin the Blame</b> — available only once your own exposure is dangerously high: hang it on a wavering man (his exposure up, his loyalty down) to take the heat off yourself. A devil’s bargain — you’re manufacturing the next man to crack.</li></ul>'+
+        '<p>The machine only truly comes alive in Part II (“Fulmination”); before that, the numbers move only through your answers.</p>'+
         '<h3>Officials</h3>'+
         '<p>Your cabinet — State, Defense, Justice, National Security, CIA, FBI. Flip a card for the effects of that person in post. At certain moments you’ll be invited to <b>reshuffle</b>: the Enemies/Friends and Officials buttons glow, and the swappable roles glow — click one to choose a successor. Ignore it and the post falls <b>vacant</b>.</p>'+
         '<h3>World map</h3>'+
