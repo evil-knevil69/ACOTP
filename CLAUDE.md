@@ -224,3 +224,15 @@ WatergateExposure, not per-turn). Primitives go in Code 1 with the player, confi
 triggers in Code 2 (the Allende-egg split). Decisions still needed before coding are
 listed in §8 of the plan (Part IV pk, per-section track URLs, the stinger pk→song map,
 mood thresholds, fade duration). Not started.
+
+**P5. Campaign-length selector**
+Full implementation handoff in `CAMPAIGN_LENGTH_PLAN.md` (repo root). Summary: a pre-game
+"Campaign length" dropdown (LBM-style, writing to global_parameter_json question_count).
+ACOP can't use LBM's shuffle-the-middle (chronology / sections / cyoAdventure branching),
+so each shorter length is a HAND-CURATED, date-ordered pk list installed at GAME START
+(non-included pks parked in the tail so swaps/tunnels still resolve), plus feature gating:
+the always-visible turn-driven systems (World Map Diplomacy dropdown + income, President's
+Men team-action buttons) are switched OFF on short runs via `_lengthAllows(feature)`; the
+pk-triggered systems (pressure engine, reshuffle, midterm) fall away when their pks aren't
+curated in. Content decisions (the actual presets + pk lists + feature matrix) listed in §7.
+Not started.
