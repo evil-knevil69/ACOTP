@@ -16468,7 +16468,6 @@ function _placeManualButton() {
 }
 _placeManualButton();
 window.addEventListener('resize', _placeManualButton);
-window.addEventListener('scroll', _placeManualButton, true);
 window.__onGameWindowMutation(() => _placeManualButton()); // catches first appearance + screen changes
 // Fallback so the manual is always reachable while wiring the button: press 'M'.
 document.addEventListener('keydown', (e) => {
