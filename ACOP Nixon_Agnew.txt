@@ -16356,11 +16356,9 @@ document.addEventListener('keydown', (e) => {
 
 // ── GAME MANUAL ───────────────────────────────────────────────────────────────
 // A floating, draggable player's manual (like the Legal Pad), opened by a
-// "Manual" button injected just below the host page's "Achievements" button.
-// NB: "Achievements" is host-page chrome (not in the mod files), so the button
-// is found by text — if it lands in the wrong place, set _MANUAL_ANCHOR (a CSS
-// selector) and it'll anchor to that instead.
-var _MANUAL_ANCHOR = null; // e.g. '#achievements-btn' — overrides the text search
+// "Manual" button pinned just below the bottom-right corner of the game window.
+// It repositions whenever the window resizes or screens change, so it stays put
+// at any window size. (Also openable with 'M'.)
 ;(() => {
     const st = document.createElement('style');
     st.id = '_manual_css';
@@ -16439,38 +16437,39 @@ function openGameManual() {
     document.body.appendChild(panel);
 }
 
-// Find the host "Achievements" element and drop a matching "Manual" button just
-// below it. _MANUAL_ANCHOR (a selector) wins if set; otherwise search buttons/
-// links by text.
+// Create the button once (on document.body) and pin it just below the game
+// window's bottom-right corner; recomputed from #game_window's live rect so it
+// tracks any resize. No-op until #game_window exists.
+var _manRO = null;
 function _placeManualButton() {
-    if (document.getElementById('game-manual-button')) return true;
-    let ach = null;
-    if (_MANUAL_ANCHOR) ach = document.querySelector(_MANUAL_ANCHOR);
-    if (!ach) {
-        const cands = document.querySelectorAll('button, a, [role="button"]');
-        for (const el of cands) {
-            if ((el.textContent || '').trim().toLowerCase() === 'achievements') { ach = el; break; }
-        }
+    const gw = document.getElementById('game_window');
+    if (!gw) return false;
+    let btn = document.getElementById('game-manual-button');
+    if (!btn) {
+        btn = document.createElement('button');
+        btn.id = 'game-manual-button';
+        btn.textContent = 'Manual';
+        btn.style.cssText = 'position:absolute;z-index:9000;cursor:pointer;padding:4px 14px;'+
+            'font-family:TypewriterDry,monospace;font-size:13px;letter-spacing:1px;'+
+            'background:#3a2c14;color:#f2e6c8;border:1px solid #8a6d3b;border-radius:4px;';
+        btn.addEventListener('click', () => openGameManual());
+        document.body.appendChild(btn);
     }
-    if (!ach) return false;
-    const btn = document.createElement(ach.tagName.toLowerCase() === 'a' ? 'a' : 'button');
-    btn.id = 'game-manual-button';
-    btn.textContent = 'Manual';
-    if (ach.className) btn.className = ach.className;   // inherit the host's button look
-    if (ach.getAttribute('style')) btn.setAttribute('style', ach.getAttribute('style'));
-    if (btn.tagName === 'A') btn.href = '#';
-    btn.addEventListener('click', e => { e.preventDefault(); openGameManual(); });
-    ach.insertAdjacentElement('afterend', btn);
+    // Track pure size changes of the game window (screen swaps also fire the
+    // mutation observer below, and viewport changes fire window 'resize').
+    if (!_manRO && typeof ResizeObserver !== 'undefined') {
+        _manRO = new ResizeObserver(() => _placeManualButton());
+        _manRO.observe(gw);
+    }
+    const r = gw.getBoundingClientRect();
+    btn.style.top  = (r.bottom + window.scrollY + 6) + 'px';
+    btn.style.left = (r.right  + window.scrollX - btn.offsetWidth) + 'px'; // align to the right edge
     return true;
 }
-// The Achievements button is host chrome (may appear after load / re-render), so
-// watch for it; stop watching once placed or after a grace period.
-;(() => {
-    if (_placeManualButton()) return;
-    const obs = new MutationObserver(() => { if (_placeManualButton()) obs.disconnect(); });
-    obs.observe(document.body, { childList: true, subtree: true });
-    setTimeout(() => obs.disconnect(), 20000);
-})();
+_placeManualButton();
+window.addEventListener('resize', _placeManualButton);
+window.addEventListener('scroll', _placeManualButton, true);
+window.__onGameWindowMutation(() => _placeManualButton()); // catches first appearance + screen changes
 // Fallback so the manual is always reachable while wiring the button: press 'M'.
 document.addEventListener('keydown', (e) => {
     if (e.ctrlKey || e.altKey || e.metaKey) return;
