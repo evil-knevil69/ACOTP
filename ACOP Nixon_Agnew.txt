@@ -11682,6 +11682,12 @@ function _refreshTicket() {
     campaignTrail_temp.running_mate_last_name = vp.last;
     var ci = document.getElementById('candidate_pic');    if (ci) ci.src = cImg;
     var mi = document.getElementById('running_mate_pic'); if (mi) mi.src = mImg;
+    // Also update the live campaign-sign text so a mid-question override changes
+    // the surname immediately (the engine rebuilds this from the var each render;
+    // this keeps the current render in sync). updateCampaignSign reparents the
+    // sign but keeps its id, so this finds it wherever it lives.
+    var sign = document.getElementById('campaign_sign');
+    if (sign) { var ps = sign.getElementsByTagName('p'); if (ps[0]) ps[0].textContent = pres.last; if (ps[1]) ps[1].textContent = vp.last; }
 }
 
 function _setTicketStage(n) {
