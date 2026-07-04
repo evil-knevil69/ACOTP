@@ -11627,6 +11627,78 @@ campaignTrail_temp.running_mate_image_url = "https://file.garden/aXPgNT-ZRCxxpy0
 campaignTrail_temp.candidate_last_name = "Nixon";
 campaignTrail_temp.running_mate_last_name = "Agnew";
 
+// ── TICKET PORTRAITS (candidate + running-mate pics) ──────────────────────────
+// Two slots — President (candidate_pic) and VP (running_mate_pic) — each showing
+// a PERSON's portrait for the current STAGE (1–5, the game's five sections). The
+// picture is a 2-D lookup: TICKET_PEOPLE[occupant].pics[stage-1]. Stage advances
+// at the PART section transitions; overrides swap who holds a slot.
+//
+// TO ADD ART: replace the placeholder URLs in TICKET_PEOPLE.pics (5 per person,
+// one per stage). Nixon/Agnew are seeded with the current live images across all
+// stages (so nothing changes until you stage them); replacements use a generic
+// placeholder. Sparse arrays are fine — a missing stage clamps to the last set.
+//
+// TO CHANGE WHO'S IN A SLOT (from a question's onShow):
+//   _setVP('ford')                  // Agnew resigns → Ford (or 'connally'/'rockefeller'/'reagan')
+//   _succeedPresident('rockefeller')// Nixon goes: the VP becomes President, a new VP is named
+//   _setPresident('ford')           // set the President slot directly if ever needed
+//
+// TO SET THE STAGE PKS: fill TICKET_STAGE_PK once the Part IV/V start pks exist.
+var _NIXON_IMG   = "https://file.garden/aXPgNT-ZRCxxpy0g/candidatecode2v5.png";
+var _AGNEW_IMG   = "https://file.garden/aXPgNT-ZRCxxpy0g/running_matev3.png";
+var _TICKET_PH   = _NIXON_IMG; // TEMP placeholder for art not yet supplied — replace
+
+var TICKET_PEOPLE = {
+    nixon:       { last: 'Nixon',       pics: [_NIXON_IMG, _NIXON_IMG, _NIXON_IMG, _NIXON_IMG, _NIXON_IMG] },
+    agnew:       { last: 'Agnew',       pics: [_AGNEW_IMG, _AGNEW_IMG, _AGNEW_IMG, _AGNEW_IMG, _AGNEW_IMG] },
+    ford:        { last: 'Ford',        pics: [_TICKET_PH, _TICKET_PH, _TICKET_PH, _TICKET_PH, _TICKET_PH] },
+    rockefeller: { last: 'Rockefeller', pics: [_TICKET_PH, _TICKET_PH, _TICKET_PH, _TICKET_PH, _TICKET_PH] },
+    connally:    { last: 'Connally',    pics: [_TICKET_PH, _TICKET_PH, _TICKET_PH, _TICKET_PH, _TICKET_PH] },
+    reagan:      { last: 'Reagan',      pics: [_TICKET_PH, _TICKET_PH, _TICKET_PH, _TICKET_PH, _TICKET_PH] },
+};
+
+// pk → stage (1–5). Seeded from the PART transitions that exist today; add IV/V.
+var TICKET_STAGE_PK = { 401: 1, 430: 2, 432: 3 /* , <PARTIV_PK>: 4, <PARTV_PK>: 5 */ };
+
+var _president   = 'nixon';
+var _vp          = 'agnew';
+var _ticketStage = 1;
+
+function _ticketPic(person, stage) {
+    var arr = (person && person.pics) || [];
+    for (var i = Math.min(stage, arr.length) - 1; i >= 0; i--) { if (arr[i]) return arr[i]; }
+    return _TICKET_PH;
+}
+
+// Recompute both slots from (stage, _president, _vp) → engine vars + live imgs.
+function _refreshTicket() {
+    var pres = TICKET_PEOPLE[_president] || TICKET_PEOPLE.nixon;
+    var vp   = TICKET_PEOPLE[_vp]        || TICKET_PEOPLE.agnew;
+    var cImg = _ticketPic(pres, _ticketStage);
+    var mImg = _ticketPic(vp,   _ticketStage);
+    campaignTrail_temp.candidate_image_url    = cImg;
+    campaignTrail_temp.running_mate_image_url = mImg;
+    campaignTrail_temp.candidate_last_name    = pres.last;
+    campaignTrail_temp.running_mate_last_name = vp.last;
+    var ci = document.getElementById('candidate_pic');    if (ci) ci.src = cImg;
+    var mi = document.getElementById('running_mate_pic'); if (mi) mi.src = mImg;
+}
+
+function _setTicketStage(n) {
+    n = Math.max(1, Math.min(5, n | 0));
+    if (n !== _ticketStage) { _ticketStage = n; _refreshTicket(); }
+}
+function _setPresident(id) { if (TICKET_PEOPLE[id]) { _president = id; _refreshTicket(); } }
+function _setVP(id)        { if (TICKET_PEOPLE[id]) { _vp = id; _refreshTicket(); } }
+// Nixon leaves: the sitting VP becomes President, a new VP (id) is named.
+function _succeedPresident(newVpId) {
+    _president = _vp;
+    if (TICKET_PEOPLE[newVpId]) _vp = newVpId;
+    _refreshTicket();
+}
+_refreshTicket(); // sync the engine vars to stage 1 / Nixon–Agnew at load
+// ── END TICKET PORTRAITS ──────────────────────────────────────────────────────
+
 //#startcode
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
@@ -15656,6 +15728,7 @@ window.__onGameWindowMutation(() => {
                     _diploMode = null;
                     Object.keys(_diploCooldown).forEach(k => { delete _diploCooldown[k]; });
                     Object.keys(COUNTRY_LOYAL).forEach(c => { window[c + '_STAB'] = 0; });
+                    _president = 'nixon'; _vp = 'agnew'; _ticketStage = 1; _refreshTicket();
                 }
                 _lastQNum = _gs.question_number;
 
@@ -15672,6 +15745,8 @@ window.__onGameWindowMutation(() => {
                     if (qd.signImg) changeImage(qd.signImg);
                     _newEvents.clear();
                     if (qd.onShow) qd.onShow();
+                    // Ticket portraits: advance the stage at PART transitions.
+                    if (TICKET_STAGE_PK[currentPK]) _setTicketStage(TICKET_STAGE_PK[currentPK]);
                     if (qd.transition && !_shownTransitions.has(currentPK) && document.getElementById('question_form')) {
                         showSectionTransition(qd.transition, currentPK);
                     }
