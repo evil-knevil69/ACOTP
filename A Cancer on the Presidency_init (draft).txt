@@ -3617,7 +3617,17 @@ window.__onGameWindowMutation(() => {
         + '<span style="background:#fdf3b3;border-radius:2px;padding:0 2px;">yellow</span> '
         + '(verbatim but used another time). For completeness only.';
     hWrap.appendChild(hTip);
-    hWrap.addEventListener('mouseenter', () => { hTip.style.display = 'block'; });
+    hWrap.addEventListener('mouseenter', () => {
+        hTip.style.display = 'block';
+        // Centre the 280px card horizontally on the game window (left:0 anchored
+        // it to the label and clipped off the left edge).
+        const gw = document.getElementById('game_window');
+        if (gw) {
+            const gwr = gw.getBoundingClientRect();
+            const wr = hWrap.getBoundingClientRect();
+            hTip.style.left = Math.round(gwr.left + gwr.width / 2 - 140 - wr.left) + 'px';
+        }
+    });
     hWrap.addEventListener('mouseleave', () => { hTip.style.display = 'none'; });
     diff.appendChild(hWrap);
 });
