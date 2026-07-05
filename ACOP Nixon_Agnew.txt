@@ -12102,6 +12102,7 @@ var MediaRelations = 5;
 var CongressionalSupport = 6;
 var RepublicanSupport = 9;
 var MEPeace = 0;
+var committeejuice = 0;
 
 // ── WORLD EVENTS ─────────────────────────────────────────────────────────────
 // To add a new event:
