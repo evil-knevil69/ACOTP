@@ -12973,23 +12973,20 @@ function _lpCrimesHTML() {
     ];
     // The President's own exposure, above the tier subheadings (both surfaces:
     // the legal-pad panel and the file-drawer Crimes tab share this builder).
-    let html = `<div style="margin-bottom:12px;border-bottom:2px solid #7a1f1f;padding-bottom:6px;">
-        <div style="font-family:'TypewriterDry',monospace;font-size:12px;font-weight:bold;
-                    text-transform:uppercase;letter-spacing:1.2px;color:#7a1f1f;">
-            Presidential Watergate Exposure — ${WatergateExposure} / 20</div>
-    </div>`;
+    // Every line is line-height:28px on the pad's baseline grid; tier headings
+    // get a blank ruled line before them (margin-top:28px).
+    let html = `<div style="font-family:'TypewriterDry',monospace;font-size:12px;font-weight:bold;`
+        + `text-transform:uppercase;letter-spacing:1.2px;color:#7a1f1f;line-height:28px;">`
+        + `Presidential Watergate Exposure — ${WatergateExposure} / 20</div>`;
     tiers.forEach(({ level, heading }) => {
         const items = _LP_CRIMES.filter(c => c.val() === level);
         if (!items.length) return;
-        html += `<div style="margin-bottom:10px;">
-            <div style="font-family:'TypewriterDry',monospace;font-size:11px;font-weight:bold;
-                        text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #7a5c2e;
-                        margin-bottom:4px;padding-bottom:2px;color:#3a2a10;">${heading}</div>`;
+        html += `<div style="font-family:'TypewriterDry',monospace;font-size:11px;font-weight:bold;`
+            + `text-transform:uppercase;letter-spacing:1px;color:#3a2a10;line-height:28px;margin-top:28px;">${heading}</div>`;
         items.forEach(c => {
-            html += `<div style="font-family:'TypewriterDry',monospace;font-size:12px;
-                                 color:#1a1a1a;line-height:1.5;">— ${c.label}</div>`;
+            html += `<div style="font-family:'TypewriterDry',monospace;font-size:12px;`
+                + `color:#1a1a1a;line-height:28px;">— ${c.label}</div>`;
         });
-        html += `</div>`;
     });
     // html stays empty string when all variables are 0
     return html;
@@ -16838,28 +16835,31 @@ document.addEventListener('keydown', (e) => {
         const continents = ['Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America'];
         let h = `<p class="fd-head">World Affairs</p>`;
 
-        for (const continent of continents) {
+        // Each continent header + event line sits on the 28px baseline grid; a
+        // blank ruled line precedes each continent after the first.
+        continents.forEach((continent, ci) => {
             const events = defs.filter(d => d.continent === continent);
-            h += `<p style="font-family:Georgia,serif;font-size:12px;font-weight:bold;margin:8px 0 2px 0;color:#3a2000;">${continent}</p>`;
+            h += `<p style="font-family:Georgia,serif;font-size:13px;font-weight:bold;color:#3a2000;`
+                + `line-height:28px;margin:${ci === 0 ? 0 : 28}px 0 0 0;">${continent}</p>`;
 
             const visibleEvents = events.filter(d => d.state() !== 0);
 
             if (visibleEvents.length === 0) {
-                h += `<p style="color:#aaa;font-size:10px;margin:0 0 4px 14px;">—</p>`;
+                h += `<p style="color:#aaa;font-size:11px;line-height:28px;margin:0 0 0 14px;">—</p>`;
             } else {
                 for (const def of visibleEvents) {
                     const st = def.state();
                     const isNew = _newEvents.has(def.id);
-                    let style = 'font-size:11px;margin:1px 0 1px 14px;';
+                    let style = 'font-size:12px;line-height:28px;margin:0 0 0 14px;';
                     if (st === 1 && isNew) style += 'color:#cc0000;font-weight:bold;';
                     else if (st === 3)      style += 'text-decoration:line-through;color:#999;';
                     h += `<p style="${style}">• ${def.label}</p>`;
                 }
             }
-        }
+        });
 
-        // ── Globe button — opens World Map ────────────────────────────────────
-        h += `<div style="text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid #c8b87a;">
+        // ── Globe button — opens World Map (own two-line block) ────────────────
+        h += `<div style="text-align:center;margin-top:28px;line-height:0;">
             <img id="fd-world-globe-btn" src="https://file.garden/aXPgNT-ZRCxxpy0g/globeicon.png" title="Open World Map" style="width:40px;height:40px;cursor:pointer;display:inline-block;">
         </div>`;
 
