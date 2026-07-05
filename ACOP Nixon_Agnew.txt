@@ -12965,6 +12965,27 @@ const _LP_CRIMES = [
 
 var _legalPadScreen = 0; // 0 = High Crimes tab, 1+ = future tabs
 
+// ── ACTION CRIMES (hush money / clemency from the President's Men screen) ──────
+// Each Hush Money / Offer Clemency use is recorded as a specific per-person
+// crime. They stay HIDDEN until a question reveals them — its onShow calls
+// _revealActionCrimes() — at which point they all appear together under
+// "Known Crimes" in the legal pad's High Crimes tab. Reset on New Game.
+var _actionCrimesRevealed = false;
+var _actionCrimes = [];   // { id, label } — one entry per person per action type
+var _CRIME_NAMES = {      // display-name fixes where the pressure key differs
+    Erlichman: 'Ehrlichman', Klambach: 'Kalmbach', Larue: 'LaRue',
+    Burglars: 'the Watergate Burglars',
+};
+function _crimeName(key) { return _CRIME_NAMES[key] || key; }
+function _recordActionCrime(type, key) {
+    var id = type + ':' + key;
+    if (_actionCrimes.some(c => c.id === id)) return;   // don't double-list the same man
+    var label = (type === 'hush' ? 'Hush Money — ' : 'Clemency — ') + _crimeName(key);
+    _actionCrimes.push({ id: id, label: label });
+}
+function _revealActionCrimes() { _actionCrimesRevealed = true; }
+// ── END ACTION CRIMES ─────────────────────────────────────────────────────────
+
 function _lpCrimesHTML() {
     const tiers = [
         { level: 3, heading: 'Impeachable Offenses' },
@@ -12979,13 +13000,15 @@ function _lpCrimesHTML() {
         + `text-transform:uppercase;letter-spacing:1.2px;color:#7a1f1f;line-height:28px;">`
         + `Presidential Watergate Exposure — ${WatergateExposure} / 20</div>`;
     tiers.forEach(({ level, heading }) => {
-        const items = _LP_CRIMES.filter(c => c.val() === level);
-        if (!items.length) return;
+        let labels = _LP_CRIMES.filter(c => c.val() === level).map(c => c.label);
+        // Revealed hush-money / clemency crimes join the Known Crimes tier.
+        if (level === 1 && _actionCrimesRevealed) labels = labels.concat(_actionCrimes.map(c => c.label));
+        if (!labels.length) return;
         html += `<div style="font-family:'TypewriterDry',monospace;font-size:11px;font-weight:bold;`
             + `text-transform:uppercase;letter-spacing:1px;color:#3a2a10;line-height:28px;margin-top:28px;">${heading}</div>`;
-        items.forEach(c => {
+        labels.forEach(label => {
             html += `<div style="font-family:'TypewriterDry',monospace;font-size:12px;`
-                + `color:#1a1a1a;line-height:28px;">— ${c.label}</div>`;
+                + `color:#1a1a1a;line-height:28px;">— ${label}</div>`;
         });
     });
     // html stays empty string when all variables are 0
@@ -13112,6 +13135,7 @@ const _TA_WIRED = {
         prompt: 'Hush money: pick the man to pay off (click the button again to cancel).',
         apply(key) {
             _payOff(key);   // +1 loyalty, decay/radiation frozen 4 turns (per the manual)
+            _recordActionCrime('hush', key);   // logged as a specific crime (hidden until revealed)
             return 'Paid off ' + key + ' — loyalty +1, pressure frozen for 4 turns.';
         }
     },
@@ -13146,6 +13170,7 @@ const _TA_WIRED = {
             // Store the boost ACTUALLY applied (cap-aware) so wearing off removes
             // exactly what was granted; remember status to detect the deal voiding.
             _clemencies.push({ key, boost: p.loy() - before, expiresTurn: _questionCount + 4, statusAtGrant: p.st() });
+            _recordActionCrime('clemency', key);   // logged as a specific crime (hidden until revealed)
             return 'Clemency dangled before ' + key + ' — loyalty +2 for 4 turns, void if his situation changes.';
         }
     },
@@ -15732,6 +15757,7 @@ window.__onGameWindowMutation(() => {
                     Object.keys(_diploCooldown).forEach(k => { delete _diploCooldown[k]; });
                     Object.keys(COUNTRY_LOYAL).forEach(c => { window[c + '_STAB'] = 0; });
                     _president = 'nixon'; _vp = 'agnew'; _ticketStage = 1; _refreshTicket();
+                    _actionCrimes.length = 0; _actionCrimesRevealed = false;
                 }
                 _lastQNum = _gs.question_number;
 
