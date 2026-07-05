@@ -16650,6 +16650,11 @@ document.addEventListener('keydown', (e) => {
     }
     .fd-close:hover { color: #110500; }
     .fd-pad {
+        /* 28px baseline grid: the ruled line sits at 22px within each 28px cell
+           (right under the 15px handwriting baseline), and the rule layer is
+           shifted down by the 12px top padding so it aligns to the first line.
+           Text classes below use line-height:28px and on-grid margins so every
+           line rests on a rule. */
         background-color: #fdf4b0;
         background-image:
             linear-gradient(90deg,
@@ -16658,9 +16663,12 @@ document.addEventListener('keydown', (e) => {
                 transparent 48px),
             repeating-linear-gradient(180deg,
                 transparent 0px,
-                transparent 27px,
-                #90caf9 27px,
-                #90caf9 28.5px);
+                transparent 22px,
+                #90caf9 22px,
+                #90caf9 23.5px,
+                transparent 23.5px,
+                transparent 28px);
+        background-position: 0 0, 0 12px;
         border: 1px solid #b89820;
         border-radius: 3px;
         padding: 12px 14px 24px 60px;
@@ -16675,11 +16683,11 @@ document.addEventListener('keydown', (e) => {
         font-size: 13px !important;
         font-weight: bold !important;
         color: #1a0800 !important;
-        margin: 4px 0 10px !important;
+        margin: 0 0 28px !important;   /* one blank ruled line after the heading (on-grid) */
         line-height: 28px;
         text-decoration: none !important;
     }
-    .fd-entry { margin-bottom: 6px; line-height: 28px; }
+    .fd-entry { margin: 0; line-height: 28px; }   /* each entry = exactly one ruled line */
     .fd-entry-label {
         font-family: 'TypewriterDry', 'Courier New', monospace;
         font-size: 11px;
