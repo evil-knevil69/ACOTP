@@ -13302,8 +13302,12 @@ function openInnerCircle() {
     title.textContent = "All the President's Men";
     panel.appendChild(title);
 
-    // Team action buttons, pinned top-left (above the Dean column)
+    // Team action buttons, pinned top-left (above the Dean column).
+    // Cottage Cheese runs don't build them (_lengthAllows) — the chart itself
+    // stays; only the action tooling goes. _syncTaButtons already no-ops when
+    // #nw-team-actions is absent.
     _taMode = null;   // never carry target-select mode across panel opens
+    if (_lengthAllows('teamActions')) {
     const taBox = document.createElement('div');
     taBox.id = 'nw-team-actions';
     _TEAM_ACTIONS.forEach(a => {
@@ -13318,6 +13322,7 @@ function openInnerCircle() {
     taHint.id = 'nw-ta-hint';
     taBox.appendChild(taHint);
     panel.appendChild(taBox);
+    } // end _lengthAllows('teamActions')
 
     const chartWrapper = document.createElement('div');
     if (typeof window._renderOrgChart === 'function') window._renderOrgChart(chartWrapper);
@@ -14130,6 +14135,7 @@ var _RESHUFFLE = {
     pending: [],    // [{ varName, person, dueTurn }] — appointments not yet in office
 
     offer(slots) {
+        if (!_lengthAllows('reshuffle')) return; // no cabinet reshuffles on short runs
         this.active = { slots: Object.assign({}, slots), turn: _questionCount };
         const b = document.getElementById('inner_circle_button');
         if (b) b.classList.add('rs-glow');
@@ -15263,7 +15269,7 @@ function _flipWitness(name) {
 }
 
 _everyTurn(() => {
-    if (!_pressureOn) return; // dormant until PART II: Fulmination (pk 430)
+    if (!_pressureOn || !_lengthAllows('pressure')) return; // dormant until PART II: Fulmination (pk 430); off on short runs
     const paused = name => (_pausedUntil[name] || 0) >= _questionCount;
 
     // 1. Radiation — exposure leaks upward along the edges, per-edge clocks
@@ -15665,6 +15671,95 @@ window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
     return function (cb) { subs.push(cb); try { cb(); } catch (e) {} };
 })();
 
+// ── CAMPAIGN LENGTH — selector + curated-set install + feature gating ────────
+// (CAMPAIGN_LENGTH_PLAN.md.) Two runs: 'full' (The Big Enchilada — the whole
+// scripted campaign, the DEFAULT) and 'short' (Cottage Cheese). The short
+// preset's pks list is the hand-curated, DATE-ASCENDING question order — see
+// the plan's §4.5 authoring rules. FILL ME IN: while pks is empty the preset
+// is INERT for questions (selecting it still plays the full set; only the
+// feature gates engage), so this ships safely unpopulated.
+var CAMPAIGN_LENGTHS = {
+    full: {
+        label: 'The Big Enchilada',
+        pks: null,   // null = the whole scripted order, untouched
+        desc: '<p><strong>The Big Enchilada.</strong></p>'
+            + '<p>PLACEHOLDER — the full campaign. Every question, every system, the whole '
+            + 'slow descent: diplomacy, the President&rsquo;s Men, the works.</p>'
+            + '<p>This is the intended way to play.</p>',
+        features: { diplomacy: true, teamActions: true, pressure: true, reshuffle: true, midterm: true },
+    },
+    short: {
+        label: 'Cottage Cheese',
+        pks: [
+            // FILL ME IN — the short run's ordered, date-ascending pk list.
+            // Include the PART transition pks for any section it spans; end on
+            // a proper closing beat. Everything not listed is parked in the
+            // tail (still reachable by pk for swaps/tunnels) and never plays.
+        ],
+        desc: '<p><strong>Cottage Cheese.</strong></p>'
+            + '<p>PLACEHOLDER — the short campaign: the core beats only. The long-arc '
+            + 'systems (World Map diplomacy, the President&rsquo;s Men team actions, the '
+            + 'Watergate pressure machine) are switched off.</p>'
+            + '<p>Ketchup optional.</p>',
+        features: { diplomacy: false, teamActions: false, pressure: false, reshuffle: false, midterm: false },
+    },
+};
+var _campaignLength  = 'full';   // set by the pre-game dropdown; Enchilada by default
+var _lengthInstalled = 'full';   // which preset's question set is currently installed
+// Pristine order + count, snapshotted at load (before any rebuild) so flipping
+// back to full always restores the authored sequence exactly. Eager, not lazy:
+// a lazy snapshot taken after loading a short-run save would bless the curated
+// order as "pristine".
+var _LENGTH_ORIG = (campaignTrail_temp.global_parameter_json && campaignTrail_temp.global_parameter_json[0])
+    ? { order: campaignTrail_temp.questions_json.map(q => q.pk),
+        count: campaignTrail_temp.global_parameter_json[0].fields.question_count }
+    : null;
+
+function _lengthAllows(feature) {
+    var p = CAMPAIGN_LENGTHS[_campaignLength];
+    return !p || !p.features || p.features[feature] !== false;   // default-on if unspecified
+}
+
+// Rebuild questions_json IN PLACE (the engine's `e` shares the array reference)
+// as [curated..., parked tail...] and shrink question_count to the curated
+// length. PROPS.PARAMS is a live getter over global_parameter_json, so the
+// engine's header and end-of-run trigger follow automatically. Only reachable
+// pre-game — the dropdown exists solely on the options screen.
+function _installCampaignLength() {
+    if (_lengthInstalled === _campaignLength) return;
+    var p = CAMPAIGN_LENGTHS[_campaignLength];
+    var live = campaignTrail_temp.questions_json;
+    var gp = campaignTrail_temp.global_parameter_json[0].fields;
+    if (!_LENGTH_ORIG) _LENGTH_ORIG = { order: live.map(q => q.pk), count: gp.question_count };
+    var byPk = new Map(live.map(q => [Number(q.pk), q]));
+    var wantPks = (p && p.pks && p.pks.length) ? p.pks : null;
+    if (!wantPks) {
+        // full — or a preset with no pks authored yet: restore the pristine set
+        for (var i0 = 0; i0 < _LENGTH_ORIG.order.length; i0++) {
+            var orig = byPk.get(Number(_LENGTH_ORIG.order[i0]));
+            if (orig) live[i0] = orig;
+        }
+        gp.question_count = _LENGTH_ORIG.count;
+        _lengthInstalled = _campaignLength;
+        _rebuildQuestionIdxMap();
+        return;
+    }
+    var curated = wantPks.map(pk => byPk.get(Number(pk))).filter(Boolean);
+    if (curated.length !== wantPks.length) {
+        console.warn('[ACOP length] preset "' + _campaignLength + '" lists '
+            + (wantPks.length - curated.length) + ' unknown pk(s) — skipped');
+    }
+    if (!curated.length) { _lengthInstalled = _campaignLength; return; }
+    var inCurated = new Set(curated.map(q => Number(q.pk)));
+    var tail = live.filter(q => !inCurated.has(Number(q.pk)));
+    var rebuilt = curated.concat(tail);
+    for (var i = 0; i < live.length; i++) live[i] = rebuilt[i];
+    gp.question_count = curated.length;
+    _lengthInstalled = _campaignLength;
+    _rebuildQuestionIdxMap();
+}
+// ── END CAMPAIGN LENGTH config ───────────────────────────────────────────────
+
 // ── REACTIVE SOUNDTRACK — config + triggers (SOUNDTRACK_PLAN.md) ─────────────
 // The player primitives (__enterMusicSection, __injectNextSong, fades, the
 // graceful queue-don't-slam swap) live in Code 1 with the player; this side
@@ -15745,7 +15840,7 @@ const questionData = {
     429: { date: "October 1975",
             // The 1974 midterm election-night screen fires here (placeholder anchor;
             // move to a dedicated Nov-1974 beat later). Guarded so it shows once.
-            onShow: () => { if (!_MIDTERM._fired) { _MIDTERM._fired = true; _MIDTERM.open(); } },
+            onShow: () => { if (!_MIDTERM._fired && _lengthAllows('midterm')) { _MIDTERM._fired = true; _MIDTERM.open(); } },
             historical: null },
     430: {
         date: "September 1976",
@@ -16262,6 +16357,47 @@ document.addEventListener('mouseleave', () => {
     _hoveredTooltip = null;
 }, true);
 
+// ── CAMPAIGN LENGTH — selector UI (pre-game options screen) ──────────────────
+// Mirrors the voting-method block exactly: an <h3> + <select> inside a form,
+// followed by a .description_window_small rewritten on every change. Injected
+// between the voting method's description window and #difficulty_level, on the
+// same shared observer the other pre-game toggles use (id-guarded — the engine
+// rebuilds the options screen on each New Game).
+window.__onGameWindowMutation(() => {
+    const votingDesc = document.getElementById('opponent_selection_description_window');
+    if (!votingDesc || document.getElementById('campaign_length_id')) return;
+
+    const opts = document.createElement('div');
+    opts.id = 'campaign_length_options';
+    let optionsHtml = '';
+    Object.keys(CAMPAIGN_LENGTHS).forEach(k => {
+        optionsHtml += '<option value="' + k + '"' + (k === _campaignLength ? ' selected' : '') + '>'
+            + CAMPAIGN_LENGTHS[k].label + '</option>';
+    });
+    opts.innerHTML =
+        '<form name="campaign_length_selection"><p>' +
+        '<h3>Select your campaign length.</h3>' +
+        '<select name="campaign_length_id" id="campaign_length_id">' + optionsHtml + '</select>' +
+        '</p></form>';
+
+    const descWin = document.createElement('div');
+    descWin.className = 'description_window_small';
+    descWin.id = 'campaign_length_description_window';
+    descWin.innerHTML = (CAMPAIGN_LENGTHS[_campaignLength] || CAMPAIGN_LENGTHS.full).desc;
+
+    // After the voting-method description, before #difficulty_level.
+    votingDesc.insertAdjacentElement('afterend', descWin);
+    votingDesc.insertAdjacentElement('afterend', opts);
+
+    const sel = opts.querySelector('#campaign_length_id');
+    sel.addEventListener('change', () => {
+        _campaignLength = sel.value;
+        descWin.innerHTML = (CAMPAIGN_LENGTHS[_campaignLength] || CAMPAIGN_LENGTHS.full).desc;
+        _installCampaignLength();   // pre-game only: rebuild order + count now
+    });
+});
+// ── END CAMPAIGN LENGTH selector ─────────────────────────────────────────────
+
 // ── SAVE / LOAD ───────────────────────────────────────────────────────────────
 // Ported from Obamanation's experimental SaveLoadSystem, heavily adapted.
 // DELIBERATELY only reachable from the PART transition screens (the Save/Load
@@ -16281,6 +16417,7 @@ document.addEventListener('mouseleave', () => {
 var _SL_SCALARS = [
     // run counters / flow
     '_questionCount', '_pressureOn', '_allendeSpeechPlayed', '_actionCrimesRevealed',
+    '_campaignLength', '_lengthInstalled',
     // ticket
     '_president', '_vp', '_ticketStage', 'Nominee',
     // top-line stats
@@ -16459,6 +16596,8 @@ async function _slSave(name) {
         // question-bank runtime mutations
         question_order: campaignTrail_temp.questions_json.map(q => q.pk),
         answer_assignment: campaignTrail_temp.answers_json.map(a => a.fields.question),
+        // engine run length (a Cottage Cheese run shrinks it; PROPS.PARAMS reads it live)
+        question_count: campaignTrail_temp.global_parameter_json?.[0]?.fields?.question_count,
         // mod state
         mod: _slCaptureMod(),
         mod_identifier: 'ACOP',
@@ -16506,6 +16645,11 @@ async function _slLoad(saveId) {
     _slRestoreMod(saveData.mod || {});
     _slRestoreQuestionOrder(saveData.question_order);
     _slRestoreAnswerAssignment(saveData.answer_assignment);
+    // Run length travels with the save (short vs full runs differ); _campaignLength
+    // and _lengthInstalled come back via _SL_SCALARS so the feature gates agree.
+    if (saveData.question_count != null && campaignTrail_temp.global_parameter_json?.[0]) {
+        campaignTrail_temp.global_parameter_json[0].fields.question_count = saveData.question_count;
+    }
 
     gs.candidate_id = saveData.candidate_id;
     gs.running_mate_id = saveData.running_mate_id;
@@ -18539,7 +18683,7 @@ const _DIPLO_INCOME = [
     { holder: 'Connally',    post: 'SOS', every: 2, grants: { reduceaid: 1 } },
 ];
 _everyTurn(turn => {
-    if (turn <= 0) return;
+    if (turn <= 0 || !_lengthAllows('diplomacy')) return; // no charge income on short runs
     _DIPLO_INCOME.forEach(r => {
         if (turn % r.every !== 0) return;
         const getter = OFFICIALS_VARS[r.post];
@@ -18551,6 +18695,7 @@ _everyTurn(turn => {
 // Officeholder passives beyond the diplomacy stacks: Laird at Defense works
 // his old friends on the Hill — +1 CongressionalSupport (cap 10) every 5 turns.
 _everyTurn(turn => {
+    if (!_lengthAllows('diplomacy')) return; // officeholder passives off with the rest of diplomacy
     if (turn > 0 && turn % 5 === 0 && OFFICIALS_VARS.SOD && OFFICIALS_VARS.SOD() === 'Laird') {
         CongressionalSupport = Math.min(10, CongressionalSupport + 1);
     }
@@ -18811,6 +18956,9 @@ function openWorldMap() {
     // Diplomacy dropdown — just right of SIGINT. Semi-transparent black panel,
     // bordered like the toolbar buttons; charge-count badges as on the
     // President's Men team actions (see _DIPLO_ACTIONS).
+    // Cottage Cheese runs don't build the control at all (_lengthAllows) —
+    // the map itself stays; only the Diplomacy tooling goes.
+    if (_lengthAllows('diplomacy')) {
     const diploWrap = document.createElement('div');
     diploWrap.style.cssText = 'position:relative;display:inline-block;margin-left:6px;';
     const diploBtn = _mkTopBtn('DIPLOMACY ▾', false);
@@ -18852,6 +19000,7 @@ function openWorldMap() {
     diploWrap.appendChild(diploBtn);
     diploWrap.appendChild(diploMenu);
     topBar.appendChild(diploWrap);
+    } // end _lengthAllows('diplomacy')
     let _capEditMode = false;
     // Live references to the events / capitals <g> layers. Assigned in the SVG
     // .then() below and closed over by the toggle buttons. LOCAL closure vars
