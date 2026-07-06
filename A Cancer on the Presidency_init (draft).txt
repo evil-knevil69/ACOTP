@@ -2569,6 +2569,22 @@ e.PartyText = "";
 e.HomeStateText = "";
 e.VpText = "Your running mate:";
 
+// ── ACHIEVEMENTS registry (ported from Obamanation) ──────────────────────────
+// The Campaign Trail Showcase host reads this to render the mod's achievement
+// gallery; unlocks persist site-side (localStorage 'unlockedAch'). Names here
+// must EXACTLY match the names passed to ctsAchievement() in Code 2. On any
+// other host the whole system is a silent no-op (campaignTrail_temp.CTS is
+// only set by the CTS loader).
+// FILL ME IN: real achievements (name, art, description) — one placeholder
+// entry for now, wired to reaching election night.
+campaignTrail_temp.achievements = {
+    "PLACEHOLDER — See It Through": {
+        "image": "https://file.garden/aXPgNT-ZRCxxpy0g/candidatecode2v5.png",  // placeholder art
+        "description": "PLACEHOLDER — reach election night. Replace name, art and description before release (and keep the name in sync with the ctsAchievement call in Code 2).",
+        "cannotBeCheated": true
+    },
+};
+
 //Music player courtesy Mango and Thatchmaster and others with heavy adaptations
 
 class Song {

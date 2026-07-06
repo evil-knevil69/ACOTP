@@ -1,6 +1,10 @@
 # Campaign-Length Selector — Implementation Handoff
 
-**Status:** planned, not started. **Audience:** a fresh Claude/Fable session with no prior context.
+**Status:** INFRASTRUCTURE IMPLEMENTED (Jul 2026) — config, selector UI, install
+machinery, feature gates and save/load integration are live in Code 2 (grep
+`CAMPAIGN_LENGTHS`). Presets: 'full' = "The Big Enchilada" (default), 'short' =
+"Cottage Cheese". REMAINING: the short preset's curated pk list + real description
+texts (grep `FILL ME IN` in Code 2); §4.5 authoring rules apply. Empty pks = inert. **Audience:** a fresh Claude/Fable session with no prior context.
 **Read `CLAUDE.md` first** (session-startup force-push; the two-file Code 1 `A Cancer on the Presidency_init (draft).txt` / Code 2 `ACOP Nixon_Agnew.txt` split; the `new Function()` `var` rule).
 
 ---

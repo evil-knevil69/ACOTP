@@ -245,14 +245,21 @@ Yom Kippur pk → Patton theme). Empty sections fail safe — entering one chang
 so the system is inert until tracks are authored. Verified via a Node stub-DOM harness
 (26 scenario checks covering the §10 checklist items that don't need a real browser).
 
-**P5. Campaign-length selector**
-Full implementation handoff in `CAMPAIGN_LENGTH_PLAN.md` (repo root). Summary: a pre-game
-"Campaign length" dropdown (LBM-style, writing to global_parameter_json question_count).
-ACOP can't use LBM's shuffle-the-middle (chronology / sections / cyoAdventure branching),
-so each shorter length is a HAND-CURATED, date-ordered pk list installed at GAME START
-(non-included pks parked in the tail so swaps/tunnels still resolve), plus feature gating:
-the always-visible turn-driven systems (World Map Diplomacy dropdown + income, President's
-Men team-action buttons) are switched OFF on short runs via `_lengthAllows(feature)`; the
-pk-triggered systems (pressure engine, reshuffle, midterm) fall away when their pks aren't
-curated in. Content decisions (the actual presets + pk lists + feature matrix) listed in §7.
-Not started.
+**P5. Campaign-length selector — INFRASTRUCTURE DONE (Jul 2026), pk list pending**
+`CAMPAIGN_LENGTH_PLAN.md` infrastructure implemented in Code 2: `CAMPAIGN_LENGTHS`
+config (two presets: 'full' = "The Big Enchilada" (default), 'short' = "Cottage Cheese"),
+`_lengthAllows(feature)`, `_installCampaignLength()` (in-place questions_json rebuild:
+[curated..., parked tail...] + question_count shrink; pristine order/count snapshotted
+eagerly in `_LENGTH_ORIG` at load; PROPS.PARAMS reads question_count live so no engine
+poke needed), selector UI on the pre-game options screen (mirrors the voting-method
+block: h3 + select + .description_window_small rewritten on change, injected between
+the voting-method description and #difficulty_level; selection sticks for the session,
+resets to Enchilada on page load — same as the voting method). Feature gates live:
+diplomacy dropdown build in openWorldMap, _DIPLO_INCOME + Laird _everyTurn ticks,
+nw-team-actions build in openInnerCircle, pressure _everyTurn tick, _RESHUFFLE.offer,
+_MIDTERM pk-429 onShow. Save/load integration: question_count snapshotted/restored;
+_campaignLength/_lengthInstalled in _SL_SCALARS. STILL TO FILL (grep `FILL ME IN`):
+the short preset's date-ascending pk list (plan §4.5 authoring rules) and both desc
+placeholder texts. Empty pks = inert (short plays the full set, gates still engage).
+Verified: Node harness (9 checks: install/restore/tail-parking/unknown-pk/idempotency)
++ Chromium render of the selector in an options-screen replica.
