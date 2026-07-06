@@ -17270,7 +17270,7 @@ function openGameManual() {
         '<h3>Officials</h3>'+
         '<p>Your cabinet — State, Defense, Justice, National Security, CIA, FBI. Flip a card for the effects of that person in post. At certain moments you’ll be invited to <b>reshuffle</b>: the Enemies/Friends and Officials buttons glow, and the swappable roles glow — click one to choose a successor. Ignore it and the post falls <b>vacant</b>.</p>'+
         '<h3>World map</h3>'+
-        '<p>Toggle display layers along the bars: <b>Allegiance</b> (colours by how pro-US a country is), <b>Flags</b>, <b>Events</b>, <b>Capitals</b>, <b>Night</b>, <b>SIGINT</b>, and <b>N.os</b> (shows the exact relations number and destabilisation count in a country’s hover).</p>'+
+        '<p>Toggle display layers along the bars: <b>Allegiance</b> (colours by how pro-US a country is), <b>Flags</b>, <b>Events</b>, <b>Capitals</b>, <b>Night</b>, <b>SIGINT</b>, and <b>Stats</b> (shows the exact relations number and destabilisation count in a country’s hover, and the detailed outcome of your diplomacy actions — with it off, actions land silently).</p>'+
         '<p>The <b>Diplomacy</b> dropdown holds four actions — arm one, then click a target country:</p><ul>'+
         '<li><b>Improve Relations</b> / <b>Send Aid</b> — raise relations (aid needs relations ≥ 26 and can’t go to the wealthy allies).</li>'+
         '<li><b>Reduce Aid</b> — withdraw aid (relations drop; the freed budget returns a Send Aid charge).</li>'+
@@ -18548,7 +18548,7 @@ var _wmCapitalsOn  = false;
 var _wmAllegiance  = true;
 var _wmNightOn     = true;
 var _wmSigintOn    = false;
-var _wmNosOn       = false;  // "N.os": show relation numbers + destabilisation counts in country hovers
+var _wmNosOn       = false;  // "Stats" toggle (formerly N.os): exact numbers in hovers + verbose diplomacy outcomes
 var defcon         = 5;      // 5=peace … 1=imminent war; drives the SIGINT readiness banner
 var _wmOceanMaskEl = null;   // cached SVG <mask>; built once, re-appended on each open
 var _wmPrevLoyal   = null;   // snapshot of COUNTRY_LOYAL from the previous map open; drives allegiance delta flashes
@@ -18740,7 +18740,10 @@ function _diploHandleCountryClick(el) {
         });
     }
     _diploExitMode();
-    _diploHint(msg);
+    // Verbose outcome text (exact numbers, saturation notes) only in Stats
+    // view — otherwise the action lands silently. Same philosophy as the
+    // hover numbers: the Stats toggle is what opens the books.
+    if (_wmNosOn) _diploHint(msg);
     return true;
 }
 
@@ -19356,10 +19359,11 @@ function openWorldMap() {
     });
     bar.appendChild(capBtn);
 
-    // N.os toggle — relation numbers + destabilisation counts in country hovers.
+    // Stats toggle (formerly "N.os") — relation numbers + destabilisation
+    // counts in country hovers, and the verbose diplomacy outcome messages.
     // No repaint needed: the hover handler reads _wmNosOn live at hover time.
     const nosBtn = document.createElement('button');
-    nosBtn.textContent = 'N.os';
+    nosBtn.textContent = 'Stats';
     nosBtn.style.cssText = 'margin-left:4px;cursor:pointer;padding:0 8px;height:30px;';
     nosBtn.style.outline = _wmNosOn ? '2px solid #ccc' : '';
     nosBtn.style.fontWeight = _wmNosOn ? 'bold' : '';
@@ -21498,7 +21502,7 @@ function openWorldMap() {
                                       : '#7f0000';
                         extraLine = '<br><span style="color:' + vColour + ';font-weight:bold">Situation: ' + v + ' — ' + vText + '</span>';
                     }
-                    // N.os toggle: append the raw relation number to the band, and
+                    // Stats toggle: append the raw relation number to the band, and
                     // a Destabilisation Events line — but ONLY when the country
                     // has at least one (no entry at all otherwise).
                     const nosNum = _wmNosOn ? ' (' + score + ')' : '';
