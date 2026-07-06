@@ -1677,7 +1677,16 @@ window.playCreditsMusic = function() {
     }
     // Still not ready (e.g. .content_single not in the DOM yet) — bail quietly
     if (!window.playlist || !window.loadAndPlay) return;
-    window.playlist.currentSongIndex = 2;
+    // The Creep song's index isn't stable: a section playlist may have replaced
+    // playlist.songs wholesale by the time the credits roll. Find it by
+    // identity; re-add it if the swap dropped it.
+    let idx = window.playlist.songs.indexOf(window._creditsSong);
+    if (idx === -1 && window._creditsSong) {
+        window.playlist.addSong(window._creditsSong);
+        idx = window.playlist.songs.length - 1;
+        if (window._rebuildPlaylistSelect) window._rebuildPlaylistSelect();
+    }
+    window.playlist.currentSongIndex = idx === -1 ? 0 : idx;
     window.loadAndPlay();
 }
 // Map/visit-screen setup. Was a 50ms setInterval running 20×/sec for the whole
@@ -2632,6 +2641,9 @@ function setupMusicPlayer() {
     window.playlist.addSong(newSong1);
     window.playlist.addSong(newSong2);
     window.playlist.addSong(newSong3);
+    // Kept on window so playCreditsMusic can find it by identity even after a
+    // section playlist has replaced playlist.songs wholesale.
+    window._creditsSong = newSong3;
 
     let audio = document.getElementById("audio");
     if (!audio) {
@@ -2834,11 +2846,43 @@ function setupMusicPlayer() {
     let playbackState = 'pause';
     let isPlaying = false;
 
+    // ── Reactive soundtrack state (see SOUNDTRACK_PLAN.md) ──────────────────
+    // Config (window.SOUNDTRACK: section lists, mood rules) and triggers live
+    // in Code 2; these are the player-side primitives.
+    let _targetVolume = 0.5;    // the user's chosen volume; fades always return here
+    let _fadeTimer = null;
+    let _pendingPlaylist = null; // section list queued behind the current song
+    let _musicSection = 0;       // 0 = intro music, no section entered yet
+    let _stingerCued = false;    // stinger loaded while paused; plays on resume
+    const FADE_MS = 1200;
+
+    function _fadeTo(vol, ms, cb) {
+        if (_fadeTimer) { clearInterval(_fadeTimer); _fadeTimer = null; }
+        const from = audio.volume, delta = vol - from;
+        if (ms <= 0 || Math.abs(delta) < 0.01) {
+            audio.volume = vol;
+            if (cb) cb();
+            return;
+        }
+        const stepMs = 50, steps = Math.max(1, Math.round(ms / stepMs));
+        let i = 0;
+        _fadeTimer = setInterval(() => {
+            i++;
+            audio.volume = Math.min(1, Math.max(0, from + delta * (i / steps)));
+            if (i >= steps) {
+                clearInterval(_fadeTimer);
+                _fadeTimer = null;
+                if (cb) cb();
+            }
+        }, stepMs);
+    }
+
   function loadAndPlay() {
         if (window._introSound) {
             window._introSound.pause();
             window._introSound.currentTime = 0;
         }
+        _stingerCued = false;
         audio.src = playlist.getCurrentSong().getAudioLink();
         updateUI();
         audio.play();
@@ -2863,6 +2907,10 @@ playBtn.addEventListener('click', () => {
             playBtn.classList.remove('active');
             stopVisuals();
         } else {
+            // A section list queued while paused installs now (unless a stinger
+            // was cued while paused — that plays first; the list installs on its
+            // 'ended'). See SOUNDTRACK_PLAN.md §7 paused-at-boundary.
+            if (_pendingPlaylist && !_stingerCued) { _installPending(); return; }
             if (window._introSound) {
                 window._introSound.pause();
                 window._introSound.currentTime = 0;
@@ -2922,23 +2970,127 @@ playBtn.addEventListener('click', () => {
         }, 100);
     });
 
+    // Volume buttons write _targetVolume (not raw audio.volume) so an in-flight
+    // fade never becomes the new baseline — fades always return to the user's
+    // chosen level.
     volUpBtn.addEventListener('click', () => {
-        audio.volume = Math.min(1, audio.volume + 0.15);
+        _targetVolume = Math.min(1, _targetVolume + 0.15);
+        audio.volume = _targetVolume;
     });
 
     volDownBtn.addEventListener('click', () => {
-        audio.volume = Math.max(0, audio.volume - 0.15);
+        _targetVolume = Math.max(0, _targetVolume - 0.15);
+        audio.volume = _targetVolume;
     });
 
     nextBtn.addEventListener('click', () => {
+        if (_pendingPlaylist) { _installPending(); return; }
         playlist.playNext();
         loadAndPlay();
     });
 
     audio.addEventListener('ended', () => {
+        // Graceful section swap: a queued section list installs only once the
+        // current song has played out — never mid-track.
+        if (_pendingPlaylist) { _installPending(); return; }
         playlist.playNext();
         loadAndPlay();
     });
+
+    // ── Reactive soundtrack primitives (SOUNDTRACK_PLAN.md) ─────────────────
+    // Everything here is exposed on window below; Code 2 supplies the config
+    // (window.SOUNDTRACK) and calls these from its PK-change observer.
+
+    function _rebuildPlaylistSelect() {
+        // Single source of truth for the dropdown — route ALL playlist
+        // mutations through this (the options are otherwise built once).
+        playlistSelect.innerHTML = '';
+        playlist.songs.forEach((song, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = song.getTitle();
+            playlistSelect.appendChild(option);
+        });
+        playlistSelect.value = playlist.currentSongIndex;
+    }
+
+    function _installPending() {
+        if (!_pendingPlaylist) return;
+        playlist.songs = _pendingPlaylist.slice();
+        playlist.currentSongIndex = 0;
+        _pendingPlaylist = null;
+        _stingerCued = false;
+        _rebuildPlaylistSelect();
+        loadAndPlay();
+    }
+
+    function _setCurrent(index) {
+        // Load a track WITHOUT starting playback (loadAndPlay always plays):
+        // used to cue a stinger while the player is paused/off.
+        playlist.currentSongIndex = index;
+        audio.src = playlist.getCurrentSong().getAudioLink();
+        updateUI();
+        playlistSelect.value = index;
+    }
+
+    window.__injectNextSong = function (song) {
+        // Scripted question stinger: splice as the next track; fade-and-play
+        // only if the tape is actually playing — never restart a player the
+        // user switched off (locked decision).
+        if (!song || !window.playlist) return;
+        const at = playlist.currentSongIndex + 1;
+        playlist.songs.splice(at, 0, song);
+        _rebuildPlaylistSelect();
+        // A stinger outranks a hovering national anthem: stop it and take the
+        // tape back before fading, so the two never fight over the main audio.
+        if (window.__activeAnthemStop) {
+            window.__activeAnthemStop(false);
+            audio.muted = false;
+        }
+        if (playbackState === 'play') {
+            _fadeTo(0, FADE_MS, () => {
+                playlist.currentSongIndex = at;
+                loadAndPlay();
+                _fadeTo(_targetVolume, FADE_MS);
+            });
+        } else {
+            _setCurrent(at);
+            _stingerCued = true;
+        }
+    };
+
+    window.__enterMusicSection = function (n) {
+        // Section boundary: QUEUE the section's list — the current song plays
+        // out first, then the new list installs on 'ended'. Mood rules are read
+        // here and only here (once per section, not per turn); passing rules'
+        // tracks lead the section.
+        if (!window.SOUNDTRACK || !window.playlist) return;
+        if (!n || n === _musicSection) return; // idempotent — retry ticks re-hit the same pk
+        _musicSection = n;
+        const secDef = window.SOUNDTRACK.sections && window.SOUNDTRACK.sections[n];
+        let base = [];
+        try { base = (secDef && secDef.tracks) ? secDef.tracks() : []; } catch (err) {}
+        let mood = [];
+        (window.SOUNDTRACK.mood || []).forEach(rule => {
+            try { if (rule.when()) mood = mood.concat(rule.tracks() || []); } catch (err) {}
+        });
+        const list = mood.concat(base).filter(Boolean);
+        if (!list.length) return; // section has no tracks authored — keep the current list
+        _pendingPlaylist = list;
+        // If nothing is playing, 'ended' never fires — the list installs on the
+        // next play/next press instead (see those handlers).
+    };
+
+    window.__resetSoundtrack = function () {
+        // New Game: clear section tracking + queued list. Deliberately does NOT
+        // rebuild the playlist or touch playback (respects a switched-off
+        // player; avoids yanking music mid-track).
+        _musicSection = 0;
+        _pendingPlaylist = null;
+        _stingerCued = false;
+    };
+
+    window._rebuildPlaylistSelect = _rebuildPlaylistSelect;
 
     updateUI();
 
@@ -3006,12 +3158,7 @@ playBtn.addEventListener('click', () => {
     pointer-events: auto;
     `;
 
-    playlist.songs.forEach((song, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = song.getTitle();
-        playlistSelect.appendChild(option);
-    });
+    _rebuildPlaylistSelect();
 
     playlistSelect.addEventListener('change', () => {
         playlist.currentSongIndex = parseInt(playlistSelect.value);

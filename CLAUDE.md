@@ -140,6 +140,22 @@ On first world map open after `chileanCoup === 1`, Allende's last speech is inje
 **12. Tooltip improvements**
 Width 270px (was 216px), font sizes increased, image placeholder removed when `def.img` is null.
 
+**13. Save/Load system (Jul 2026, ported from Obamanation's SaveLoadSystem)**
+In Code 2, immediately before `showSectionTransition`. ONLY reachable from the PART
+transition screens (a "Save / Load" button next to Continue in the transition overlay) —
+deliberate anti-savescumming: one checkpoint opportunity per phase. Storage: IndexedDB
+`ACOPSaves`/`gameSaves`, persists across New Game and reloads. Key adaptations vs
+Obamanation: mod scalars are captured/restored via direct `eval` over `_SL_SCALARS`
+(153 names — window[name] doesn't work inside new Function(); ADD NEW PER-RUN VARS TO
+THIS LIST); const containers (`_shownTransitions`, `_clemencies`, `_pausedUntil`,
+`_diploCooldown`, `_actionCrimes`, `COUNTRY_LOYAL`, `_RESHUFFLE`, `*_STAB` window vars)
+restored by mutation; `questions_json` pk order + `answers_json` question-assignment
+snapshotted (questionSwapper/answerSwapper support; effect-json swaps NOT snapshotted —
+extend if `answerSwapper(…, true)` goes live); on load `_lastQNum`/`_lastQuestionPK` are
+synced before the observer ticks so the restored (lower) question_number isn't read as a
+New Game and wiped; `_musicSectionPending` re-enters the phase's music section. Console
+access: `window.ACOPSaveLoad`.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
@@ -214,16 +230,20 @@ tooltip baking (people + edu) walks/regexes over this HTML — the tooltip match
 inside tags (safe) and the edu DOM-walker wraps text nodes inside the hist spans
 (fine — nested spans render correctly).
 
-**P4. Reactive diegetic soundtrack**
-Full implementation handoff written up in `SOUNDTRACK_PLAN.md` (repo root). Summary:
-per-section playlists that swap in gracefully (current song finishes first, then the
-new section list takes over); scripted question stingers that fade out and inject a
-song as next-and-play (e.g. Patton theme on the Yom Kippur question); and darker/
-lighter mood tracks injected ONLY at section boundaries (gated on ApprovalRating +
-WatergateExposure, not per-turn). Primitives go in Code 1 with the player, config +
-triggers in Code 2 (the Allende-egg split). Decisions still needed before coding are
-listed in §8 of the plan (Part IV pk, per-section track URLs, the stinger pk→song map,
-mood thresholds, fade duration). Not started.
+**P4. Reactive diegetic soundtrack — INFRASTRUCTURE DONE (Jul 2026), content pending**
+`SOUNDTRACK_PLAN.md` implemented: primitives in Code 1 inside `setupMusicPlayer`
+(`_fadeTo`, `_targetVolume`, `_rebuildPlaylistSelect`, `_installPending`, `_setCurrent`,
+`window.__injectNextSong`, `window.__enterMusicSection`, `window.__resetSoundtrack`);
+config + triggers in Code 2 (`SOUNDTRACK` on window, `_mkSong`/`_mkSongs`, `_pkToSection`,
+`_musicSectionPending`, wiring in the PK-change observer block, New Game reset hook,
+Allende egg routed through `_rebuildPlaylistSelect`, `playCreditsMusic` made robust to
+playlist replacement — it finds the Creep song by identity, not index 2). Defaults:
+`FADE_MS = 1200`; paused-at-boundary installs on next play/next press. STILL TO FILL
+(grep `FILL ME IN` in Code 2): per-section track URLs, mood rules + thresholds, Part IV
+startPk/name, and per-question `stinger: () => Song` entries on `questionData` (e.g.
+Yom Kippur pk → Patton theme). Empty sections fail safe — entering one changes nothing,
+so the system is inert until tracks are authored. Verified via a Node stub-DOM harness
+(26 scenario checks covering the §10 checklist items that don't need a real browser).
 
 **P5. Campaign-length selector**
 Full implementation handoff in `CAMPAIGN_LENGTH_PLAN.md` (repo root). Summary: a pre-game
