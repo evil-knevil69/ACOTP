@@ -140,6 +140,22 @@ On first world map open after `chileanCoup === 1`, Allende's last speech is inje
 **12. Tooltip improvements**
 Width 270px (was 216px), font sizes increased, image placeholder removed when `def.img` is null.
 
+**13. Save/Load system (Jul 2026, ported from Obamanation's SaveLoadSystem)**
+In Code 2, immediately before `showSectionTransition`. ONLY reachable from the PART
+transition screens (a "Save / Load" button next to Continue in the transition overlay) —
+deliberate anti-savescumming: one checkpoint opportunity per phase. Storage: IndexedDB
+`ACOPSaves`/`gameSaves`, persists across New Game and reloads. Key adaptations vs
+Obamanation: mod scalars are captured/restored via direct `eval` over `_SL_SCALARS`
+(153 names — window[name] doesn't work inside new Function(); ADD NEW PER-RUN VARS TO
+THIS LIST); const containers (`_shownTransitions`, `_clemencies`, `_pausedUntil`,
+`_diploCooldown`, `_actionCrimes`, `COUNTRY_LOYAL`, `_RESHUFFLE`, `*_STAB` window vars)
+restored by mutation; `questions_json` pk order + `answers_json` question-assignment
+snapshotted (questionSwapper/answerSwapper support; effect-json swaps NOT snapshotted —
+extend if `answerSwapper(…, true)` goes live); on load `_lastQNum`/`_lastQuestionPK` are
+synced before the observer ticks so the restored (lower) question_number isn't read as a
+New Game and wiped; `_musicSectionPending` re-enters the phase's music section. Console
+access: `window.ACOPSaveLoad`.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.

@@ -16250,6 +16250,420 @@ document.addEventListener('mouseleave', () => {
     _hoveredTooltip = null;
 }, true);
 
+// ── SAVE / LOAD ───────────────────────────────────────────────────────────────
+// Ported from Obamanation's experimental SaveLoadSystem, heavily adapted.
+// DELIBERATELY only reachable from the PART transition screens (the Save/Load
+// button lives in showSectionTransition's overlay) — a run can be checkpointed
+// once per phase, so you can restart a Part but not savescum a question.
+// Storage: IndexedDB 'ACOPSaves'/'gameSaves'; saves persist across New Game
+// and page reloads.
+//
+// Obamanation captured mod state by reading window[name] — ACOP can't: this
+// file runs inside new Function(), so mod state lives in THIS scope, not on
+// window. Scalars are captured/restored via direct eval (which sees this
+// scope); const containers (Sets/arrays/objects) are restored by mutation.
+
+// Every per-run scalar. The New Game reset block, the pressure engine, the
+// diplomacy stacks, the world-event flags and the officials roster are all
+// covered — if a new per-run var is added to the mod, add its name here.
+var _SL_SCALARS = [
+    // run counters / flow
+    '_questionCount', '_pressureOn', '_allendeSpeechPlayed', '_actionCrimesRevealed',
+    // ticket
+    '_president', '_vp', '_ticketStage', 'Nominee',
+    // top-line stats
+    'WatergateExposure', 'ApprovalRating', 'Economy', 'MentalState', 'MediaRelations',
+    'CongressionalSupport', 'RepublicanSupport', 'RelationswiththeSoviets', 'MEPeace',
+    'committeejuice', 'Command', 'LawandOrder', 'defcon',
+    // officials roster
+    'NSA', 'ChiefOfStaff', 'AttorneyGeneral', 'SOS', 'FBI', 'SP', 'CIA', 'SOD',
+    // pressure engine: exposure
+    'Haldemanexposure', 'Erlichmanexposure', 'Deanexposure', 'Chapinexposure',
+    'Segrettiexposure', 'Strachanexposure', 'Colsonexposure', 'Mitchellexposure',
+    'Magruderexposure', 'Liddyexposure', 'Larueexposure', 'Stansexposure',
+    'Klambachexposure', 'McCordexposure', 'Huntexposure', 'Kroghexposure',
+    'Kleindienstexposure', 'Watergateburglarsexposure', 'Watergateburglarsstatus',
+    'Watergateburglarsloyalty',
+    // pressure engine: status
+    'HaldemanSTATUS', 'ErlichmanSTATUS', 'MitchellSTATUS', 'DeanSTATUS',
+    'MagruderSTATUS', 'KroghSTATUS', 'ChapinSTATUS', 'SegrettiSTATUS',
+    'StrachanSTATUS', 'HuntSTATUS', 'McCordSTATUS', 'LiddySTATUS', 'LarueSTATUS',
+    'StansSTATUS', 'KlambachSTATUS', 'KleindienstSTATUS', 'ColsonSTATUS',
+    // pressure engine: loyalty
+    'Haldemanloyalty', 'Erlichmanloyalty', 'Deanloyalty', 'Mitchellloyalty',
+    'Chapinloyalty', 'Segrettiloyalty', 'Strachanloyalty', 'Colsonloyalty',
+    'Magruderloyalty', 'Liddyloyalty', 'Larueloyalty', 'Stansloyalty',
+    'Klambachloyalty', 'McCordloyalty', 'Huntloyalty', 'Kroghloyalty',
+    'Kleindienstloyalty',
+    // person "juice"
+    'Haldeman', 'Erlichman', 'Mitchell', 'Dean', 'Magruder', 'Kissinger', 'Krogh',
+    'Chapin', 'Segretti', 'Strachan', 'Hunt', 'McCord', 'Liddy', 'Larue', 'Stans',
+    'Klambach', 'Kleindienst', 'Colson',
+    // crimes / scandal flags
+    'wiretapping', 'Ellsberg', 'taxEvasion', 'homeImprovements', 'Cambodia',
+    'ratfucking', 'ITT', 'FakeCables', 'MilkFund', 'Vesco', 'oojHush',
+    'oojClemency', 'dncbreakin', 'OilEmbargo', 'SaturdayNightMassacre',
+    // action stacks
+    'HushMoneyStack', 'CutThemLooseStack', 'OfferClemencyStack', 'PinTheBlameStack',
+    'ImproveRelationsStack', 'SendAidStack', 'ReduceAidStack', 'DestabiliseStack',
+    // world events
+    'Vietnam', 'chad', 'khmer', 'laos', 'eritrea', 'managua', 'cyprusInvasion',
+    'guatemalaQuake', 'tangshan', 'mississippi', 'hondurasCoup', 'bananagate',
+    'rwandaCoup', 'afghanCoup', 'nigerCoup', 'greekCoup', 'ethiopianRevolution',
+    'dergCoup', 'uruguayCoup', 'chileanCoup', 'upperVoltaCoup', 'tacnazo',
+    'argentineCoup', 'northYemenCoup', 'oromoUprising', 'sahrawiInsurgency',
+    'yomKippurGolan', 'yomKippurSuez', 'smilingBuddha',
+];
+
+var _slTmp;
+function _slGetVar(name) {
+    try { return eval(name); } catch (err) { return undefined; }
+}
+function _slSetVar(name, value) {
+    _slTmp = value;
+    try { eval(name + ' = _slTmp'); } catch (err) {}
+    _slTmp = undefined;
+}
+
+function _slCaptureMod() {
+    const vars = {};
+    _SL_SCALARS.forEach(n => {
+        const v = _slGetVar(n);
+        if (v !== undefined) vars[n] = v;
+    });
+    return {
+        vars,
+        shownTransitions: Array.from(_shownTransitions),
+        pausedUntil: Object.assign({}, _pausedUntil),
+        diploCooldown: Object.assign({}, _diploCooldown),
+        clemencies: _clemencies.slice(),
+        actionCrimes: JSON.parse(JSON.stringify(_actionCrimes)),
+        countryLoyal: Object.assign({}, COUNTRY_LOYAL),
+        stab: Object.fromEntries(Object.keys(COUNTRY_LOYAL).map(c => [c, window[c + '_STAB'] || 0])),
+        reshuffle: JSON.parse(JSON.stringify({ active: _RESHUFFLE.active, pending: _RESHUFFLE.pending })),
+        midtermFired: _MIDTERM._fired,
+        eventDebutPk: Object.assign({}, _wmEventDebutPk),
+    };
+}
+
+function _slRestoreMod(m) {
+    Object.keys(m.vars || {}).forEach(n => _slSetVar(n, m.vars[n]));
+    _shownTransitions.clear();
+    (m.shownTransitions || []).forEach(pk => _shownTransitions.add(pk));
+    Object.keys(_pausedUntil).forEach(k => { delete _pausedUntil[k]; });
+    Object.assign(_pausedUntil, m.pausedUntil || {});
+    Object.keys(_diploCooldown).forEach(k => { delete _diploCooldown[k]; });
+    Object.assign(_diploCooldown, m.diploCooldown || {});
+    _clemencies.length = 0;
+    (m.clemencies || []).forEach(c => _clemencies.push(c));
+    _actionCrimes.length = 0;
+    (m.actionCrimes || []).forEach(c => _actionCrimes.push(c));
+    Object.keys(m.countryLoyal || {}).forEach(c => { COUNTRY_LOYAL[c] = m.countryLoyal[c]; });
+    Object.keys(m.stab || {}).forEach(c => { window[c + '_STAB'] = m.stab[c]; });
+    if (m.reshuffle) {
+        _RESHUFFLE.active = m.reshuffle.active || null;
+        _RESHUFFLE.pending.length = 0;
+        (m.reshuffle.pending || []).forEach(p => _RESHUFFLE.pending.push(p));
+    }
+    _MIDTERM._fired = !!m.midtermFired;
+    Object.keys(_wmEventDebutPk).forEach(k => { delete _wmEventDebutPk[k]; });
+    Object.assign(_wmEventDebutPk, m.eventDebutPk || {});
+    _refreshTicket();
+}
+
+// questionSwapper permutes questions_json in place (same objects, new order),
+// so order is a bijection on pks — snapshot the pk sequence, restore by remap.
+// If the question bank changed shape since the save was made, keep the current
+// order rather than corrupting it.
+function _slRestoreQuestionOrder(order) {
+    const arr = campaignTrail_temp.questions_json;
+    if (!order || order.length !== arr.length) return;
+    const byPk = new Map(arr.map(q => [Number(q.pk), q]));
+    const rebuilt = order.map(pk => byPk.get(Number(pk)));
+    if (rebuilt.some(q => !q)) return;
+    for (let i = 0; i < arr.length; i++) arr[i] = rebuilt[i];
+    _rebuildQuestionIdxMap();
+}
+
+// answerSwapper reassigns answers between questions (fields.question). NOTE:
+// its takeEffects branch also swaps fields.answer inside the four effect
+// jsons — NOT snapshotted here; if answerSwapper(…, true) ever goes live,
+// extend the snapshot the same way.
+function _slRestoreAnswerAssignment(assign) {
+    const arr = campaignTrail_temp.answers_json;
+    if (!assign || assign.length !== arr.length) return;
+    for (let i = 0; i < arr.length; i++) arr[i].fields.question = assign[i];
+}
+
+const _SL_DB_NAME = 'ACOPSaves';
+const _SL_STORE = 'gameSaves';
+
+function _slInitDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(_SL_DB_NAME, 1);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(_SL_STORE)) {
+                db.createObjectStore(_SL_STORE, { keyPath: 'id', autoIncrement: true });
+            }
+        };
+    });
+}
+
+function _slDefaultName(pk) {
+    const qd = (pk != null && questionData[pk]) || {};
+    return (qd.transition && qd.transition.title) || ('Turn ' + _questionCount);
+}
+
+async function _slSave(name) {
+    const gs = _liveGameState();
+    if (!gs) throw new Error('game state not available');
+    const pk = gs.questions_json?.[gs.question_number]?.pk ?? null;
+    const qd = (pk != null && questionData[pk]) || {};
+    const saveData = {
+        timestamp: new Date().toISOString(),
+        name: (name || '').trim() || _slDefaultName(pk),
+        date_label: qd.date || '',
+        // engine state
+        question_number: gs.question_number,
+        current_question_pk: pk,
+        candidate_id: gs.candidate_id,
+        running_mate_id: gs.running_mate_id,
+        difficulty_level_id: gs.difficulty_level_id,
+        difficulty_level_multiplier: gs.difficulty_level_multiplier,
+        game_type_id: gs.game_type_id,
+        player_answers: (gs.player_answers || []).slice(),
+        player_visits: (gs.player_visits || []).slice(),
+        current_results: gs.current_results ? JSON.parse(JSON.stringify(gs.current_results)) : null,
+        opponents_list: gs.opponents_list ? JSON.parse(JSON.stringify(gs.opponents_list)) : [],
+        opponent_visits: gs.opponent_visits ? JSON.parse(JSON.stringify(gs.opponent_visits)) : [],
+        // question-bank runtime mutations
+        question_order: campaignTrail_temp.questions_json.map(q => q.pk),
+        answer_assignment: campaignTrail_temp.answers_json.map(a => a.fields.question),
+        // mod state
+        mod: _slCaptureMod(),
+        mod_identifier: 'ACOP',
+    };
+    const db = await _slInitDB();
+    return new Promise((resolve, reject) => {
+        const request = db.transaction([_SL_STORE], 'readwrite').objectStore(_SL_STORE).add(saveData);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function _slGetAll() {
+    const db = await _slInitDB();
+    return new Promise((resolve, reject) => {
+        const request = db.transaction([_SL_STORE], 'readonly').objectStore(_SL_STORE).getAll();
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function _slDelete(saveId) {
+    const db = await _slInitDB();
+    return new Promise((resolve, reject) => {
+        const request = db.transaction([_SL_STORE], 'readwrite').objectStore(_SL_STORE).delete(saveId);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function _slLoad(saveId) {
+    const db = await _slInitDB();
+    const saveData = await new Promise((resolve, reject) => {
+        const request = db.transaction([_SL_STORE], 'readonly').objectStore(_SL_STORE).get(saveId);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+    if (!saveData) throw new Error('save not found');
+    const gs = _liveGameState();
+    if (!gs) throw new Error('game state not available');
+
+    // Mod state first (mirrors Obamanation's ordering), then the question bank,
+    // then engine state — all synchronous, so the mutation observer can't tick
+    // mid-restore.
+    _slRestoreMod(saveData.mod || {});
+    _slRestoreQuestionOrder(saveData.question_order);
+    _slRestoreAnswerAssignment(saveData.answer_assignment);
+
+    gs.candidate_id = saveData.candidate_id;
+    gs.running_mate_id = saveData.running_mate_id;
+    gs.difficulty_level_id = saveData.difficulty_level_id;
+    gs.difficulty_level_multiplier = saveData.difficulty_level_multiplier;
+    gs.game_type_id = saveData.game_type_id;
+    gs.question_number = saveData.question_number;
+    gs.player_answers = saveData.player_answers.slice();
+    gs.player_visits = saveData.player_visits.slice();
+    if (saveData.current_results) gs.current_results = JSON.parse(JSON.stringify(saveData.current_results));
+    gs.opponents_list = JSON.parse(JSON.stringify(saveData.opponents_list || []));
+    gs.opponent_visits = JSON.parse(JSON.stringify(saveData.opponent_visits || []));
+
+    // Safety net: if the restored order somehow doesn't put the saved pk at the
+    // saved index (bank changed since save), jump to wherever it now lives.
+    if (saveData.current_question_pk != null &&
+        gs.questions_json?.[gs.question_number]?.pk !== saveData.current_question_pk) {
+        const idx = getQuestionIndexFromPk(saveData.current_question_pk);
+        if (idx >= 0) gs.question_number = idx;
+    }
+
+    // Sync the PK-change observer's trackers BEFORE it next ticks — a lower
+    // question_number would otherwise read as "New Game" and wipe everything
+    // just restored.
+    _lastQNum = gs.question_number;
+    _lastQuestionPK = saveData.current_question_pk;
+    _newEvents.clear();
+
+    // Soundtrack: saves only happen on phase screens, so the saved pk IS a
+    // section-start pk — re-enter its music section (idempotent if unchanged).
+    _musicSectionPending = _pkToSection(saveData.current_question_pk) || 0;
+
+    // Re-render, then redo the cosmetics the PK-change block won't re-run
+    // (it sees the same pk it already handled).
+    if (typeof questionHTML === 'function') questionHTML();
+    const qd = (saveData.current_question_pk != null && questionData[saveData.current_question_pk]) || {};
+    if (qd.signImg) changeImage(qd.signImg);
+    return saveData;
+}
+
+// ── Save/Load panel (vanilla DOM; save names rendered via textContent, never
+// innerHTML). Sits above the transition overlay (z 600 > 500) inside
+// #game_window. ──
+function _slOpenUI() {
+    document.getElementById('acop-saveload-panel')?.remove();
+    const gw = document.getElementById('game_window');
+    if (!gw) return;
+
+    const panel = document.createElement('div');
+    panel.id = 'acop-saveload-panel';
+    panel.style.cssText = `
+        position: absolute; top: 0; left: 0; width: 989px; min-height: 625px; height: 100%;
+        background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png');
+        background-size: cover; background-position: center;
+        z-index: 600; display: flex; flex-direction: column; align-items: center;
+        padding: 34px 40px; box-sizing: border-box; text-align: center;
+        font-family: 'TypewriterDry', sans-serif;
+    `;
+
+    const h = document.createElement('h2');
+    h.textContent = 'SAVE / LOAD';
+    h.style.cssText = 'font-size:22px;letter-spacing:0.2em;margin:0 0 6px;';
+    panel.appendChild(h);
+
+    const sub = document.createElement('p');
+    sub.textContent = 'The record can only be committed between the Parts.';
+    sub.style.cssText = 'font-size:12px;margin:0 0 18px;opacity:0.75;';
+    panel.appendChild(sub);
+
+    const status = document.createElement('p');
+    status.style.cssText = 'font-size:12px;min-height:16px;margin:0 0 10px;';
+    panel.appendChild(status);
+
+    const saveRow = document.createElement('div');
+    saveRow.style.cssText = 'display:flex;gap:10px;justify-content:center;margin-bottom:20px;';
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.placeholder = 'Save name (optional)';
+    nameInput.maxLength = 60;
+    nameInput.style.cssText = "width:260px;padding:5px 8px;font-family:'TypewriterDry',sans-serif;font-size:13px;";
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Save';
+    saveBtn.className = 'section-transition-continue';
+    saveRow.appendChild(nameInput);
+    saveRow.appendChild(saveBtn);
+    panel.appendChild(saveRow);
+
+    const list = document.createElement('div');
+    list.style.cssText = `
+        width: 560px; max-width: 90%; flex: 1; overflow-y: auto;
+        border: 1px solid rgba(0,0,0,0.35); background: rgba(255,255,255,0.45);
+        padding: 8px; text-align: left;
+    `;
+    panel.appendChild(list);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Back';
+    closeBtn.className = 'section-transition-continue';
+    closeBtn.style.marginTop = '16px';
+    closeBtn.addEventListener('click', () => panel.remove());
+    panel.appendChild(closeBtn);
+
+    async function refreshList() {
+        list.textContent = '';
+        let saves = [];
+        try { saves = await _slGetAll(); }
+        catch (err) { status.textContent = 'Storage unavailable: ' + err.message; return; }
+        if (!saves.length) {
+            const p = document.createElement('p');
+            p.textContent = 'No saves yet.';
+            p.style.cssText = 'font-size:13px;opacity:0.7;margin:6px;';
+            list.appendChild(p);
+            return;
+        }
+        saves.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+        saves.forEach(save => {
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:7px 6px;border-bottom:1px dashed rgba(0,0,0,0.25);';
+            const info = document.createElement('div');
+            info.style.cssText = 'flex:1;min-width:0;';
+            const title = document.createElement('div');
+            title.textContent = save.name;
+            title.style.cssText = 'font-size:13px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+            const meta = document.createElement('div');
+            meta.textContent = (save.date_label ? save.date_label + ' · ' : '') +
+                'Turn ' + ((save.mod && save.mod.vars && save.mod.vars._questionCount) || '?') + ' · ' +
+                new Date(save.timestamp).toLocaleString();
+            meta.style.cssText = 'font-size:11px;opacity:0.7;';
+            info.appendChild(title);
+            info.appendChild(meta);
+            const loadBtn = document.createElement('button');
+            loadBtn.textContent = 'Load';
+            const delBtn = document.createElement('button');
+            delBtn.textContent = 'Delete';
+            loadBtn.addEventListener('click', async () => {
+                try {
+                    await _slLoad(save.id);
+                    panel.remove();
+                } catch (err) {
+                    status.textContent = 'Load failed: ' + err.message;
+                }
+            });
+            delBtn.addEventListener('click', async () => {
+                try { await _slDelete(save.id); } catch (err) {}
+                refreshList();
+            });
+            row.appendChild(info);
+            row.appendChild(loadBtn);
+            row.appendChild(delBtn);
+            list.appendChild(row);
+        });
+    }
+
+    saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        try {
+            await _slSave(nameInput.value);
+            status.textContent = 'Saved.';
+            nameInput.value = '';
+            refreshList();
+        } catch (err) {
+            status.textContent = 'Save failed: ' + err.message;
+        }
+        saveBtn.disabled = false;
+    });
+
+    gw.style.position = 'relative';
+    gw.appendChild(panel);
+    refreshList();
+}
+
+// Console access + anything outside this scope.
+window.ACOPSaveLoad = { open: _slOpenUI, save: _slSave, load: _slLoad, del: _slDelete, list: _slGetAll };
+// ── END SAVE / LOAD ───────────────────────────────────────────────────────────
+
 function showSectionTransition(t, pk) {
     // _shownTransitions tracks DISMISSED transitions (set on the Continue click),
     // not merely "attempted". The engine wipes every direct child of #game_window
@@ -16295,7 +16709,10 @@ function showSectionTransition(t, pk) {
         <p style="font-family:'TypewriterDry',sans-serif;font-size:14px;max-width:600px;
                   line-height:1.5;margin-bottom:${t.img ? '24px' : '36px'};">${t.body}</p>
         ${t.img ? `<img src="${t.img}" style="display:block;max-width:400px;height:auto;margin:0 auto 36px auto;">` : ''}
-        <button class="section-transition-continue">Continue</button>
+        <div style="display:flex;gap:14px;justify-content:center;">
+            <button class="section-transition-continue">Continue</button>
+            <button class="section-transition-continue st-saveload-btn">Save / Load</button>
+        </div>
     `;
 
     target.style.position = 'relative';
@@ -16303,11 +16720,16 @@ function showSectionTransition(t, pk) {
 
     // Mark dismissed only on the explicit Continue click, so an engine re-render
     // that wipes the overlay before the player acts simply re-shows it next tick.
-    const continueBtn = overlay.querySelector('.section-transition-continue');
+    const continueBtn = overlay.querySelector('.section-transition-continue:not(.st-saveload-btn)');
     if (continueBtn) continueBtn.addEventListener('click', () => {
         _shownTransitions.add(pk);
         overlay.remove();
     });
+
+    // Save/Load is ONLY offered here, on the phase screens — deliberate
+    // anti-savescumming: a run can be checkpointed once per Part.
+    const slBtn = overlay.querySelector('.st-saveload-btn');
+    if (slBtn) slBtn.addEventListener('click', () => _slOpenUI());
 }
 
 function fadeText(el, newText) {
