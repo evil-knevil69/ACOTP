@@ -15671,6 +15671,21 @@ window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
     return function (cb) { subs.push(cb); try { cb(); } catch (e) {} };
 })();
 
+// ── ACHIEVEMENTS (ported from Obamanation) ───────────────────────────────────
+// unlockAchievement() is provided by the Campaign Trail Showcase host and the
+// CTS loader sets campaignTrail_temp.CTS — on any other host this is a silent
+// no-op. The gallery entries live in Code 1 (campaignTrail_temp.achievements);
+// names passed here must match those EXACTLY. difficultyChecker: by default an
+// achievement only counts on a difficulty multiplier <= 1 (no farming them on
+// the easy settings); pass false to waive that for a specific unlock.
+function ctsAchievement(achievement, difficultyChecker = true) {
+    if (campaignTrail_temp?.CTS && (!difficultyChecker || campaignTrail_temp.difficulty_level_multiplier <= 1)) {
+        try { unlockAchievement(achievement); } catch (err) {}
+    }
+}
+var _endAchFired = false; // once-per-run guard for the election-night placeholder
+// ── END ACHIEVEMENTS ─────────────────────────────────────────────────────────
+
 // ── CAMPAIGN LENGTH — selector + curated-set install + feature gating ────────
 // (CAMPAIGN_LENGTH_PLAN.md.) Two runs: 'full' (The Big Enchilada — the whole
 // scripted campaign, the DEFAULT) and 'short' (Cottage Cheese). The short
@@ -15918,6 +15933,7 @@ window.__onGameWindowMutation(() => {
                     _allendeSpeechPlayed = false;
                     _musicSectionPending = 0;
                     window.__resetSoundtrack?.();
+                    _endAchFired = false;
                     _pressureOn = false;
                     _RESHUFFLE.reset();
                     HushMoneyStack = 0; CutThemLooseStack = 0;
@@ -15963,6 +15979,15 @@ window.__onGameWindowMutation(() => {
                     document.querySelectorAll('.game_answer_row').forEach((row, i) => {
                         row.style.setProperty('--answer-i-delay', `${i * 60}ms`);
                     });
+                }
+
+                // End of the run: past the last question the pk computes to null
+                // (the results / election-night screen — same signal the phantom-
+                // question guard above keys off). Fire the placeholder achievement
+                // once per run. FILL ME IN: replace with the real achievement set.
+                if (currentPK === null && _lastQuestionPK != null && !_endAchFired) {
+                    _endAchFired = true;
+                    ctsAchievement('PLACEHOLDER — See It Through');
                 }
 
                 // Soundtrack retry: a section-start pk can load before the Code 1
@@ -16439,7 +16464,7 @@ window.__onGameWindowMutation(() => {
 var _SL_SCALARS = [
     // run counters / flow
     '_questionCount', '_pressureOn', '_allendeSpeechPlayed', '_actionCrimesRevealed',
-    '_campaignLength', '_lengthInstalled',
+    '_campaignLength', '_lengthInstalled', '_endAchFired',
     // ticket
     '_president', '_vp', '_ticketStage', 'Nominee',
     // top-line stats
