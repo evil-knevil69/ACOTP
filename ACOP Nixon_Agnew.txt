@@ -11680,6 +11680,19 @@ function _refreshTicket() {
     campaignTrail_temp.running_mate_image_url = mImg;
     campaignTrail_temp.candidate_last_name    = pres.last;
     campaignTrail_temp.running_mate_last_name = vp.last;
+    // The engine renders from the page-global `e` (questionHTML reads
+    // e.candidate_image_url etc.). Normally e === campaignTrail_temp, but if
+    // the loader rebound the global between games (the _liveGameState hazard),
+    // the engine copied primitives at game start and our campaignTrail_temp
+    // writes never reach it — the override would revert on the next render.
+    // Write through to the live object too.
+    var _gsT = (typeof e !== 'undefined' && e && e.question_number != null) ? e : null;
+    if (_gsT && _gsT !== campaignTrail_temp) {
+        _gsT.candidate_image_url    = cImg;
+        _gsT.running_mate_image_url = mImg;
+        _gsT.candidate_last_name    = pres.last;
+        _gsT.running_mate_last_name = vp.last;
+    }
     var ci = document.getElementById('candidate_pic');    if (ci) ci.src = cImg;
     var mi = document.getElementById('running_mate_pic'); if (mi) mi.src = mImg;
     // Also update the live campaign-sign text so a mid-question override changes
@@ -12016,7 +12029,7 @@ function answerSwapper(pk1, pk2, takeEffects = true) {
 // High Crimes & Misdemeanours page.
 var WatergateExposure = 1;
 var Haldemanexposure = 0;
-var Erlichmanexposure = 0;
+var Ehrlichmanexposure = 0;
 var Deanexposure = 0;
 var Chapinexposure = 0;
 var Segrettiexposure = 2;
@@ -12025,9 +12038,9 @@ var Colsonexposure = 2;
 var Mitchellexposure = 2;
 var Magruderexposure = 4;
 var Liddyexposure = 8;
-var Larueexposure = 1;
+var LaRueexposure = 1;
 var Stansexposure = 2;
-var Klambachexposure = 1;
+var Kalmbachexposure = 1;
 var McCordexposure = 9;
 var Huntexposure = 8;
 var Kroghexposure = 5;
@@ -12036,7 +12049,7 @@ var Watergateburglarsexposure = 9;
 var Watergateburglarsstatus = 3;
 var Watergateburglarsloyalty = 8;
 var HaldemanSTATUS = 5;
-var ErlichmanSTATUS = 5;
+var EhrlichmanSTATUS = 5;
 var MitchellSTATUS = 4;
 var DeanSTATUS = 5;
 var MagruderSTATUS = 5;
@@ -12047,15 +12060,15 @@ var StrachanSTATUS = 5;
 var HuntSTATUS = 3;
 var McCordSTATUS = 3;
 var LiddySTATUS = 3;
-var LarueSTATUS = 5;
+var LaRueSTATUS = 5;
 var StansSTATUS = 5;
-var KlambachSTATUS = 5;
+var KalmbachSTATUS = 5;
 var KleindienstSTATUS = 5;
 var ColsonSTATUS = 4;
 var Command = 0;
 var LawandOrder = 1;
 var Haldemanloyalty = 10;
-var Erlichmanloyalty = 7;
+var Ehrlichmanloyalty = 7;
 var Deanloyalty = 7;
 var Mitchellloyalty = 10;
 var Chapinloyalty = 9;
@@ -12064,9 +12077,9 @@ var Strachanloyalty = 7;
 var Colsonloyalty = 8;
 var Magruderloyalty = 5;
 var Liddyloyalty = 10;
-var Larueloyalty = 7;
+var LaRueloyalty = 7;
 var Stansloyalty = 6;
-var Klambachloyalty = 7;
+var Kalmbachloyalty = 7;
 var McCordloyalty = 5;
 var Huntloyalty = 4;
 var Kroghloyalty = 7;
@@ -12074,7 +12087,7 @@ var Kleindienstloyalty = 6;
 window._getOrgStat = function(id, stat) {
     const map = {
         Haldeman:          { loyalty: Haldemanloyalty,          exposure: Haldemanexposure },
-        Erlichman:         { loyalty: Erlichmanloyalty,         exposure: Erlichmanexposure },
+        Ehrlichman:         { loyalty: Ehrlichmanloyalty,         exposure: Ehrlichmanexposure },
         Dean:              { loyalty: Deanloyalty,              exposure: Deanexposure },
         Colson:            { loyalty: Colsonloyalty,            exposure: Colsonexposure },
         Chapin:            { loyalty: Chapinloyalty,            exposure: Chapinexposure },
@@ -12085,9 +12098,9 @@ window._getOrgStat = function(id, stat) {
         Liddy:             { loyalty: Liddyloyalty,             exposure: Liddyexposure },
         Mitchell:          { loyalty: Mitchellloyalty,          exposure: Mitchellexposure },
         Magruder:          { loyalty: Magruderloyalty,          exposure: Magruderexposure },
-        Larue:             { loyalty: Larueloyalty,             exposure: Larueexposure },
+        LaRue:             { loyalty: LaRueloyalty,             exposure: LaRueexposure },
         Stans:             { loyalty: Stansloyalty,             exposure: Stansexposure },
-        Klambach:          { loyalty: Klambachloyalty,          exposure: Klambachexposure },
+        Kalmbach:          { loyalty: Kalmbachloyalty,          exposure: Kalmbachexposure },
         McCord:            { loyalty: McCordloyalty,            exposure: McCordexposure },
         Kleindienst:       { loyalty: Kleindienstloyalty,       exposure: Kleindienstexposure },
         WatergateBurglars: { loyalty: Watergateburglarsloyalty, exposure: Watergateburglarsexposure },
@@ -12560,7 +12573,7 @@ const _EVENT_DEFS = [
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
 
 var Haldeman = 2;
-var Erlichman = 2;
+var Ehrlichman = 2;
 var Mitchell = 1;
 var Dean = 2;
 var Magruder = 1;
@@ -12572,9 +12585,9 @@ var Strachan = 2;
 var Hunt = 0;
 var McCord = 0;
 var Liddy = 0;
-var Larue = 2;
+var LaRue = 2;
 var Stans = 2;
-var Klambach = 2;
+var Kalmbach = 2;
 var Kleindienst = 2;
 var Colson = 2;
 
@@ -12974,7 +12987,6 @@ var _legalPadScreen = 0; // 0 = High Crimes tab, 1+ = future tabs
 var _actionCrimesRevealed = false;
 var _actionCrimes = [];   // { id, label } — one entry per person per action type
 var _CRIME_NAMES = {      // display-name fixes where the pressure key differs
-    Erlichman: 'Ehrlichman', Klambach: 'Kalmbach', Larue: 'LaRue',
     Burglars: 'the Watergate Burglars',
 };
 function _crimeName(key) { return _CRIME_NAMES[key] || key; }
@@ -13114,10 +13126,10 @@ function _spendTeamAction(key) {
 }
 
 // ---- targeting ---------------------------------------------------------------
-// ALL team actions may only target staff BELOW the Haldeman / Erlichman /
+// ALL team actions may only target staff BELOW the Haldeman / Ehrlichman /
 // Colson / Mitchell row — Dean IS eligible. (Nixon and the inner four are not.)
 // Flipped men (state's witnesses) are beyond reach too.
-const _TA_EXCLUDED = ['Nixon', 'Haldeman', 'Erlichman', 'Colson', 'Mitchell'];
+const _TA_EXCLUDED = ['Nixon', 'Haldeman', 'Ehrlichman', 'Colson', 'Mitchell'];
 // DOM node data-person → _ORG_PRESSURE key, where they differ.
 const _TA_KEYMAP = { WatergateBurglars: 'Burglars' };
 
@@ -13137,7 +13149,7 @@ const _TA_WIRED = {
         apply(key) {
             _payOff(key);   // +1 loyalty, decay/radiation frozen 4 turns (per the manual)
             _recordActionCrime('hush', key);   // logged as a specific crime (hidden until revealed)
-            return 'Paid off ' + key + ' — loyalty +1, pressure frozen for 4 turns.';
+            return 'Paid off ' + _crimeName(key) + ' — loyalty +1, pressure frozen for 4 turns.';
         }
     },
     cut: {
@@ -13150,7 +13162,7 @@ const _TA_WIRED = {
         },
         apply(key) {
             _ORG_PRESSURE[key].setSt(4);   // 4 = cut loose (green pill via _syncOrgStates)
-            return 'Cut ' + key + ' loose — he is on his own now.';
+            return 'Cut ' + _crimeName(key) + ' loose — he is on his own now.';
         }
     },
     clemency: {
@@ -13172,7 +13184,7 @@ const _TA_WIRED = {
             // exactly what was granted; remember status to detect the deal voiding.
             _clemencies.push({ key, boost: p.loy() - before, expiresTurn: _questionCount + 4, statusAtGrant: p.st() });
             _recordActionCrime('clemency', key);   // logged as a specific crime (hidden until revealed)
-            return 'Clemency dangled before ' + key + ' — loyalty +2 for 4 turns, void if his situation changes.';
+            return 'Clemency dangled before ' + _crimeName(key) + ' — loyalty +2 for 4 turns, void if his situation changes.';
         }
     },
     blame: {
@@ -13190,7 +13202,7 @@ const _TA_WIRED = {
             p.setExp(Math.min(10, p.exp() + 2));
             p.setLoy(Math.max(0, p.loy() - 2));
             WatergateExposure = Math.max(0, WatergateExposure - 1);
-            return 'Pinned the blame on ' + key + ' — his exposure +2 and loyalty −2; the President\'s exposure eases to ' + WatergateExposure + ' / 20.';
+            return 'Pinned the blame on ' + _crimeName(key) + ' — his exposure +2 and loyalty −2; the President\'s exposure eases to ' + WatergateExposure + ' / 20.';
         }
     },
 };
@@ -14546,7 +14558,7 @@ var _RESHUFFLE = {
             bio: 'Nixon\'s gatekeeper. Controlled all access to the President.',
             initials: 'HRH', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Haldeman.jpg' },
         },
-        Erlichman: {
+        Ehrlichman: {
             name: 'John Ehrlichman',
             title: 'Asst. to President, Domestic Affairs',
             bio: 'Established the Plumbers unit. Knew about the Ellsberg break-in from an early stage.',
@@ -14618,7 +14630,7 @@ var _RESHUFFLE = {
             bio: 'Approved the Watergate break-in and probably gave the direct instruction to Liddy to go into the Watergate. Director of the 1972 inauguration and now in the Dept of Commerce.',
             initials: 'JsM', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/macgruder.png' },
         },
-        Larue: {
+        LaRue: {
             name: 'Frederick LaRue',
             title: 'Asst. to Mitchell, CREEP',
             bio: 'Close Mitchell aide. Helped coordinate and deliver hush money payments to the seven Watergate defendants.',
@@ -14630,7 +14642,7 @@ var _RESHUFFLE = {
             bio: 'Former Secretary of Commerce. Raised millions in illegal campaign contributions.',
             initials: 'MS', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Maurice-Stans.jpg' },
         },
-        Klambach: {
+        Kalmbach: {
             name: 'Herbert Kalmbach',
             title: 'Assoc. Finance Chairman, CREEP',
             bio: 'Nixon\'s personal attorney. Raised and delivered hush money to the seven Watergate defendants.',
@@ -14652,7 +14664,7 @@ var _RESHUFFLE = {
         ],
     };
     const _whTree2 = {
-        id: 'Erlichman',
+        id: 'Ehrlichman',
         children: [
             { id: 'Krogh' },
         ],
@@ -14661,8 +14673,8 @@ var _RESHUFFLE = {
         id: 'Mitchell',
         children: [
             { id: 'Magruder', children: [{ id: 'Liddy' }] },
-            { id: 'Larue' },
-            { id: 'Stans', children: [{ id: 'Klambach' }] },
+            { id: 'LaRue' },
+            { id: 'Stans', children: [{ id: 'Kalmbach' }] },
             { id: 'McCord', floatChild: true },
         ],
     };
@@ -14671,7 +14683,7 @@ var _RESHUFFLE = {
         { from: 'Strachan', to: 'Mitchell' },
         { from: 'Hunt',     to: 'Krogh',  toEdge: 'bottom' },
         { from: 'Hunt',     to: 'Liddy'    },
-        { from: 'Larue', to: 'Klambach', fromEdge: 'bottom', toEdge: 'top' },
+        { from: 'LaRue', to: 'Kalmbach', fromEdge: 'bottom', toEdge: 'top' },
     ];
 
     function _buildOrgNode(id, isCREEP) {
@@ -14834,7 +14846,7 @@ var _RESHUFFLE = {
             const liddyEl     = document.querySelector('.nw-node[data-person="Liddy"]');
             const mitchellEl  = document.querySelector('.nw-node[data-person="Mitchell"]');
             const magruderEl  = document.querySelector('.nw-node[data-person="Magruder"]');
-            const larueEl     = document.querySelector('.nw-node[data-person="Larue"]');
+            const larueEl     = document.querySelector('.nw-node[data-person="LaRue"]');
             const stansEl     = document.querySelector('.nw-node[data-person="Stans"]');
             const huntFloat   = document.getElementById('nw-hunt-float');
             const mccordFloat = document.getElementById('nw-mccord-float');
@@ -15059,11 +15071,11 @@ var _RESHUFFLE = {
     window._syncOrgStates = function() {
         const toState = (v) => v >= 5 ? 'active' : v === 4 ? 'cutloose' : v === 3 ? 'indicted' : v === 2 ? 'imprisoned' : 'witness';
         [
-            ['Haldeman',  HaldemanSTATUS],  ['Erlichman', ErlichmanSTATUS], ['Mitchell', MitchellSTATUS],
+            ['Haldeman',  HaldemanSTATUS],  ['Ehrlichman', EhrlichmanSTATUS], ['Mitchell', MitchellSTATUS],
             ['Magruder',  MagruderSTATUS],  ['Krogh',     KroghSTATUS],     ['Chapin',   ChapinSTATUS],
             ['Segretti',  SegrettiSTATUS],  ['Strachan',  StrachanSTATUS],  ['Hunt',     HuntSTATUS],
-            ['McCord',    McCordSTATUS],    ['Liddy',     LiddySTATUS],     ['Larue',    LarueSTATUS],
-            ['Stans',     StansSTATUS],     ['Klambach',  KlambachSTATUS],  ['Dean',     DeanSTATUS],
+            ['McCord',    McCordSTATUS],    ['Liddy',     LiddySTATUS],     ['LaRue',    LaRueSTATUS],
+            ['Stans',     StansSTATUS],     ['Kalmbach',  KalmbachSTATUS],  ['Dean',     DeanSTATUS],
             ['Colson',    ColsonSTATUS],    ['WatergateBurglars', Watergateburglarsstatus],
         ].forEach(([id, val]) => window._setOrgState(id, toState(val)));
     };
@@ -15169,7 +15181,7 @@ _everyTurn(turn => {
 //             Leaving the danger zone resets the count.
 //  CONTAGION  a flip gives +2 exposure (minimum result 3 — testimony puts
 //             you on the radar) along the flipper's edges. An inner-circle
-//             flip (Haldeman, Erlichman, Colson, Mitchell, Dean) carries the
+//             flip (Haldeman, Ehrlichman, Colson, Mitchell, Dean) carries the
 //             same contagion straight to the President: WatergateExposure +2
 //             (minimum 3 — pierces his firewall and opens the radiation tap).
 //             Inner flips are also recorded in _innerCircleFlips — Dean's
@@ -15184,7 +15196,7 @@ _everyTurn(turn => {
 var _pressureOn = false;
 const _ORG_PRESSURE = {
     Haldeman:  { inner: true,  loy: () => Haldemanloyalty,  setLoy: v => { Haldemanloyalty = v; },  exp: () => Haldemanexposure,  setExp: v => { Haldemanexposure = v; },  st: () => HaldemanSTATUS,  setSt: v => { HaldemanSTATUS = v; } },
-    Erlichman: { inner: true,  loy: () => Erlichmanloyalty, setLoy: v => { Erlichmanloyalty = v; }, exp: () => Erlichmanexposure, setExp: v => { Erlichmanexposure = v; }, st: () => ErlichmanSTATUS, setSt: v => { ErlichmanSTATUS = v; } },
+    Ehrlichman: { inner: true,  loy: () => Ehrlichmanloyalty, setLoy: v => { Ehrlichmanloyalty = v; }, exp: () => Ehrlichmanexposure, setExp: v => { Ehrlichmanexposure = v; }, st: () => EhrlichmanSTATUS, setSt: v => { EhrlichmanSTATUS = v; } },
     Dean:      { inner: true,  loy: () => Deanloyalty,      setLoy: v => { Deanloyalty = v; },      exp: () => Deanexposure,      setExp: v => { Deanexposure = v; },      st: () => DeanSTATUS,      setSt: v => { DeanSTATUS = v; } },
     Colson:    { inner: true,  loy: () => Colsonloyalty,    setLoy: v => { Colsonloyalty = v; },    exp: () => Colsonexposure,    setExp: v => { Colsonexposure = v; },    st: () => ColsonSTATUS,    setSt: v => { ColsonSTATUS = v; } },
     Mitchell:  { inner: true,  loy: () => Mitchellloyalty,  setLoy: v => { Mitchellloyalty = v; },  exp: () => Mitchellexposure,  setExp: v => { Mitchellexposure = v; },  st: () => MitchellSTATUS,  setSt: v => { MitchellSTATUS = v; } },
@@ -15195,9 +15207,9 @@ const _ORG_PRESSURE = {
     Hunt:      { loy: () => Huntloyalty,     setLoy: v => { Huntloyalty = v; },     exp: () => Huntexposure,     setExp: v => { Huntexposure = v; },     st: () => HuntSTATUS,     setSt: v => { HuntSTATUS = v; } },
     Liddy:     { loy: () => Liddyloyalty,    setLoy: v => { Liddyloyalty = v; },    exp: () => Liddyexposure,    setExp: v => { Liddyexposure = v; },    st: () => LiddySTATUS,    setSt: v => { LiddySTATUS = v; } },
     Magruder:  { loy: () => Magruderloyalty, setLoy: v => { Magruderloyalty = v; }, exp: () => Magruderexposure, setExp: v => { Magruderexposure = v; }, st: () => MagruderSTATUS, setSt: v => { MagruderSTATUS = v; } },
-    Larue:     { loy: () => Larueloyalty,    setLoy: v => { Larueloyalty = v; },    exp: () => Larueexposure,    setExp: v => { Larueexposure = v; },    st: () => LarueSTATUS,    setSt: v => { LarueSTATUS = v; } },
+    LaRue:     { loy: () => LaRueloyalty,    setLoy: v => { LaRueloyalty = v; },    exp: () => LaRueexposure,    setExp: v => { LaRueexposure = v; },    st: () => LaRueSTATUS,    setSt: v => { LaRueSTATUS = v; } },
     Stans:     { loy: () => Stansloyalty,    setLoy: v => { Stansloyalty = v; },    exp: () => Stansexposure,    setExp: v => { Stansexposure = v; },    st: () => StansSTATUS,    setSt: v => { StansSTATUS = v; } },
-    Klambach:  { loy: () => Klambachloyalty, setLoy: v => { Klambachloyalty = v; }, exp: () => Klambachexposure, setExp: v => { Klambachexposure = v; }, st: () => KlambachSTATUS, setSt: v => { KlambachSTATUS = v; } },
+    Kalmbach:  { loy: () => Kalmbachloyalty, setLoy: v => { Kalmbachloyalty = v; }, exp: () => Kalmbachexposure, setExp: v => { Kalmbachexposure = v; }, st: () => KalmbachSTATUS, setSt: v => { KalmbachSTATUS = v; } },
     McCord:    { loy: () => McCordloyalty,   setLoy: v => { McCordloyalty = v; },   exp: () => McCordexposure,   setExp: v => { McCordexposure = v; },   st: () => McCordSTATUS,   setSt: v => { McCordSTATUS = v; } },
     Burglars:  { loy: () => Watergateburglarsloyalty, setLoy: v => { Watergateburglarsloyalty = v; }, exp: () => Watergateburglarsexposure, setExp: v => { Watergateburglarsexposure = v; }, st: () => Watergateburglarsstatus, setSt: v => { Watergateburglarsstatus = v; } },
 };
@@ -15207,12 +15219,12 @@ const _ORG_EDGES = {
     Segretti: ['Chapin'],
     Chapin:   ['Haldeman'],
     Strachan: ['Haldeman', 'Mitchell'],
-    Krogh:    ['Erlichman'],
+    Krogh:    ['Ehrlichman'],
     Hunt:     ['Colson', 'Krogh', 'Liddy'],
     Magruder: ['Mitchell'],
-    Larue:    ['Mitchell', 'Klambach'],
-    Klambach: ['Stans', 'Larue'],
-    Stans:    ['Mitchell', 'Larue'],
+    LaRue:    ['Mitchell', 'Kalmbach'],
+    Kalmbach: ['Stans', 'LaRue'],
+    Stans:    ['Mitchell', 'LaRue'],
     McCord:   ['Mitchell'],
     Burglars: ['McCord', 'Hunt', 'Liddy'],
 };
@@ -15279,7 +15291,7 @@ _everyTurn(() => {
     // cut-loose halving (STATUS 4, set via question effects), same pay-off
     // pause, same ≤2 receiver firewall on Nixon's own dial (flip contagion
     // pierces it — see _flipWitness). Nixon's dial is WatergateExposure, 0–20.
-    ['Haldeman', 'Erlichman', 'Dean', 'Colson', 'Mitchell'].forEach(src => {
+    ['Haldeman', 'Ehrlichman', 'Dean', 'Colson', 'Mitchell'].forEach(src => {
         if (_flipped.has(src) || paused(src)) return;
         const s = _ORG_PRESSURE[src];
         const e = s.exp();
@@ -16005,13 +16017,13 @@ const tooltipList = [
         searchString: "Moynihan",
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/moynihan_slideshow.jpg",
         label: "Daniel Patrick Moynihan",
-        body: "Chief domestic policy advisor to the president before Erlichman. Current academic and insightful if liberal critic of the current welfare apparatus. Best speaking to him before the Harvard faculty bar opens."
+        body: "Chief domestic policy advisor to the president before Ehrlichman. Current academic and insightful if liberal critic of the current welfare apparatus. Best speaking to him before the Harvard faculty bar opens."
     },
     {
         searchString: "Pat Moynihan",
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/moynihan_slideshow.jpg",
         label: "Daniel Patrick Moynihan",
-        body: "Chief domestic policy advisor to the president before Erlichman. Current academic and insightful if liberal critic of the current welfare apparatus. Best speaking to him before the Harvard faculty bar opens."
+        body: "Chief domestic policy advisor to the president before Ehrlichman. Current academic and insightful if liberal critic of the current welfare apparatus. Best speaking to him before the Harvard faculty bar opens."
     },
     {
         searchString: "Thieu",
@@ -16278,27 +16290,27 @@ var _SL_SCALARS = [
     // officials roster
     'NSA', 'ChiefOfStaff', 'AttorneyGeneral', 'SOS', 'FBI', 'SP', 'CIA', 'SOD',
     // pressure engine: exposure
-    'Haldemanexposure', 'Erlichmanexposure', 'Deanexposure', 'Chapinexposure',
+    'Haldemanexposure', 'Ehrlichmanexposure', 'Deanexposure', 'Chapinexposure',
     'Segrettiexposure', 'Strachanexposure', 'Colsonexposure', 'Mitchellexposure',
-    'Magruderexposure', 'Liddyexposure', 'Larueexposure', 'Stansexposure',
-    'Klambachexposure', 'McCordexposure', 'Huntexposure', 'Kroghexposure',
+    'Magruderexposure', 'Liddyexposure', 'LaRueexposure', 'Stansexposure',
+    'Kalmbachexposure', 'McCordexposure', 'Huntexposure', 'Kroghexposure',
     'Kleindienstexposure', 'Watergateburglarsexposure', 'Watergateburglarsstatus',
     'Watergateburglarsloyalty',
     // pressure engine: status
-    'HaldemanSTATUS', 'ErlichmanSTATUS', 'MitchellSTATUS', 'DeanSTATUS',
+    'HaldemanSTATUS', 'EhrlichmanSTATUS', 'MitchellSTATUS', 'DeanSTATUS',
     'MagruderSTATUS', 'KroghSTATUS', 'ChapinSTATUS', 'SegrettiSTATUS',
-    'StrachanSTATUS', 'HuntSTATUS', 'McCordSTATUS', 'LiddySTATUS', 'LarueSTATUS',
-    'StansSTATUS', 'KlambachSTATUS', 'KleindienstSTATUS', 'ColsonSTATUS',
+    'StrachanSTATUS', 'HuntSTATUS', 'McCordSTATUS', 'LiddySTATUS', 'LaRueSTATUS',
+    'StansSTATUS', 'KalmbachSTATUS', 'KleindienstSTATUS', 'ColsonSTATUS',
     // pressure engine: loyalty
-    'Haldemanloyalty', 'Erlichmanloyalty', 'Deanloyalty', 'Mitchellloyalty',
+    'Haldemanloyalty', 'Ehrlichmanloyalty', 'Deanloyalty', 'Mitchellloyalty',
     'Chapinloyalty', 'Segrettiloyalty', 'Strachanloyalty', 'Colsonloyalty',
-    'Magruderloyalty', 'Liddyloyalty', 'Larueloyalty', 'Stansloyalty',
-    'Klambachloyalty', 'McCordloyalty', 'Huntloyalty', 'Kroghloyalty',
+    'Magruderloyalty', 'Liddyloyalty', 'LaRueloyalty', 'Stansloyalty',
+    'Kalmbachloyalty', 'McCordloyalty', 'Huntloyalty', 'Kroghloyalty',
     'Kleindienstloyalty',
     // person "juice"
-    'Haldeman', 'Erlichman', 'Mitchell', 'Dean', 'Magruder', 'Kissinger', 'Krogh',
-    'Chapin', 'Segretti', 'Strachan', 'Hunt', 'McCord', 'Liddy', 'Larue', 'Stans',
-    'Klambach', 'Kleindienst', 'Colson',
+    'Haldeman', 'Ehrlichman', 'Mitchell', 'Dean', 'Magruder', 'Kissinger', 'Krogh',
+    'Chapin', 'Segretti', 'Strachan', 'Hunt', 'McCord', 'Liddy', 'LaRue', 'Stans',
+    'Kalmbach', 'Kleindienst', 'Colson',
     // crimes / scandal flags
     'wiretapping', 'Ellsberg', 'taxEvasion', 'homeImprovements', 'Cambodia',
     'ratfucking', 'ITT', 'FakeCables', 'MilkFund', 'Vesco', 'oojHush',
@@ -16347,7 +16359,12 @@ function _slCaptureMod() {
 }
 
 function _slRestoreMod(m) {
-    Object.keys(m.vars || {}).forEach(n => _slSetVar(n, m.vars[n]));
+    // Only names in the current _SL_SCALARS list are applied: a stale save
+    // carrying a since-renamed/removed var would otherwise eval-create a junk
+    // window global (non-strict assignment to an undeclared name).
+    Object.keys(m.vars || {}).forEach(n => {
+        if (_SL_SCALARS.indexOf(n) !== -1) _slSetVar(n, m.vars[n]);
+    });
     _shownTransitions.clear();
     (m.shownTransitions || []).forEach(pk => _shownTransitions.add(pk));
     Object.keys(_pausedUntil).forEach(k => { delete _pausedUntil[k]; });
@@ -17071,8 +17088,14 @@ function _placeManualButton() {
         _manRO.observe(gw);
     }
     const r = gw.getBoundingClientRect();
-    btn.style.top  = (r.bottom + window.scrollY + 6) + 'px';
-    btn.style.left = (r.right  + window.scrollX - btn.offsetWidth) + 'px'; // align to the right edge
+    const top  = (r.bottom + window.scrollY + 6) + 'px';
+    const left = (r.right  + window.scrollX - btn.offsetWidth) + 'px'; // align to the right edge
+    // Runs on every game-window mutation batch — skip the style writes when
+    // nothing moved so the common case stays free.
+    if (btn.style.top !== top || btn.style.left !== left) {
+        btn.style.top  = top;
+        btn.style.left = left;
+    }
     return true;
 }
 _placeManualButton();
@@ -17197,6 +17220,10 @@ document.addEventListener('keydown', (e) => {
                 transparent 23.5px,
                 transparent 28px);
         background-position: 0 0, 0 12px;
+        /* local: the rules scroll WITH the text — the default (scroll) pins the
+           background to the element box, so on overflow the text would drift
+           off the ruled lines the moment the pad scrolls. */
+        background-attachment: local, local;
         border: 1px solid #b89820;
         border-radius: 3px;
         padding: 12px 14px 24px 60px;
@@ -17841,7 +17868,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1777240250646": {
             "id": 1777240250646,
-            "name": "ErlichmanSTATUS",
+            "name": "EhrlichmanSTATUS",
             "defaultValue": 2
         },
         "1777240257634": {
@@ -17901,7 +17928,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1777240566547": {
             "id": 1777240566547,
-            "name": "LarueSTATUS",
+            "name": "LaRueSTATUS",
             "defaultValue": 2
         },
         "1777240577282": {
@@ -17911,7 +17938,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1777240585185": {
             "id": 1777240585185,
-            "name": "KlambachSTATUS",
+            "name": "KalmbachSTATUS",
             "defaultValue": 2
         },
         "1777240595689": {
@@ -17941,7 +17968,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1778187852384": {
             "id": 1778187852384,
-            "name": "Erlichmanloyalty",
+            "name": "Ehrlichmanloyalty",
             "defaultValue": 7
         },
         "1778187852943": {
@@ -17986,7 +18013,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1778187854496": {
             "id": 1778187854496,
-            "name": "Larueloyalty",
+            "name": "LaRueloyalty",
             "defaultValue": 7
         },
         "1778187854680": {
@@ -17996,7 +18023,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1778187854855": {
             "id": 1778187854855,
-            "name": "Klambachloyalty",
+            "name": "Kalmbachloyalty",
             "defaultValue": 7
         },
         "1778187855047": {
@@ -18021,7 +18048,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1779575605108": {
             "id": 1779575605108,
-            "name": "Erlichmanexposure",
+            "name": "Ehrlichmanexposure",
             "defaultValue": 0
         },
         "1779575605476": {
@@ -18066,7 +18093,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1779575609460": {
             "id": 1779575609460,
-            "name": "Larueexposure",
+            "name": "LaRueexposure",
             "defaultValue": 1
         },
         "1779575609932": {
@@ -18076,7 +18103,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1779575610357": {
             "id": 1779575610357,
-            "name": "Klambachexposure",
+            "name": "Kalmbachexposure",
             "defaultValue": 1
         },
         "1779575610764": {
