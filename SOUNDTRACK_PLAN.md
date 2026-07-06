@@ -1,6 +1,12 @@
 # Reactive Diegetic Soundtrack — Implementation Handoff
 
-**Status:** planned, not started. **Audience:** a fresh Claude/Fable session with no prior context.
+**Status:** INFRASTRUCTURE IMPLEMENTED (Jul 2026) — all primitives (Code 1) and
+triggers/wiring (Code 2) are live; §8's CONTENT is still to fill in: the
+`SOUNDTRACK` section track URLs, mood rules, Part IV startPk, and per-question
+`stinger:` entries are empty/commented placeholders in Code 2 (grep `FILL ME IN`).
+Empty sections fail safe (entering one changes nothing). Defaults chosen:
+`FADE_MS = 1200`; paused-at-boundary installs on next play/next press.
+**Audience:** a fresh Claude/Fable session with no prior context.
 **Read `CLAUDE.md` first** (session-startup force-push, the two-file Code 1 / Code 2 split, `new Function()` `var` rule).
 
 ---

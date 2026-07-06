@@ -15653,6 +15653,69 @@ window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
     return function (cb) { subs.push(cb); try { cb(); } catch (e) {} };
 })();
 
+// ── REACTIVE SOUNDTRACK — config + triggers (SOUNDTRACK_PLAN.md) ─────────────
+// The player primitives (__enterMusicSection, __injectNextSong, fades, the
+// graceful queue-don't-slam swap) live in Code 1 with the player; this side
+// holds only the CONFIG (which tracks, which thresholds) and the TRIGGERS
+// (section-start pks + per-question stingers) — the exact Allende-egg split.
+//
+// The 3 default tracks built in setupMusicPlayer are INTRO music (pre-game/
+// menu). They are not part of any section list; Section I takes over when
+// Part I is entered, queued behind whatever intro track is playing.
+
+// Song objects are built lazily (window.Song may not exist yet when this file
+// loads) and cached by URL so a stinger getter re-run never duplicates.
+var _songCache = {};
+function _mkSong(title, artist, url) {
+    if (!window.Song || !url) return null;
+    if (!_songCache[url]) _songCache[url] = new window.Song(title, artist, '', url);
+    return _songCache[url];
+}
+function _mkSongs(defs) {
+    return defs.map(d => _mkSong(d[0], d[1], d[2])).filter(Boolean);
+}
+
+// ── FILL ME IN: track URLs (jukehost etc.) per section, mood rules, stingers.
+// A section whose tracks() comes back empty fails safe: entering it changes
+// nothing and the current list keeps playing. Mood rules are evaluated ONCE,
+// at section entry; passing rules' tracks are prepended (they open the
+// section). Stingers go on the questionData entry itself, e.g.:
+//   430: { ..., stinger: () => _mkSong('Patton Theme', 'Jerry Goldsmith', 'https://audio.jukehost.co.uk/…') },
+// — fades the current song out and plays the stinger immediately (or just
+// cues it, without starting playback, if the player is paused/off).
+var SOUNDTRACK = window.SOUNDTRACK = {
+    sections: {
+        1: { name: 'Remission',   startPk: 401,  tracks: () => _mkSongs([
+            // ['Title', 'Artist', 'https://audio.jukehost.co.uk/…'],
+        ]) },
+        2: { name: 'Fulmination', startPk: 430,  tracks: () => _mkSongs([
+        ]) },
+        3: { name: 'Metastasis',  startPk: 432,  tracks: () => _mkSongs([
+        ]) },
+        4: { name: null,          startPk: null, tracks: () => _mkSongs([
+            // Part IV boundary pk + name TBD (SOUNDTRACK_PLAN.md §8.1)
+        ]) },
+    },
+    mood: [
+        // Scales: WatergateExposure runs 0–20, ApprovalRating ~0–10.
+        // { when: () => WatergateExposure >= 15, tracks: () => _mkSongs([['Dark Track', 'Artist', 'https://…']]) },
+        // { when: () => ApprovalRating >= 8,     tracks: () => _mkSongs([['Light Track', 'Artist', 'https://…']]) },
+    ],
+};
+
+function _pkToSection(pk) {
+    if (pk == null) return 0;
+    const secs = SOUNDTRACK.sections;
+    for (const n in secs) {
+        if (secs[n].startPk === pk) return +n;
+    }
+    return 0;
+}
+// Section entry seen before the Code 1 player exists is parked here and
+// retried on later observer ticks until __enterMusicSection is available.
+var _musicSectionPending = 0;
+// ── END REACTIVE SOUNDTRACK config ───────────────────────────────────────────
+
 // Per-question metadata (dates, sign images, section transitions, historical
 // notes). MUST be declared before the __onGameWindowMutation registration
 // below: that registrar invokes the callback once synchronously, and the
@@ -15746,6 +15809,8 @@ window.__onGameWindowMutation(() => {
                     Object.keys(_pausedUntil).forEach(k => { delete _pausedUntil[k]; });
                     _MIDTERM._fired = false;
                     _allendeSpeechPlayed = false;
+                    _musicSectionPending = 0;
+                    window.__resetSoundtrack?.();
                     _pressureOn = false;
                     _RESHUFFLE.reset();
                     HushMoneyStack = 0; CutThemLooseStack = 0;
@@ -15775,6 +15840,14 @@ window.__onGameWindowMutation(() => {
                     if (qd.signImg) changeImage(qd.signImg);
                     _newEvents.clear();
                     if (qd.onShow) qd.onShow();
+                    // Reactive soundtrack: section entry (queued, installs when the
+                    // current song ends) + scripted stingers (fade out + play now).
+                    const _mSec = _pkToSection(currentPK);
+                    if (_mSec) _musicSectionPending = _mSec;
+                    if (qd.stinger && window.__injectNextSong) {
+                        const _stSong = qd.stinger();
+                        if (_stSong) window.__injectNextSong(_stSong);
+                    }
                     // Ticket portraits: advance the stage at PART transitions.
                     if (TICKET_STAGE_PK[currentPK]) _setTicketStage(TICKET_STAGE_PK[currentPK]);
                     if (qd.transition && !_shownTransitions.has(currentPK) && document.getElementById('question_form')) {
@@ -15783,6 +15856,15 @@ window.__onGameWindowMutation(() => {
                     document.querySelectorAll('.game_answer_row').forEach((row, i) => {
                         row.style.setProperty('--answer-i-delay', `${i * 60}ms`);
                     });
+                }
+
+                // Soundtrack retry: a section-start pk can load before the Code 1
+                // player exists — the entry stays parked in _musicSectionPending
+                // until the primitive is available. Idempotency lives inside
+                // __enterMusicSection (same-section calls no-op).
+                if (_musicSectionPending && window.__enterMusicSection) {
+                    window.__enterMusicSection(_musicSectionPending);
+                    _musicSectionPending = 0;
                 }
 
                 // Retry: if question_form wasn't in the DOM when the PK first changed, show the
@@ -18029,15 +18111,18 @@ function openWorldMap() {
             '', 'https://audio.jukehost.co.uk/019ed31c-9934-7032-afc3-1cba278a45ac'
         );
         window.playlist.addSong(allendeTrack);
-        const idx = window.playlist.songs.length - 1;
-        const sel = document.getElementById('playlist-select');
-        if (sel) {
-            const opt = document.createElement('option');
-            opt.value = idx;
-            opt.textContent = allendeTrack.getTitle() + ' — ' + allendeTrack.getArtist();
-            sel.appendChild(opt);
+        window.playlist.currentSongIndex = window.playlist.songs.length - 1;
+        if (window._rebuildPlaylistSelect) {
+            window._rebuildPlaylistSelect();
+        } else {
+            const sel = document.getElementById('playlist-select');
+            if (sel) {
+                const opt = document.createElement('option');
+                opt.value = window.playlist.currentSongIndex;
+                opt.textContent = allendeTrack.getTitle();
+                sel.appendChild(opt);
+            }
         }
-        window.playlist.currentSongIndex = idx;
         window.loadAndPlay();
     }
 
