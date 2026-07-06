@@ -11627,6 +11627,97 @@ campaignTrail_temp.running_mate_image_url = "https://file.garden/aXPgNT-ZRCxxpy0
 campaignTrail_temp.candidate_last_name = "Nixon";
 campaignTrail_temp.running_mate_last_name = "Agnew";
 
+// ── TICKET PORTRAITS (candidate + running-mate pics) ──────────────────────────
+// Two slots — President (candidate_pic) and VP (running_mate_pic) — each showing
+// a PERSON's portrait for the current STAGE (1–5, the game's five sections). The
+// picture is a 2-D lookup: TICKET_PEOPLE[occupant].pics[stage-1]. Stage advances
+// at the PART section transitions; overrides swap who holds a slot.
+//
+// TO ADD ART: replace the placeholder URLs in TICKET_PEOPLE.pics (5 per person,
+// one per stage). Nixon/Agnew are seeded with the current live images across all
+// stages (so nothing changes until you stage them); replacements use a generic
+// placeholder. Sparse arrays are fine — a missing stage clamps to the last set.
+//
+// TO CHANGE WHO'S IN A SLOT (from a question's onShow):
+//   _setVP('ford')                  // Agnew resigns → Ford (or 'connally'/'rockefeller'/'reagan')
+//   _succeedPresident('rockefeller')// Nixon goes: the VP becomes President, a new VP is named
+//   _setPresident('ford')           // set the President slot directly if ever needed
+//
+// TO SET THE STAGE PKS: fill TICKET_STAGE_PK once the Part IV/V start pks exist.
+var _NIXON_IMG   = "https://file.garden/aXPgNT-ZRCxxpy0g/candidatecode2v5.png";
+var _AGNEW_IMG   = "https://file.garden/aXPgNT-ZRCxxpy0g/running_matev3.png";
+var _TICKET_PH   = _NIXON_IMG; // TEMP placeholder for art not yet supplied — replace
+
+var TICKET_PEOPLE = {
+    nixon:       { last: 'Nixon',       pics: [_NIXON_IMG, _NIXON_IMG, _NIXON_IMG, _NIXON_IMG, _NIXON_IMG] },
+    agnew:       { last: 'Agnew',       pics: [_AGNEW_IMG, _AGNEW_IMG, _AGNEW_IMG, _AGNEW_IMG, _AGNEW_IMG] },
+    ford:        { last: 'Ford',        pics: [_TICKET_PH, _TICKET_PH, _TICKET_PH, _TICKET_PH, _TICKET_PH] },
+    rockefeller: { last: 'Rockefeller', pics: [_TICKET_PH, _TICKET_PH, _TICKET_PH, _TICKET_PH, _TICKET_PH] },
+    connally:    { last: 'Connally',    pics: [_TICKET_PH, _TICKET_PH, _TICKET_PH, _TICKET_PH, _TICKET_PH] },
+    reagan:      { last: 'Reagan',      pics: [_TICKET_PH, _TICKET_PH, _TICKET_PH, _TICKET_PH, _TICKET_PH] },
+};
+
+// pk → stage (1–5). Seeded from the PART transitions that exist today; add IV/V.
+var TICKET_STAGE_PK = { 401: 1, 430: 2, 432: 3 /* , <PARTIV_PK>: 4, <PARTV_PK>: 5 */ };
+
+var _president   = 'nixon';
+var _vp          = 'agnew';
+var _ticketStage = 1;
+
+function _ticketPic(person, stage) {
+    var arr = (person && person.pics) || [];
+    for (var i = Math.min(stage, arr.length) - 1; i >= 0; i--) { if (arr[i]) return arr[i]; }
+    return _TICKET_PH;
+}
+
+// Recompute both slots from (stage, _president, _vp) → engine vars + live imgs.
+function _refreshTicket() {
+    var pres = TICKET_PEOPLE[_president] || TICKET_PEOPLE.nixon;
+    var vp   = TICKET_PEOPLE[_vp]        || TICKET_PEOPLE.agnew;
+    var cImg = _ticketPic(pres, _ticketStage);
+    var mImg = _ticketPic(vp,   _ticketStage);
+    campaignTrail_temp.candidate_image_url    = cImg;
+    campaignTrail_temp.running_mate_image_url = mImg;
+    campaignTrail_temp.candidate_last_name    = pres.last;
+    campaignTrail_temp.running_mate_last_name = vp.last;
+    // The engine renders from the page-global `e` (questionHTML reads
+    // e.candidate_image_url etc.). Normally e === campaignTrail_temp, but if
+    // the loader rebound the global between games (the _liveGameState hazard),
+    // the engine copied primitives at game start and our campaignTrail_temp
+    // writes never reach it — the override would revert on the next render.
+    // Write through to the live object too.
+    var _gsT = (typeof e !== 'undefined' && e && e.question_number != null) ? e : null;
+    if (_gsT && _gsT !== campaignTrail_temp) {
+        _gsT.candidate_image_url    = cImg;
+        _gsT.running_mate_image_url = mImg;
+        _gsT.candidate_last_name    = pres.last;
+        _gsT.running_mate_last_name = vp.last;
+    }
+    var ci = document.getElementById('candidate_pic');    if (ci) ci.src = cImg;
+    var mi = document.getElementById('running_mate_pic'); if (mi) mi.src = mImg;
+    // Also update the live campaign-sign text so a mid-question override changes
+    // the surname immediately (the engine rebuilds this from the var each render;
+    // this keeps the current render in sync). updateCampaignSign reparents the
+    // sign but keeps its id, so this finds it wherever it lives.
+    var sign = document.getElementById('campaign_sign');
+    if (sign) { var ps = sign.getElementsByTagName('p'); if (ps[0]) ps[0].textContent = pres.last; if (ps[1]) ps[1].textContent = vp.last; }
+}
+
+function _setTicketStage(n) {
+    n = Math.max(1, Math.min(5, n | 0));
+    if (n !== _ticketStage) { _ticketStage = n; _refreshTicket(); }
+}
+function _setPresident(id) { if (TICKET_PEOPLE[id]) { _president = id; _refreshTicket(); } }
+function _setVP(id)        { if (TICKET_PEOPLE[id]) { _vp = id; _refreshTicket(); } }
+// Nixon leaves: the sitting VP becomes President, a new VP (id) is named.
+function _succeedPresident(newVpId) {
+    _president = _vp;
+    if (TICKET_PEOPLE[newVpId]) _vp = newVpId;
+    _refreshTicket();
+}
+_refreshTicket(); // sync the engine vars to stage 1 / Nixon–Agnew at load
+// ── END TICKET PORTRAITS ──────────────────────────────────────────────────────
+
 //#startcode
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
@@ -11931,8 +12022,14 @@ function answerSwapper(pk1, pk2, takeEffects = true) {
 }
 
 // CYOA Variables
+// Nixon's own Watergate exposure (0–20, starts at 1). The presidential master
+// dial: impeachment pressure, exposure travelling up the chain from flipped
+// subordinates, the midterm swing, and Pin the Blame (available above 10) all
+// hang off it. Shown on the back of Nixon's card in the org chart and atop the
+// High Crimes & Misdemeanours page.
+var WatergateExposure = 1;
 var Haldemanexposure = 0;
-var Erlichmanexposure = 0;
+var Ehrlichmanexposure = 0;
 var Deanexposure = 0;
 var Chapinexposure = 0;
 var Segrettiexposure = 2;
@@ -11941,9 +12038,9 @@ var Colsonexposure = 2;
 var Mitchellexposure = 2;
 var Magruderexposure = 4;
 var Liddyexposure = 8;
-var Larueexposure = 1;
+var LaRueexposure = 1;
 var Stansexposure = 2;
-var Klambachexposure = 1;
+var Kalmbachexposure = 1;
 var McCordexposure = 9;
 var Huntexposure = 8;
 var Kroghexposure = 5;
@@ -11952,7 +12049,7 @@ var Watergateburglarsexposure = 9;
 var Watergateburglarsstatus = 3;
 var Watergateburglarsloyalty = 8;
 var HaldemanSTATUS = 5;
-var ErlichmanSTATUS = 5;
+var EhrlichmanSTATUS = 5;
 var MitchellSTATUS = 4;
 var DeanSTATUS = 5;
 var MagruderSTATUS = 5;
@@ -11963,15 +12060,15 @@ var StrachanSTATUS = 5;
 var HuntSTATUS = 3;
 var McCordSTATUS = 3;
 var LiddySTATUS = 3;
-var LarueSTATUS = 5;
+var LaRueSTATUS = 5;
 var StansSTATUS = 5;
-var KlambachSTATUS = 5;
+var KalmbachSTATUS = 5;
 var KleindienstSTATUS = 5;
 var ColsonSTATUS = 4;
 var Command = 0;
 var LawandOrder = 1;
 var Haldemanloyalty = 10;
-var Erlichmanloyalty = 7;
+var Ehrlichmanloyalty = 7;
 var Deanloyalty = 7;
 var Mitchellloyalty = 10;
 var Chapinloyalty = 9;
@@ -11980,9 +12077,9 @@ var Strachanloyalty = 7;
 var Colsonloyalty = 8;
 var Magruderloyalty = 5;
 var Liddyloyalty = 10;
-var Larueloyalty = 7;
+var LaRueloyalty = 7;
 var Stansloyalty = 6;
-var Klambachloyalty = 7;
+var Kalmbachloyalty = 7;
 var McCordloyalty = 5;
 var Huntloyalty = 4;
 var Kroghloyalty = 7;
@@ -11990,7 +12087,7 @@ var Kleindienstloyalty = 6;
 window._getOrgStat = function(id, stat) {
     const map = {
         Haldeman:          { loyalty: Haldemanloyalty,          exposure: Haldemanexposure },
-        Erlichman:         { loyalty: Erlichmanloyalty,         exposure: Erlichmanexposure },
+        Ehrlichman:         { loyalty: Ehrlichmanloyalty,         exposure: Ehrlichmanexposure },
         Dean:              { loyalty: Deanloyalty,              exposure: Deanexposure },
         Colson:            { loyalty: Colsonloyalty,            exposure: Colsonexposure },
         Chapin:            { loyalty: Chapinloyalty,            exposure: Chapinexposure },
@@ -12001,9 +12098,9 @@ window._getOrgStat = function(id, stat) {
         Liddy:             { loyalty: Liddyloyalty,             exposure: Liddyexposure },
         Mitchell:          { loyalty: Mitchellloyalty,          exposure: Mitchellexposure },
         Magruder:          { loyalty: Magruderloyalty,          exposure: Magruderexposure },
-        Larue:             { loyalty: Larueloyalty,             exposure: Larueexposure },
+        LaRue:             { loyalty: LaRueloyalty,             exposure: LaRueexposure },
         Stans:             { loyalty: Stansloyalty,             exposure: Stansexposure },
-        Klambach:          { loyalty: Klambachloyalty,          exposure: Klambachexposure },
+        Kalmbach:          { loyalty: Kalmbachloyalty,          exposure: Kalmbachexposure },
         McCord:            { loyalty: McCordloyalty,            exposure: McCordexposure },
         Kleindienst:       { loyalty: Kleindienstloyalty,       exposure: Kleindienstexposure },
         WatergateBurglars: { loyalty: Watergateburglarsloyalty, exposure: Watergateburglarsexposure },
@@ -12018,6 +12115,7 @@ var MediaRelations = 5;
 var CongressionalSupport = 6;
 var RepublicanSupport = 9;
 var MEPeace = 0;
+var committeejuice = 0;
 
 // ── WORLD EVENTS ─────────────────────────────────────────────────────────────
 // To add a new event:
@@ -12075,6 +12173,17 @@ const _EVENT_DEFS = [
         },
         positionOffset: { x: -16, y: -18 },
         state: () => 1,
+    },
+    {
+        id: 'years-of-lead',
+        continent: 'Europe',
+        type: 'insurgency',
+        label: 'The Years of Lead',
+        img: null, // PLACEHOLDER — drop in a GIF/still later
+        body: 'PLACEHOLDER. Anni di piombo — a wave of political terrorism convulsing Italy, with bombings, kidnappings and assassinations by both far-left (Red Brigades) and neo-fascist militants. The "strategy of tension" and shadowy state and NATO-linked involvement keep the Republic permanently on edge.',
+        country: 'IT',
+        positionOffset: { x: -22, y: -32 },
+        state: () => 1, // permanent, like the Troubles
     },
     {
         id: 'vietnam-war',
@@ -12464,7 +12573,7 @@ const _EVENT_DEFS = [
 // ── END WORLD EVENTS ──────────────────────────────────────────────────────────
 
 var Haldeman = 2;
-var Erlichman = 2;
+var Ehrlichman = 2;
 var Mitchell = 1;
 var Dean = 2;
 var Magruder = 1;
@@ -12476,9 +12585,9 @@ var Strachan = 2;
 var Hunt = 0;
 var McCord = 0;
 var Liddy = 0;
-var Larue = 2;
+var LaRue = 2;
 var Stans = 2;
-var Klambach = 2;
+var Kalmbach = 2;
 var Kleindienst = 2;
 var Colson = 2;
 
@@ -12674,13 +12783,9 @@ function updateTypewriterVisibility() {
     const mapVisible = !!document.getElementById('resume_questions_button');
     const visitVisible = !!document.querySelector('.visit_text');
     let tw = document.getElementById('typewriter-overlay');
-    if (visitVisible) {
-        const vt = document.querySelector('p.visit_text');
-        if (vt && !vt.dataset.repositioned) {
-            vt.dataset.repositioned = '1';
-            vt.style.cssText = 'position:fixed;bottom:185px;left:0;right:0;text-align:center;z-index:6;margin:0;pointer-events:none;';
-        }
-    }
+    // .visit_text positioning is owned by Code 1's visit-hide-style
+    // (.visit_text { bottom: … !important }) — an inline style here could
+    // never win against it and only obscured where the position came from.
 
     if (mapVisible || visitVisible) {
         if (tw) tw.style.display = 'none';
@@ -12849,6 +12954,9 @@ function addInnerCircleButton() {
     btn.textContent = 'Enemies/Friends';
     btn.style.marginLeft = '10px';
     btn.addEventListener('click', openInnerCircle);
+    // The button is recreated on every engine render; re-apply the reshuffle
+    // glow while an offer is live this turn.
+    if (typeof _RESHUFFLE !== 'undefined' && _RESHUFFLE.isActive()) btn.classList.add('rs-glow');
     ref.insertAdjacentElement('afterend', btn);
 }
 
@@ -12871,25 +12979,50 @@ const _LP_CRIMES = [
 
 var _legalPadScreen = 0; // 0 = High Crimes tab, 1+ = future tabs
 
+// ── ACTION CRIMES (hush money / clemency from the President's Men screen) ──────
+// Each Hush Money / Offer Clemency use is recorded as a specific per-person
+// crime. They stay HIDDEN until a question reveals them — its onShow calls
+// _revealActionCrimes() — at which point they all appear together under
+// "Known Crimes" in the legal pad's High Crimes tab. Reset on New Game.
+var _actionCrimesRevealed = false;
+var _actionCrimes = [];   // { id, label } — one entry per person per action type
+var _CRIME_NAMES = {      // display-name fixes where the pressure key differs
+    Burglars: 'the Watergate Burglars',
+};
+function _crimeName(key) { return _CRIME_NAMES[key] || key; }
+function _recordActionCrime(type, key) {
+    var id = type + ':' + key;
+    if (_actionCrimes.some(c => c.id === id)) return;   // don't double-list the same man
+    var label = (type === 'hush' ? 'Hush Money — ' : 'Clemency — ') + _crimeName(key);
+    _actionCrimes.push({ id: id, label: label });
+}
+function _revealActionCrimes() { _actionCrimesRevealed = true; }
+// ── END ACTION CRIMES ─────────────────────────────────────────────────────────
+
 function _lpCrimesHTML() {
     const tiers = [
         { level: 3, heading: 'Impeachable Offenses' },
         { level: 2, heading: 'Before the Grand Jury' },
         { level: 1, heading: 'Known Crimes' },
     ];
-    let html = '';
+    // The President's own exposure, above the tier subheadings (both surfaces:
+    // the legal-pad panel and the file-drawer Crimes tab share this builder).
+    // Every line is line-height:28px on the pad's baseline grid; tier headings
+    // get a blank ruled line before them (margin-top:28px).
+    let html = `<div style="font-family:'TypewriterDry',monospace;font-size:12px;font-weight:bold;`
+        + `text-transform:uppercase;letter-spacing:1.2px;color:#7a1f1f;line-height:28px;">`
+        + `Presidential Watergate Exposure — ${WatergateExposure} / 20</div>`;
     tiers.forEach(({ level, heading }) => {
-        const items = _LP_CRIMES.filter(c => c.val() === level);
-        if (!items.length) return;
-        html += `<div style="margin-bottom:10px;">
-            <div style="font-family:'TypewriterDry',monospace;font-size:11px;font-weight:bold;
-                        text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #7a5c2e;
-                        margin-bottom:4px;padding-bottom:2px;color:#3a2a10;">${heading}</div>`;
-        items.forEach(c => {
-            html += `<div style="font-family:'TypewriterDry',monospace;font-size:12px;
-                                 color:#1a1a1a;line-height:1.5;">— ${c.label}</div>`;
+        let labels = _LP_CRIMES.filter(c => c.val() === level).map(c => c.label);
+        // Revealed hush-money / clemency crimes join the Known Crimes tier.
+        if (level === 1 && _actionCrimesRevealed) labels = labels.concat(_actionCrimes.map(c => c.label));
+        if (!labels.length) return;
+        html += `<div style="font-family:'TypewriterDry',monospace;font-size:11px;font-weight:bold;`
+            + `text-transform:uppercase;letter-spacing:1px;color:#3a2a10;line-height:28px;margin-top:28px;">${heading}</div>`;
+        labels.forEach(label => {
+            html += `<div style="font-family:'TypewriterDry',monospace;font-size:12px;`
+                + `color:#1a1a1a;line-height:28px;">— ${label}</div>`;
         });
-        html += `</div>`;
     });
     // html stays empty string when all variables are 0
     return html;
@@ -12952,6 +13085,211 @@ function openLegalPad() {
     document.getElementById('game_window').appendChild(panel);
 }
 
+// ── TEAM ACTIONS (All the President's Men screen) ─────────────────────────────
+// Four charge-based actions, shown as buttons pinned to the top-left of the
+// President's Men window (above the Dean column). Each button embeds the number
+// of uses remaining. Question answers grant charges — from cyoAdventure or an
+// onShow, either bump the var directly (HushMoneyStack += 1) or call
+// _addTeamAction('hush', 1), which also refreshes the buttons if the panel is
+// open. Console test:  _addTeamAction('blame', 2)
+//
+// Charges are per-run resources: reset to 0 on New Game.
+var HushMoneyStack     = 0;
+var CutThemLooseStack  = 0;
+var OfferClemencyStack = 0;
+var PinTheBlameStack   = 0;
+
+const _TEAM_ACTIONS = [
+    { key: 'hush',     label: 'Hush Money',     get: () => HushMoneyStack,     set: v => { HushMoneyStack = v; } },
+    { key: 'cut',      label: 'Cut Them Loose', get: () => CutThemLooseStack,  set: v => { CutThemLooseStack = v; } },
+    { key: 'clemency', label: 'Offer Clemency', get: () => OfferClemencyStack, set: v => { OfferClemencyStack = v; } },
+    { key: 'blame',    label: 'Pin the Blame',  get: () => PinTheBlameStack,   set: v => { PinTheBlameStack = v; } },
+];
+
+function _teamAction(key) { return _TEAM_ACTIONS.find(a => a.key === key); }
+
+// Grant charges (answers call this — or bump the var and call _syncTeamActionBtns()).
+function _addTeamAction(key, n) {
+    const a = _teamAction(key);
+    if (a) { a.set(Math.max(0, a.get() + (n == null ? 1 : n))); _syncTeamActionBtns(); }
+}
+
+// Spend one charge. Returns true if a charge was available. The click handler
+// does NOT call this yet — effects/targeting aren't designed; wire them in
+// _teamActionClicked below and spend there.
+function _spendTeamAction(key) {
+    const a = _teamAction(key);
+    if (!a || a.get() <= 0) return false;
+    a.set(a.get() - 1);
+    _syncTeamActionBtns();
+    return true;
+}
+
+// ---- targeting ---------------------------------------------------------------
+// ALL team actions may only target staff BELOW the Haldeman / Ehrlichman /
+// Colson / Mitchell row — Dean IS eligible. (Nixon and the inner four are not.)
+// Flipped men (state's witnesses) are beyond reach too.
+const _TA_EXCLUDED = ['Nixon', 'Haldeman', 'Ehrlichman', 'Colson', 'Mitchell'];
+// DOM node data-person → _ORG_PRESSURE key, where they differ.
+const _TA_KEYMAP = { WatergateBurglars: 'Burglars' };
+
+function _taKeyFor(person) { return _TA_KEYMAP[person] || person; }
+function _taEligible(person) {
+    const k = _taKeyFor(person);
+    return !_TA_EXCLUDED.includes(person)
+        && !!_ORG_PRESSURE[k]
+        && !_flipped.has(k);
+}
+
+// Which actions have a wired effect. The other three keep their charges and
+// buttons but do nothing until their mechanics are designed.
+const _TA_WIRED = {
+    hush: {
+        prompt: 'Hush money: pick the man to pay off (click the button again to cancel).',
+        apply(key) {
+            _payOff(key);   // +1 loyalty, decay/radiation frozen 4 turns (per the manual)
+            _recordActionCrime('hush', key);   // logged as a specific crime (hidden until revealed)
+            return 'Paid off ' + _crimeName(key) + ' — loyalty +1, pressure frozen for 4 turns.';
+        }
+    },
+    cut: {
+        prompt: 'Cut them loose: pick the man to disown (click the button again to cancel).',
+        // Only men still ACTIVE (status >= 5): "cutting loose" someone already
+        // indicted or imprisoned would paradoxically upgrade his status pill.
+        canTarget(key) {
+            const p = _ORG_PRESSURE[key];
+            return !!(p && p.st) && p.st() >= 5;
+        },
+        apply(key) {
+            _ORG_PRESSURE[key].setSt(4);   // 4 = cut loose (green pill via _syncOrgStates)
+            return 'Cut ' + _crimeName(key) + ' loose — he is on his own now.';
+        }
+    },
+    clemency: {
+        prompt: 'Offer clemency: pick a loyal man under indictment or in prison (click the button again to cancel).',
+        // Only loyalists (loyalty above 5) who are indicted (3) or imprisoned (2),
+        // and not already holding a clemency promise.
+        canTarget(key) {
+            const p = _ORG_PRESSURE[key];
+            if (!p || !p.st || !p.loy) return false;
+            const st = p.st();
+            return p.loy() > 5 && (st === 2 || st === 3)
+                && !_clemencies.some(c => c.key === key);
+        },
+        apply(key) {
+            const p = _ORG_PRESSURE[key];
+            const before = p.loy();
+            p.setLoy(Math.min(10, before + 2));
+            // Store the boost ACTUALLY applied (cap-aware) so wearing off removes
+            // exactly what was granted; remember status to detect the deal voiding.
+            _clemencies.push({ key, boost: p.loy() - before, expiresTurn: _questionCount + 4, statusAtGrant: p.st() });
+            _recordActionCrime('clemency', key);   // logged as a specific crime (hidden until revealed)
+            return 'Clemency dangled before ' + _crimeName(key) + ' — loyalty +2 for 4 turns, void if his situation changes.';
+        }
+    },
+    blame: {
+        prompt: 'Pin the blame: pick a wavering man (loyalty 3 or less) to hang it on (click the button again to cancel).',
+        // Desperation move: only on the table once the President's own exposure
+        // is serious (above 10 of 20).
+        available() { return typeof WatergateExposure !== 'undefined' && WatergateExposure > 10; },
+        unavailableHint: 'Available once the President\'s Watergate exposure is above 10.',
+        canTarget(key) {
+            const p = _ORG_PRESSURE[key];
+            return !!(p && p.loy) && p.loy() <= 3;
+        },
+        apply(key) {
+            const p = _ORG_PRESSURE[key];
+            p.setExp(Math.min(10, p.exp() + 2));
+            p.setLoy(Math.max(0, p.loy() - 2));
+            WatergateExposure = Math.max(0, WatergateExposure - 1);
+            return 'Pinned the blame on ' + _crimeName(key) + ' — his exposure +2 and loyalty −2; the President\'s exposure eases to ' + WatergateExposure + ' / 20.';
+        }
+    },
+};
+
+// Active clemency promises: { key, boost, expiresTurn, statusAtGrant }.
+// The wear-off tick lives with the other _everyTurn registrations (turn engine).
+const _clemencies = [];
+
+var _taMode = null;   // action key while picking a target, else null
+
+function _taHint(text) {
+    const h = document.getElementById('nw-ta-hint');
+    if (h) h.textContent = text || '';
+}
+
+function _taExitMode() {
+    _taMode = null;
+    document.querySelectorAll('#nw-team-actions .nw-ta-armed').forEach(b => b.classList.remove('nw-ta-armed'));
+    const w = document.getElementById('nw-chart-wrapper');
+    if (w) {
+        w.classList.remove('ta-mode');
+        w.querySelectorAll('.nw-ta-eligible').forEach(n => n.classList.remove('nw-ta-eligible'));
+    }
+}
+
+function _teamActionClicked(key) {
+    if (_taMode === key) { _taExitMode(); _taHint(''); return; }   // second click cancels
+    _taExitMode();
+    const a = _teamAction(key);
+    if (!a || a.get() <= 0) return;
+    const wired = _TA_WIRED[key];
+    if (!wired) return;   // mechanic not designed yet
+    if (wired.available && !wired.available()) return;   // e.g. blame below the exposure gate
+    _taMode = key;
+    const btn = document.querySelector('#nw-team-actions [data-action="' + key + '"]');
+    if (btn) btn.classList.add('nw-ta-armed');
+    const w = document.getElementById('nw-chart-wrapper');
+    if (w) {
+        w.classList.add('ta-mode');
+        w.querySelectorAll('.nw-node[data-person]').forEach(n => {
+            const p = n.dataset.person;
+            if (_taEligible(p) && (!wired.canTarget || wired.canTarget(_taKeyFor(p)))) {
+                n.classList.add('nw-ta-eligible');
+            }
+        });
+    }
+    _taHint(wired.prompt);
+}
+
+// Called from the org chart's click handler BEFORE flip handling.
+// Returns true if the click was consumed by target-select mode.
+function _taHandleNodeClick(node) {
+    if (!_taMode) return false;
+    const person = node.dataset.person;
+    const wired = _TA_WIRED[_taMode];
+    if (!_taEligible(person)
+        || (wired.canTarget && !wired.canTarget(_taKeyFor(person)))) {
+        return true;   // swallow the click; no flip mid-mode
+    }
+    const mode = _taMode;
+    if (!_spendTeamAction(mode)) { _taExitMode(); _taHint(''); return true; }
+    const msg = _TA_WIRED[mode].apply(_taKeyFor(person));
+    _taExitMode();
+    _taHint(msg);
+    if (typeof window._syncOrgStates === 'function') window._syncOrgStates();
+    return true;
+}
+
+// Refresh counts/disabled state on the rendered buttons (no-op if panel closed).
+// A wired action with an available() gate (e.g. Pin the Blame below the
+// exposure threshold) shows disabled even with charges, with the reason as a
+// hover title.
+function _syncTeamActionBtns() {
+    const box = document.getElementById('nw-team-actions');
+    if (!box) return;
+    _TEAM_ACTIONS.forEach(a => {
+        const btn = box.querySelector('[data-action="' + a.key + '"]');
+        if (!btn) return;
+        const wired = _TA_WIRED[a.key];
+        const locked = !!(wired && wired.available && !wired.available());
+        btn.querySelector('.nw-ta-count').textContent = a.get();
+        btn.disabled = a.get() <= 0 || locked;
+        btn.title = locked ? (wired.unavailableHint || '') : '';
+    });
+}
+// ── END TEAM ACTIONS ──────────────────────────────────────────────────────────
+
 function openInnerCircle() {
     const questions = document.querySelector('.inner_window_question');
     if (questions) questions.style.display = 'none';
@@ -12963,6 +13301,23 @@ function openInnerCircle() {
     const title = document.createElement('h2');
     title.textContent = "All the President's Men";
     panel.appendChild(title);
+
+    // Team action buttons, pinned top-left (above the Dean column)
+    _taMode = null;   // never carry target-select mode across panel opens
+    const taBox = document.createElement('div');
+    taBox.id = 'nw-team-actions';
+    _TEAM_ACTIONS.forEach(a => {
+        const btn = document.createElement('button');
+        btn.className = 'nw-ta-btn';
+        btn.dataset.action = a.key;
+        btn.innerHTML = a.label + ' <span class="nw-ta-count"></span>';
+        btn.addEventListener('click', () => _teamActionClicked(a.key));
+        taBox.appendChild(btn);
+    });
+    const taHint = document.createElement('div');
+    taHint.id = 'nw-ta-hint';
+    taBox.appendChild(taHint);
+    panel.appendChild(taBox);
 
     const chartWrapper = document.createElement('div');
     if (typeof window._renderOrgChart === 'function') window._renderOrgChart(chartWrapper);
@@ -12985,6 +13340,7 @@ function openInnerCircle() {
         panel.remove();
         openOfficialsPanel(questions);
     });
+    if (typeof _RESHUFFLE !== 'undefined' && _RESHUFFLE.isActive()) officialsBtn.classList.add('rs-glow');
     btnRow.appendChild(officialsBtn);
 
     const backBtn = document.createElement('button');
@@ -12998,6 +13354,7 @@ function openInnerCircle() {
 
     panel.appendChild(btnRow);
     document.getElementById('game_window').appendChild(panel);
+    _syncTeamActionBtns();
     requestAnimationFrame(() => requestAnimationFrame(() => {
         if (typeof window._drawOrgLinks  === 'function') window._drawOrgLinks();
         if (typeof window._syncOrgStates === 'function') window._syncOrgStates();
@@ -13159,26 +13516,75 @@ const OFFICIALS_ROSTER = {
         image: '',
         bio: "William Colby, career CIA officer and Vietnam veteran of the agency's most brutal programmes, succeeds Schlesinger as Director. His willingness to open the agency's files to congressional oversight — the so-called Family Jewels — will enrage the intelligence old guard and define the post-Nixon reckoning."
     },
+    'Connally': {
+        image: '',
+        bio: "PLACEHOLDER — John Connally, the Texas Democrat turned Nixon favourite. LBJ's protégé, wounded in the Kennedy motorcade, Treasury Secretary who took America off gold. Offered State in the post-election reshuffle of late 1972 — in this telling he might take it. Nixon's preferred heir; a bruiser with a chequebook. Proper bio to come."
+    },
     'none': {
         image: '',
         bio: "This position currently stands vacant."
     }
 };
 
-// Row order: CoS -> NSA -> SOS -> SOD -> AG (with SP + FBI beneath) -> CIA
+// ── OFFICIALS CARD-BACK TEXT (flip feature) ──────────────────────────────────
+// Clicking a card on the Officials screen flips it (same mechanic as All the
+// President's Men) to show the gameplay effects of having that person in post.
+// PURE CUSTOM TEXT — not linked to any game variables. Edit freely.
+//
+// Keyed by PERSON (same keys as OFFICIALS_ROSTER above). A value can be:
+//   - a string                       → shown whatever post they hold
+//   - { default: "…", SOS: "…", … }  → per-post override (varNames: ChiefOfStaff,
+//     NSA, SOS, SOD, AttorneyGeneral, SP, FBI, CIA), falling back to `default`.
+// Anyone without an entry gets OFFICIALS_EFFECTS._DEFAULT.
+const OFFICIALS_EFFECTS = {
+    _DEFAULT: "Effects of this appointment have not been catalogued yet.",
+    _VACANT:  "The office stands vacant. Its duties fall to deputies and acting men — and nothing gets decided.",
+
+    Kissinger: "Kissinger will give you more diplomatic opportunities on the World Map but some foreign policy options will be closed off to you as he becomes more insubordinate.",
+
+    Haldeman:    "PLACEHOLDER — effects text to come.",
+    Rogers:      "PLACEHOLDER — effects text to come.",
+    Laird:       "The old congressman never really left the Hill. With Laird at Defense, Congressional relations improve by 1 every 5 turns.",
+    Kleindienst: "PLACEHOLDER — effects text to come.",
+    Helms:       "PLACEHOLDER — effects text to come.",
+    Gray:        "PLACEHOLDER — effects text to come.",
+    Rockefeller: "PLACEHOLDER — effects text to come.",
+    Haig:        "PLACEHOLDER — effects text to come.",
+    Scowcroft:   "PLACEHOLDER — effects text to come.",
+    Richardson:  "PLACEHOLDER — effects text to come.",
+    Schlesinger: "PLACEHOLDER — effects text to come.",
+    Saxbe:       "PLACEHOLDER — effects text to come.",
+    Cox:         "PLACEHOLDER — effects text to come.",
+    Jaworski:    "PLACEHOLDER — effects text to come.",
+    Ruckelshaus: "PLACEHOLDER — effects text to come.",
+    Kelley:      "PLACEHOLDER — effects text to come.",
+    Sullivan:    "PLACEHOLDER — effects text to come.",
+    Wilson:      "PLACEHOLDER — effects text to come.",
+    Felt:        "PLACEHOLDER — effects text to come.",
+    Colby:       "PLACEHOLDER — effects text to come.",
+    Connally:    "PLACEHOLDER — effects text to come. (At State: Improve Relations +1 and Send Aid +1 every 3 turns, Reduce Aid +1 every 2.)",
+};
+// ── END OFFICIALS CARD-BACK TEXT ─────────────────────────────────────────────
+
+// Explicit rows, left edges aligned. Row 1: CoS, NSA, SOS, SOD.
+// Row 2: CIA sits under the leftmost card (CoS), then the AG group (SP + FBI beneath).
 const OFFICIALS_LAYOUT = [
-    { varName: 'ChiefOfStaff',    role: 'Chief of Staff' },
-    { varName: 'NSA',              role: 'Nat. Security Advisor' },
-    { varName: 'SOS',              role: 'Secretary of State' },
-    { varName: 'SOD',              role: 'Secretary of Defense' },
-    {
-        varName: 'AttorneyGeneral', role: 'Attorney General',
-        subordinates: [
-            { varName: 'SP',  role: 'Special Prosecutor' },
-            { varName: 'FBI', role: 'FBI Director' }
-        ]
-    },
-    { varName: 'CIA', role: 'CIA Director' }
+    [
+        { varName: 'ChiefOfStaff',    role: 'Chief of Staff' },
+        { varName: 'NSA',              role: 'Nat. Security Advisor' },
+        { varName: 'SOS',              role: 'Secretary of State' },
+        { varName: 'SOD',              role: 'Secretary of Defense' },
+    ],
+    [
+        { varName: 'CIA', role: 'CIA Director' },
+        {
+            varName: 'AttorneyGeneral', role: 'Attorney General',
+            subordinates: [
+                { varName: 'SP',  role: 'Special Prosecutor' },
+                { varName: 'FBI', role: 'FBI Director' }
+            ]
+        },
+    ]
 ];
 
 // Direct closure getters — window[varName] is unreliable inside new Function() scope
@@ -13216,65 +13622,79 @@ const OFFICIALS_VARS = {
             font-size: 18px;
         }
         .oc-grid {
+            /* Column of rows sharing one left edge, centered as a block —
+               row 2's first card (CIA) sits exactly under row 1's first (CoS). */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: max-content;
+            margin: 20px auto 0;
+            gap: 16px;
+        }
+        .oc-row {
             display: flex;
             flex-direction: row;
-            flex-wrap: wrap;
             gap: 10px;
-            justify-content: center;
             align-items: flex-start;
-            flex: 1;
-            margin-top: 20px;
         }
         .oc-ag-group {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        .oc-ag-group > .oc-card {
-            margin-bottom: 0;
-        }
         .oc-connector {
             width: 1px;
-            height: 30px;
+            height: 14px;
             background: #888;
             margin: 0 auto;
         }
         .oc-sub-row {
             display: flex;
             flex-direction: row;
-            gap: 8px;
-            position: relative;
         }
-        .oc-sub-row::before {
+        /* Each subordinate sits in a cell that draws its own riser plus its half
+           of the horizontal bar, so the lines meet the card centres exactly at
+           any card size (the old 25%/75% bar missed the risers). */
+        .oc-sub-cell {
+            position: relative;
+            padding-top: 14px;
+        }
+        .oc-sub-cell + .oc-sub-cell {
+            margin-left: 10px;
+        }
+        .oc-sub-cell::before {
             content: '';
             position: absolute;
             top: 0;
-            left: 25%;
-            right: 25%;
+            left: 50%;
+            width: 1px;
+            height: 14px;
+            background: #888;
+        }
+        .oc-sub-cell:first-child::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            right: -5px;
             height: 1px;
             background: #888;
         }
-        .oc-sub-row > .oc-card:first-child {
-            position: relative;
-            top: 10px;
-        }
-        .oc-sub-row > .oc-card:first-child::before {
+        .oc-sub-cell:last-child::after {
             content: '';
             position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 1px;
-            height: 10px;
+            top: 0;
+            right: 50%;
+            left: -5px;
+            height: 1px;
             background: #888;
         }
         .oc-card {
-            width: 138px;
-            height: 230px;
-            overflow: hidden;
+            width: 210px;
+            min-height: 230px;
             border: 1px solid #888;
             border-radius: 3px;
-            padding: 7px 6px 6px;
+            padding: 9px 8px 8px;
             background: rgba(255,255,255,0.84);
             text-align: center;
             box-shadow: 1px 1px 4px rgba(0,0,0,0.18);
@@ -13310,7 +13730,7 @@ const OFFICIALS_VARS = {
             font-family: Arial, sans-serif;
         }
         .oc-role {
-            font-size: 8.5px;
+            font-size: 9px;
             text-transform: uppercase;
             letter-spacing: 0.7px;
             color: #666;
@@ -13319,19 +13739,129 @@ const OFFICIALS_VARS = {
             margin-bottom: 2px;
         }
         .oc-name {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
             color: #111;
             font-family: 'TypewriterDry', sans-serif;
             margin-bottom: 4px;
         }
         .oc-bio {
-            font-size: 8.5px;
+            font-size: 9.5px;
             color: #444;
             font-family: 'TypewriterDry', sans-serif;
-            line-height: 1.35;
+            line-height: 1.4;
             text-align: left;
         }
+        /* Card flip (same mechanic as All the President's Men). The .oc-card is
+           the FRONT face; the back shows OFFICIALS_EFFECTS text. */
+        .oc-flip {
+            perspective: 800px;
+            cursor: pointer;
+        }
+        .oc-flip-inner {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.45s ease;
+        }
+        .oc-flip.oc-flipped .oc-flip-inner { transform: rotateY(180deg); }
+        .oc-card, .oc-card-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .oc-card-back {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            transform: rotateY(180deg);
+            border: 1px solid #888;
+            border-radius: 3px;
+            background: rgba(255,250,238,0.96);
+            box-shadow: 1px 1px 4px rgba(0,0,0,0.18);
+            padding: 14px 12px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .oc-back-label {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 8.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #997a4d;
+            margin-bottom: 8px;
+        }
+        .oc-back-text {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 10.5px;
+            line-height: 1.5;
+            color: #333;
+            text-align: left;
+        }
+        /* ── Cabinet reshuffle (see _RESHUFFLE) ── */
+        .rs-glow {
+            animation: rs-pulse 1.1s ease-in-out infinite;
+            border-radius: 3px;
+        }
+        @keyframes rs-pulse {
+            0%, 100% { box-shadow: 0 0 3px 1px  rgba(255, 200, 60, 0.55); }
+            50%      { box-shadow: 0 0 12px 5px rgba(255, 200, 60, 0.95); }
+        }
+        .oc-pending {
+            margin-top: 6px;
+            padding: 3px 5px;
+            border: 1px dashed #997a4d;
+            border-radius: 3px;
+            background: rgba(255, 235, 195, 0.75);
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 9px;
+            color: #6b4f1d;
+        }
+        #rs-picker {
+            position: sticky;
+            bottom: 10px;
+            align-self: flex-start;
+            z-index: 30;
+            background: rgba(22, 24, 34, 0.94);
+            border: 1px solid #997a4d;
+            border-radius: 6px;
+            padding: 10px 12px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.5);
+            max-width: 96%;
+        }
+        #rs-picker .rs-head {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            color: #f4d58d;
+            margin-bottom: 3px;
+        }
+        #rs-picker .rs-warn {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 10px;
+            color: #ff8a80;
+            margin-bottom: 8px;
+        }
+        #rs-picker .rs-cands {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            align-items: flex-start;
+            overflow-x: auto;
+        }
+        #rs-picker .rs-cand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        #rs-picker .rs-cand button,
+        #rs-picker .rs-close {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        #rs-picker .rs-close { margin-top: 8px; }
     `;
     document.head.appendChild(_ocStyle);
 })();
@@ -13349,8 +13879,9 @@ function openOfficialsPanel(questions) {
     const grid = document.createElement('div');
     grid.className = 'oc-grid';
 
-    function makeCard(varName, role) {
-        const person = OFFICIALS_VARS[varName] ? OFFICIALS_VARS[varName]() : null;
+    // Build a flippable card for an arbitrary person in a given post. Used for
+    // the live office-holders (via makeCard) AND for reshuffle candidates.
+    function makePersonCard(person, role, varName) {
         const data = OFFICIALS_ROSTER[person] || { image: '', bio: 'No information available.' };
         const isVacant = (person === 'none' || person == null);
         // A person may hold different posts over the game (e.g. Kissinger as NSA
@@ -13394,31 +13925,161 @@ function openOfficialsPanel(questions) {
             .replace(/\[p\]([\s\S]*?)\[\/p\]/g, '<p style="margin:4px 0 0;">$1</p>');
         card.appendChild(bioEl);
 
-        return card;
+        // Flip wrapper: the card above is the front face; the back shows the
+        // custom OFFICIALS_EFFECTS text for whoever holds the post.
+        let fx = isVacant ? OFFICIALS_EFFECTS._VACANT
+               : (OFFICIALS_EFFECTS[person] ?? OFFICIALS_EFFECTS._DEFAULT);
+        if (fx && typeof fx === 'object') fx = fx[varName] ?? fx.default ?? OFFICIALS_EFFECTS._DEFAULT;
+
+        const back = document.createElement('div');
+        back.className = 'oc-card-back';
+        const backLabel = document.createElement('div');
+        backLabel.className = 'oc-back-label';
+        backLabel.textContent = isVacant ? 'Vacancy' : 'In post: ' + role;
+        back.appendChild(backLabel);
+        const backText = document.createElement('div');
+        backText.className = 'oc-back-text';
+        backText.textContent = fx;
+        back.appendChild(backText);
+
+        const flipInner = document.createElement('div');
+        flipInner.className = 'oc-flip-inner';
+        flipInner.appendChild(card);
+        flipInner.appendChild(back);
+        const flip = document.createElement('div');
+        flip.className = 'oc-flip';
+        flip.title = 'Click to flip';
+        flip.appendChild(flipInner);
+        return flip;
     }
 
-    OFFICIALS_LAYOUT.forEach(item => {
-        if (item.subordinates) {
-            const group = document.createElement('div');
-            group.className = 'oc-ag-group';
-            group.appendChild(makeCard(item.varName, item.role));
-
-            const connector = document.createElement('div');
-            connector.className = 'oc-connector';
-            group.appendChild(connector);
-
-            const subRow = document.createElement('div');
-            subRow.className = 'oc-sub-row';
-            item.subordinates.forEach(sub => subRow.appendChild(makeCard(sub.varName, sub.role)));
-            group.appendChild(subRow);
-
-            grid.appendChild(group);
-        } else {
-            grid.appendChild(makeCard(item.varName, item.role));
+    // Card for the CURRENT holder of a post (dataset.varName marks it as a live
+    // slot — the reshuffle glow/picker targets these, never candidate cards).
+    function makeCard(varName, role) {
+        const person = OFFICIALS_VARS[varName] ? OFFICIALS_VARS[varName]() : null;
+        const flip = makePersonCard(person, role, varName);
+        flip.dataset.varName = varName;
+        const pend = _RESHUFFLE.pendingFor(varName);
+        if (pend) {
+            const badge = document.createElement('div');
+            badge.className = 'oc-pending';
+            const turns = pend.dueTurn - _questionCount;
+            badge.textContent = '→ ' + pend.person + ' takes office in ' + turns + (turns === 1 ? ' turn' : ' turns');
+            flip.querySelector('.oc-card').appendChild(badge);
         }
+        return flip;
+    }
+
+    OFFICIALS_LAYOUT.forEach(rowItems => {
+        const row = document.createElement('div');
+        row.className = 'oc-row';
+        rowItems.forEach(item => {
+            if (item.subordinates) {
+                const group = document.createElement('div');
+                group.className = 'oc-ag-group';
+                group.appendChild(makeCard(item.varName, item.role));
+
+                const connector = document.createElement('div');
+                connector.className = 'oc-connector';
+                group.appendChild(connector);
+
+                const subRow = document.createElement('div');
+                subRow.className = 'oc-sub-row';
+                item.subordinates.forEach(sub => {
+                    // Cell wrapper draws the riser + its half of the horizontal
+                    // bar; see the .oc-sub-cell CSS.
+                    const cell = document.createElement('div');
+                    cell.className = 'oc-sub-cell';
+                    cell.appendChild(makeCard(sub.varName, sub.role));
+                    subRow.appendChild(cell);
+                });
+                group.appendChild(subRow);
+
+                row.appendChild(group);
+            } else {
+                row.appendChild(makeCard(item.varName, item.role));
+            }
+        });
+        grid.appendChild(row);
     });
 
     panel.appendChild(grid);
+
+    // Reshuffle: glow the swappable role cards while an offer is live.
+    if (_RESHUFFLE.isActive()) {
+        Object.keys(_RESHUFFLE.active.slots).forEach(vn => {
+            const f = grid.querySelector('.oc-flip[data-var-name="' + vn + '"]');
+            if (f) f.classList.add('rs-glow');
+        });
+    }
+
+    // Candidate picker, pinned bottom-left of the screen (sticky: it hugs the
+    // visible bottom edge even while the panel scrolls).
+    function openPicker(varName, role, slot) {
+        panel.querySelector('#rs-picker')?.remove();
+        const pick = document.createElement('div');
+        pick.id = 'rs-picker';
+
+        const head = document.createElement('div');
+        head.className = 'rs-head';
+        head.textContent = 'Appoint ' + role
+            + (slot.delay > 0
+                ? ' — takes office ' + slot.delay + (slot.delay === 1 ? ' turn' : ' turns') + ' from now'
+                : ' — takes office immediately');
+        pick.appendChild(head);
+
+        const warn = document.createElement('div');
+        warn.className = 'rs-warn';
+        warn.textContent = 'Left unfilled at the end of this turn, the post falls vacant.';
+        pick.appendChild(warn);
+
+        const cands = document.createElement('div');
+        cands.className = 'rs-cands';
+        (slot.candidates || []).forEach(person => {
+            const cell = document.createElement('div');
+            cell.className = 'rs-cand';
+            cell.appendChild(makePersonCard(person, role, varName)); // flippable: bio front, effects back
+            const b = document.createElement('button');
+            b.textContent = 'Appoint ' + person;
+            b.addEventListener('click', () => {
+                _RESHUFFLE.choose(varName, person);
+                panel.remove();
+                openOfficialsPanel(questions); // re-render: new holder / pending badge, glows cleared
+            });
+            cell.appendChild(b);
+            cands.appendChild(cell);
+        });
+        pick.appendChild(cands);
+
+        // Flip candidate cards on click (they live outside the grid delegation).
+        cands.addEventListener('click', (e) => {
+            if (e.target.closest('button')) return;
+            const f = e.target.closest('.oc-flip');
+            if (f) f.classList.toggle('oc-flipped');
+        });
+
+        const closeB = document.createElement('button');
+        closeB.className = 'rs-close';
+        closeB.textContent = 'Not now';
+        closeB.addEventListener('click', () => pick.remove());
+        pick.appendChild(closeB);
+
+        panel.appendChild(pick);
+    }
+
+    // Flip on click — but a glowing (swappable) role opens the picker instead.
+    grid.addEventListener('click', (e) => {
+        const f = e.target.closest('.oc-flip');
+        if (!f) return;
+        const slot = _RESHUFFLE.slotFor(f.dataset.varName);
+        if (slot) {
+            const item = OFFICIALS_LAYOUT.flat().flatMap(i => [i, ...(i.subordinates || [])])
+                .find(i => i.varName === f.dataset.varName);
+            openPicker(f.dataset.varName, item ? item.role : f.dataset.varName, slot);
+            return;
+        }
+        f.classList.toggle('oc-flipped');
+    });
 
     const btnRow = document.createElement('div');
     btnRow.className = 'ic-panel-buttons';
@@ -13434,6 +14095,73 @@ function openOfficialsPanel(questions) {
 
     document.getElementById('game_window').appendChild(panel);
 }
+
+// ── CABINET RESHUFFLE ─────────────────────────────────────────────────────────
+// Offer the player a partial reshuffle via the Officials screen, armed from a
+// question's onShow and live FOR THAT TURN ONLY. While live, the glow trail is:
+// Enemies/Friends button → Officials button → the swappable role cards. Clicking
+// a glowing role opens the candidate picker (bottom-left); an appointment can
+// take effect immediately (delay 0) or N turns later.
+//
+// USAGE from questionData:
+//   onShow: () => _RESHUFFLE.offer({
+//       SOS: { candidates: ['Rockefeller', 'Kissinger'], delay: 2 },
+//       FBI: { candidates: ['Kelley', 'Felt', 'Wilson'], delay: 0 },
+//   })
+// varNames: ChiefOfStaff, NSA, SOS, SOD, AttorneyGeneral, SP, FBI, CIA.
+// Candidates are OFFICIALS_ROSTER keys. delay = turns until they take office.
+// NOT choosing has a cost: when the offer lapses at end of turn, every slot the
+// player left unfilled falls VACANT ('none').
+// Console test:  _RESHUFFLE.offer({ SOS: { candidates: ['Rockefeller'], delay: 2 } })
+// ──────────────────────────────────────────────────────────────────────────────
+const OFFICIALS_SETTERS = {
+    ChiefOfStaff:    v => { ChiefOfStaff = v; },
+    NSA:             v => { NSA = v; },
+    SOS:             v => { SOS = v; },
+    SOD:             v => { SOD = v; },
+    AttorneyGeneral: v => { AttorneyGeneral = v; },
+    SP:              v => { SP = v; },
+    FBI:             v => { FBI = v; },
+    CIA:             v => { CIA = v; },
+};
+
+var _RESHUFFLE = {
+    active: null,   // { slots: { varName: {candidates, delay} }, turn } — this turn's offer
+    pending: [],    // [{ varName, person, dueTurn }] — appointments not yet in office
+
+    offer(slots) {
+        this.active = { slots: Object.assign({}, slots), turn: _questionCount };
+        const b = document.getElementById('inner_circle_button');
+        if (b) b.classList.add('rs-glow');
+    },
+    isActive() { return !!(this.active && Object.keys(this.active.slots).length); },
+    slotFor(varName) { return (this.active && this.active.slots[varName]) || null; },
+    pendingFor(varName) { return this.pending.find(p => p.varName === varName) || null; },
+
+    choose(varName, person) {
+        const slot = this.slotFor(varName);
+        if (!slot) return;
+        const delay = slot.delay | 0;
+        if (delay <= 0) OFFICIALS_SETTERS[varName](person);
+        else this.pending.push({ varName, person, dueTurn: _questionCount + delay });
+        delete this.active.slots[varName];
+        if (!this.isActive()) this.clear();
+    },
+    clear() {
+        this.active = null;
+        document.getElementById('inner_circle_button')?.classList.remove('rs-glow');
+    },
+    // Offer lapsed without a choice: every unfilled slot falls VACANT — the
+    // incumbent was leaving either way; ignoring the decision means the office
+    // sits empty ('none' → "(Vacant)" card, _VACANT effects text).
+    expire() {
+        if (this.active) Object.keys(this.active.slots).forEach(vn => {
+            if (OFFICIALS_SETTERS[vn]) OFFICIALS_SETTERS[vn]('none');
+        });
+        this.clear();
+    },
+    reset() { this.clear(); this.pending.length = 0; },  // New Game
+};
 
 // =============================================
 // NETWORK / ORGANOGRAM — renderer used by openInnerCircle
@@ -13461,6 +14189,57 @@ function openOfficialsPanel(questions) {
             margin: 0 0 10px;
             font-size: 18px;
             flex-shrink: 0;
+        }
+        /* Team action buttons — pinned top-left, above the Dean column */
+        #nw-team-actions {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 15;
+        }
+        #nw-team-actions .nw-ta-btn {
+            text-align: left;
+            font-size: 12px;
+            padding: 4px 8px;
+            cursor: pointer;
+        }
+        #nw-team-actions .nw-ta-btn:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+        #nw-team-actions .nw-ta-count {
+            display: inline-block;
+            min-width: 16px;
+            text-align: center;
+            font-weight: bold;
+            background: rgba(0,0,0,0.14);
+            border-radius: 8px;
+            padding: 0 4px;
+            margin-left: 4px;
+        }
+        #nw-team-actions .nw-ta-btn.nw-ta-armed {
+            outline: 2px solid #ffd24a;
+            box-shadow: 0 0 8px 2px rgba(255, 210, 74, 0.6);
+        }
+        #nw-ta-hint {
+            max-width: 170px;
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 10px;
+            line-height: 1.35;
+            color: #333;
+        }
+        /* Target-select mode: eligible men pop, everyone else recedes */
+        #nw-chart-wrapper.ta-mode .nw-node { opacity: 0.4; }
+        #nw-chart-wrapper.ta-mode .nw-node.nw-ta-eligible {
+            opacity: 1;
+            cursor: pointer;
+        }
+        #nw-chart-wrapper.ta-mode .nw-node.nw-ta-eligible .nw-flip-area {
+            border-radius: 3px;
+            animation: rs-pulse 1.1s ease-in-out infinite;
         }
         /* overflow: auto on both axes — avoids the CSS spec rule that forces
            overflow-y:visible to computed auto when overflow-x is non-visible */
@@ -13779,7 +14558,7 @@ function openOfficialsPanel(questions) {
             bio: 'Nixon\'s gatekeeper. Controlled all access to the President.',
             initials: 'HRH', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Haldeman.jpg' },
         },
-        Erlichman: {
+        Ehrlichman: {
             name: 'John Ehrlichman',
             title: 'Asst. to President, Domestic Affairs',
             bio: 'Established the Plumbers unit. Knew about the Ellsberg break-in from an early stage.',
@@ -13851,7 +14630,7 @@ function openOfficialsPanel(questions) {
             bio: 'Approved the Watergate break-in and probably gave the direct instruction to Liddy to go into the Watergate. Director of the 1972 inauguration and now in the Dept of Commerce.',
             initials: 'JsM', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/macgruder.png' },
         },
-        Larue: {
+        LaRue: {
             name: 'Frederick LaRue',
             title: 'Asst. to Mitchell, CREEP',
             bio: 'Close Mitchell aide. Helped coordinate and deliver hush money payments to the seven Watergate defendants.',
@@ -13863,7 +14642,7 @@ function openOfficialsPanel(questions) {
             bio: 'Former Secretary of Commerce. Raised millions in illegal campaign contributions.',
             initials: 'MS', images: { active: 'https://file.garden/aXPgNT-ZRCxxpy0g/Organogram/Republican/Maurice-Stans.jpg' },
         },
-        Klambach: {
+        Kalmbach: {
             name: 'Herbert Kalmbach',
             title: 'Assoc. Finance Chairman, CREEP',
             bio: 'Nixon\'s personal attorney. Raised and delivered hush money to the seven Watergate defendants.',
@@ -13885,7 +14664,7 @@ function openOfficialsPanel(questions) {
         ],
     };
     const _whTree2 = {
-        id: 'Erlichman',
+        id: 'Ehrlichman',
         children: [
             { id: 'Krogh' },
         ],
@@ -13894,8 +14673,8 @@ function openOfficialsPanel(questions) {
         id: 'Mitchell',
         children: [
             { id: 'Magruder', children: [{ id: 'Liddy' }] },
-            { id: 'Larue' },
-            { id: 'Stans', children: [{ id: 'Klambach' }] },
+            { id: 'LaRue' },
+            { id: 'Stans', children: [{ id: 'Kalmbach' }] },
             { id: 'McCord', floatChild: true },
         ],
     };
@@ -13904,7 +14683,7 @@ function openOfficialsPanel(questions) {
         { from: 'Strachan', to: 'Mitchell' },
         { from: 'Hunt',     to: 'Krogh',  toEdge: 'bottom' },
         { from: 'Hunt',     to: 'Liddy'    },
-        { from: 'Larue', to: 'Klambach', fromEdge: 'bottom', toEdge: 'top' },
+        { from: 'LaRue', to: 'Kalmbach', fromEdge: 'bottom', toEdge: 'top' },
     ];
 
     function _buildOrgNode(id, isCREEP) {
@@ -14006,10 +14785,18 @@ function openOfficialsPanel(questions) {
 
         function _updateOrgBack(node) {
             const id = node.dataset.person;
-            const loyalty  = window._getOrgStat(id, 'loyalty');
-            const exposure = window._getOrgStat(id, 'exposure');
             const back = node.querySelector('.nw-card-back');
             if (!back) return;
+            if (id === 'Nixon') {
+                back.innerHTML = '<div class="nw-back-content"><div class="nw-back-stat">'
+                    + '<div class="nw-back-label">Watergate Exposure</div>'
+                    + '<div class="nw-back-value">' + WatergateExposure + ' / 20</div>'
+                    + '<div class="nw-back-bar"><div class="nw-back-fill nw-fill-exposure" style="width:' + (WatergateExposure * 5) + '%"></div></div>'
+                    + '</div></div>';
+                return;
+            }
+            const loyalty  = window._getOrgStat(id, 'loyalty');
+            const exposure = window._getOrgStat(id, 'exposure');
             if (loyalty == null && exposure == null) {
                 back.innerHTML = '<div class="nw-back-content nw-back-na"><em>No data</em></div>';
                 return;
@@ -14024,6 +14811,8 @@ function openOfficialsPanel(questions) {
         wrapper.addEventListener('click', function(e) {
             const node = e.target.closest('.nw-node');
             if (!node) return;
+            // Team-action target-select mode eats the click (no flip mid-mode).
+            if (typeof _taHandleNodeClick === 'function' && _taHandleNodeClick(node)) return;
             if (!node.classList.contains('nw-flipped')) _updateOrgBack(node);
             node.classList.toggle('nw-flipped');
         });
@@ -14057,7 +14846,7 @@ function openOfficialsPanel(questions) {
             const liddyEl     = document.querySelector('.nw-node[data-person="Liddy"]');
             const mitchellEl  = document.querySelector('.nw-node[data-person="Mitchell"]');
             const magruderEl  = document.querySelector('.nw-node[data-person="Magruder"]');
-            const larueEl     = document.querySelector('.nw-node[data-person="Larue"]');
+            const larueEl     = document.querySelector('.nw-node[data-person="LaRue"]');
             const stansEl     = document.querySelector('.nw-node[data-person="Stans"]');
             const huntFloat   = document.getElementById('nw-hunt-float');
             const mccordFloat = document.getElementById('nw-mccord-float');
@@ -14282,11 +15071,11 @@ function openOfficialsPanel(questions) {
     window._syncOrgStates = function() {
         const toState = (v) => v >= 5 ? 'active' : v === 4 ? 'cutloose' : v === 3 ? 'indicted' : v === 2 ? 'imprisoned' : 'witness';
         [
-            ['Haldeman',  HaldemanSTATUS],  ['Erlichman', ErlichmanSTATUS], ['Mitchell', MitchellSTATUS],
+            ['Haldeman',  HaldemanSTATUS],  ['Ehrlichman', EhrlichmanSTATUS], ['Mitchell', MitchellSTATUS],
             ['Magruder',  MagruderSTATUS],  ['Krogh',     KroghSTATUS],     ['Chapin',   ChapinSTATUS],
             ['Segretti',  SegrettiSTATUS],  ['Strachan',  StrachanSTATUS],  ['Hunt',     HuntSTATUS],
-            ['McCord',    McCordSTATUS],    ['Liddy',     LiddySTATUS],     ['Larue',    LarueSTATUS],
-            ['Stans',     StansSTATUS],     ['Klambach',  KlambachSTATUS],  ['Dean',     DeanSTATUS],
+            ['McCord',    McCordSTATUS],    ['Liddy',     LiddySTATUS],     ['LaRue',    LaRueSTATUS],
+            ['Stans',     StansSTATUS],     ['Kalmbach',  KalmbachSTATUS],  ['Dean',     DeanSTATUS],
             ['Colson',    ColsonSTATUS],    ['WatergateBurglars', Watergateburglarsstatus],
         ].forEach(([id, val]) => window._setOrgState(id, toState(val)));
     };
@@ -14301,6 +15090,7 @@ const _visitAdvisorImages = [
 ].filter(Boolean);
 
 let _lastQuestionPK = null;
+let _lastQNum = null; // engine question_number last seen — a decrease means New Game without reload
 const _newEvents = new Set(); // event ids that became active this question — shown red
 function _markEventNew(id) { _newEvents.add(id); }
 
@@ -14316,6 +15106,37 @@ function _runTurnTicks() {
         try { _turnTicks[i](_questionCount); } catch (e) {}
     }
 }
+
+// Cabinet reshuffle housekeeping (see _RESHUFFLE above): an unused offer glows
+// and lives only for the turn it was armed on; delayed appointments take office
+// when their turn comes up. Ticks run before onShow, so a delay of d chosen on
+// turn T seats the new official at the top of turn T+d.
+_everyTurn(turn => {
+    if (_RESHUFFLE.active && turn > _RESHUFFLE.active.turn) _RESHUFFLE.expire();
+    for (let i = _RESHUFFLE.pending.length - 1; i >= 0; i--) {
+        const p = _RESHUFFLE.pending[i];
+        if (turn >= p.dueTurn) {
+            if (OFFICIALS_SETTERS[p.varName]) OFFICIALS_SETTERS[p.varName](p.person);
+            _RESHUFFLE.pending.splice(i, 1);
+        }
+    }
+});
+
+// Clemency wear-off (see _TA_WIRED.clemency): the +2 loyalty lasts 4 turns, or
+// evaporates immediately if the man's status changed since the offer (the deal
+// is off — including a flip to state's witness). Removes exactly the boost that
+// was actually applied, clamped at 0.
+_everyTurn(turn => {
+    for (let i = _clemencies.length - 1; i >= 0; i--) {
+        const c = _clemencies[i];
+        const p = _ORG_PRESSURE[c.key];
+        const voided = !p || turn >= c.expiresTurn || (p.st && p.st() !== c.statusAtGrant);
+        if (voided) {
+            if (p && p.loy) p.setLoy(Math.max(0, p.loy() - c.boost));
+            _clemencies.splice(i, 1);
+        }
+    }
+});
 
 // ── EVENT LIFESPANS ───────────────────────────────────────────────────────────
 // Timed world events declare three extra fields on their _EVENT_DEFS entry:
@@ -14345,7 +15166,9 @@ _everyTurn(turn => {
 //             org chart: every 2 turns at exposure 8-10, every 4 at 5-7,
 //             every 6 at 2-4, never at 0-1. Cut Loose (STATUS 4) doubles his
 //             intervals (half impact). Receivers at exposure <=2 are
-//             firewalled — they absorb nothing from below.
+//             firewalled — they absorb nothing from below. The SAME rules run
+//             on a final rung from the inner circle to the President himself
+//             (WatergateExposure, 0-20; firewalled while <=2).
 //  EXP DECAY  exposure below 3 fades -1 every 3 turns (down to 0) unless the
 //             man is indicted or imprisoned (STATUS <=3), which keeps him in
 //             the papers. Exposure 3+ never fades.
@@ -14357,10 +15180,12 @@ _everyTurn(turn => {
 //             chance per turn until he flips (STATUS -> 1, state's witness).
 //             Leaving the danger zone resets the count.
 //  CONTAGION  a flip gives +2 exposure (minimum result 3 — testimony puts
-//             you on the radar) along the flipper's edges. The inner circle
-//             (Haldeman, Erlichman, Colson, Mitchell, Dean) has no edges;
-//             their flips are recorded in _innerCircleFlips for the Nixon
-//             mechanic (TBD) — Dean's also drives question swaps (TBD).
+//             you on the radar) along the flipper's edges. An inner-circle
+//             flip (Haldeman, Ehrlichman, Colson, Mitchell, Dean) carries the
+//             same contagion straight to the President: WatergateExposure +2
+//             (minimum 3 — pierces his firewall and opens the radiation tap).
+//             Inner flips are also recorded in _innerCircleFlips — Dean's
+//             drives question swaps (TBD).
 //  PAY-OFF    call _payOff('Hunt') from a question effect for hush money or
 //             a clemency offer: +1 loyalty and a 4-turn pause on his loyalty
 //             decay and outbound radiation.
@@ -14371,7 +15196,7 @@ _everyTurn(turn => {
 var _pressureOn = false;
 const _ORG_PRESSURE = {
     Haldeman:  { inner: true,  loy: () => Haldemanloyalty,  setLoy: v => { Haldemanloyalty = v; },  exp: () => Haldemanexposure,  setExp: v => { Haldemanexposure = v; },  st: () => HaldemanSTATUS,  setSt: v => { HaldemanSTATUS = v; } },
-    Erlichman: { inner: true,  loy: () => Erlichmanloyalty, setLoy: v => { Erlichmanloyalty = v; }, exp: () => Erlichmanexposure, setExp: v => { Erlichmanexposure = v; }, st: () => ErlichmanSTATUS, setSt: v => { ErlichmanSTATUS = v; } },
+    Ehrlichman: { inner: true,  loy: () => Ehrlichmanloyalty, setLoy: v => { Ehrlichmanloyalty = v; }, exp: () => Ehrlichmanexposure, setExp: v => { Ehrlichmanexposure = v; }, st: () => EhrlichmanSTATUS, setSt: v => { EhrlichmanSTATUS = v; } },
     Dean:      { inner: true,  loy: () => Deanloyalty,      setLoy: v => { Deanloyalty = v; },      exp: () => Deanexposure,      setExp: v => { Deanexposure = v; },      st: () => DeanSTATUS,      setSt: v => { DeanSTATUS = v; } },
     Colson:    { inner: true,  loy: () => Colsonloyalty,    setLoy: v => { Colsonloyalty = v; },    exp: () => Colsonexposure,    setExp: v => { Colsonexposure = v; },    st: () => ColsonSTATUS,    setSt: v => { ColsonSTATUS = v; } },
     Mitchell:  { inner: true,  loy: () => Mitchellloyalty,  setLoy: v => { Mitchellloyalty = v; },  exp: () => Mitchellexposure,  setExp: v => { Mitchellexposure = v; },  st: () => MitchellSTATUS,  setSt: v => { MitchellSTATUS = v; } },
@@ -14382,9 +15207,9 @@ const _ORG_PRESSURE = {
     Hunt:      { loy: () => Huntloyalty,     setLoy: v => { Huntloyalty = v; },     exp: () => Huntexposure,     setExp: v => { Huntexposure = v; },     st: () => HuntSTATUS,     setSt: v => { HuntSTATUS = v; } },
     Liddy:     { loy: () => Liddyloyalty,    setLoy: v => { Liddyloyalty = v; },    exp: () => Liddyexposure,    setExp: v => { Liddyexposure = v; },    st: () => LiddySTATUS,    setSt: v => { LiddySTATUS = v; } },
     Magruder:  { loy: () => Magruderloyalty, setLoy: v => { Magruderloyalty = v; }, exp: () => Magruderexposure, setExp: v => { Magruderexposure = v; }, st: () => MagruderSTATUS, setSt: v => { MagruderSTATUS = v; } },
-    Larue:     { loy: () => Larueloyalty,    setLoy: v => { Larueloyalty = v; },    exp: () => Larueexposure,    setExp: v => { Larueexposure = v; },    st: () => LarueSTATUS,    setSt: v => { LarueSTATUS = v; } },
+    LaRue:     { loy: () => LaRueloyalty,    setLoy: v => { LaRueloyalty = v; },    exp: () => LaRueexposure,    setExp: v => { LaRueexposure = v; },    st: () => LaRueSTATUS,    setSt: v => { LaRueSTATUS = v; } },
     Stans:     { loy: () => Stansloyalty,    setLoy: v => { Stansloyalty = v; },    exp: () => Stansexposure,    setExp: v => { Stansexposure = v; },    st: () => StansSTATUS,    setSt: v => { StansSTATUS = v; } },
-    Klambach:  { loy: () => Klambachloyalty, setLoy: v => { Klambachloyalty = v; }, exp: () => Klambachexposure, setExp: v => { Klambachexposure = v; }, st: () => KlambachSTATUS, setSt: v => { KlambachSTATUS = v; } },
+    Kalmbach:  { loy: () => Kalmbachloyalty, setLoy: v => { Kalmbachloyalty = v; }, exp: () => Kalmbachexposure, setExp: v => { Kalmbachexposure = v; }, st: () => KalmbachSTATUS, setSt: v => { KalmbachSTATUS = v; } },
     McCord:    { loy: () => McCordloyalty,   setLoy: v => { McCordloyalty = v; },   exp: () => McCordexposure,   setExp: v => { McCordexposure = v; },   st: () => McCordSTATUS,   setSt: v => { McCordSTATUS = v; } },
     Burglars:  { loy: () => Watergateburglarsloyalty, setLoy: v => { Watergateburglarsloyalty = v; }, exp: () => Watergateburglarsexposure, setExp: v => { Watergateburglarsexposure = v; }, st: () => Watergateburglarsstatus, setSt: v => { Watergateburglarsstatus = v; } },
 };
@@ -14394,12 +15219,12 @@ const _ORG_EDGES = {
     Segretti: ['Chapin'],
     Chapin:   ['Haldeman'],
     Strachan: ['Haldeman', 'Mitchell'],
-    Krogh:    ['Erlichman'],
+    Krogh:    ['Ehrlichman'],
     Hunt:     ['Colson', 'Krogh', 'Liddy'],
     Magruder: ['Mitchell'],
-    Larue:    ['Mitchell', 'Klambach'],
-    Klambach: ['Stans', 'Larue'],
-    Stans:    ['Mitchell', 'Larue'],
+    LaRue:    ['Mitchell', 'Kalmbach'],
+    Kalmbach: ['Stans', 'LaRue'],
+    Stans:    ['Mitchell', 'LaRue'],
     McCord:   ['Mitchell'],
     Burglars: ['McCord', 'Hunt', 'Liddy'],
 };
@@ -14428,7 +15253,13 @@ function _flipWitness(name) {
         const t = _ORG_PRESSURE[tgt];
         t.setExp(Math.min(10, Math.max(3, t.exp() + 2)));
     });
-    if (p.inner) _innerCircleFlips.push(name);
+    if (p.inner) {
+        _innerCircleFlips.push(name);
+        // Same contagion the org edges carry, aimed at the President: his
+        // testimony implicates Nixon directly (+2, minimum 3 — pierces the
+        // clean-receiver firewall and opens the radiation tap above).
+        WatergateExposure = Math.min(20, Math.max(3, WatergateExposure + 2));
+    }
 }
 
 _everyTurn(() => {
@@ -14453,6 +15284,27 @@ _everyTurn(() => {
                 t.setExp(Math.min(10, t.exp() + 1));
             }
         });
+    });
+
+    // 1b. The last rung — the five inner-circle men radiate to the President
+    // himself by the SAME rules: same intervals from their exposure, same
+    // cut-loose halving (STATUS 4, set via question effects), same pay-off
+    // pause, same ≤2 receiver firewall on Nixon's own dial (flip contagion
+    // pierces it — see _flipWitness). Nixon's dial is WatergateExposure, 0–20.
+    ['Haldeman', 'Ehrlichman', 'Dean', 'Colson', 'Mitchell'].forEach(src => {
+        if (_flipped.has(src) || paused(src)) return;
+        const s = _ORG_PRESSURE[src];
+        const e = s.exp();
+        let interval = e >= 8 ? 2 : e >= 5 ? 4 : e >= 2 ? 6 : 0;
+        if (!interval) return;
+        if (s.st() === 4) interval *= 2; // cut loose: half impact upward
+        if (WatergateExposure <= 2) return; // firewalled while the President is clean
+        const key = src + '>Nixon';
+        _edgeClocks[key] = (_edgeClocks[key] || 0) + 1;
+        if (_edgeClocks[key] >= interval) {
+            _edgeClocks[key] = 0;
+            WatergateExposure = Math.min(20, WatergateExposure + 1);
+        }
     });
 
     Object.keys(_ORG_PRESSURE).forEach(name => {
@@ -14497,6 +15349,300 @@ _everyTurn(() => {
     if (typeof window._syncOrgStates === 'function') window._syncOrgStates();
 });
 // ── END WATERGATE PRESSURE ENGINE ─────────────────────────────────────────────
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── 1974 MIDTERM ELECTIONS ────────────────────────────────────────────────────
+// A consequence beat: an election-night overlay where the 34 Class-3 Senate seats
+// call in over a poll-closing roll with a live tally, then a "Congressional
+// Scoreboard" button reveals the LBM House+Senate board. Driven by the live
+// ApprovalRating and the President's own WatergateExposure dial (0–20 → 0–1).
+//
+// Model + data mirror midterm_model.js / midterm_flow_sandbox.html exactly.
+// Calibration anchor: approval 47 + watergate 0.75 → D+16.9% → House R 144
+// (Δ−48 vs 93rd Congress), Senate R ~38 (Δ−4) — the real 1974 result.
+//
+// HOW IT FIRES: wired to pk 429's onShow (questionData, ~line 14828) — placeholder
+// anchor until a dedicated Nov-1974 beat exists; _MIDTERM._fired guards a single
+// showing. Still testable any time from the console with  _midtermTest()  .
+//
+// EVERYTHING EDITABLE (wording, dials, leans, seats, the 34 races) IS IN _MIDTERM.CFG.
+// ══════════════════════════════════════════════════════════════════════════════
+var _MIDTERM = {
+  TURN: null,        // turn (_questionCount) to auto-fire on; null = manual only
+  _fired: false,
+
+  CFG: {
+    // ---- on-screen wording (every string the player sees) ----
+    TEXT: {
+      title:        "THE 1974 MIDTERMS",
+      boardLabel:   "SENATE SEATS DECIDED TONIGHT",
+      indNote:      "Byrd (VA) and Buckley (NY) sit as independents and are not up.",
+      scoreboardBtn:"View the new Congress ▸",
+      continueBtn:  "Back to the campaign ▸",
+      cardTitle:    "The new balance of power",
+      callPrefix:   "Called: ",
+      // {SW}=swing% {HR}=House R {HD}=House D {SD}=Senate D {SR}=Senate R {HG}/{SG}=R deltas
+      verdictWave:  "A bloodbath, Mr. President. The Democrats take a {HD}-seat House and a {SD}-seat Senate. The Watergate wave has crested over us. (D+{SW}% nationally.)",
+      verdictHold:  "We are bruised but standing — down {HG} in the House, {SG} in the Senate. It could have been a rout. (D+{SW}% nationally.)",
+      cardSub:      "Result at a D+{SW}% national swing — House Δ{HG}, Senate Δ{SG} against the 93rd Congress."
+    },
+
+    // ---- swing dials (Ford anchor: approval 47, watergate 0.75 → D+16.9%) ----
+    SWING: { MID:0.030, APPROVAL_REF:60, AC:0.174, WC:0.110 },
+
+    // ---- baselines (93rd Congress, going into Nov 1974) ----
+    HBASE: { dem:242, rep:192 },
+    SBASE: { dem:56,  rep:42  },
+    SEED:  { D:37, R:27, I:2 },   // the 66 Senate seats NOT up in 1974
+    WAVE_RLOSS: 30,               // House R seat losses ≥ this read as a "wave" (verdictWave); fewer → verdictHold. Dems always control the House here, so the verdict must key off loss magnitude, not control.
+
+    // ---- House leans: 2012 Obama/Romney two-party D margin (seat-sensitivity calib) ----
+    SLH:{AL:-0.46,AK:-0.28,AZ:-0.10,AR:-0.25,CA:0.24,CO:0.055,CT:0.18,DE:0.20,FL:0.009,GA:-0.08,HI:0.43,ID:-0.33,IL:0.18,IN:-0.11,IA:0.06,KS:-0.22,KY:-0.24,LA:-0.18,ME:0.16,MD:0.27,MA:0.24,MI:0.095,MN:0.078,MS:-0.12,MO:-0.097,MT:-0.14,NE:-0.22,NV:0.069,NH:0.058,NJ:0.18,NM:0.10,NY:0.29,NC:-0.02,ND:-0.20,OH:0.03,OK:-0.34,OR:0.13,PA:0.054,RI:0.28,SC:-0.11,SD:-0.18,TN:-0.21,TX:-0.16,UT:-0.49,VT:0.36,VA:0.039,WA:0.15,WV:-0.27,WI:0.069,WY:-0.42},
+
+    // ---- Senate leans: 1972 Nixon/McGovern two-party D margin ----
+    SL74:{AL:-0.490,AK:-0.240,AZ:-0.345,AR:-0.370,CA:-0.105,CO:-0.295,CT:-0.163,DE:-0.155,FL:-0.315,GA:-0.450,HI:-0.050,ID:-0.345,IL:-0.195,IN:-0.305,IA:-0.128,KS:-0.305,KY:-0.278,LA:-0.430,ME:-0.100,MD:-0.100,MA:0.089,MI:-0.140,MN:-0.080,MS:-0.555,MO:-0.224,MT:-0.225,NE:-0.368,NV:-0.245,NH:-0.175,NJ:-0.150,NM:-0.283,NY:-0.170,NC:-0.378,ND:-0.320,OH:-0.210,OK:-0.371,OR:-0.130,PA:-0.197,RI:-0.063,SC:-0.460,SD:-0.220,TN:-0.400,TX:-0.331,UT:-0.423,VT:-0.155,VA:-0.313,WA:-0.195,WV:-0.200,WI:-0.110,WY:-0.385},
+
+    // ---- House per-state: [seats(1970 apportionment, sum=435), structural bias] ----
+    HD:{AL:[7,0.10],AK:[1,-0.15],AZ:[4,-0.05],AR:[4,0.12],CA:[43,0.12],CO:[5,0.02],CT:[6,0.15],DE:[1,0.15],FL:[15,-0.04],GA:[10,0.10],HI:[2,0.25],ID:[2,-0.25],IL:[24,0.10],IN:[11,-0.10],IA:[6,0.02],KS:[5,-0.18],KY:[7,-0.05],LA:[8,0.10],ME:[2,0.08],MD:[8,0.18],MA:[12,0.20],MI:[19,-0.02],MN:[8,0.05],MS:[5,0.05],MO:[10,-0.08],MT:[2,-0.10],NE:[3,-0.15],NV:[1,0.04],NH:[2,0.05],NJ:[15,0.08],NM:[2,0.08],NY:[39,0.15],NC:[11,-0.08],ND:[1,-0.15],OH:[23,-0.08],OK:[6,-0.20],OR:[4,0.10],PA:[25,-0.06],RI:[2,0.20],SC:[6,-0.05],SD:[2,-0.15],TN:[8,-0.15],TX:[24,-0.05],UT:[2,-0.20],VT:[1,0.25],VA:[10,-0.05],WA:[7,0.10],WV:[4,-0.10],WI:[9,-0.05],WY:[1,-0.25]},
+
+    // ---- the 34 Class-3 Senate races: name → [lean, dem_off, split_keep, wave, heldBy] ----
+    // wave = poll-closing group 1(earliest East)…8(latest AK/HI), drives reveal order.
+    SEN:{
+      "Alabama":['AL',1.051,0.80,3,'D'], "Arkansas":['AR',1.371,0.65,4,'D'],
+      "Georgia":['GA',0.901,0.80,1,'D'], "Louisiana":['LA',1.264,0.80,5,'D'],
+      "N. Carolina":['NC',0.691,0.65,2,'D'], "S. Carolina":['SC',0.864,0.80,1,'D'],
+      "Alaska":['AK',0.351,0.80,8,'D'], "California":['CA',0.228,0.80,7,'D'],
+      "Connecticut":['CT',0.343,0.80,3,'D'], "Hawaii":['HI',0.676,0.80,8,'D'],
+      "Idaho":['ID',0.445,0.80,7,'D'], "Illinois":['IL',0.358,0.80,3,'D'],
+      "Indiana":['IN',0.231,0.80,1,'D'], "Iowa":['IA',0.014,0.65,6,'D'],
+      "Missouri":['MO',0.330,0.80,3,'D'], "S. Dakota":['SD',0.139,0.80,5,'D'],
+      "Washington":['WA',0.355,0.80,7,'D'], "Wisconsin":['WI',0.261,0.80,5,'D'],
+      "Colorado":['CO',0.465,0.65,5,'R'], "Florida":['FL',0.343,0.60,3,'R'],
+      "Kentucky":['KY',0.291,0.65,1,'R'], "Ohio":['OH',0.568,0.60,2,'R'],
+      "Vermont":['VT',0.110,0.60,1,'R'], "Arizona":['AZ',0.023,0.70,5,'R'],
+      "Kansas":['KS',0.169,0.70,5,'R'], "Maryland":['MD',-0.299,0.70,3,'R'],
+      "New Hampshire":['NH',0.007,0.60,3,'R'], "New York":['NY',-0.124,0.70,5,'R'],
+      "N. Dakota":['ND',0.214,0.70,5,'R'], "Oklahoma":['OK',0.274,0.70,3,'R'],
+      "Oregon":['OR',-0.213,0.70,7,'R'], "Pennsylvania":['PA',-0.063,0.70,3,'R'],
+      "Utah":['UT',0.292,0.65,5,'R'], "Nevada":['NV',0.115,0.60,6,'D']
+    }
+  },
+
+  // ---- noise (Box-Muller, verbatim LBM). Live game runs WITH noise. ----
+  _useNoise: true,
+  _rndN: function(mu, s){
+    if(!this._useNoise) return mu;
+    var u=0,v=0; while(u===0)u=Math.random(); while(v===0)v=Math.random();
+    return mu + s*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+  },
+
+  // ---- Watergate exposure → 0..1: the President's own dial ----
+  // Reads the global WatergateExposure (0–20) — the presidential master
+  // variable shown on Nixon's card back and the High Crimes page. The
+  // historic-1974 calibration (0.75) therefore means WatergateExposure 15
+  // on midterm night; the game-start value of 1 reads as 0.05.
+  watergate01: function(){
+    try {
+      var x = (typeof WatergateExposure !== 'undefined') ? WatergateExposure / 20 : 0.5;
+      return Math.max(0, Math.min(1, x));
+    } catch(err){ return 0.5; }
+  },
+
+  // ---- model math (mirrors midterm_model.js) ----
+  swing: function(appr, wg){
+    var S=this.CFG.SWING;
+    return S.MID + Math.max(0,Math.min(40,S.APPROVAL_REF-appr))/40*S.AC + Math.max(0,Math.min(1,wg))*S.WC;
+  },
+  _clamp: function(v,lo,hi){ return Math.max(lo,Math.min(hi,v)); },
+  house: function(sw){
+    var d=0, HD=this.CFG.HD, SLH=this.CFG.SLH;
+    for(var a in HD){
+      var seats=HD[a][0], bias=HD[a][1];
+      var hm=((SLH[a]||0)+sw) + bias*1.1 - 0.03 + this._rndN(0,0.015);
+      if(seats===1){ if(hm>0)d++; }
+      else { var sh=0.5+hm*2.0; sh=seats>=5?this._clamp(sh,0.15,0.85):this._clamp(sh,0,1); d+=Math.round(seats*sh); }
+    }
+    d=this._clamp(d,0,435); return { dem:d, rep:435-d };
+  },
+  senate: function(sw){
+    var D=this.CFG.SEED.D, R=this.CFG.SEED.R, I=this.CFG.SEED.I, races=[];
+    var SEN=this.CFG.SEN, SL74=this.CFG.SL74;
+    for(var n in SEN){
+      var row=SEN[n], lean=row[0], off=row[1], keep0=row[2], wave=row[3], held=row[4];
+      var keep=this._clamp(keep0,0.40,0.98);
+      var m=this._clamp(((SL74[lean]||0)+sw) + keep*off + this._rndN(0,0.006), -0.90, 0.90);
+      var w=m>0?'D':'R';
+      if(w==='D')D++; else R++;
+      races.push({ name:n, ab:lean, margin:m, winner:w, wave:wave, held:held, flip:(w!==held) });
+    }
+    var tot=D+R+I; if(tot!==100)D+=100-tot;
+    return { dem:D, rep:R, ind:I, races:races };
+  },
+
+  // ---- run the whole thing off the live game state ----
+  run: function(opts){
+    opts=opts||{};
+    var appr=(opts.approval!=null)?opts.approval:(typeof ApprovalRating!=='undefined'?ApprovalRating:50);
+    var wg  =(opts.watergate!=null)?opts.watergate:this.watergate01();
+    this._useNoise=(opts.noise!==false);
+    var sw=this.swing(appr,wg);
+    var h=this.house(sw), s=this.senate(sw);
+    this._useNoise=true;
+    return { approval:appr, watergate:wg, swing:sw, house:h, senate:s };
+  },
+
+  // ---- the election-night overlay (self-contained; no engine coupling) ----
+  open: function(opts){
+    var R=this.run(opts), T=this.CFG.TEXT, self=this;
+    var dlt=function(x){ return x>0?'+'+x:(x<0?''+x:'NC'); };
+    var hg=R.house.rep-this.CFG.HBASE.rep, sg=R.senate.rep-this.CFG.SBASE.rep;
+
+    // ----- styles (injected once) -----
+    if(!document.getElementById('_mt_css')){
+      var st=document.createElement('style'); st.id='_mt_css';
+      st.textContent=
+      '#_mt_ov{position:fixed;inset:0;z-index:9999;background:rgba(10,12,22,.94);color:#eee;'+
+      'font-family:Arial,Helvetica,sans-serif;overflow:auto;padding:26px;box-sizing:border-box;}'+
+      '#_mt_ov h2{font-size:1.5rem;margin:0 0 2px;letter-spacing:.04em;text-align:center;}'+
+      '#_mt_ov .mtsub{color:#9aa3c0;font-size:.8rem;text-align:center;margin-bottom:16px;}'+
+      '#_mt_ov .mthead{display:flex;justify-content:space-between;align-items:baseline;max-width:780px;margin:0 auto 6px;border-bottom:1px solid #3d425c;padding-bottom:8px;}'+
+      '#_mt_ov .mtlab{font-size:.95rem;font-weight:bold;letter-spacing:.04em;}'+
+      '#_mt_ov .mttally{font-size:1.5rem;font-weight:bold;}'+
+      '#_mt_ov .mtd{color:#5b8def;} #_mt_ov .mtr{color:#e0556b;} #_mt_ov .mttally small{font-size:.7rem;color:#9aa3c0;font-weight:normal;}'+
+      '#_mt_ov .mtcall{max-width:780px;margin:0 auto;font-size:.78rem;color:#9aa3c0;min-height:1.1em;}'+
+      '#_mt_ov .mtboard{display:flex;flex-wrap:wrap;gap:6px;max-width:780px;margin:10px auto;justify-content:center;}'+
+      '#_mt_ov .mttile{width:60px;height:44px;border-radius:5px;background:#3a3f5c;display:flex;flex-direction:column;'+
+      'align-items:center;justify-content:center;font-size:.7rem;color:#aab;transition:background .25s,color .25s;position:relative;}'+
+      '#_mt_ov .mttile .ab{font-weight:bold;font-size:.8rem;} #_mt_ov .mttile .mg{font-size:.58rem;opacity:0;transition:opacity .25s;}'+
+      '#_mt_ov .mttile.called .mg{opacity:.85;} #_mt_ov .mttile.D{background:#2f4d8a;color:#dce6ff;} #_mt_ov .mttile.R{background:#8a2f3f;color:#ffdce2;}'+
+      '#_mt_ov .mttile.flip{box-shadow:0 0 0 2px #ffd24a;} #_mt_ov .mttile .seat{position:absolute;top:1px;right:3px;font-size:.5rem;color:#ffd24a;}'+
+      '#_mt_ov .mtadv{max-width:780px;margin:14px auto;background:#1c2036;border-left:3px solid #5566cc;border-radius:6px;padding:11px 13px;font-size:.85rem;line-height:1.5;color:#cfd6f0;min-height:1.2em;}'+
+      '#_mt_ov .mtfoot{max-width:780px;margin:0 auto;display:flex;gap:10px;justify-content:center;}'+
+      '#_mt_ov button{background:#5566cc;color:#fff;border:0;border-radius:6px;padding:10px 16px;font-weight:bold;cursor:pointer;font-size:.85rem;}'+
+      '#_mt_ov button.alt{background:#444a6b;} #_mt_ov button:disabled{opacity:.4;cursor:default;}'+
+      '#_mt_card{position:fixed;inset:0;z-index:10000;background:rgba(8,10,18,.86);display:none;align-items:center;justify-content:center;}'+
+      '#_mt_card.show{display:flex;} #_mt_card .card{background:#2b2f44;border-radius:12px;padding:22px;width:520px;max-width:92vw;}'+
+      '#_mt_card h3{margin:0 0 2px;font-size:1.2rem;} #_mt_card .csub{color:#9aa3c0;font-size:.78rem;margin-bottom:16px;}'+
+      '#_mt_card .ch{background:#1d2030;border-radius:8px;padding:14px;margin-bottom:12px;}'+
+      '#_mt_card .chh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}'+
+      '#_mt_card .chh .t{font-size:1.05rem;font-weight:bold;} #_mt_card .chh .w{font-size:.72rem;color:#9aa3c0;}'+
+      '#_mt_card .nums{display:flex;justify-content:space-between;font-size:1.9rem;font-weight:bold;margin-bottom:8px;}'+
+      '#_mt_card .sup{font-size:.8rem;vertical-align:super;color:#9aa3c0;margin-left:3px;}'+
+      '#_mt_card .bar{display:flex;height:20px;border-radius:4px;overflow:hidden;position:relative;background:#11131f;}'+
+      '#_mt_card .bd{background:#5b8def;} #_mt_card .br{background:#e0556b;flex:1;} #_mt_card .mk{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#fff;}';
+      document.head.appendChild(st);
+    }
+
+    // ----- remove any prior instance, build overlay -----
+    var old=document.getElementById('_mt_ov'); if(old)old.remove();
+    var oc=document.getElementById('_mt_card'); if(oc)oc.remove();
+
+    var ov=document.createElement('div'); ov.id='_mt_ov';
+    var tiles='';
+    for(var nm in this.CFG.SEN){ var ab=this.CFG.SEN[nm][0];
+      tiles+='<div class="mttile" id="_mt_t_'+ab+'"><span class="ab">'+ab+'</span><span class="mg"></span></div>'; }
+    ov.innerHTML=
+      '<h2>'+T.title+'</h2>'+
+      '<div class="mtsub">'+T.indNote+'</div>'+
+      '<div class="mthead"><span class="mtlab">'+T.boardLabel+'</span>'+
+      '<span class="mttally"><span class="mtd" id="_mt_tD">'+this.CFG.SEED.D+'</span>'+
+      '<small> D &mdash; R </small><span class="mtr" id="_mt_tR">'+this.CFG.SEED.R+'</span></span></div>'+
+      '<div class="mtcall" id="_mt_call"></div>'+
+      '<div class="mtboard">'+tiles+'</div>'+
+      '<div class="mtadv" id="_mt_adv"></div>'+
+      '<div class="mtfoot">'+
+      '<button class="alt" id="_mt_score" disabled>'+T.scoreboardBtn+'</button>'+
+      '<button id="_mt_cont" disabled>'+T.continueBtn+'</button></div>';
+    document.body.appendChild(ov);
+
+    var card=document.createElement('div'); card.id='_mt_card';
+    card.innerHTML=
+      '<div class="card"><h3>'+T.cardTitle+'</h3><div class="csub" id="_mt_csub"></div>'+
+      '<div class="ch"><div class="chh"><span class="t">House</span><span class="w">218 to control</span></div>'+
+      '<div class="nums"><span class="mtd"><span id="_mt_chD"></span><span class="sup" id="_mt_chDg"></span></span>'+
+      '<span class="mtr"><span id="_mt_chR"></span><span class="sup" id="_mt_chRg"></span></span></div>'+
+      '<div class="bar"><div class="bd" id="_mt_chBar"></div><div class="mk"></div><div class="br"></div></div></div>'+
+      '<div class="ch"><div class="chh"><span class="t">Senate</span><span class="w">51 to control</span></div>'+
+      '<div class="nums"><span class="mtd"><span id="_mt_csD"></span><span class="sup" id="_mt_csDg"></span></span>'+
+      '<span class="mtr"><span id="_mt_csR"></span><span class="sup" id="_mt_csRg"></span></span></div>'+
+      '<div class="bar"><div class="bd" id="_mt_csBar"></div><div class="mk"></div><div class="br"></div></div></div>'+
+      '<div style="text-align:right;"><button class="alt" id="_mt_close">Close</button></div></div>';
+    document.body.appendChild(card);
+
+    // ----- reveal roll (poll-closing order) -----
+    var order=R.senate.races.slice().sort(function(a,b){return a.wave-b.wave;});
+    var liveD=this.CFG.SEED.D, liveR=this.CFG.SEED.R, i=0;
+    var step=function(){
+      // If THIS overlay instance left the DOM (re-entrant open replaced it, or it
+      // was removed manually), the chain must die rather than write into the
+      // replacement's identical IDs. All lookups are scoped to `ov` for the same
+      // reason.
+      if(!ov.isConnected) return;
+      if(i>=order.length){ finish(); return; }
+      var r=order[i++], t=ov.querySelector('#_mt_t_'+r.ab);
+      if(t){ t.className='mttile called '+r.winner+(r.flip?' flip':'');
+        t.querySelector('.mg').textContent=r.winner+'+'+Math.round(Math.abs(r.margin)*100);
+        if(r.flip){ var sp=document.createElement('span'); sp.className='seat'; sp.textContent='FLIP'; t.appendChild(sp); } }
+      if(r.winner==='D')liveD++; else liveR++;
+      ov.querySelector('#_mt_tD').textContent=liveD;
+      ov.querySelector('#_mt_tR').textContent=liveR;
+      ov.querySelector('#_mt_call').textContent=
+        T.callPrefix+r.name+' — '+(r.winner==='D'?'Democratic':'Republican')+' '+(r.flip?'PICKUP':'hold');
+      setTimeout(step,150);
+    };
+    var finish=function(){
+      if(!ov.isConnected) return;
+      // hg is the R House seat delta (negative = losses). A big enough rout reads
+      // as a "wave"; a modest loss as "bruised but standing". (Dems always control
+      // the House at these baselines, so control can't be the trigger.)
+      var wave=(-hg)>=self.CFG.WAVE_RLOSS;
+      var msg=(wave?T.verdictWave:T.verdictHold)
+        .replaceAll('{SW}',(R.swing*100).toFixed(1)).replaceAll('{HR}',R.house.rep).replaceAll('{HD}',R.house.dem)
+        .replaceAll('{SD}',R.senate.dem).replaceAll('{SR}',R.senate.rep).replaceAll('{HG}',dlt(hg)).replaceAll('{SG}',dlt(sg));
+      ov.querySelector('#_mt_adv').textContent=msg;
+      ov.querySelector('#_mt_call').textContent='All seats called.';
+      ov.querySelector('#_mt_score').disabled=false;
+      ov.querySelector('#_mt_cont').disabled=false;
+    };
+    setTimeout(step,600);
+
+    // ----- wire buttons -----
+    document.getElementById('_mt_score').onclick=function(){
+      document.getElementById('_mt_csub').textContent=T.cardSub
+        .replaceAll('{SW}',(R.swing*100).toFixed(1)).replaceAll('{HG}',dlt(hg)).replaceAll('{SG}',dlt(sg));
+      document.getElementById('_mt_chD').textContent=R.house.dem;
+      document.getElementById('_mt_chR').textContent=R.house.rep;
+      document.getElementById('_mt_chDg').textContent=dlt(R.house.dem-self.CFG.HBASE.dem);
+      document.getElementById('_mt_chRg').textContent=dlt(R.house.rep-self.CFG.HBASE.rep);
+      document.getElementById('_mt_csD').textContent=R.senate.dem;
+      document.getElementById('_mt_csR').textContent=R.senate.rep;
+      document.getElementById('_mt_csDg').textContent=dlt(R.senate.dem-self.CFG.SBASE.dem);
+      document.getElementById('_mt_csRg').textContent=dlt(R.senate.rep-self.CFG.SBASE.rep);
+      document.getElementById('_mt_chBar').style.width=(R.house.dem/435*100)+'%';
+      document.getElementById('_mt_csBar').style.width=R.senate.dem+'%';
+      document.getElementById('_mt_card').classList.add('show');
+    };
+    document.getElementById('_mt_close').onclick=function(){ document.getElementById('_mt_card').classList.remove('show'); };
+    document.getElementById('_mt_cont').onclick=function(){
+      var c=document.getElementById('_mt_card'); if(c)c.remove();
+      var o=document.getElementById('_mt_ov'); if(o)o.remove();
+    };
+    return R;
+  }
+};
+
+// Manual test hook — run  _midtermTest()  (or _midtermTest({approval:47,watergate:0.75,noise:false}))
+// from the browser console to preview the screen against the live or forced state.
+function _midtermTest(opts){ return _MIDTERM.open(opts||{}); }
+
+// AUTO-FIRE (disabled until a Nov-1974 anchor is chosen). To arm: set _MIDTERM.TURN
+// to the desired turn and uncomment this block.
+// _everyTurn(function(turn){
+//   if(_MIDTERM.TURN==null || _MIDTERM._fired) return;
+//   if(turn>=_MIDTERM.TURN){ _MIDTERM._fired=true; _MIDTERM.open(); }
+// });
+// ── END 1974 MIDTERM ──────────────────────────────────────────────────────────
+
 // Shared #game_window observer (defined idempotently in Code 1; redefined here
 // so Code 2 works even if loaded first). One MutationObserver, many subscribers.
 window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
@@ -14519,6 +15665,69 @@ window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
     return function (cb) { subs.push(cb); try { cb(); } catch (e) {} };
 })();
 
+// ── REACTIVE SOUNDTRACK — config + triggers (SOUNDTRACK_PLAN.md) ─────────────
+// The player primitives (__enterMusicSection, __injectNextSong, fades, the
+// graceful queue-don't-slam swap) live in Code 1 with the player; this side
+// holds only the CONFIG (which tracks, which thresholds) and the TRIGGERS
+// (section-start pks + per-question stingers) — the exact Allende-egg split.
+//
+// The 3 default tracks built in setupMusicPlayer are INTRO music (pre-game/
+// menu). They are not part of any section list; Section I takes over when
+// Part I is entered, queued behind whatever intro track is playing.
+
+// Song objects are built lazily (window.Song may not exist yet when this file
+// loads) and cached by URL so a stinger getter re-run never duplicates.
+var _songCache = {};
+function _mkSong(title, artist, url) {
+    if (!window.Song || !url) return null;
+    if (!_songCache[url]) _songCache[url] = new window.Song(title, artist, '', url);
+    return _songCache[url];
+}
+function _mkSongs(defs) {
+    return defs.map(d => _mkSong(d[0], d[1], d[2])).filter(Boolean);
+}
+
+// ── FILL ME IN: track URLs (jukehost etc.) per section, mood rules, stingers.
+// A section whose tracks() comes back empty fails safe: entering it changes
+// nothing and the current list keeps playing. Mood rules are evaluated ONCE,
+// at section entry; passing rules' tracks are prepended (they open the
+// section). Stingers go on the questionData entry itself, e.g.:
+//   430: { ..., stinger: () => _mkSong('Patton Theme', 'Jerry Goldsmith', 'https://audio.jukehost.co.uk/…') },
+// — fades the current song out and plays the stinger immediately (or just
+// cues it, without starting playback, if the player is paused/off).
+var SOUNDTRACK = window.SOUNDTRACK = {
+    sections: {
+        1: { name: 'Remission',   startPk: 401,  tracks: () => _mkSongs([
+            // ['Title', 'Artist', 'https://audio.jukehost.co.uk/…'],
+        ]) },
+        2: { name: 'Fulmination', startPk: 430,  tracks: () => _mkSongs([
+        ]) },
+        3: { name: 'Metastasis',  startPk: 432,  tracks: () => _mkSongs([
+        ]) },
+        4: { name: null,          startPk: null, tracks: () => _mkSongs([
+            // Part IV boundary pk + name TBD (SOUNDTRACK_PLAN.md §8.1)
+        ]) },
+    },
+    mood: [
+        // Scales: WatergateExposure runs 0–20, ApprovalRating ~0–10.
+        // { when: () => WatergateExposure >= 15, tracks: () => _mkSongs([['Dark Track', 'Artist', 'https://…']]) },
+        // { when: () => ApprovalRating >= 8,     tracks: () => _mkSongs([['Light Track', 'Artist', 'https://…']]) },
+    ],
+};
+
+function _pkToSection(pk) {
+    if (pk == null) return 0;
+    const secs = SOUNDTRACK.sections;
+    for (const n in secs) {
+        if (secs[n].startPk === pk) return +n;
+    }
+    return 0;
+}
+// Section entry seen before the Code 1 player exists is parked here and
+// retried on later observer ticks until __enterMusicSection is available.
+var _musicSectionPending = 0;
+// ── END REACTIVE SOUNDTRACK config ───────────────────────────────────────────
+
 // Per-question metadata (dates, sign images, section transitions, historical
 // notes). MUST be declared before the __onGameWindowMutation registration
 // below: that registrar invokes the callback once synchronously, and the
@@ -14533,7 +15742,11 @@ const questionData = {
     402: { date: "11 November 1972",  signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk402.jpg", historical: null },
     409: { date: "20 November 1972", signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/PK409.jpg",
             historical: `<p>This interview really happened, and Nixon did debate cutting Henry loose.</p><p>In the end, Kissinger had to make a grovelling apology to Nixon but not before calling her a bitch, a liar and worse. He backed down when she offered to release the tape transcripts from their interview.</p><p>A copy of the interview is available <a href="https://scrapsfromtheloft.com/history/oriana-fallaci-henry-kissinger-interview/" target="_blank">here</a>.</p>` },
-    429: { date: "October 1975",       historical: null },
+    429: { date: "October 1975",
+            // The 1974 midterm election-night screen fires here (placeholder anchor;
+            // move to a dedicated Nov-1974 beat later). Guarded so it shows once.
+            onShow: () => { if (!_MIDTERM._fired) { _MIDTERM._fired = true; _MIDTERM.open(); } },
+            historical: null },
     430: {
         date: "September 1976",
         transition: {
@@ -14597,8 +15810,41 @@ window.__onGameWindowMutation(() => {
 
             const _gs = _liveGameState();
             if (_gs) {
+                // New Game without a page reload: the engine resets question_number
+                // to 0, so a decrease means a fresh run — reset all per-run mod state
+                // (otherwise transitions/midterm never re-fire and the pressure engine
+                // starts hot with a turn counter carried over from the last run).
+                if (_lastQNum != null && _gs.question_number < _lastQNum) {
+                    _questionCount = 0;
+                    _lastQuestionPK = null;
+                    _shownTransitions.clear();
+                    Object.keys(_pausedUntil).forEach(k => { delete _pausedUntil[k]; });
+                    _MIDTERM._fired = false;
+                    _allendeSpeechPlayed = false;
+                    _musicSectionPending = 0;
+                    window.__resetSoundtrack?.();
+                    _pressureOn = false;
+                    _RESHUFFLE.reset();
+                    HushMoneyStack = 0; CutThemLooseStack = 0;
+                    OfferClemencyStack = 0; PinTheBlameStack = 0;
+                    _clemencies.length = 0;
+                    WatergateExposure = 1;
+                    ImproveRelationsStack = 0; SendAidStack = 0;
+                    ReduceAidStack = 0; DestabiliseStack = 0;
+                    _diploMode = null;
+                    Object.keys(_diploCooldown).forEach(k => { delete _diploCooldown[k]; });
+                    Object.keys(COUNTRY_LOYAL).forEach(c => { window[c + '_STAB'] = 0; });
+                    _president = 'nixon'; _vp = 'agnew'; _ticketStage = 1; _refreshTicket();
+                    _actionCrimes.length = 0; _actionCrimesRevealed = false;
+                }
+                _lastQNum = _gs.question_number;
+
                 const currentPK = _gs.questions_json?.[_gs.question_number]?.pk ?? null;
-                if (currentPK !== _lastQuestionPK) {
+                // currentPK !== null: past the last question (results screen) the PK
+                // computes to null — without the guard that registered as a phantom
+                // "new question", bumping the turn counter and ticking the pressure
+                // engine once on the end screen.
+                if (currentPK !== null && currentPK !== _lastQuestionPK) {
                     _lastQuestionPK = currentPK;
                     _questionCount++;
                     _runTurnTicks();
@@ -14606,12 +15852,31 @@ window.__onGameWindowMutation(() => {
                     if (qd.signImg) changeImage(qd.signImg);
                     _newEvents.clear();
                     if (qd.onShow) qd.onShow();
+                    // Reactive soundtrack: section entry (queued, installs when the
+                    // current song ends) + scripted stingers (fade out + play now).
+                    const _mSec = _pkToSection(currentPK);
+                    if (_mSec) _musicSectionPending = _mSec;
+                    if (qd.stinger && window.__injectNextSong) {
+                        const _stSong = qd.stinger();
+                        if (_stSong) window.__injectNextSong(_stSong);
+                    }
+                    // Ticket portraits: advance the stage at PART transitions.
+                    if (TICKET_STAGE_PK[currentPK]) _setTicketStage(TICKET_STAGE_PK[currentPK]);
                     if (qd.transition && !_shownTransitions.has(currentPK) && document.getElementById('question_form')) {
                         showSectionTransition(qd.transition, currentPK);
                     }
                     document.querySelectorAll('.game_answer_row').forEach((row, i) => {
                         row.style.setProperty('--answer-i-delay', `${i * 60}ms`);
                     });
+                }
+
+                // Soundtrack retry: a section-start pk can load before the Code 1
+                // player exists — the entry stays parked in _musicSectionPending
+                // until the primitive is available. Idempotency lives inside
+                // __enterMusicSection (same-section calls no-op).
+                if (_musicSectionPending && window.__enterMusicSection) {
+                    window.__enterMusicSection(_musicSectionPending);
+                    _musicSectionPending = 0;
                 }
 
                 // Retry: if question_form wasn't in the DOM when the PK first changed, show the
@@ -14654,13 +15919,15 @@ const tooltipList = [
         searchString: "Henry Kissinger",
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/kissinger.jpeg",
         label: "Henry Kissinger",
-        body: "You know who he is. Read a book."
+        body: "You know who he is. Read a book.",
+        alt: { body: "Former National Security Adviser, current professional gossiper." }
     },
     {
         searchString: "Kissinger",
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/kissinger.jpeg",
         label: "Henry Kissinger",
-        body: "You know who he is. Read a book."
+        body: "You know who he is. Read a book.",
+        alt: { body: "Former National Security Adviser, current professional gossiper." }
     },
     {
         searchString: "Earl Butz",
@@ -14750,13 +16017,13 @@ const tooltipList = [
         searchString: "Moynihan",
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/moynihan_slideshow.jpg",
         label: "Daniel Patrick Moynihan",
-        body: "Chief domestic policy advisor to the president before Erlichman. Current academic and insightful if liberal critic of the current welfare apparatus. Best speaking to him before the Harvard faculty bar opens."
+        body: "Chief domestic policy advisor to the president before Ehrlichman. Current academic and insightful if liberal critic of the current welfare apparatus. Best speaking to him before the Harvard faculty bar opens."
     },
     {
         searchString: "Pat Moynihan",
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/moynihan_slideshow.jpg",
         label: "Daniel Patrick Moynihan",
-        body: "Chief domestic policy advisor to the president before Erlichman. Current academic and insightful if liberal critic of the current welfare apparatus. Best speaking to him before the Harvard faculty bar opens."
+        body: "Chief domestic policy advisor to the president before Ehrlichman. Current academic and insightful if liberal critic of the current welfare apparatus. Best speaking to him before the Harvard faculty bar opens."
     },
     {
         searchString: "Thieu",
@@ -14836,11 +16103,24 @@ tooltipList.sort((a, b) => b.searchString.length - a.searchString.length);
 
 function getTooltips(str) {
     let matches = [];
+    // Ranges covered by HTML tags: a term inside a tag (e.g. in an src/title
+    // attribute) must never be wrapped — inserting the card markup there splits
+    // the attribute at its quote and collapses the element. The old whitespace
+    // lookarounds excluded these by accident; the word-edge ones below do not.
+    const tagRanges = [];
+    const tagRe = /<[^>]*>/g;
+    let tagM;
+    while ((tagM = tagRe.exec(str)) !== null) tagRanges.push([tagM.index, tagM.index + tagM[0].length]);
+    const inTag = (s, e) => tagRanges.some(r => s < r[1] && e > r[0]);
     tooltipList.forEach((tooltip, index) => {
         const escaped = tooltip.searchString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(`(?<=[\\b\\s]|^)${escaped}(?=[.,;!?]?(?:[\\s\\b]|$))`, 'g');
+        // Word-edge match. NB: inside a character class \b means backspace, not a
+        // word boundary — the old `[\b\s]` pattern silently required literal
+        // whitespace, so "Butz's", "Kissinger)" or "Butz:" never got a tooltip.
+        const regex = new RegExp(`(?<!\\w)${escaped}(?!\\w)`, 'g');
         let match;
         while ((match = regex.exec(str)) !== null) {
+            if (inTag(match.index, match.index + match[0].length)) continue;
             matches.push({
                 start: match.index,
                 end: match.index + match[0].length,
@@ -14873,10 +16153,47 @@ function applyTooltips(str) {
     return result;
 }
 
+// "One-bit flip": wrap an occurrence in  <span data-tip>Johnson</span>  to render
+// that term's `alt` variant instead of its default. Presence of data-tip is the
+// whole signal — the value is ignored (data-tip, data-tip="", data-tip="dead" all
+// flip). applyTooltips above is untouched: we just hide marked occurrences from it,
+// let it auto-match everything else, then drop the alt card back in. Give a
+// tooltipList entry an `alt: { body, img, label }` — any field omitted from `alt`
+// falls back to the default.
+function applyTooltipsMarked(str) {
+    // Idempotency guard: if this string already carries baked card markup, a
+    // second pass (loader executing the mod code again against the same
+    // campaignTrail_temp — Play twice, preview + play, New Game) would re-match
+    // term text inside the cards themselves and shred their markup. The old
+    // regex was idempotent by accident; make it explicit.
+    if (str.indexOf("class='mytooltip'") !== -1) return str;
+    // Educational tooltips + Expletives Deleted (Code 1) bake first, so the
+    // people-matcher below sees their tags and skips them. No-ops when Code 1
+    // isn't loaded; both are DOM-walkers that skip existing tip/xpl spans, so
+    // they're idempotent and mutually safe (each skips the other's subtrees).
+    if (typeof window.applyEduTooltips === 'function') str = window.applyEduTooltips(str);
+    if (typeof window.applyExpletiveMarkup === 'function') str = window.applyExpletiveMarkup(str);
+    const saved = [];
+    str = str.replace(/<span\b[^>]*\bdata-tip\b[^>]*>([\s\S]*?)<\/span>/gi, (whole, term) => {
+        const t = tooltipList.find(x => x.searchString === term.trim());
+        if (t) {
+            const a = t.alt || {};
+            const img   = ('img'   in a) ? a.img   : t.img;
+            const label = ('label' in a) ? a.label : t.label;
+            const body  = ('body'  in a) ? a.body  : t.body;
+            saved.push(`<span class='mytooltip' style='position:relative'>${term}${generatePenStroke()}<span class='mytooltiptext'>${img ? `<img src='${img}'/>` : ''}<span class='tt-label'>${label}</span><span class='tt-body'><span class='tt-body-text'>${body}</span></span></span></span>`);
+        } else {
+            saved.push(whole); // wrapped text isn't a known term — leave as authored
+        }
+        return 'ZZTIPZZ' + (saved.length - 1) + 'ZZTIPZZ';
+    });
+    return applyTooltips(str).replace(/ZZTIPZZ(\d+)ZZTIPZZ/g, (m, i) => saved[+i]);
+}
+
 function applyTooltipsToObject(obj) {
     for (let key in obj) {
         if (typeof obj[key] === 'string') {
-            obj[key] = applyTooltips(obj[key]);
+            obj[key] = applyTooltipsMarked(obj[key]);
         } else if (typeof obj[key] === 'object' && obj[key] !== null) {
             applyTooltipsToObject(obj[key]);
         }
@@ -14886,6 +16203,16 @@ function applyTooltipsToObject(obj) {
 applyTooltipsToObject(campaignTrail_temp.questions_json);
 applyTooltipsToObject(campaignTrail_temp.answers_json);
 applyTooltipsToObject(campaignTrail_temp.answer_feedback_json);
+
+// Failsafe: the full tooltip-card CSS lives in the init file. If that file isn't
+// loaded, .mytooltiptext loses its display:none and every baked card renders as
+// visible inline text inside the questions — this one rule prevents that.
+if (!document.getElementById('_tt_failsafe_css')) {
+    const _ttFs = document.createElement('style');
+    _ttFs.id = '_tt_failsafe_css';
+    _ttFs.textContent = '.mytooltiptext{display:none;}';
+    document.head.appendChild(_ttFs);
+}
 
 const _tooltipPortal = document.createElement('div');
 _tooltipPortal.id = 'tooltip-portal';
@@ -14900,7 +16227,14 @@ document.addEventListener('mouseover', (e) => {
     _hoveredTooltip = src;
     if (src) {
         const inner = src.querySelector('.mytooltiptext');
-        if (inner) { _tooltipPortal.innerHTML = inner.innerHTML; _ttDirty = true; }
+        if (inner) {
+            _tooltipPortal.innerHTML = inner.innerHTML;
+            _ttDirty = true;
+            // The card image loads async and grows the portal after we've measured;
+            // remeasure on load or the edge-clamp works with a stale (smaller) size.
+            const im = _tooltipPortal.querySelector('img');
+            if (im && !im.complete) im.onload = () => { _ttDirty = true; };
+        }
     } else {
         _tooltipPortal.style.display = 'none';
     }
@@ -14927,6 +16261,425 @@ document.addEventListener('mouseleave', () => {
     _tooltipPortal.style.display = 'none';
     _hoveredTooltip = null;
 }, true);
+
+// ── SAVE / LOAD ───────────────────────────────────────────────────────────────
+// Ported from Obamanation's experimental SaveLoadSystem, heavily adapted.
+// DELIBERATELY only reachable from the PART transition screens (the Save/Load
+// button lives in showSectionTransition's overlay) — a run can be checkpointed
+// once per phase, so you can restart a Part but not savescum a question.
+// Storage: IndexedDB 'ACOPSaves'/'gameSaves'; saves persist across New Game
+// and page reloads.
+//
+// Obamanation captured mod state by reading window[name] — ACOP can't: this
+// file runs inside new Function(), so mod state lives in THIS scope, not on
+// window. Scalars are captured/restored via direct eval (which sees this
+// scope); const containers (Sets/arrays/objects) are restored by mutation.
+
+// Every per-run scalar. The New Game reset block, the pressure engine, the
+// diplomacy stacks, the world-event flags and the officials roster are all
+// covered — if a new per-run var is added to the mod, add its name here.
+var _SL_SCALARS = [
+    // run counters / flow
+    '_questionCount', '_pressureOn', '_allendeSpeechPlayed', '_actionCrimesRevealed',
+    // ticket
+    '_president', '_vp', '_ticketStage', 'Nominee',
+    // top-line stats
+    'WatergateExposure', 'ApprovalRating', 'Economy', 'MentalState', 'MediaRelations',
+    'CongressionalSupport', 'RepublicanSupport', 'RelationswiththeSoviets', 'MEPeace',
+    'committeejuice', 'Command', 'LawandOrder', 'defcon',
+    // officials roster
+    'NSA', 'ChiefOfStaff', 'AttorneyGeneral', 'SOS', 'FBI', 'SP', 'CIA', 'SOD',
+    // pressure engine: exposure
+    'Haldemanexposure', 'Ehrlichmanexposure', 'Deanexposure', 'Chapinexposure',
+    'Segrettiexposure', 'Strachanexposure', 'Colsonexposure', 'Mitchellexposure',
+    'Magruderexposure', 'Liddyexposure', 'LaRueexposure', 'Stansexposure',
+    'Kalmbachexposure', 'McCordexposure', 'Huntexposure', 'Kroghexposure',
+    'Kleindienstexposure', 'Watergateburglarsexposure', 'Watergateburglarsstatus',
+    'Watergateburglarsloyalty',
+    // pressure engine: status
+    'HaldemanSTATUS', 'EhrlichmanSTATUS', 'MitchellSTATUS', 'DeanSTATUS',
+    'MagruderSTATUS', 'KroghSTATUS', 'ChapinSTATUS', 'SegrettiSTATUS',
+    'StrachanSTATUS', 'HuntSTATUS', 'McCordSTATUS', 'LiddySTATUS', 'LaRueSTATUS',
+    'StansSTATUS', 'KalmbachSTATUS', 'KleindienstSTATUS', 'ColsonSTATUS',
+    // pressure engine: loyalty
+    'Haldemanloyalty', 'Ehrlichmanloyalty', 'Deanloyalty', 'Mitchellloyalty',
+    'Chapinloyalty', 'Segrettiloyalty', 'Strachanloyalty', 'Colsonloyalty',
+    'Magruderloyalty', 'Liddyloyalty', 'LaRueloyalty', 'Stansloyalty',
+    'Kalmbachloyalty', 'McCordloyalty', 'Huntloyalty', 'Kroghloyalty',
+    'Kleindienstloyalty',
+    // person "juice"
+    'Haldeman', 'Ehrlichman', 'Mitchell', 'Dean', 'Magruder', 'Kissinger', 'Krogh',
+    'Chapin', 'Segretti', 'Strachan', 'Hunt', 'McCord', 'Liddy', 'LaRue', 'Stans',
+    'Kalmbach', 'Kleindienst', 'Colson',
+    // crimes / scandal flags
+    'wiretapping', 'Ellsberg', 'taxEvasion', 'homeImprovements', 'Cambodia',
+    'ratfucking', 'ITT', 'FakeCables', 'MilkFund', 'Vesco', 'oojHush',
+    'oojClemency', 'dncbreakin', 'OilEmbargo', 'SaturdayNightMassacre',
+    // action stacks
+    'HushMoneyStack', 'CutThemLooseStack', 'OfferClemencyStack', 'PinTheBlameStack',
+    'ImproveRelationsStack', 'SendAidStack', 'ReduceAidStack', 'DestabiliseStack',
+    // world events
+    'Vietnam', 'chad', 'khmer', 'laos', 'eritrea', 'managua', 'cyprusInvasion',
+    'guatemalaQuake', 'tangshan', 'mississippi', 'hondurasCoup', 'bananagate',
+    'rwandaCoup', 'afghanCoup', 'nigerCoup', 'greekCoup', 'ethiopianRevolution',
+    'dergCoup', 'uruguayCoup', 'chileanCoup', 'upperVoltaCoup', 'tacnazo',
+    'argentineCoup', 'northYemenCoup', 'oromoUprising', 'sahrawiInsurgency',
+    'yomKippurGolan', 'yomKippurSuez', 'smilingBuddha',
+];
+
+var _slTmp;
+function _slGetVar(name) {
+    try { return eval(name); } catch (err) { return undefined; }
+}
+function _slSetVar(name, value) {
+    _slTmp = value;
+    try { eval(name + ' = _slTmp'); } catch (err) {}
+    _slTmp = undefined;
+}
+
+function _slCaptureMod() {
+    const vars = {};
+    _SL_SCALARS.forEach(n => {
+        const v = _slGetVar(n);
+        if (v !== undefined) vars[n] = v;
+    });
+    return {
+        vars,
+        shownTransitions: Array.from(_shownTransitions),
+        pausedUntil: Object.assign({}, _pausedUntil),
+        diploCooldown: Object.assign({}, _diploCooldown),
+        clemencies: _clemencies.slice(),
+        actionCrimes: JSON.parse(JSON.stringify(_actionCrimes)),
+        countryLoyal: Object.assign({}, COUNTRY_LOYAL),
+        stab: Object.fromEntries(Object.keys(COUNTRY_LOYAL).map(c => [c, window[c + '_STAB'] || 0])),
+        reshuffle: JSON.parse(JSON.stringify({ active: _RESHUFFLE.active, pending: _RESHUFFLE.pending })),
+        midtermFired: _MIDTERM._fired,
+        eventDebutPk: Object.assign({}, _wmEventDebutPk),
+    };
+}
+
+function _slRestoreMod(m) {
+    // Only names in the current _SL_SCALARS list are applied: a stale save
+    // carrying a since-renamed/removed var would otherwise eval-create a junk
+    // window global (non-strict assignment to an undeclared name).
+    Object.keys(m.vars || {}).forEach(n => {
+        if (_SL_SCALARS.indexOf(n) !== -1) _slSetVar(n, m.vars[n]);
+    });
+    _shownTransitions.clear();
+    (m.shownTransitions || []).forEach(pk => _shownTransitions.add(pk));
+    Object.keys(_pausedUntil).forEach(k => { delete _pausedUntil[k]; });
+    Object.assign(_pausedUntil, m.pausedUntil || {});
+    Object.keys(_diploCooldown).forEach(k => { delete _diploCooldown[k]; });
+    Object.assign(_diploCooldown, m.diploCooldown || {});
+    _clemencies.length = 0;
+    (m.clemencies || []).forEach(c => _clemencies.push(c));
+    _actionCrimes.length = 0;
+    (m.actionCrimes || []).forEach(c => _actionCrimes.push(c));
+    Object.keys(m.countryLoyal || {}).forEach(c => { COUNTRY_LOYAL[c] = m.countryLoyal[c]; });
+    Object.keys(m.stab || {}).forEach(c => { window[c + '_STAB'] = m.stab[c]; });
+    if (m.reshuffle) {
+        _RESHUFFLE.active = m.reshuffle.active || null;
+        _RESHUFFLE.pending.length = 0;
+        (m.reshuffle.pending || []).forEach(p => _RESHUFFLE.pending.push(p));
+    }
+    _MIDTERM._fired = !!m.midtermFired;
+    Object.keys(_wmEventDebutPk).forEach(k => { delete _wmEventDebutPk[k]; });
+    Object.assign(_wmEventDebutPk, m.eventDebutPk || {});
+    _refreshTicket();
+}
+
+// questionSwapper permutes questions_json in place (same objects, new order),
+// so order is a bijection on pks — snapshot the pk sequence, restore by remap.
+// If the question bank changed shape since the save was made, keep the current
+// order rather than corrupting it.
+function _slRestoreQuestionOrder(order) {
+    const arr = campaignTrail_temp.questions_json;
+    if (!order || order.length !== arr.length) return;
+    const byPk = new Map(arr.map(q => [Number(q.pk), q]));
+    const rebuilt = order.map(pk => byPk.get(Number(pk)));
+    if (rebuilt.some(q => !q)) return;
+    for (let i = 0; i < arr.length; i++) arr[i] = rebuilt[i];
+    _rebuildQuestionIdxMap();
+}
+
+// answerSwapper reassigns answers between questions (fields.question). NOTE:
+// its takeEffects branch also swaps fields.answer inside the four effect
+// jsons — NOT snapshotted here; if answerSwapper(…, true) ever goes live,
+// extend the snapshot the same way.
+function _slRestoreAnswerAssignment(assign) {
+    const arr = campaignTrail_temp.answers_json;
+    if (!assign || assign.length !== arr.length) return;
+    for (let i = 0; i < arr.length; i++) arr[i].fields.question = assign[i];
+}
+
+const _SL_DB_NAME = 'ACOPSaves';
+const _SL_STORE = 'gameSaves';
+
+function _slInitDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(_SL_DB_NAME, 1);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(_SL_STORE)) {
+                db.createObjectStore(_SL_STORE, { keyPath: 'id', autoIncrement: true });
+            }
+        };
+    });
+}
+
+function _slDefaultName(pk) {
+    const qd = (pk != null && questionData[pk]) || {};
+    return (qd.transition && qd.transition.title) || ('Turn ' + _questionCount);
+}
+
+async function _slSave(name) {
+    const gs = _liveGameState();
+    if (!gs) throw new Error('game state not available');
+    const pk = gs.questions_json?.[gs.question_number]?.pk ?? null;
+    const qd = (pk != null && questionData[pk]) || {};
+    const saveData = {
+        timestamp: new Date().toISOString(),
+        name: (name || '').trim() || _slDefaultName(pk),
+        date_label: qd.date || '',
+        // engine state
+        question_number: gs.question_number,
+        current_question_pk: pk,
+        candidate_id: gs.candidate_id,
+        running_mate_id: gs.running_mate_id,
+        difficulty_level_id: gs.difficulty_level_id,
+        difficulty_level_multiplier: gs.difficulty_level_multiplier,
+        game_type_id: gs.game_type_id,
+        player_answers: (gs.player_answers || []).slice(),
+        player_visits: (gs.player_visits || []).slice(),
+        current_results: gs.current_results ? JSON.parse(JSON.stringify(gs.current_results)) : null,
+        opponents_list: gs.opponents_list ? JSON.parse(JSON.stringify(gs.opponents_list)) : [],
+        opponent_visits: gs.opponent_visits ? JSON.parse(JSON.stringify(gs.opponent_visits)) : [],
+        // question-bank runtime mutations
+        question_order: campaignTrail_temp.questions_json.map(q => q.pk),
+        answer_assignment: campaignTrail_temp.answers_json.map(a => a.fields.question),
+        // mod state
+        mod: _slCaptureMod(),
+        mod_identifier: 'ACOP',
+    };
+    const db = await _slInitDB();
+    return new Promise((resolve, reject) => {
+        const request = db.transaction([_SL_STORE], 'readwrite').objectStore(_SL_STORE).add(saveData);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function _slGetAll() {
+    const db = await _slInitDB();
+    return new Promise((resolve, reject) => {
+        const request = db.transaction([_SL_STORE], 'readonly').objectStore(_SL_STORE).getAll();
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function _slDelete(saveId) {
+    const db = await _slInitDB();
+    return new Promise((resolve, reject) => {
+        const request = db.transaction([_SL_STORE], 'readwrite').objectStore(_SL_STORE).delete(saveId);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function _slLoad(saveId) {
+    const db = await _slInitDB();
+    const saveData = await new Promise((resolve, reject) => {
+        const request = db.transaction([_SL_STORE], 'readonly').objectStore(_SL_STORE).get(saveId);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+    if (!saveData) throw new Error('save not found');
+    const gs = _liveGameState();
+    if (!gs) throw new Error('game state not available');
+
+    // Mod state first (mirrors Obamanation's ordering), then the question bank,
+    // then engine state — all synchronous, so the mutation observer can't tick
+    // mid-restore.
+    _slRestoreMod(saveData.mod || {});
+    _slRestoreQuestionOrder(saveData.question_order);
+    _slRestoreAnswerAssignment(saveData.answer_assignment);
+
+    gs.candidate_id = saveData.candidate_id;
+    gs.running_mate_id = saveData.running_mate_id;
+    gs.difficulty_level_id = saveData.difficulty_level_id;
+    gs.difficulty_level_multiplier = saveData.difficulty_level_multiplier;
+    gs.game_type_id = saveData.game_type_id;
+    gs.question_number = saveData.question_number;
+    gs.player_answers = saveData.player_answers.slice();
+    gs.player_visits = saveData.player_visits.slice();
+    if (saveData.current_results) gs.current_results = JSON.parse(JSON.stringify(saveData.current_results));
+    gs.opponents_list = JSON.parse(JSON.stringify(saveData.opponents_list || []));
+    gs.opponent_visits = JSON.parse(JSON.stringify(saveData.opponent_visits || []));
+
+    // Safety net: if the restored order somehow doesn't put the saved pk at the
+    // saved index (bank changed since save), jump to wherever it now lives.
+    if (saveData.current_question_pk != null &&
+        gs.questions_json?.[gs.question_number]?.pk !== saveData.current_question_pk) {
+        const idx = getQuestionIndexFromPk(saveData.current_question_pk);
+        if (idx >= 0) gs.question_number = idx;
+    }
+
+    // Sync the PK-change observer's trackers BEFORE it next ticks — a lower
+    // question_number would otherwise read as "New Game" and wipe everything
+    // just restored.
+    _lastQNum = gs.question_number;
+    _lastQuestionPK = saveData.current_question_pk;
+    _newEvents.clear();
+
+    // Soundtrack: saves only happen on phase screens, so the saved pk IS a
+    // section-start pk — re-enter its music section (idempotent if unchanged).
+    _musicSectionPending = _pkToSection(saveData.current_question_pk) || 0;
+
+    // Re-render, then redo the cosmetics the PK-change block won't re-run
+    // (it sees the same pk it already handled).
+    if (typeof questionHTML === 'function') questionHTML();
+    const qd = (saveData.current_question_pk != null && questionData[saveData.current_question_pk]) || {};
+    if (qd.signImg) changeImage(qd.signImg);
+    return saveData;
+}
+
+// ── Save/Load panel (vanilla DOM; save names rendered via textContent, never
+// innerHTML). Sits above the transition overlay (z 600 > 500) inside
+// #game_window. ──
+function _slOpenUI() {
+    document.getElementById('acop-saveload-panel')?.remove();
+    const gw = document.getElementById('game_window');
+    if (!gw) return;
+
+    const panel = document.createElement('div');
+    panel.id = 'acop-saveload-panel';
+    panel.style.cssText = `
+        position: absolute; top: 0; left: 0; width: 989px; min-height: 625px; height: 100%;
+        background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png');
+        background-size: cover; background-position: center;
+        z-index: 600; display: flex; flex-direction: column; align-items: center;
+        padding: 34px 40px; box-sizing: border-box; text-align: center;
+        font-family: 'TypewriterDry', sans-serif;
+    `;
+
+    const h = document.createElement('h2');
+    h.textContent = 'SAVE / LOAD';
+    h.style.cssText = 'font-size:22px;letter-spacing:0.2em;margin:0 0 6px;';
+    panel.appendChild(h);
+
+    const sub = document.createElement('p');
+    sub.textContent = 'The record can only be committed between the Parts.';
+    sub.style.cssText = 'font-size:12px;margin:0 0 18px;opacity:0.75;';
+    panel.appendChild(sub);
+
+    const status = document.createElement('p');
+    status.style.cssText = 'font-size:12px;min-height:16px;margin:0 0 10px;';
+    panel.appendChild(status);
+
+    const saveRow = document.createElement('div');
+    saveRow.style.cssText = 'display:flex;gap:10px;justify-content:center;margin-bottom:20px;';
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.placeholder = 'Save name (optional)';
+    nameInput.maxLength = 60;
+    nameInput.style.cssText = "width:260px;padding:5px 8px;font-family:'TypewriterDry',sans-serif;font-size:13px;";
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Save';
+    saveBtn.className = 'section-transition-continue';
+    saveRow.appendChild(nameInput);
+    saveRow.appendChild(saveBtn);
+    panel.appendChild(saveRow);
+
+    const list = document.createElement('div');
+    list.style.cssText = `
+        width: 560px; max-width: 90%; flex: 1; overflow-y: auto;
+        border: 1px solid rgba(0,0,0,0.35); background: rgba(255,255,255,0.45);
+        padding: 8px; text-align: left;
+    `;
+    panel.appendChild(list);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Back';
+    closeBtn.className = 'section-transition-continue';
+    closeBtn.style.marginTop = '16px';
+    closeBtn.addEventListener('click', () => panel.remove());
+    panel.appendChild(closeBtn);
+
+    async function refreshList() {
+        list.textContent = '';
+        let saves = [];
+        try { saves = await _slGetAll(); }
+        catch (err) { status.textContent = 'Storage unavailable: ' + err.message; return; }
+        if (!saves.length) {
+            const p = document.createElement('p');
+            p.textContent = 'No saves yet.';
+            p.style.cssText = 'font-size:13px;opacity:0.7;margin:6px;';
+            list.appendChild(p);
+            return;
+        }
+        saves.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+        saves.forEach(save => {
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:7px 6px;border-bottom:1px dashed rgba(0,0,0,0.25);';
+            const info = document.createElement('div');
+            info.style.cssText = 'flex:1;min-width:0;';
+            const title = document.createElement('div');
+            title.textContent = save.name;
+            title.style.cssText = 'font-size:13px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+            const meta = document.createElement('div');
+            meta.textContent = (save.date_label ? save.date_label + ' · ' : '') +
+                'Turn ' + ((save.mod && save.mod.vars && save.mod.vars._questionCount) || '?') + ' · ' +
+                new Date(save.timestamp).toLocaleString();
+            meta.style.cssText = 'font-size:11px;opacity:0.7;';
+            info.appendChild(title);
+            info.appendChild(meta);
+            const loadBtn = document.createElement('button');
+            loadBtn.textContent = 'Load';
+            const delBtn = document.createElement('button');
+            delBtn.textContent = 'Delete';
+            loadBtn.addEventListener('click', async () => {
+                try {
+                    await _slLoad(save.id);
+                    panel.remove();
+                } catch (err) {
+                    status.textContent = 'Load failed: ' + err.message;
+                }
+            });
+            delBtn.addEventListener('click', async () => {
+                try { await _slDelete(save.id); } catch (err) {}
+                refreshList();
+            });
+            row.appendChild(info);
+            row.appendChild(loadBtn);
+            row.appendChild(delBtn);
+            list.appendChild(row);
+        });
+    }
+
+    saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        try {
+            await _slSave(nameInput.value);
+            status.textContent = 'Saved.';
+            nameInput.value = '';
+            refreshList();
+        } catch (err) {
+            status.textContent = 'Save failed: ' + err.message;
+        }
+        saveBtn.disabled = false;
+    });
+
+    gw.style.position = 'relative';
+    gw.appendChild(panel);
+    refreshList();
+}
+
+// Console access + anything outside this scope.
+window.ACOPSaveLoad = { open: _slOpenUI, save: _slSave, load: _slLoad, del: _slDelete, list: _slGetAll };
+// ── END SAVE / LOAD ───────────────────────────────────────────────────────────
 
 function showSectionTransition(t, pk) {
     // _shownTransitions tracks DISMISSED transitions (set on the Continue click),
@@ -14973,7 +16726,10 @@ function showSectionTransition(t, pk) {
         <p style="font-family:'TypewriterDry',sans-serif;font-size:14px;max-width:600px;
                   line-height:1.5;margin-bottom:${t.img ? '24px' : '36px'};">${t.body}</p>
         ${t.img ? `<img src="${t.img}" style="display:block;max-width:400px;height:auto;margin:0 auto 36px auto;">` : ''}
-        <button class="section-transition-continue">Continue</button>
+        <div style="display:flex;gap:14px;justify-content:center;">
+            <button class="section-transition-continue">Continue</button>
+            <button class="section-transition-continue st-saveload-btn">Save / Load</button>
+        </div>
     `;
 
     target.style.position = 'relative';
@@ -14981,11 +16737,16 @@ function showSectionTransition(t, pk) {
 
     // Mark dismissed only on the explicit Continue click, so an engine re-render
     // that wipes the overlay before the player acts simply re-shows it next tick.
-    const continueBtn = overlay.querySelector('.section-transition-continue');
+    const continueBtn = overlay.querySelector('.section-transition-continue:not(.st-saveload-btn)');
     if (continueBtn) continueBtn.addEventListener('click', () => {
         _shownTransitions.add(pk);
         overlay.remove();
     });
+
+    // Save/Load is ONLY offered here, on the phase screens — deliberate
+    // anti-savescumming: a run can be checkpointed once per Part.
+    const slBtn = overlay.querySelector('.st-saveload-btn');
+    if (slBtn) slBtn.addEventListener('click', () => _slOpenUI());
 }
 
 function fadeText(el, newText) {
@@ -15144,6 +16905,212 @@ document.addEventListener('keydown', (e) => {
 });
 document.body.appendChild(honk);
 
+// Open the world map the RIGHT way — through the engine's electoral-map screen,
+// which builds the map container/layout the map depends on. Calling
+// openWorldMap() straight from the Q&A screen skips that and renders wrong.
+// (Shared by the Legal Pad globe button and the 'W' shortcut.) Tunnel: click the
+// engine's electoral-map button, wait for #world_map_button to appear, click it;
+// fall back to a direct open if the engine button is absent or never resolves.
+function _openWorldMapViaTunnel() {
+    if (document.getElementById('world-map-container')) return; // already open
+    const mapsBtn = document.getElementById('view_electoral_map');
+    if (!mapsBtn) { openWorldMap(); return; }
+    const gw = document.getElementById('game_window');
+    if (gw) gw.style.visibility = 'hidden'; // avoid a flash of the electoral screen
+    let _done = false;
+    const _obs = new MutationObserver(() => {
+        if (_done) return;
+        const wmBtn = document.getElementById('world_map_button');
+        if (wmBtn) { _done = true; _obs.disconnect(); if (gw) gw.style.visibility = ''; wmBtn.click(); }
+    });
+    _obs.observe(document.body, { childList: true, subtree: true });
+    mapsBtn.click();
+    setTimeout(() => { if (!_done) { _done = true; _obs.disconnect(); if (gw) gw.style.visibility = ''; openWorldMap(); } }, 3000);
+}
+
+// ── KEYBOARD SHORTCUTS ────────────────────────────────────────────────────────
+// Q = questions · W = world map · A = All the President's Men · Z = Officials.
+// One delegated listener, early-exit on every non-shortcut key. Skips typing
+// contexts (inputs/textareas), modifier chords, an in-progress Konami entry
+// (konamiIndex > 0 — so the final 'a' of the code doesn't also open a screen),
+// and does nothing until the game is actually on screen.
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    const tgt = e.target;
+    if (tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.tagName === 'SELECT' || tgt.isContentEditable)) return;
+    if (konamiIndex > 0) return;
+    const k = e.key.toLowerCase();
+    if (k !== 'q' && k !== 'w' && k !== 'a' && k !== 'z') return;
+    if (!document.querySelector('.inner_window_question, #resume_questions_button, #world-map-container, #inner_circle_panel, #officials_panel, #enemies_panel')) return;
+
+    const q = document.querySelector('.inner_window_question');
+    const closePanels = () => {
+        document.getElementById('officials_panel')?.remove();
+        document.getElementById('enemies_panel')?.remove();
+        document.getElementById('inner_circle_panel')?.remove();
+    };
+    const closeMap = () => {
+        if (window._wmActiveClose) { try { window._wmActiveClose(); } catch (err) {} window._wmActiveClose = null; }
+    };
+
+    if (k === 'q') {
+        closeMap();
+        closePanels();
+        if (q) q.style.display = '';
+        addInnerCircleButton();
+        document.getElementById('resume_questions_button')?.click(); // electoral-map screen → back to questions
+    } else if (k === 'w') {
+        if (document.getElementById('world-map-container')) return;  // already there
+        closePanels();
+        if (q) q.style.display = '';
+        _openWorldMapViaTunnel(); // same path as the Legal Pad globe button (renders correctly)
+    } else if (k === 'a') {
+        if (document.getElementById('inner_circle_panel')) return;
+        closeMap();
+        closePanels();
+        openInnerCircle(); // hides the question window + removes the button itself
+    } else { // z
+        if (document.getElementById('officials_panel')) return;
+        closeMap();
+        closePanels();
+        if (q) q.style.display = 'none';
+        document.getElementById('inner_circle_button')?.remove();
+        openOfficialsPanel(q);
+    }
+});
+// ── END KEYBOARD SHORTCUTS ────────────────────────────────────────────────────
+
+// ── GAME MANUAL ───────────────────────────────────────────────────────────────
+// A floating, draggable player's manual (like the Legal Pad), opened by a
+// "Manual" button pinned just below the bottom-right corner of the game window.
+// It repositions whenever the window resizes or screens change, so it stays put
+// at any window size. (Also openable with 'M'.)
+;(() => {
+    const st = document.createElement('style');
+    st.id = '_manual_css';
+    st.textContent =
+        '#manual_panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:560px;max-width:94vw;'+
+        'max-height:86vh;z-index:100000;background:#f5ecd6;color:#241c0e;border:1px solid #8a6d3b;border-radius:6px;'+
+        'box-shadow:0 10px 40px rgba(0,0,0,.55);display:flex;flex-direction:column;font-family:TypewriterDry,monospace;}'+
+        '#manual_panel .man-head{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;'+
+        'background:#3a2c14;color:#f2e6c8;cursor:move;border-top-left-radius:6px;border-top-right-radius:6px;letter-spacing:1px;}'+
+        '#manual_panel .man-head b{font-size:14px;}'+
+        '#manual_panel .man-close{cursor:pointer;border:0;background:#6b4f1d;color:#fff;font-weight:bold;border-radius:4px;padding:2px 9px;}'+
+        '#manual_panel .man-body{overflow-y:auto;padding:14px 16px;line-height:1.5;font-size:12.5px;}'+
+        '#manual_panel h3{margin:15px 0 5px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#6b4f1d;'+
+        'border-bottom:1px solid #c8b87a;padding-bottom:3px;} #manual_panel h3:first-child{margin-top:0;}'+
+        '#manual_panel .man-key{display:inline-block;min-width:18px;text-align:center;font-weight:bold;background:#241c0e;'+
+        'color:#f2e6c8;border-radius:3px;padding:1px 6px;margin-right:6px;}'+
+        '#manual_panel ul{margin:4px 0 4px 2px;padding-left:16px;} #manual_panel li{margin:3px 0;} #manual_panel p{margin:4px 0;}';
+    document.head.appendChild(st);
+})();
+
+function openGameManual() {
+    document.getElementById('manual_panel')?.remove();
+    const panel = document.createElement('div');
+    panel.id = 'manual_panel';
+    panel.innerHTML =
+        '<div class="man-head"><b>A Cancer on the Presidency — Field Manual</b><button class="man-close">Close</button></div>'+
+        '<div class="man-body">'+
+        '<h3>Keyboard shortcuts</h3><ul>'+
+        '<li><span class="man-key">Q</span> Questions &amp; answers (the main screen)</li>'+
+        '<li><span class="man-key">W</span> World map</li>'+
+        '<li><span class="man-key">A</span> All the President’s Men</li>'+
+        '<li><span class="man-key">Z</span> Officials</li></ul>'+
+        '<h3>The four screens</h3><ul>'+
+        '<li><b>Questions &amp; Answers</b> — the heart of the game: your decisions as President.</li>'+
+        '<li><b>World Map</b> — the world’s alignment to the US, live events, and your foreign-policy tools.</li>'+
+        '<li><b>All the President’s Men</b> — the Watergate conspiracy: loyalty, exposure, and who might crack.</li>'+
+        '<li><b>Officials</b> — your cabinet. Click any card to flip it and read what that appointment does for you.</li></ul>'+
+        '<h3>All the President’s Men — the pressure</h3>'+
+        '<p>Every man in the conspiracy has two numbers, shown when you flip his card: <b>Loyalty</b> (10 = a true believer, 0 = ready to talk) and <b>Exposure</b> (how far the investigation has reached him). Nixon’s own card shows your <b>Watergate Exposure</b> — the number that ultimately decides your fate.</p>'+
+        '<p><b>Exposure climbs.</b> Each turn a man’s exposure leaks upward to the men above him on the chart — the more exposed he is, the faster it spreads. A man who is still clean is shielded and absorbs nothing from below. Left unchecked it works its way up the chain and, in the end, to the President himself.</p>'+
+        '<p><b>Men crack.</b> The more exposed a man is, the faster his loyalty erodes — and once his loyalty bottoms out while his exposure is high, he may turn <b>state’s witness</b>. A witness is a catastrophe: his testimony throws fresh exposure onto everyone he was tied to, and if one of the inner circle (Haldeman, Ehrlichman, Colson, Mitchell, Dean) flips, it lands directly on you. Minor exposure fades on its own over time — unless the man has been indicted or jailed, which keeps him in the headlines.</p>'+
+        '<p><b>Your tools.</b> Four actions sit at the top-left of the screen, each with limited uses earned through the game. They only work on the junior staff — the men below the top row (Dean included), never the President or the inner four:</p><ul>'+
+        '<li><b>Hush Money</b> — buy a man off: +1 loyalty, and his loyalty stops eroding and his exposure stops spreading for a few turns.</li>'+
+        '<li><b>Cut Them Loose</b> — publicly disown a man still in post; distances him, but does nothing to stop him cracking.</li>'+
+        '<li><b>Offer Clemency</b> — dangle a pardon before a loyal man who’s been indicted or jailed: a temporary loyalty boost that evaporates the moment his situation changes.</li>'+
+        '<li><b>Pin the Blame</b> — available only once your own exposure is dangerously high: hang it on a wavering man (his exposure up, his loyalty down) to take the heat off yourself. A devil’s bargain — you’re manufacturing the next man to crack.</li></ul>'+
+        '<p>The machine only truly comes alive in Part II (“Fulmination”); before that, the numbers move only through your answers.</p>'+
+        '<h3>Officials</h3>'+
+        '<p>Your cabinet — State, Defense, Justice, National Security, CIA, FBI. Flip a card for the effects of that person in post. At certain moments you’ll be invited to <b>reshuffle</b>: the Enemies/Friends and Officials buttons glow, and the swappable roles glow — click one to choose a successor. Ignore it and the post falls <b>vacant</b>.</p>'+
+        '<h3>World map</h3>'+
+        '<p>Toggle display layers along the bars: <b>Allegiance</b> (colours by how pro-US a country is), <b>Flags</b>, <b>Events</b>, <b>Capitals</b>, <b>Night</b>, <b>SIGINT</b>, and <b>N.os</b> (shows the exact relations number and destabilisation count in a country’s hover).</p>'+
+        '<p>The <b>Diplomacy</b> dropdown holds four actions — arm one, then click a target country:</p><ul>'+
+        '<li><b>Improve Relations</b> / <b>Send Aid</b> — raise relations (aid needs relations ≥ 26 and can’t go to the wealthy allies).</li>'+
+        '<li><b>Reduce Aid</b> — withdraw aid (relations drop; the freed budget returns a Send Aid charge).</li>'+
+        '<li><b>Destabilise</b> — covert pressure on a hostile country (relations below 30 only); builds toward later events.</li></ul>'+
+        '<p>Your Secretary of State and NSA quietly earn you diplomacy charges each turn — who holds those chairs matters.</p>'+
+        '<h3>Before you begin</h3>'+
+        '<p>Optional switches sit by the difficulty selector: <b>Educational tooltips</b> (notes on allusions and obscure references), <b>Historicity</b> (highlights verbatim primary-source text), and <b>Expletives Deleted</b> (redacts the language, in the President’s own style).</p>'+
+        '</div>';
+    panel.querySelector('.man-close').onclick = () => panel.remove();
+    // Drag by the header.
+    const head = panel.querySelector('.man-head');
+    head.addEventListener('mousedown', e => {
+        if (e.target.classList.contains('man-close')) return;
+        const r = panel.getBoundingClientRect();
+        panel.style.transform = 'none';
+        panel.style.left = r.left + 'px';
+        panel.style.top = r.top + 'px';
+        const ox = e.clientX - r.left, oy = e.clientY - r.top;
+        const mv = ev => { panel.style.left = (ev.clientX - ox) + 'px'; panel.style.top = (ev.clientY - oy) + 'px'; };
+        const up = () => { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); };
+        document.addEventListener('mousemove', mv);
+        document.addEventListener('mouseup', up);
+        e.preventDefault();
+    });
+    document.body.appendChild(panel);
+}
+
+// Create the button once (on document.body) and pin it just below the game
+// window's bottom-right corner; recomputed from #game_window's live rect so it
+// tracks any resize. No-op until #game_window exists.
+var _manRO = null;
+function _placeManualButton() {
+    const gw = document.getElementById('game_window');
+    if (!gw) return false;
+    let btn = document.getElementById('game-manual-button');
+    if (!btn) {
+        btn = document.createElement('button');
+        btn.id = 'game-manual-button';
+        btn.textContent = 'Manual';
+        btn.style.cssText = 'position:absolute;z-index:9000;cursor:pointer;padding:4px 14px;'+
+            'font-family:TypewriterDry,monospace;font-size:13px;letter-spacing:1px;'+
+            'background:#3a2c14;color:#f2e6c8;border:1px solid #8a6d3b;border-radius:4px;';
+        btn.addEventListener('click', () => openGameManual());
+        document.body.appendChild(btn);
+    }
+    // Track pure size changes of the game window (screen swaps also fire the
+    // mutation observer below, and viewport changes fire window 'resize').
+    if (!_manRO && typeof ResizeObserver !== 'undefined') {
+        _manRO = new ResizeObserver(() => _placeManualButton());
+        _manRO.observe(gw);
+    }
+    const r = gw.getBoundingClientRect();
+    const top  = (r.bottom + window.scrollY + 6) + 'px';
+    const left = (r.right  + window.scrollX - btn.offsetWidth) + 'px'; // align to the right edge
+    // Runs on every game-window mutation batch — skip the style writes when
+    // nothing moved so the common case stays free.
+    if (btn.style.top !== top || btn.style.left !== left) {
+        btn.style.top  = top;
+        btn.style.left = left;
+    }
+    return true;
+}
+_placeManualButton();
+window.addEventListener('resize', _placeManualButton);
+window.__onGameWindowMutation(() => _placeManualButton()); // catches first appearance + screen changes
+// Fallback so the manual is always reachable while wiring the button: press 'M'.
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    if (e.key.toLowerCase() !== 'm') return;
+    document.getElementById('manual_panel') ? document.getElementById('manual_panel').remove() : openGameManual();
+});
+// ── END GAME MANUAL ───────────────────────────────────────────────────────────
+
 // [JETS_CYOA_CAMPAIGN_DATA_START]
 ;(() => {
     /* Load Permanent Marker from Google Fonts */
@@ -15234,6 +17201,11 @@ document.body.appendChild(honk);
     }
     .fd-close:hover { color: #110500; }
     .fd-pad {
+        /* 28px baseline grid: the ruled line sits at 22px within each 28px cell
+           (right under the 15px handwriting baseline), and the rule layer is
+           shifted down by the 12px top padding so it aligns to the first line.
+           Text classes below use line-height:28px and on-grid margins so every
+           line rests on a rule. */
         background-color: #fdf4b0;
         background-image:
             linear-gradient(90deg,
@@ -15242,9 +17214,16 @@ document.body.appendChild(honk);
                 transparent 48px),
             repeating-linear-gradient(180deg,
                 transparent 0px,
-                transparent 27px,
-                #90caf9 27px,
-                #90caf9 28.5px);
+                transparent 22px,
+                #90caf9 22px,
+                #90caf9 23.5px,
+                transparent 23.5px,
+                transparent 28px);
+        background-position: 0 0, 0 12px;
+        /* local: the rules scroll WITH the text — the default (scroll) pins the
+           background to the element box, so on overflow the text would drift
+           off the ruled lines the moment the pad scrolls. */
+        background-attachment: local, local;
         border: 1px solid #b89820;
         border-radius: 3px;
         padding: 12px 14px 24px 60px;
@@ -15259,11 +17238,11 @@ document.body.appendChild(honk);
         font-size: 13px !important;
         font-weight: bold !important;
         color: #1a0800 !important;
-        margin: 4px 0 10px !important;
+        margin: 0 0 28px !important;   /* one blank ruled line after the heading (on-grid) */
         line-height: 28px;
         text-decoration: none !important;
     }
-    .fd-entry { margin-bottom: 6px; line-height: 28px; }
+    .fd-entry { margin: 0; line-height: 28px; }   /* each entry = exactly one ruled line */
     .fd-entry-label {
         font-family: 'TypewriterDry', 'Courier New', monospace;
         font-size: 11px;
@@ -15414,58 +17393,59 @@ document.body.appendChild(honk);
         const continents = ['Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America'];
         let h = `<p class="fd-head">World Affairs</p>`;
 
-        for (const continent of continents) {
+        // Each continent header + event line sits on the 28px baseline grid; a
+        // blank ruled line precedes each continent after the first.
+        continents.forEach((continent, ci) => {
             const events = defs.filter(d => d.continent === continent);
-            h += `<p style="font-family:Georgia,serif;font-size:12px;font-weight:bold;margin:8px 0 2px 0;color:#3a2000;">${continent}</p>`;
+            h += `<p style="font-family:Georgia,serif;font-size:13px;font-weight:bold;color:#3a2000;`
+                + `line-height:28px;margin:${ci === 0 ? 0 : 28}px 0 0 0;">${continent}</p>`;
 
             const visibleEvents = events.filter(d => d.state() !== 0);
 
             if (visibleEvents.length === 0) {
-                h += `<p style="color:#aaa;font-size:10px;margin:0 0 4px 14px;">—</p>`;
+                h += `<p style="color:#aaa;font-size:11px;line-height:28px;margin:0 0 0 14px;">—</p>`;
             } else {
                 for (const def of visibleEvents) {
                     const st = def.state();
                     const isNew = _newEvents.has(def.id);
-                    let style = 'font-size:11px;margin:1px 0 1px 14px;';
+                    let style = 'font-size:12px;line-height:28px;margin:0 0 0 14px;';
                     if (st === 1 && isNew) style += 'color:#cc0000;font-weight:bold;';
                     else if (st === 3)      style += 'text-decoration:line-through;color:#999;';
                     h += `<p style="${style}">• ${def.label}</p>`;
                 }
             }
-        }
+        });
 
-        // ── Globe button — opens World Map ────────────────────────────────────
-        h += `<div style="text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid #c8b87a;">
+        // ── Globe button — opens World Map (own two-line block) ────────────────
+        h += `<div style="text-align:center;margin-top:28px;line-height:0;">
             <img id="fd-world-globe-btn" src="https://file.garden/aXPgNT-ZRCxxpy0g/globeicon.png" title="Open World Map" style="width:40px;height:40px;cursor:pointer;display:inline-block;">
         </div>`;
 
         return h;
     }
 
+    // The observer subscriber calls _refresh on every #game_window mutation while
+    // the pad is open. Rebuild the HTML string each time (cheap), but only assign
+    // innerHTML when it actually changed — the assignment is what destroys scroll
+    // position/text selection and re-attaches the globe listener at rAF rate.
+    let _lastPadHTML = '';
     function _refresh() {
         const pad = document.getElementById('fd-pad');
         if (!pad) return;
         const which = document.querySelector('.fd-tab.fd-active')?.dataset.tab;
-        if (which === 'nation') pad.innerHTML = _buildNation();
-        else if (which === 'crimes') pad.innerHTML = _buildCrimes();
+        if (which !== 'nation' && which !== 'crimes' && which !== 'world') return;
+        const h = which === 'nation' ? _buildNation() : which === 'crimes' ? _buildCrimes() : _buildWorld();
+        if (h === _lastPadHTML && pad.dataset.renderedTab === which) return;
+        _lastPadHTML = h;
+        pad.dataset.renderedTab = which;
+        if (which === 'nation') pad.innerHTML = h;
+        else if (which === 'crimes') pad.innerHTML = h;
         else if (which === 'world') {
-            pad.innerHTML = _buildWorld();
+            pad.innerHTML = h;
             const gb = pad.querySelector('#fd-world-globe-btn');
             if (gb) gb.addEventListener('click', () => {
                 _close();
-                const mapsBtn = document.getElementById('view_electoral_map');
-                if (!mapsBtn) { openWorldMap(); return; }
-                const gw = document.getElementById('game_window');
-                gw.style.visibility = 'hidden';
-                let _done = false;
-                const _obs = new MutationObserver(() => {
-                    if (_done) return;
-                    const wmBtn = document.getElementById('world_map_button');
-                    if (wmBtn) { _done = true; _obs.disconnect(); gw.style.visibility = ''; wmBtn.click(); }
-                });
-                _obs.observe(document.body, { childList: true, subtree: true });
-                mapsBtn.click();
-                setTimeout(() => { if (!_done) { _done = true; _obs.disconnect(); gw.style.visibility = ''; openWorldMap(); } }, 3000);
+                _openWorldMapViaTunnel();
             });
         }
     }
@@ -15888,7 +17868,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1777240250646": {
             "id": 1777240250646,
-            "name": "ErlichmanSTATUS",
+            "name": "EhrlichmanSTATUS",
             "defaultValue": 2
         },
         "1777240257634": {
@@ -15948,7 +17928,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1777240566547": {
             "id": 1777240566547,
-            "name": "LarueSTATUS",
+            "name": "LaRueSTATUS",
             "defaultValue": 2
         },
         "1777240577282": {
@@ -15958,7 +17938,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1777240585185": {
             "id": 1777240585185,
-            "name": "KlambachSTATUS",
+            "name": "KalmbachSTATUS",
             "defaultValue": 2
         },
         "1777240595689": {
@@ -15988,7 +17968,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1778187852384": {
             "id": 1778187852384,
-            "name": "Erlichmanloyalty",
+            "name": "Ehrlichmanloyalty",
             "defaultValue": 7
         },
         "1778187852943": {
@@ -16033,7 +18013,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1778187854496": {
             "id": 1778187854496,
-            "name": "Larueloyalty",
+            "name": "LaRueloyalty",
             "defaultValue": 7
         },
         "1778187854680": {
@@ -16043,7 +18023,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1778187854855": {
             "id": 1778187854855,
-            "name": "Klambachloyalty",
+            "name": "Kalmbachloyalty",
             "defaultValue": 7
         },
         "1778187855047": {
@@ -16068,7 +18048,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1779575605108": {
             "id": 1779575605108,
-            "name": "Erlichmanexposure",
+            "name": "Ehrlichmanexposure",
             "defaultValue": 0
         },
         "1779575605476": {
@@ -16113,7 +18093,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1779575609460": {
             "id": 1779575609460,
-            "name": "Larueexposure",
+            "name": "LaRueexposure",
             "defaultValue": 1
         },
         "1779575609932": {
@@ -16123,7 +18103,7 @@ campaignTrail_temp.jet_data = [{
         },
         "1779575610357": {
             "id": 1779575610357,
-            "name": "Klambachexposure",
+            "name": "Kalmbachexposure",
             "defaultValue": 1
         },
         "1779575610764": {
@@ -16231,6 +18211,26 @@ campaignTrail_temp.jet_data = [{
 const PAGES_BASE = 'https://evil-knevil69.github.io/ACOTP';
 const SVG_URL    = PAGES_BASE + '/worldmapNEW_labeledv2.svg';
 let _svgTextCache = null;
+// Largest-element bbox per country code, cached across map opens — the SVG text
+// is itself cached, so the geometry never changes. Saves ~340 getBBox forced
+// layouts per open (flag overlay + capital sweeps). null = code not in the SVG.
+var _wmBBoxCache = {};
+function _wmBestBBox(svg, code) {
+    var c = _wmBBoxCache[code];
+    if (c !== undefined) return c;
+    var els = svg.querySelectorAll('[id="' + code + '"]');
+    var best = null, bestArea = 0;
+    for (var i = 0; i < els.length; i++) {
+        try {
+            var b = els[i].getBBox();
+            var a = b.width * b.height;
+            if (a > bestArea) { bestArea = a; best = b; }
+        } catch (ignore) {}
+    }
+    c = best ? { x: best.x, y: best.y, width: best.width, height: best.height } : null;
+    _wmBBoxCache[code] = c;
+    return c;
+}
 
 const COUNTRY_NAMES = Object.fromEntries(
     Object.entries(COUNTRIES).filter(([, v]) => v.name != null).map(([k, v]) => [k, v.name])
@@ -16305,10 +18305,249 @@ var _wmCapitalsOn  = false;
 var _wmAllegiance  = true;
 var _wmNightOn     = true;
 var _wmSigintOn    = false;
+var _wmNosOn       = false;  // "N.os": show relation numbers + destabilisation counts in country hovers
 var defcon         = 5;      // 5=peace … 1=imminent war; drives the SIGINT readiness banner
 var _wmOceanMaskEl = null;   // cached SVG <mask>; built once, re-appended on each open
 var _wmPrevLoyal   = null;   // snapshot of COUNTRY_LOYAL from the previous map open; drives allegiance delta flashes
 var _wmEventDebutPk = {};    // event id -> question pk at which it first appeared; icon micro-animations play only on the debut turn
+
+// ── DIPLOMACY ACTIONS (world map) ─────────────────────────────────────────────
+// Charge-based actions in the Diplomacy dropdown on the world-map toolbar —
+// same logic as the President's Men team actions. Answers grant charges: bump
+// the var directly or call _addDiploAction('improve', 1) (refreshes the menu if
+// the map is open). Console test:  _addDiploAction('destabilise', 2)
+// Effects/targeting are NOT wired yet — _diploActionClicked is the hook, and
+// the natural shape is a country-target mode on the map. Per-run resources:
+// reset to 0 on New Game.
+var ImproveRelationsStack = 0;
+var SendAidStack          = 0;
+var ReduceAidStack        = 0;
+var DestabiliseStack      = 0;
+
+const _DIPLO_ACTIONS = [
+    { key: 'improve',     label: 'Improve Relations', get: () => ImproveRelationsStack, set: v => { ImproveRelationsStack = v; } },
+    { key: 'sendaid',     label: 'Send Aid',          get: () => SendAidStack,          set: v => { SendAidStack = v; } },
+    { key: 'reduceaid',   label: 'Reduce Aid',        get: () => ReduceAidStack,        set: v => { ReduceAidStack = v; } },
+    { key: 'destabilise', label: 'Destabilise',       get: () => DestabiliseStack,      set: v => { DestabiliseStack = v; } },
+];
+
+function _diploAction(key) { return _DIPLO_ACTIONS.find(a => a.key === key); }
+
+function _addDiploAction(key, n) {
+    const a = _diploAction(key);
+    if (a) { a.set(Math.max(0, a.get() + (n == null ? 1 : n))); _syncDiploBtns(); }
+}
+
+function _spendDiploAction(key) {
+    const a = _diploAction(key);
+    if (!a || a.get() <= 0) return false;
+    a.set(a.get() - 1);
+    _syncDiploBtns();
+    return true;
+}
+
+// ---- targeting rules --------------------------------------------------------
+// Aid programmes need a working relationship: Send Aid and Reduce Aid are only
+// possible where relations (COUNTRY_LOYAL) are 26 or better. BOTH aid actions
+// are additionally impossible toward the rich developed allies who neither
+// take nor depend on American money: Western Europe, Australia, Japan,
+// Singapore, New Zealand. (Greece, Turkey, Malta and Yugoslavia deliberately
+// stay aid-eligible — all real US aid recipients of the era.)
+const _DIPLO_AID_GATE = 26;
+const _DIPLO_NO_AID = new Set([
+    // Western Europe: the developed core, Nordics and micro-states
+    'AD', 'AT', 'BE', 'CH', 'DE', 'DK', 'ES', 'FI', 'FR', 'GB', 'IE', 'IS',
+    'IT', 'LI', 'LU', 'MC', 'NL', 'NO', 'PT', 'SE', 'SM', 'VA',
+    // Developed Pacific allies
+    'AU', 'JP', 'SG', 'NZ',
+]);
+
+// Destabilise only works where relations are already bad (below 30) — you
+// don't run covert ops against friends.
+const _DIPLO_DESTAB_MAX = 30;
+
+// Per-action country predicate — consulted by the country-target mode
+// (mirrors the President's Men canTarget pattern). Improve Relations carries
+// no extra rules.
+function _diploCanTarget(key, code) {
+    const loyal = COUNTRY_LOYAL[code];
+    if (loyal == null) return false;
+    if (key === 'sendaid' || key === 'reduceaid') {
+        if (loyal < _DIPLO_AID_GATE) return false;
+        if (_DIPLO_NO_AID.has(code)) return false;
+    }
+    if (key === 'destabilise' && loyal >= _DIPLO_DESTAB_MAX) return false;
+    return true;
+}
+
+// Per-country destabilisation counters, window-global as {CODE}_STAB (SU_STAB,
+// CL_STAB, …), +1 per Destabilise. Window globals (not module vars) so that
+// conditional-question gates can reference them as bare identifiers for ANY
+// country without ReferenceErrors — they all exist from load. Do NOT declare a
+// module-level `var XX_STAB` anywhere or it will shadow the live counter.
+Object.keys(COUNTRY_LOYAL).forEach(c => { if (window[c + '_STAB'] == null) window[c + '_STAB'] = 0; });
+
+// ---- effects: Improve Relations / Send Aid ----------------------------------
+// Both raise the target's relations by a random 1–5 weighted slightly toward
+// the upper end. Anti-spam: the two actions share a per-country cooldown — for
+// 3 turns after a full-strength boost, further boosts on that country are worth
+// only 0.1–1.0 (same upper-weighted shape). Diminished uses still cost a charge
+// and do NOT extend the cooldown. Reduce Aid / Destabilise effects are TBD.
+var _diploMode = null;       // action key while picking a country, else null
+var _diploCooldown = {};     // code -> _questionCount of the last FULL boost
+
+function _diploBoostAmount(code) {
+    const last = (code in _diploCooldown) ? _diploCooldown[code] : -999;
+    const saturated = (_questionCount - last) < 3;
+    // Math.pow(r, 0.7) skews the roll toward the top of the range.
+    const r = Math.pow(Math.random(), 0.7);
+    const amount = saturated ? 0.1 + 0.9 * r : 1 + 4 * r;
+    if (!saturated) _diploCooldown[code] = _questionCount;
+    return { amount: Math.round(amount * 10) / 10, saturated };
+}
+
+function _diploHint(text, sticky) {
+    const vp = document.getElementById('wm-viewport');
+    if (!vp) return;
+    let h = document.getElementById('wm-diplo-hint');
+    if (!h) {
+        h = document.createElement('div');
+        h.id = 'wm-diplo-hint';
+        h.style.cssText = 'position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:9600;'
+            + 'background:rgba(0,0,0,0.72);border:1px solid #333;color:#fff;padding:5px 12px;'
+            + 'font-family:TypewriterDry,monospace;font-size:11px;letter-spacing:1px;pointer-events:none;'
+            + 'white-space:nowrap;';
+        vp.appendChild(h);
+    }
+    h.textContent = text || '';
+    h.style.display = text ? 'block' : 'none';
+    clearTimeout(h._fade);
+    if (text && !sticky) h._fade = setTimeout(() => { h.style.display = 'none'; }, 6000);
+}
+
+function _diploExitMode() {
+    _diploMode = null;
+    const dbtn = document.getElementById('wm-diplo-btn');
+    if (dbtn) { dbtn.style.outline = ''; dbtn.style.fontWeight = ''; }
+    _diploHint('');
+}
+
+function _diploActionClicked(key) {
+    if (_diploMode === key) { _diploExitMode(); return; }   // second click cancels
+    _diploExitMode();
+    const a = _diploAction(key);
+    if (!a || a.get() <= 0) return;
+    // all four actions are wired
+    _diploMode = key;
+    const menu = document.getElementById('wm-diplo-menu');
+    if (menu) menu.style.display = 'none';
+    const dbtn = document.getElementById('wm-diplo-btn');
+    if (dbtn) { dbtn.style.outline = '2px solid #ffd24a'; dbtn.style.fontWeight = 'bold'; }
+    _diploHint(a.label + ': click a target country (open the menu and click the action again to cancel).', true);
+}
+
+// Called from the map's country/icon click handlers BEFORE selectCountry.
+// Returns true if the click was consumed by diplomacy target mode.
+function _diploHandleCountryClick(el) {
+    if (!_diploMode) return false;
+    const code = el && el.id;
+    if (!code || !(code in COUNTRY_LOYAL)) return true;   // swallow; not a country
+    const mode = _diploMode;
+    if (!_diploCanTarget(mode, code)) {
+        _diploHint((COUNTRY_NAMES[code] || code) + ' is not a valid target for ' + _diploAction(mode).label + '.');
+        _diploMode = null;
+        const dbtn = document.getElementById('wm-diplo-btn');
+        if (dbtn) { dbtn.style.outline = ''; dbtn.style.fontWeight = ''; }
+        return true;
+    }
+    if (!_spendDiploAction(mode)) { _diploExitMode(); return true; }
+
+    let nv, msg;
+    if (mode === 'destabilise') {
+        // Covert pressure: a small relations hit (0–2 uniform) plus a permanent
+        // +1 on the country's destabilisation counter ({CODE}_STAB) — the gate
+        // for conditional questions (coups, uprisings) later.
+        const amount = Math.round((2 * Math.random()) * 10) / 10;
+        nv = Math.max(0, Math.round((COUNTRY_LOYAL[code] - amount) * 10) / 10);
+        window[code + '_STAB'] = (window[code + '_STAB'] || 0) + 1;
+        msg = 'Destabilise: ' + (COUNTRY_NAMES[code] || code) + ' −' + amount + ' → ' + nv
+            + ' (destabilisation level ' + window[code + '_STAB'] + ').';
+    } else if (mode === 'reduceaid') {
+        // Withdrawing aid stings: −3 to −6 (uniform), floored at 0. The withheld
+        // budget goes back into the Send Aid pile (+1 charge). No cooldown — the
+        // scarcity of Reduce Aid charges is the constraint.
+        const amount = Math.round((3 + 3 * Math.random()) * 10) / 10;
+        nv = Math.max(0, Math.round((COUNTRY_LOYAL[code] - amount) * 10) / 10);
+        _addDiploAction('sendaid', 1);
+        msg = 'Reduce Aid: ' + (COUNTRY_NAMES[code] || code) + ' −' + amount + ' → ' + nv
+            + ' (aid budget freed: Send Aid +1).';
+    } else {
+        const { amount, saturated } = _diploBoostAmount(code);
+        nv = Math.min(100, Math.round((COUNTRY_LOYAL[code] + amount) * 10) / 10);
+        msg = _diploAction(mode).label + ': ' + (COUNTRY_NAMES[code] || code) + ' +' + amount
+            + ' → ' + nv
+            + (saturated ? ' (channel saturated — full effect returns 3 turns after the last full push)' : '') + '.';
+    }
+    COUNTRY_LOYAL[code] = nv;
+    if (typeof COUNTRIES !== 'undefined' && COUNTRIES[code]) COUNTRIES[code].loyal = nv; // keep the source of truth aligned
+    // Live repaint (all paths of the country) when the allegiance view is on.
+    if (_wmAllegiance) {
+        document.querySelectorAll('#world-map-container [id="' + code + '"]').forEach(p => {
+            if (p.tagName && p.id === code) p.style.fill = _loyalColour(nv);
+        });
+    }
+    _diploExitMode();
+    _diploHint(msg);
+    return true;
+}
+
+function _syncDiploBtns() {
+    const menu = document.getElementById('wm-diplo-menu');
+    if (!menu) return;
+    _DIPLO_ACTIONS.forEach(a => {
+        const btn = menu.querySelector('[data-action="' + a.key + '"]');
+        if (!btn) return;
+        btn.querySelector('.wm-diplo-count').textContent = a.get();
+        const empty = a.get() <= 0;
+        btn.disabled = empty;
+        btn.style.opacity = empty ? '0.45' : '1';
+        btn.style.cursor = empty ? 'default' : 'pointer';
+    });
+}
+
+// ---- passive charge income from the State/NSA officeholders ------------------
+// Checked LIVE every turn, so reshuffles and event appointments change the
+// income stream automatically. Rules stack (e.g. Kissinger holding SOS and NSA
+// at once earns all three lines; Rogers at State + Kissinger at NSA both pay).
+// Cadence is turn-number modulo: "every 2" pays on even _questionCount turns.
+const _DIPLO_INCOME = [
+    { holder: 'Kissinger',   post: 'SOS', every: 2, grants: { improve: 1 } },
+    { holder: 'Kissinger',   post: 'SOS', every: 3, grants: { sendaid: 1, reduceaid: 1 } },
+    { holder: 'Kissinger',   post: 'NSA', every: 3, grants: { improve: 1 } },
+    { holder: 'Rogers',      post: 'SOS', every: 3, grants: { improve: 1, sendaid: 1, reduceaid: 1 } },
+    { holder: 'Rockefeller', post: 'SOS', every: 2, grants: { sendaid: 1, reduceaid: 1 } },
+    { holder: 'Rockefeller', post: 'SOS', every: 3, grants: { improve: 1 } },
+    { holder: 'Connally',    post: 'SOS', every: 3, grants: { improve: 1, sendaid: 1 } },
+    { holder: 'Connally',    post: 'SOS', every: 2, grants: { reduceaid: 1 } },
+];
+_everyTurn(turn => {
+    if (turn <= 0) return;
+    _DIPLO_INCOME.forEach(r => {
+        if (turn % r.every !== 0) return;
+        const getter = OFFICIALS_VARS[r.post];
+        if (!getter || getter() !== r.holder) return;
+        Object.entries(r.grants).forEach(([k, n]) => _addDiploAction(k, n));
+    });
+});
+
+// Officeholder passives beyond the diplomacy stacks: Laird at Defense works
+// his old friends on the Hill — +1 CongressionalSupport (cap 10) every 5 turns.
+_everyTurn(turn => {
+    if (turn > 0 && turn % 5 === 0 && OFFICIALS_VARS.SOD && OFFICIALS_VARS.SOD() === 'Laird') {
+        CongressionalSupport = Math.min(10, CongressionalSupport + 1);
+    }
+});
+// ── END DIPLOMACY ACTIONS ─────────────────────────────────────────────────────
 
 // ── World Map panel ──────────────────────────────────────────────────────────
 function openWorldMap() {
@@ -16321,22 +18560,30 @@ function openWorldMap() {
             '', 'https://audio.jukehost.co.uk/019ed31c-9934-7032-afc3-1cba278a45ac'
         );
         window.playlist.addSong(allendeTrack);
-        const idx = window.playlist.songs.length - 1;
-        const sel = document.getElementById('playlist-select');
-        if (sel) {
-            const opt = document.createElement('option');
-            opt.value = idx;
-            opt.textContent = allendeTrack.getTitle() + ' — ' + allendeTrack.getArtist();
-            sel.appendChild(opt);
+        window.playlist.currentSongIndex = window.playlist.songs.length - 1;
+        if (window._rebuildPlaylistSelect) {
+            window._rebuildPlaylistSelect();
+        } else {
+            const sel = document.getElementById('playlist-select');
+            if (sel) {
+                const opt = document.createElement('option');
+                opt.value = window.playlist.currentSongIndex;
+                opt.textContent = allendeTrack.getTitle();
+                sel.appendChild(opt);
+            }
         }
-        window.playlist.currentSongIndex = idx;
         window.loadAndPlay();
     }
 
+    // A previous map may still be live (globe button + its 3s fallback can both
+    // fire). Run its FULL close — the raw removes below only catch orphaned DOM
+    // and would leak that instance's document listeners and _nightInterval.
+    if (window._wmActiveClose) { try { window._wmActiveClose(); } catch (err) {} window._wmActiveClose = null; }
     document.getElementById('world-map-container')?.remove();
     document.getElementById('wm-tooltip')?.remove();
     document.getElementById('wm-event-tooltip')?.remove();
     document.getElementById('wm-capital-tooltip')?.remove();
+    document.getElementById('wm-capimg-panel')?.remove();
 
     const gw = document.getElementById('game_window');
 
@@ -16363,6 +18610,7 @@ function openWorldMap() {
     document.body.appendChild(capTooltip);
 
     const capImgPanel = document.createElement('div');
+    capImgPanel.id = 'wm-capimg-panel';
     capImgPanel.style.cssText = 'position:fixed;z-index:9999;background:rgba(15,10,5,0.9);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:6px;display:none;box-shadow:2px 3px 10px rgba(0,0,0,0.6);pointer-events:auto;';
     capImgPanel.addEventListener('click', e => e.stopPropagation());
     document.body.appendChild(capImgPanel);
@@ -16426,17 +18674,28 @@ function openWorldMap() {
     let _activeDragEnd = null;
     mapCleanup.push(() => { if (_activeDragEnd) _activeDragEnd(); });
 
-    const backBtn = document.createElement('button');
-    backBtn.textContent = '<- Electoral Map';
-    backBtn.addEventListener('click', () => {
-        mapCleanup.forEach(fn => fn());
+    // Single close path for THIS map instance. _mapClosed also gates the async
+    // SVG .then() — if the map is closed before the fetch resolves, the build
+    // must not run (it would register document listeners and start the night
+    // interval on a detached map, unrecoverable once the back button is gone).
+    let _mapClosed = false;
+    const _closeThisMap = () => {
+        if (_mapClosed) return;
+        _mapClosed = true;
+        mapCleanup.forEach(fn => { try { fn(); } catch (err) {} });
         container.remove();
         tooltip.remove();
         evTooltip.remove();
         capTooltip.remove();
         capImgPanel.remove();
         hiddenEls.forEach(el => { el.style.display = ''; });
-    });
+        if (window._wmActiveClose === _closeThisMap) window._wmActiveClose = null;
+    };
+    window._wmActiveClose = _closeThisMap;
+
+    const backBtn = document.createElement('button');
+    backBtn.textContent = '<- Electoral Map';
+    backBtn.addEventListener('click', _closeThisMap);
     bar.appendChild(backBtn);
 
     // Spacer
@@ -16540,6 +18799,51 @@ function openWorldMap() {
     topBar.appendChild(sigintBtn);
     if (sigintOn) _applySigint(true);
     mapCleanup.push(() => { const st = document.getElementById('wm-sigint-css'); if (st) st.remove(); if (svgEl) svgEl.style.filter = ''; if (flagSvgEl) { flagSvgEl.remove(); flagSvgEl = null; } });
+
+    // Diplomacy dropdown — just right of SIGINT. Semi-transparent black panel,
+    // bordered like the toolbar buttons; charge-count badges as on the
+    // President's Men team actions (see _DIPLO_ACTIONS).
+    const diploWrap = document.createElement('div');
+    diploWrap.style.cssText = 'position:relative;display:inline-block;margin-left:6px;';
+    const diploBtn = _mkTopBtn('DIPLOMACY ▾', false);
+    diploBtn.id = 'wm-diplo-btn';
+    _diploMode = null;   // never carry target mode across map opens
+    const diploMenu = document.createElement('div');
+    diploMenu.id = 'wm-diplo-menu';
+    diploMenu.style.cssText = 'position:absolute;top:27px;left:0;display:none;flex-direction:column;gap:6px;'
+        + 'padding:8px;background:rgba(0,0,0,0.72);border:1px solid #333;z-index:9500;min-width:190px;';
+    _DIPLO_ACTIONS.forEach(a => {
+        const b = document.createElement('button');
+        b.className = 'wm-diplo-btn';
+        b.dataset.action = a.key;
+        b.style.cssText = 'cursor:pointer;padding:0 8px;height:24px;font-family:TypewriterDry,monospace;'
+            + 'font-size:11px;letter-spacing:1px;background:#111;border:1px solid #333;color:#fff;'
+            + 'display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;';
+        b.innerHTML = a.label + ' <span class="wm-diplo-count" style="min-width:16px;text-align:center;'
+            + 'font-weight:bold;background:rgba(255,255,255,0.15);border-radius:8px;padding:0 4px;"></span>';
+        b.addEventListener('click', () => _diploActionClicked(a.key));
+        diploMenu.appendChild(b);
+    });
+    diploBtn.addEventListener('click', () => {
+        const open = diploMenu.style.display !== 'none' && diploMenu.style.display !== '';
+        diploMenu.style.display = open ? 'none' : 'flex';
+        diploBtn.style.outline = open ? '' : '2px solid #888';
+        diploBtn.style.fontWeight = open ? '' : 'bold';
+        if (!open) _syncDiploBtns();
+    });
+    // Click-away closes the menu (removed with the map).
+    const _diploAway = (e) => {
+        if (!diploWrap.contains(e.target) && diploMenu.style.display === 'flex') {
+            diploMenu.style.display = 'none';
+            diploBtn.style.outline = '';
+            diploBtn.style.fontWeight = '';
+        }
+    };
+    document.addEventListener('click', _diploAway);
+    mapCleanup.push(() => document.removeEventListener('click', _diploAway));
+    diploWrap.appendChild(diploBtn);
+    diploWrap.appendChild(diploMenu);
+    topBar.appendChild(diploWrap);
     let _capEditMode = false;
     // Live references to the events / capitals <g> layers. Assigned in the SVG
     // .then() below and closed over by the toggle buttons. LOCAL closure vars
@@ -16579,7 +18883,6 @@ function openWorldMap() {
             capGroupEl.remove();
         }
     };
-    const smallFlagCodes = new Set();
     let flagOverlayG = null;
     let vScrollTrack, vScrollThumb, hScrollTrack, hScrollThumb;
     let _updateIconVis = () => {};
@@ -16805,6 +19108,20 @@ function openWorldMap() {
     });
     bar.appendChild(capBtn);
 
+    // N.os toggle — relation numbers + destabilisation counts in country hovers.
+    // No repaint needed: the hover handler reads _wmNosOn live at hover time.
+    const nosBtn = document.createElement('button');
+    nosBtn.textContent = 'N.os';
+    nosBtn.style.cssText = 'margin-left:4px;cursor:pointer;padding:0 8px;height:30px;';
+    nosBtn.style.outline = _wmNosOn ? '2px solid #ccc' : '';
+    nosBtn.style.fontWeight = _wmNosOn ? 'bold' : '';
+    nosBtn.addEventListener('click', () => {
+        _wmNosOn = !_wmNosOn;
+        nosBtn.style.outline = _wmNosOn ? '2px solid #ccc' : '';
+        nosBtn.style.fontWeight = _wmNosOn ? 'bold' : '';
+    });
+    bar.appendChild(nosBtn);
+
     // Feature 3 — Regional zoom buttons, right-aligned on the top bar.
     // A flex spacer pushes them to the right; a label separates them from the
     // left-side toggles. Coordinates: SVG-space centroids (1800×900 canvas).
@@ -16842,6 +19159,9 @@ function openWorldMap() {
     // Load SVG
     (_svgTextCache ? Promise.resolve(_svgTextCache) : fetch(SVG_URL).then(r => r.text()).then(t => (_svgTextCache = t, t)))
         .then(svgText => {
+            // Map closed (or replaced) while the SVG was in flight — abort the
+            // build; running it would leak document listeners + _nightInterval.
+            if (_mapClosed || !container.isConnected) return;
             viewport.innerHTML = svgText;
             // innerHTML wipes all pre-existing viewport children; re-attach the overlay
             // divs that were appended before the SVG loaded (vignette, grain, allegiance
@@ -17545,14 +19865,9 @@ function openWorldMap() {
                     evTooltip.style.left = (vr.left + 12) + 'px';
                     evTooltip.style.top  = (vr.top  + 12) + 'px';
                 });
-                chip.addEventListener('mousemove', (ev) => {
-                    if (_chipEditMode) return;
-                    const vr = viewport.getBoundingClientRect();
-                    // Pinned to the top-left of the world-map window (viewport),
-                    // not the cursor or the global screen corner.
-                    evTooltip.style.left = (vr.left + 12) + 'px';
-                    evTooltip.style.top  = (vr.top  + 12) + 'px';
-                });
+                // No mousemove handler: the tooltip is pinned to the viewport
+                // corner (set once on mouseenter), so re-setting the same
+                // coordinates per move was a pure forced-layout cost.
                 chip.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
 
                 // Drag to reposition (Move Chips edit mode)
@@ -17611,14 +19926,8 @@ function openWorldMap() {
                     evTooltip.style.left = (vr.left + 12) + 'px';
                     evTooltip.style.top  = (vr.top  + 12) + 'px';
                 });
-                path.addEventListener('mousemove', (ev) => {
-                    if (!sigintOn) return;
-                    const vr = viewport.getBoundingClientRect();
-                    // Pinned to the top-left of the world-map window (viewport),
-                    // not the cursor or the global screen corner.
-                    evTooltip.style.left = (vr.left + 12) + 'px';
-                    evTooltip.style.top  = (vr.top  + 12) + 'px';
-                });
+                // No mousemove handler: position is corner-pinned on mouseenter;
+                // re-setting identical coordinates per move forced layout for nothing.
                 path.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
             });
 
@@ -17949,7 +20258,6 @@ function openWorldMap() {
             // Build SVG flag overlay (flags as <image> elements inside the SVG)
             function buildFlagOverlay() {
                 if (flagOverlayG) { flagOverlayG.remove(); flagOverlayG = null; }
-                smallFlagCodes.clear();
                 const ns = 'http://www.w3.org/2000/svg';
                 const g = document.createElementNS(ns, 'g');
                 g.id = 'wm-flag-overlay';
@@ -17958,26 +20266,12 @@ function openWorldMap() {
                 const _bigFlagCodes = new Set(['IN','BR','SU','CN','US','CA','AU']);
 
                 Object.keys(FLAG_URLS).forEach(code => {
-                    const els = Array.from(svg.querySelectorAll('[id="' + code + '"]'));
-                    if (!els.length) return;
-
-                    // Find element with the largest bounding box (discounts tiny overseas territory shapes)
-                    let best = null, bestArea = 0;
-                    els.forEach(el => {
-                        try {
-                            const bb = el.getBBox();
-                            const a = bb.width * bb.height;
-                            if (a > bestArea) { bestArea = a; best = el; }
-                        } catch (ignore) {}
-                    });
-                    if (!best) return;
-
-                    const bb = best.getBBox();
+                    // Largest bounding box for the code (discounts tiny overseas
+                    // territory shapes), cached across opens.
+                    const bb = _wmBestBBox(svg, code);
+                    if (!bb) return;
                     // Countries narrower than 18 SVG units get flag in tooltip instead
-                    if (bb.width < 18 || bb.height < 6) {
-                        smallFlagCodes.add(code);
-                        return;
-                    }
+                    if (bb.width < 18 || bb.height < 6) return;
 
                     // Large countries 25% of bbox area; all others 15% (2:3 aspect ratio)
                     const _areaPct = _bigFlagCodes.has(code) ? 0.375 : 0.225;
@@ -18086,17 +20380,15 @@ function openWorldMap() {
             _capGlowFilter.appendChild(_capGlowMerge);
             const _capDefs = document.createElementNS(_evNS, 'defs');
             _capDefs.appendChild(_capGlowFilter);
-            capGroup.appendChild(_capDefs);
+            // On the svg root, NOT capGroup: _applyCapVis removes capGroup when
+            // capitals are toggled off (the default), and an unresolvable
+            // filter="url(#wm-cap-glow)" makes browsers skip rendering entirely —
+            // the SIGINT satellite icons reference this filter and went invisible.
+            svg.appendChild(_capDefs);
 
             Object.entries(CAPITAL_DATA).forEach(([code, cityName]) => {
-                const paths = Array.from(svg.querySelectorAll('[id="' + code + '"]'));
-                if (!paths.length) return;
-                let best = null, bestArea = 0;
-                paths.forEach(el => {
-                    try { const b = el.getBBox(); const a = b.width * b.height; if (a > bestArea) { bestArea = a; best = el; } } catch (ignore) {}
-                });
-                if (!best) return;
-                const bb = best.getBBox();
+                const bb = _wmBestBBox(svg, code);
+                if (!bb) return;
                 const off = CAPITAL_OFFSETS[code] || { x: 0, y: 0 };
                 const baseCx = bb.x + bb.width / 2;
                 const baseCy = bb.y + bb.height / 2;
@@ -18434,6 +20726,7 @@ function openWorldMap() {
                     if (_editMode) return;
                     e.stopPropagation();
                     const cel = _countryElForEvent(e.clientX, e.clientY);
+                    if (cel && _diploHandleCountryClick(cel)) return; // diplomacy target mode
                     const wasSel = selectedEl === cel;
                     selectCountry(cel);
                     if (cel && !wasSel) flyToEl(cel); // glide to the event's country
@@ -18957,9 +21250,18 @@ function openWorldMap() {
                                       : '#7f0000';
                         extraLine = '<br><span style="color:' + vColour + ';font-weight:bold">Situation: ' + v + ' — ' + vText + '</span>';
                     }
+                    // N.os toggle: append the raw relation number to the band, and
+                    // a Destabilisation Events line — but ONLY when the country
+                    // has at least one (no entry at all otherwise).
+                    const nosNum = _wmNosOn ? ' (' + score + ')' : '';
+                    let stabLine = '';
+                    if (_wmNosOn) {
+                        const stab = window[code + '_STAB'] || 0;
+                        if (stab > 0) stabLine = '<br><span style="color:#7a1f1f;font-weight:bold">Destabilisation Events: ' + stab + '</span>';
+                    }
                     tooltip.innerHTML = flagImg + '<strong style="color:#111">' + COUNTRY_NAMES[code] + '</strong><br>'
-                        + '<span style="color:' + colour + ';font-weight:bold">' + band + '</span>'
-                        + extraLine;
+                        + '<span style="color:' + colour + ';font-weight:bold">' + band + nosNum + '</span>'
+                        + extraLine + stabLine;
                     tooltip.style.display = 'block';
                 });
                 el.addEventListener('mousemove', e => _placeTip(tooltip, e));
@@ -18968,6 +21270,7 @@ function openWorldMap() {
                 });
                 el.addEventListener('click', e => {
                     e.stopPropagation();
+                    if (_diploHandleCountryClick(el)) return; // diplomacy target mode eats the click
                     const wasSel = selectedEl === el;
                     selectCountry(el);
                     if (!wasSel) flyToEl(el); // glide-centre on the selected country

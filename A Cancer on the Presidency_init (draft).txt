@@ -269,6 +269,10 @@ document.body.background = "https://file.garden/aXPgNT-ZRCxxpy0g/backgroundv69.g
 
 
 
+// ENGINE DEPENDENCY — do not remove. campaign_trail.js renders
+// `<div class="game_header">${window.corrr}</div>` on every screen (12 call
+// sites); this bare assignment is what creates window.corrr. Without it the
+// header shows the literal text "undefined".
 corrr = `
 <div style="font-size: 11px; font-family: monospace; color: black;">
 <h2 style="font-style: normal;">
@@ -425,11 +429,6 @@ style.innerHTML = `
     stroke-dasharray: var(--a, 86.12);
     stroke-dashoffset: var(--o, 86.12);
     transition: stroke-dasharray .6s, stroke-dashoffset .6s;
-}
-@keyframes bounce {
-    50% { transform: scale(1.2); }
-    75% { transform: scale(.9); }
-    100% { transform: scale(1); }
 }
 .game_answer_row {
     display: flex;
@@ -1075,6 +1074,42 @@ div.center img#header {
     letter-spacing: 0.05em;
     text-align: left;
 }
+/* Historicity highlights (toggle injected next to the educational-tooltips
+   checkbox; body.historicity-on gates them). Spans are baked into question/
+   answer text: hist-v = verbatim from the date/meeting shown (powder blue),
+   hist-vo = verbatim but from another time/occasion (light yellow). With the
+   toggle off the spans are invisible, plain text. */
+body.historicity-on .hist-v {
+    background: #b0e0e6;
+    border-radius: 2px;
+    padding: 0 1px;
+}
+body.historicity-on .hist-vo {
+    background: #fdf3b3;
+    border-radius: 2px;
+    padding: 0 1px;
+}
+/* Expletives Deleted (toggle: body.expletives-on). Both the original word and
+   the redaction are baked into every .xpl span; the class just swaps which
+   shows — instant, reversible, non-destructive. */
+.xpl-c { display: none; }
+body.expletives-on .xpl-w { display: none; }
+body.expletives-on .xpl-c { display: inline; }
+/* Educational tooltips (see the EDUCATIONAL TOOLTIPS section at the foot of
+   this file). Same card look, no image, DOUBLE pen-stroke underline. */
+.edu-tip { cursor: pointer; }
+.edu-tip .edu-tiptext { display: none; }
+body.edu-tips-off .edu-tip { cursor: inherit; }
+body.edu-tips-off .edu-tip > svg.edu-stroke { display: none; }
+#edu-tips-toggle-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+}
 .game_answer_row span {
     text-decoration: underline;
     text-decoration-color: transparent;
@@ -1183,8 +1218,10 @@ e.creditsPage = () => {
     <p>Sound FX & Recordings: Evil Knevil69</p><br>
     <p>Music: PLACEHOLDER</p>
   `
+  if (document.getElementById("SOTUheader")) return; // already open — a second click stacked duplicate ids
   changeGameDisp(true);
   var spacer = document.createElement("amongusspacerthisisntarealelement");
+  spacer.id = "SOTUspacer";
   spacer.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
   document
     .getElementsByClassName("inner_window_w_desc")[0]
@@ -1210,6 +1247,7 @@ e.creditsPage = () => {
       document.getElementById("SOTUheader").remove();
       document.getElementById("SOTUmenu").remove();
       document.getElementById("backSOTUBtn").remove();
+      document.getElementById("SOTUspacer")?.remove(); // was appended per open and never removed
       changeGameDisp(false);
     };
     z.appendChild(menuHeader);
@@ -1225,8 +1263,10 @@ e.watergatePage = () => {
     <p><font color='#010101'>Evil_Knevil69</font></p>
     <p><font color='#010101'>Philip (aged 9)</font></p>
   `
+  if (document.getElementById("WATERGATEheader")) return; // already open
   changeGameDisp(true);
   var spacer = document.createElement("amongusspacerthisisntarealelement");
+  spacer.id = "WATERGATEspacer";
   spacer.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
   document
     .getElementsByClassName("inner_window_w_desc")[0]
@@ -1253,6 +1293,7 @@ e.watergatePage = () => {
       document.getElementById("WATERGATEheader").remove();
       document.getElementById("WATERGATEmenu").remove();
       document.getElementById("backWATERGATEBtn").remove();
+      document.getElementById("WATERGATEspacer")?.remove(); // was appended per open and never removed
       changeGameDisp(false);
     };
     z.appendChild(menuHeader);
@@ -1263,8 +1304,11 @@ e.watergatePage = () => {
 // Wait for the engine to render the election screen, then inject credits and watergate buttons and autoselect, replace radio buttons bloody fools errand that was 
 function replaceButtonText() {
     document.querySelectorAll("button").forEach(btn => {
-        if (btn.innerText.trim().toUpperCase() === "CONTINUE") btn.innerText = "⏎";
-        if (btn.innerText.trim() === "Latest Polls/Electoral Map") btn.innerText = "Electoral Map";
+        // textContent, not innerText: innerText forces layout per read and this
+        // sweep runs on every game-window mutation batch.
+        const t = btn.textContent.trim();
+        if (t.toUpperCase() === "CONTINUE") btn.textContent = "⏎";
+        if (t === "Latest Polls/Electoral Map") btn.textContent = "Electoral Map";
     });
     document.querySelectorAll('.overlay_window_content h3').forEach(h3 => {
     if (h3.textContent.includes('Advisor Feedback')) {
@@ -1272,15 +1316,15 @@ function replaceButtonText() {
     }
     });
     document.querySelectorAll(".person_summary ul li:first-child").forEach(el => {
-        if (el.innerText.startsWith("Name:")) {
-            const name = el.innerText.replace("Name:", "").trim();
+        if (el.textContent.startsWith("Name:")) {
+            const name = el.textContent.replace("Name:", "").trim();
             el.innerHTML = `<span class="typewriter-name">${name}</span>`;
         }
     });
     document.querySelectorAll(".person_summary ul li:nth-child(2)").forEach(el => {
-        if (el.innerText.includes("Republican")) {
+        if (el.textContent.includes("Republican")) {
             el.style.color = "#0000FF";
-        } else if (el.innerText.includes("Democratic")) {
+        } else if (el.textContent.includes("Democratic")) {
             el.style.color = "#ff0000";
         }
     });
@@ -1327,7 +1371,6 @@ function replaceButtonText() {
         const marginBtn = document.getElementById('margin_switcher');
         if (marginBtn && !marginBtn.dataset.knobReplaced) {
         marginBtn.dataset.knobReplaced = 'true';
-        const isOn = true;
         const marginKnob = document.createElement('div');
         marginKnob.innerHTML = `
             <div class="control-knob">
@@ -1485,10 +1528,17 @@ function replaceRadioButtons() {
     radio.remove();
 });
 
-    // Patch the CONTINUE button to read checkbox value back into engine
+    // Patch the CONTINUE button to read checkbox value back into engine.
+    // Bind-once (proxyHooked) — this runs once per question render, and if the
+    // engine reuses the button element the listeners stacked up, one per
+    // question, each closing over a stale form. The form is looked up live in
+    // the handler for the same reason.
     const continueBtn = document.getElementById('answer_select_button');
-    if (continueBtn) {
+    if (continueBtn && !continueBtn.dataset.proxyHooked) {
+        continueBtn.dataset.proxyHooked = 'true';
         continueBtn.addEventListener('click', () => {
+            const form = document.querySelector('form[name="question"]');
+            if (!form) return;
             const checked = form.querySelector('input[type="checkbox"]:checked');
             if (checked) {
                 let hidden = form.querySelector('input[type="radio"].checkbox-proxy');
@@ -1548,9 +1598,15 @@ let __dragState = null;
 document.addEventListener('mousemove', (e) => {
     const d = __dragState;
     if (!d) return;
-    d.el.style.left = (d.startLeft + e.clientX - d.startX) + 'px';
-    d.el.style.top  = (d.startTop  + e.clientY - d.startY) + 'px';
-    d.updatePin();
+    const nl = d.startLeft + e.clientX - d.startX;
+    const nt = d.startTop  + e.clientY - d.startY;
+    d.el.style.left = nl + 'px';
+    d.el.style.top  = nt + 'px';
+    // Pin follows from the same math — no offsetLeft/offsetWidth reads (forced
+    // layout) on the move hot path; halfW was cached at mousedown. The style
+    // observer still covers non-drag repositioning.
+    d.pin.style.left = (nl + d.halfW - 10) + 'px';
+    d.pin.style.top  = (nt - 20) + 'px';
 });
 document.addEventListener('mouseup', () => {
     const d = __dragState;
@@ -1571,8 +1627,11 @@ function makeDraggable(elId, savedPos) {
     el.style.top = savedPos.top;
     el.style.cursor = 'grab';
 
-    // create pushpin
+    // create pushpin (id'd so a recreated panel replaces its old pin instead of
+    // orphaning it in the persistent container)
+    document.getElementById(elId + '-pin')?.remove();
     const pin = document.createElement('div');
+    pin.id = elId + '-pin';
     pin.className = 'map-pin';
     pin.innerHTML = `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='28' viewBox='0 0 20 28'><circle cx='10' cy='8' r='7' fill='#cc2200' stroke='#881100' stroke-width='1.5'/><ellipse cx='10' cy='7' rx='3' ry='2.5' fill='#ff6644' opacity='0.5'/><rect x='9' y='14' width='2' height='12' rx='1' fill='#888'/></svg>`;
     const parent = document.getElementById('main_content_area') || el.parentElement;
@@ -1589,9 +1648,10 @@ function makeDraggable(elId, savedPos) {
     el.addEventListener('mousedown', (e) => {
         if (e.target.tagName === 'BUTTON') return;
         __dragState = {
-            el, savedPos, updatePin,
+            el, pin, savedPos, updatePin,
             startX: e.clientX, startY: e.clientY,
             startLeft: el.offsetLeft, startTop: el.offsetTop,
+            halfW: el.offsetWidth / 2,
         };
         el.style.cursor = 'grabbing';
         e.preventDefault();
@@ -1617,7 +1677,16 @@ window.playCreditsMusic = function() {
     }
     // Still not ready (e.g. .content_single not in the DOM yet) — bail quietly
     if (!window.playlist || !window.loadAndPlay) return;
-    window.playlist.currentSongIndex = 2;
+    // The Creep song's index isn't stable: a section playlist may have replaced
+    // playlist.songs wholesale by the time the credits roll. Find it by
+    // identity; re-add it if the swap dropped it.
+    let idx = window.playlist.songs.indexOf(window._creditsSong);
+    if (idx === -1 && window._creditsSong) {
+        window.playlist.addSong(window._creditsSong);
+        idx = window.playlist.songs.length - 1;
+        if (window._rebuildPlaylistSelect) window._rebuildPlaylistSelect();
+    }
+    window.playlist.currentSongIndex = idx === -1 ? 0 : idx;
     window.loadAndPlay();
 }
 // Map/visit-screen setup. Was a 50ms setInterval running 20×/sec for the whole
@@ -1627,6 +1696,7 @@ window.playCreditsMusic = function() {
 function __mapVisitTick() {
     const mapVisible = !!document.getElementById('resume_questions_button');
     if (mapVisible) {
+        _ensureGsap();
         if (!document.getElementById('logo-hide-style')) {
             const s = document.createElement('style');
             s.id = 'logo-hide-style';
@@ -1917,9 +1987,14 @@ function __mapVisitTick() {
             }
             `;
             document.head.appendChild(s);
+        }
 
 //tv features from https://webartisan.info/
 
+        // Own guard, OUTSIDE the logo-hide-style block above: the map SVG is
+        // injected async, so on the first tick it may not exist yet — nested
+        // inside the style guard this never retried (the style already existed),
+        // leaving the whole CRT overlay missing for the rest of the map session.
         if (!document.getElementById('map-glass-overlay')) {
         const mapSvg = document.querySelector('#map_container svg');
         if (mapSvg) {
@@ -2031,6 +2106,7 @@ function __mapVisitTick() {
         mapSvg.appendChild(fo);
 
         const interlaceStyle = document.createElement('style');
+        interlaceStyle.id = 'crt-interlace-style';
         interlaceStyle.textContent = `
         @keyframes lines {
             0% {background-position: 0px 0px}
@@ -2050,10 +2126,10 @@ function __mapVisitTick() {
             animation: lines 0.066666666s linear infinite;
         }
         `;
-        document.head.appendChild(interlaceStyle);
+        if (!document.getElementById('crt-interlace-style')) document.head.appendChild(interlaceStyle);
 
         const mapContainerEl = document.getElementById('map_container');
-        if (mapContainerEl) {
+        if (mapContainerEl && !document.getElementById('map-scanlines')) {
             const scanlineDiv = document.createElement('div');
             scanlineDiv.id = 'map-scanlines';
             scanlineDiv.style.cssText = `
@@ -2073,10 +2149,18 @@ function __mapVisitTick() {
         }
         }
                     }
-                }
             } else {
             const s = document.getElementById('logo-hide-style');
             if (s) s.remove();
+            // CRT teardown — the glass foreignObject dies with the map SVG, but
+            // the scanline/interlace divs live on #map_container and the keyframes
+            // <style> in <head>; without this they persisted (one infinitely
+            // animating 15 Hz element) and duplicated on the next map open.
+            document.getElementById('map-glass-overlay')?.remove();
+            document.getElementById('crt-curve-clip')?.parentElement?.remove();
+            document.getElementById('map-scanlines')?.remove();
+            document.getElementById('interlaced')?.remove();
+            document.getElementById('crt-interlace-style')?.remove();
         }
     //visit screen changes
             const visitVisible = !!document.querySelector('.visit_text');
@@ -2159,8 +2243,13 @@ function __mapVisitTick() {
                             height: 0 !important;
                         }
                         .visit_text {
+                            /* SINGLE OWNER of this label's position (the inline
+                               style Code 2 used to set was dead — !important
+                               here beats inline). Vertical position = this
+                               bottom value, from the foot of the 692px-tall
+                               #game_window. */
                             position: absolute !important;
-                            bottom: 80px !important;
+                            bottom: -10px !important;
                             left: 0 !important;
                             width: 1113px !important;
                             margin: 0 !important;
@@ -2246,21 +2335,6 @@ function __mapVisitTick() {
                         const mapContainerEl = document.getElementById('map_container');
                         if (mapContainerEl) mapContainerEl.appendChild(el);
                     });
-                }
-                    if (!document.getElementById('visit-easter-zone')) {
-                    const easterZone = document.createElement('div');
-                    easterZone.id = 'visit-easter-zone';
-                    easterZone.style.cssText = `
-                        position: absolute;
-                        left: 680px;
-                        top: 335px;
-                        width: 245px;
-                        height: 167px;
-                        pointer-events: none;
-                        z-index: 6;
-                    `;
-                    const mapContainerEl = document.getElementById('map_container');
-                    if (mapContainerEl) mapContainerEl.appendChild(easterZone);
                 }
                 const mapImg = document.getElementById('map_image');
                 if (mapImg) mapImg.disabled = true;
@@ -2348,6 +2422,7 @@ function __mapVisitTick() {
                                     clearTimeout(_plopTimer);
                                     mapSvg.removeEventListener('click', _planeClickHandler, true);
                                     delete mapSvg.dataset.planeHooked;
+                                    delete mapSvg._planeCtl;
                                     plane.remove();
                                     ev.stopPropagation();
                                     const _passthru = new MouseEvent('click', {
@@ -2357,6 +2432,10 @@ function __mapVisitTick() {
                                     _passthru._synthetic = true;
                                     ev.target.dispatchEvent(_passthru);
                                 }
+                                // A raw click mid-flight must never reach the engine: _flyTimer
+                                // will deliver the ORIGINAL click in a moment, and letting this
+                                // one through meant two state visits from one intended action.
+                                ev.stopPropagation();
                                 return;
                             }
                             plane.dataset.lastClick = now;
@@ -2394,9 +2473,22 @@ function __mapVisitTick() {
                                 _passthru._synthetic = true;
                                 originalTarget.dispatchEvent(_passthru);
                                 delete mapSvg.dataset.planeHooked;
+                                delete mapSvg._planeCtl;
                             }, 5000);
                         }
                         mapSvg.addEventListener('click', _planeClickHandler, true);
+                        // Detach hook for the screen-exit cleanup: the handler and
+                        // timers are closure-scoped, so without this the exit branch
+                        // could only delete the dataset flag — re-entering then
+                        // stacked a second live handler (double visits), and an
+                        // in-flight exit left _flyTimer to fire on a stale target.
+                        mapSvg._planeCtl = {
+                            detach() {
+                                clearTimeout(_flyTimer);
+                                clearTimeout(_plopTimer);
+                                mapSvg.removeEventListener('click', _planeClickHandler, true);
+                            }
+                        };
                  }
                             }
                         } else {
@@ -2417,9 +2509,10 @@ function __mapVisitTick() {
                                 const ps = document.getElementById('visit-plane-style');
                                 if (ps) ps.remove();
                                 const mapSvg = document.querySelector('#map_container svg:not(#visit-noise-overlay)');
-                                if (mapSvg) delete mapSvg.dataset.planeHooked;
-                                const easterZone = document.getElementById('visit-easter-zone');
-                                if (easterZone) easterZone.remove();
+                                if (mapSvg) {
+                                    if (mapSvg._planeCtl) { mapSvg._planeCtl.detach(); delete mapSvg._planeCtl; }
+                                    delete mapSvg.dataset.planeHooked;
+                                }
                             }
                         }
 window.__onGameWindowMutation(__mapVisitTick);
@@ -2482,12 +2575,10 @@ class Song {
     constructor(title, artist, coverLink, audioLink) {
         this.title = title;
         this.artist = artist;
-        this.coverLink = coverLink;
         this.audioLink = audioLink;
     }
     getTitle()     { return this.title; }
     getArtist()    { return this.artist; }
-    getCoverLink() { return this.coverLink; }
     getAudioLink() { return this.audioLink; }
 }
 
@@ -2550,6 +2641,9 @@ function setupMusicPlayer() {
     window.playlist.addSong(newSong1);
     window.playlist.addSong(newSong2);
     window.playlist.addSong(newSong3);
+    // Kept on window so playCreditsMusic can find it by identity even after a
+    // section playlist has replaced playlist.songs wholesale.
+    window._creditsSong = newSong3;
 
     let audio = document.getElementById("audio");
     if (!audio) {
@@ -2752,11 +2846,43 @@ function setupMusicPlayer() {
     let playbackState = 'pause';
     let isPlaying = false;
 
+    // ── Reactive soundtrack state (see SOUNDTRACK_PLAN.md) ──────────────────
+    // Config (window.SOUNDTRACK: section lists, mood rules) and triggers live
+    // in Code 2; these are the player-side primitives.
+    let _targetVolume = 0.5;    // the user's chosen volume; fades always return here
+    let _fadeTimer = null;
+    let _pendingPlaylist = null; // section list queued behind the current song
+    let _musicSection = 0;       // 0 = intro music, no section entered yet
+    let _stingerCued = false;    // stinger loaded while paused; plays on resume
+    const FADE_MS = 1200;
+
+    function _fadeTo(vol, ms, cb) {
+        if (_fadeTimer) { clearInterval(_fadeTimer); _fadeTimer = null; }
+        const from = audio.volume, delta = vol - from;
+        if (ms <= 0 || Math.abs(delta) < 0.01) {
+            audio.volume = vol;
+            if (cb) cb();
+            return;
+        }
+        const stepMs = 50, steps = Math.max(1, Math.round(ms / stepMs));
+        let i = 0;
+        _fadeTimer = setInterval(() => {
+            i++;
+            audio.volume = Math.min(1, Math.max(0, from + delta * (i / steps)));
+            if (i >= steps) {
+                clearInterval(_fadeTimer);
+                _fadeTimer = null;
+                if (cb) cb();
+            }
+        }, stepMs);
+    }
+
   function loadAndPlay() {
         if (window._introSound) {
             window._introSound.pause();
             window._introSound.currentTime = 0;
         }
+        _stingerCued = false;
         audio.src = playlist.getCurrentSong().getAudioLink();
         updateUI();
         audio.play();
@@ -2781,6 +2907,10 @@ playBtn.addEventListener('click', () => {
             playBtn.classList.remove('active');
             stopVisuals();
         } else {
+            // A section list queued while paused installs now (unless a stinger
+            // was cued while paused — that plays first; the list installs on its
+            // 'ended'). See SOUNDTRACK_PLAN.md §7 paused-at-boundary.
+            if (_pendingPlaylist && !_stingerCued) { _installPending(); return; }
             if (window._introSound) {
                 window._introSound.pause();
                 window._introSound.currentTime = 0;
@@ -2819,6 +2949,9 @@ playBtn.addEventListener('click', () => {
         setReelAnimation('rw');
         clearInterval(_seekInterval);
         _seekInterval = setInterval(() => {
+            // Before metadata loads duration is NaN and assigning NaN to
+            // currentTime throws a TypeError every tick.
+            if (!audio.duration || isNaN(audio.duration)) return;
             audio.currentTime = Math.max(0, audio.currentTime - 2);
             updateTapeVisuals();
         }, 100);
@@ -2831,28 +2964,133 @@ playBtn.addEventListener('click', () => {
         setReelAnimation('ff');
         clearInterval(_seekInterval);
         _seekInterval = setInterval(() => {
+            if (!audio.duration || isNaN(audio.duration)) return;
             audio.currentTime = Math.min(audio.duration, audio.currentTime + 2);
             updateTapeVisuals();
         }, 100);
     });
 
+    // Volume buttons write _targetVolume (not raw audio.volume) so an in-flight
+    // fade never becomes the new baseline — fades always return to the user's
+    // chosen level.
     volUpBtn.addEventListener('click', () => {
-        audio.volume = Math.min(1, audio.volume + 0.15);
+        _targetVolume = Math.min(1, _targetVolume + 0.15);
+        audio.volume = _targetVolume;
     });
 
     volDownBtn.addEventListener('click', () => {
-        audio.volume = Math.max(0, audio.volume - 0.15);
+        _targetVolume = Math.max(0, _targetVolume - 0.15);
+        audio.volume = _targetVolume;
     });
 
     nextBtn.addEventListener('click', () => {
+        if (_pendingPlaylist) { _installPending(); return; }
         playlist.playNext();
         loadAndPlay();
     });
 
     audio.addEventListener('ended', () => {
+        // Graceful section swap: a queued section list installs only once the
+        // current song has played out — never mid-track.
+        if (_pendingPlaylist) { _installPending(); return; }
         playlist.playNext();
         loadAndPlay();
     });
+
+    // ── Reactive soundtrack primitives (SOUNDTRACK_PLAN.md) ─────────────────
+    // Everything here is exposed on window below; Code 2 supplies the config
+    // (window.SOUNDTRACK) and calls these from its PK-change observer.
+
+    function _rebuildPlaylistSelect() {
+        // Single source of truth for the dropdown — route ALL playlist
+        // mutations through this (the options are otherwise built once).
+        playlistSelect.innerHTML = '';
+        playlist.songs.forEach((song, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = song.getTitle();
+            playlistSelect.appendChild(option);
+        });
+        playlistSelect.value = playlist.currentSongIndex;
+    }
+
+    function _installPending() {
+        if (!_pendingPlaylist) return;
+        playlist.songs = _pendingPlaylist.slice();
+        playlist.currentSongIndex = 0;
+        _pendingPlaylist = null;
+        _stingerCued = false;
+        _rebuildPlaylistSelect();
+        loadAndPlay();
+    }
+
+    function _setCurrent(index) {
+        // Load a track WITHOUT starting playback (loadAndPlay always plays):
+        // used to cue a stinger while the player is paused/off.
+        playlist.currentSongIndex = index;
+        audio.src = playlist.getCurrentSong().getAudioLink();
+        updateUI();
+        playlistSelect.value = index;
+    }
+
+    window.__injectNextSong = function (song) {
+        // Scripted question stinger: splice as the next track; fade-and-play
+        // only if the tape is actually playing — never restart a player the
+        // user switched off (locked decision).
+        if (!song || !window.playlist) return;
+        const at = playlist.currentSongIndex + 1;
+        playlist.songs.splice(at, 0, song);
+        _rebuildPlaylistSelect();
+        // A stinger outranks a hovering national anthem: stop it and take the
+        // tape back before fading, so the two never fight over the main audio.
+        if (window.__activeAnthemStop) {
+            window.__activeAnthemStop(false);
+            audio.muted = false;
+        }
+        if (playbackState === 'play') {
+            _fadeTo(0, FADE_MS, () => {
+                playlist.currentSongIndex = at;
+                loadAndPlay();
+                _fadeTo(_targetVolume, FADE_MS);
+            });
+        } else {
+            _setCurrent(at);
+            _stingerCued = true;
+        }
+    };
+
+    window.__enterMusicSection = function (n) {
+        // Section boundary: QUEUE the section's list — the current song plays
+        // out first, then the new list installs on 'ended'. Mood rules are read
+        // here and only here (once per section, not per turn); passing rules'
+        // tracks lead the section.
+        if (!window.SOUNDTRACK || !window.playlist) return;
+        if (!n || n === _musicSection) return; // idempotent — retry ticks re-hit the same pk
+        _musicSection = n;
+        const secDef = window.SOUNDTRACK.sections && window.SOUNDTRACK.sections[n];
+        let base = [];
+        try { base = (secDef && secDef.tracks) ? secDef.tracks() : []; } catch (err) {}
+        let mood = [];
+        (window.SOUNDTRACK.mood || []).forEach(rule => {
+            try { if (rule.when()) mood = mood.concat(rule.tracks() || []); } catch (err) {}
+        });
+        const list = mood.concat(base).filter(Boolean);
+        if (!list.length) return; // section has no tracks authored — keep the current list
+        _pendingPlaylist = list;
+        // If nothing is playing, 'ended' never fires — the list installs on the
+        // next play/next press instead (see those handlers).
+    };
+
+    window.__resetSoundtrack = function () {
+        // New Game: clear section tracking + queued list. Deliberately does NOT
+        // rebuild the playlist or touch playback (respects a switched-off
+        // player; avoids yanking music mid-track).
+        _musicSection = 0;
+        _pendingPlaylist = null;
+        _stingerCued = false;
+    };
+
+    window._rebuildPlaylistSelect = _rebuildPlaylistSelect;
 
     updateUI();
 
@@ -2920,12 +3158,7 @@ playBtn.addEventListener('click', () => {
     pointer-events: auto;
     `;
 
-    playlist.songs.forEach((song, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = song.getTitle();
-        playlistSelect.appendChild(option);
-    });
+    _rebuildPlaylistSelect();
 
     playlistSelect.addEventListener('change', () => {
         playlist.currentSongIndex = parseInt(playlistSelect.value);
@@ -2953,7 +3186,8 @@ document.addEventListener('mouseup', () => {
 });
 setTimeout(() => {
     const introSound = new Audio('https://audio.jukehost.co.uk/NE7w9YDoEIdJ34UobP0V9ZmPnE5dLmLm');
-    introSound.play();
+    // Pre-gesture autoplay is rejected by browser policy; swallow the rejection.
+    introSound.play().catch(() => {});
     window._introSound = introSound;
 }, 2500);
 
@@ -3159,9 +3393,6 @@ mplayerstyle.textContent = `
 #nextBtn    { left: 422px; top: 323px; }
 
 /* Reel animations */
-.stop {
-    animation-play-state: paused !important;
-}
 .normal {
     animation-duration: 2.5s !important;
 }
@@ -3190,9 +3421,16 @@ document.head.appendChild(mplayerstyle);
 //end music player code
 
 // Add TV turn off animation taken from codepen courtesy @hodd
-const gsapScript = document.createElement('script');
-gsapScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js';
-document.head.appendChild(gsapScript);
+// GSAP TweenMax (~110KB) is only used by the TV-off animation on the map screen,
+// so it is injected on first map open (__mapVisitTick) rather than at load; the
+// switch handler already falls back to a plain click if it hasn't arrived yet.
+function _ensureGsap() {
+    if (document.getElementById('gsap-tweenmax') || typeof TimelineMax !== 'undefined') return;
+    const gsapScript = document.createElement('script');
+    gsapScript.id = 'gsap-tweenmax';
+    gsapScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js';
+    document.head.appendChild(gsapScript);
+}
 
 //Custom map background style- thanks to Strawberry Master for putting this in the Discord
 const customStyling = document.createElement("style");
@@ -3202,5 +3440,334 @@ customStyling.innerHTML = `#map_container {
 }`;
 customStyling.id=`map_image`
 document.head.appendChild(customStyling);
+
+// ── EDUCATIONAL TOOLTIPS ──────────────────────────────────────────────────────
+// A second class of contextual tooltips: historical/civics context, constant
+// across the whole game (which is why they live here in Code 1, not with the
+// people-tooltips in Code 2). Same card look, NO image area, and the trigger
+// word gets a DOUBLE pen-stroke underline instead of a single one.
+//
+// Toggle: an "Educational tooltips" checkbox appears next to the difficulty
+// selector before the game begins (state remembered in localStorage).
+//
+// TO ADD A TERM just append an entry here. searchStrings are matched
+// case-insensitively on word edges; put longer variants first for clarity but
+// order doesn't matter (longest-at-position wins automatically).
+var EDU_TOOLTIPS = [
+    {
+        searchStrings: ['impoundment', 'impound'],
+        label: 'Impoundment',
+        body: 'The practice of not spending funds appropriated by Congress. It has been going on since Jefferson but critics say that it unconstitutionally breaks the power of the purse, particularly when used with ideological motives.'
+    },
+];
+// ── end of the editable list — machinery below ───────────────────────────────
+
+var _eduTipsOn = false;   // OFF by default — opt in via the checkbox
+try { _eduTipsOn = localStorage.getItem('acop_edu_tips') === '1'; } catch (e) {}
+if (document.body) document.body.classList.toggle('edu-tips-off', !_eduTipsOn);
+
+// Single THICK pen stroke — same hand-drawn language as Code 2's
+// generatePenStroke (2.1px) but at roughly double the weight, so the two
+// tooltip classes stay distinguishable at a glance.
+var _EDU_STROKE =
+    '<svg class="edu-stroke" style="position:absolute;bottom:-1px;left:0;width:100%;height:6px;overflow:visible;pointer-events:none" preserveAspectRatio="none" viewBox="0 0 100 6">' +
+    // Same squiggle as the people-tips pen stroke but with the wobble damped to
+    // half its deviation from the baseline — reads straighter, still hand-drawn.
+    '<path d="M 0 0 Q 35 3.2 50 2.5 Q 65 1.8 100 4" fill="none" stroke="rgb(96, 115, 129)" stroke-width="3.3" vector-effect="non-scaling-stroke"/>' +
+    '</svg>';
+
+// Matchers: one case-insensitive word-edge regex per searchString.
+var _eduMatchers = [];
+EDU_TOOLTIPS.forEach(entry => {
+    (entry.searchStrings || []).forEach(s => {
+        const esc = s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        _eduMatchers.push({ re: new RegExp('(?<!\\w)' + esc + '(?!\\w)', 'gi'), entry });
+    });
+});
+
+function _eduSpan(matchedText, entry) {
+    const s = document.createElement('span');
+    s.className = 'edu-tip';
+    s.style.position = 'relative';
+    s.appendChild(document.createTextNode(matchedText));
+    s.insertAdjacentHTML('beforeend',
+        _EDU_STROKE +
+        '<span class="edu-tiptext"><span class="tt-label"></span>' +
+        '<span class="tt-body"><span class="tt-body-text"></span></span></span>');
+    s.querySelector('.tt-label').textContent = entry.label;
+    s.querySelector('.tt-body-text').textContent = entry.body;
+    return s;
+}
+
+// Wrap matches within one text node; returns a fragment or null if no match.
+function _eduWrapText(text) {
+    let rest = text, found = false;
+    const frag = document.createDocumentFragment();
+    for (;;) {
+        let best = null;
+        for (const m of _eduMatchers) {
+            m.re.lastIndex = 0;
+            const x = m.re.exec(rest);
+            if (x && (!best || x.index < best.index ||
+                     (x.index === best.index && x[0].length > best.text.length))) {
+                best = { index: x.index, text: x[0], entry: m.entry };
+            }
+        }
+        if (!best) break;
+        found = true;
+        if (best.index > 0) frag.appendChild(document.createTextNode(rest.slice(0, best.index)));
+        frag.appendChild(_eduSpan(best.text, best.entry));
+        rest = rest.slice(best.index + best.text.length);
+    }
+    if (!found) return null;
+    if (rest) frag.appendChild(document.createTextNode(rest));
+    return frag;
+}
+
+// Bake .edu-tip spans into an HTML string. Called by Code 2's tooltip pipeline
+// BEFORE its own people-matcher runs (so that matcher sees our tags and skips
+// them). DOM-walking text nodes means tags/attributes can never be corrupted,
+// and skipping .edu-tip/.mytooltip subtrees makes the pass idempotent.
+window.applyEduTooltips = function (html) {
+    if (typeof html !== 'string' || !html || !_eduMatchers.length) return html;
+    let any = false;
+    for (const m of _eduMatchers) { m.re.lastIndex = 0; if (m.re.test(html)) { any = true; break; } }
+    if (!any) return html;   // common case: leave the string byte-identical
+    const tpl = document.createElement('template');
+    tpl.innerHTML = html;
+    let changed = false;
+    (function walk(node) {
+        Array.from(node.childNodes).forEach(ch => {
+            if (ch.nodeType === 1) {
+                const cl = ch.classList;
+                if (cl.contains('edu-tip') || cl.contains('mytooltip') || cl.contains('mytooltiptext') || cl.contains('xpl')) return;
+                walk(ch);
+            } else if (ch.nodeType === 3) {
+                const frag = _eduWrapText(ch.nodeValue);
+                if (frag) { ch.replaceWith(frag); changed = true; }
+            }
+        });
+    })(tpl.content);
+    return changed ? tpl.innerHTML : html;
+};
+
+// ── EXPLETIVES DELETED ────────────────────────────────────────────────────────
+// "Expletives Deleted" pre-game toggle (Nixon's own transcript euphemism). Each
+// listed word is baked into a span carrying BOTH the original and the redaction;
+// CSS (body.expletives-on) swaps which shows, so the toggle is instant and
+// reversible with no destructive edits — same architecture as edu/historicity.
+// Word-edge, case-insensitive; longest/most-specific first so phrases and
+// inflected forms win over their substrings.
+var _EXPLETIVES = [
+    'son of a bitch', 'sonofabitch', 'jesus christ', 'cocksucker', 'horseshit',
+    'bullshit', 'goddamn', 'jackass', 'bastard', 'shitting', 'fucked',
+    'bitch', 'damn', 'shit', 'fuck', 'hell', 'ass',
+];
+var _EXPL_RE = new RegExp('(?<![\\w-])(' +
+    _EXPLETIVES.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ /g, '\\s+')).join('|') +
+    ')(?![\\w-])', 'gi');
+
+function _explWrapText(text) {
+    _EXPL_RE.lastIndex = 0;
+    if (!_EXPL_RE.test(text)) return null;
+    _EXPL_RE.lastIndex = 0;
+    const frag = document.createDocumentFragment();
+    let last = 0, m;
+    while ((m = _EXPL_RE.exec(text)) !== null) {
+        if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+        const wrap = document.createElement('span');
+        wrap.className = 'xpl';
+        const raw = document.createElement('span');
+        raw.className = 'xpl-w';
+        raw.textContent = m[0];                       // original word, case preserved
+        const clean = document.createElement('span');
+        clean.className = 'xpl-c';
+        clean.textContent = '[EXPLETIVE DELETED]';
+        wrap.appendChild(raw); wrap.appendChild(clean);
+        frag.appendChild(wrap);
+        last = m.index + m[0].length;
+    }
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    return frag;
+}
+
+// Bake .xpl spans. Runs in Code 2's pipeline; DOM-walks text nodes (tags/
+// attributes never corrupted) and skips existing tip/xpl subtrees (idempotent).
+window.applyExpletiveMarkup = function (html) {
+    if (typeof html !== 'string' || !html) return html;
+    _EXPL_RE.lastIndex = 0;
+    if (!_EXPL_RE.test(html)) return html;            // common case: byte-identical
+    const tpl = document.createElement('template');
+    tpl.innerHTML = html;
+    let changed = false;
+    (function walk(node) {
+        Array.from(node.childNodes).forEach(ch => {
+            if (ch.nodeType === 1) {
+                const cl = ch.classList;
+                if (cl.contains('edu-tip') || cl.contains('mytooltip') || cl.contains('mytooltiptext') || cl.contains('xpl')) return;
+                walk(ch);
+            } else if (ch.nodeType === 3) {
+                const frag = _explWrapText(ch.nodeValue);
+                if (frag) { ch.replaceWith(frag); changed = true; }
+            }
+        });
+    })(tpl.content);
+    return changed ? tpl.innerHTML : html;
+};
+
+var _expletivesOn = false;   // OFF by default — opt in via the checkbox
+try { _expletivesOn = localStorage.getItem('acop_expletives') === '1'; } catch (e) {}
+if (document.body) document.body.classList.toggle('expletives-on', _expletivesOn);
+// ── END EXPLETIVES DELETED ────────────────────────────────────────────────────
+
+// Hover display — reuses Code 2's #tooltip-portal element (and this file's
+// portal CSS), creating it only if Code 2 hasn't. The two hover systems don't
+// fight: each one's mouseover ignores the other's spans, and each mousemove
+// only acts while its own span is hovered.
+var _eduHover = null;
+function _eduPortal() {
+    let p = document.getElementById('tooltip-portal');
+    if (!p) { p = document.createElement('div'); p.id = 'tooltip-portal'; document.body.appendChild(p); }
+    return p;
+}
+document.addEventListener('mouseover', (e) => {
+    if (!_eduTipsOn) return;
+    const t = e.target.closest('.edu-tip');
+    if (t === _eduHover) return;
+    _eduHover = t;
+    if (t) {
+        const inner = t.querySelector('.edu-tiptext');
+        if (inner) _eduPortal().innerHTML = inner.innerHTML;
+    } else {
+        _eduPortal().style.display = 'none';
+    }
+});
+document.addEventListener('mousemove', (e) => {
+    if (!_eduHover || !_eduTipsOn) return;
+    const p = _eduPortal();
+    p.style.display = 'block';
+    const pad = 16, tw = p.offsetWidth, th = p.offsetHeight;
+    let x = e.clientX + pad, y = e.clientY + pad;
+    if (x + tw > window.innerWidth)  x = e.clientX - tw - pad;
+    if (y + th > window.innerHeight) y = e.clientY - th - pad;
+    p.style.left = x + 'px';
+    p.style.top  = y + 'px';
+});
+document.addEventListener('mouseleave', () => {
+    if (_eduHover) { _eduPortal().style.display = 'none'; _eduHover = null; }
+}, true);
+
+// Historicity highlights — OFF by default, opt-in. When on, spans baked into
+// the question/answer text are tinted: .hist-v (powder blue) = verbatim from
+// the very date/meeting depicted; .hist-vo (light yellow) = verbatim but from
+// another time or occasion. The spans arrive with the question bank (see
+// CLAUDE.md: authored in a highlighted docx, converted to spans on import).
+var _historicityOn = false;
+try { _historicityOn = localStorage.getItem('acop_historicity') === '1'; } catch (e) {}
+if (document.body) document.body.classList.toggle('historicity-on', _historicityOn);
+
+// "Educational tooltips" + "Historicity" checkboxes, injected next to the
+// difficulty selector on the pre-game screen (id-guarded; the shared observer
+// retries until it lands).
+window.__onGameWindowMutation(() => {
+    const diff = document.getElementById('difficulty_level');
+    if (!diff || document.getElementById('edu-tips-toggle')) return;
+    const wrap = document.createElement('label');
+    wrap.id = 'edu-tips-toggle-wrap';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.id = 'edu-tips-toggle';
+    cb.checked = _eduTipsOn;
+    cb.addEventListener('change', () => {
+        _eduTipsOn = cb.checked;
+        try { localStorage.setItem('acop_edu_tips', cb.checked ? '1' : '0'); } catch (e) {}
+        document.body.classList.toggle('edu-tips-off', !_eduTipsOn);
+    });
+    wrap.appendChild(cb);
+    wrap.appendChild(document.createTextNode(' Educational tooltips'));
+    // Hover card, matching the Historicity one. "allusions" carries the actual
+    // edu underline stroke so the tip doubles as a legend (always visible,
+    // regardless of the toggle — it sits outside any .edu-tip span).
+    wrap.style.position = 'relative';
+    const eduTip = document.createElement('span');
+    eduTip.id = 'edu-tips-hovertip';
+    eduTip.style.cssText = 'display:none;position:absolute;bottom:calc(100% + 6px);left:0;width:280px;'
+        + 'background:rgba(255,255,255,0.97);border:1px solid #999;border-radius:3px;'
+        + 'box-shadow:1px 2px 6px rgba(0,0,0,0.3);padding:7px 9px;z-index:1000;'
+        + 'font-family:TypewriterDry,monospace;font-size:11px;line-height:1.45;color:#222;'
+        + 'text-align:left;pointer-events:none;font-weight:normal;';
+    eduTip.innerHTML = 'Adds additional tooltips for the '
+        + '<span style="position:relative;display:inline-block;">allusions' + _EDU_STROKE + '</span>'
+        + ' and more obscure historical references. Not recommended for first playthrough.';
+    wrap.appendChild(eduTip);
+    wrap.addEventListener('mouseenter', () => { eduTip.style.display = 'block'; });
+    wrap.addEventListener('mouseleave', () => { eduTip.style.display = 'none'; });
+
+    // "Expletives Deleted" — sits to the LEFT of Educational tooltips (appended
+    // first). Redacts the listed profanity in the baked question/answer text.
+    const xWrap = document.createElement('label');
+    xWrap.id = 'expletives-toggle-wrap';
+    xWrap.style.cssText = 'display:inline-flex;align-items:center;gap:6px;margin-top:8px;'
+        + 'margin-right:16px;position:relative;cursor:pointer;user-select:none;';
+    const xCb = document.createElement('input');
+    xCb.type = 'checkbox';
+    xCb.id = 'expletives-toggle';
+    xCb.checked = _expletivesOn;
+    xCb.addEventListener('change', () => {
+        _expletivesOn = xCb.checked;
+        try { localStorage.setItem('acop_expletives', xCb.checked ? '1' : '0'); } catch (e) {}
+        document.body.classList.toggle('expletives-on', _expletivesOn);
+    });
+    xWrap.appendChild(xCb);
+    xWrap.appendChild(document.createTextNode(' Expletives Deleted'));
+    const xTip = document.createElement('span');
+    xTip.style.cssText = 'display:none;position:absolute;bottom:calc(100% + 6px);left:0;width:220px;'
+        + 'background:rgba(255,255,255,0.97);border:1px solid #999;border-radius:3px;'
+        + 'box-shadow:1px 2px 6px rgba(0,0,0,0.3);padding:7px 9px;z-index:1000;'
+        + 'font-family:TypewriterDry,monospace;font-size:11px;line-height:1.45;color:#222;'
+        + 'text-align:left;pointer-events:none;font-weight:normal;';
+    xTip.textContent = 'Act like the true son of Quakers.';
+    xWrap.appendChild(xTip);
+    xWrap.addEventListener('mouseenter', () => { xTip.style.display = 'block'; });
+    xWrap.addEventListener('mouseleave', () => { xTip.style.display = 'none'; });
+    diff.appendChild(xWrap);
+
+    diff.appendChild(wrap);
+
+    const hWrap = document.createElement('label');
+    hWrap.id = 'historicity-toggle-wrap';
+    hWrap.style.cssText = 'display:block;margin-top:4px;position:relative;';
+    const hCb = document.createElement('input');
+    hCb.type = 'checkbox';
+    hCb.id = 'historicity-toggle';
+    hCb.checked = _historicityOn;
+    hCb.addEventListener('change', () => {
+        _historicityOn = hCb.checked;
+        try { localStorage.setItem('acop_historicity', hCb.checked ? '1' : '0'); } catch (e) {}
+        document.body.classList.toggle('historicity-on', _historicityOn);
+    });
+    hWrap.appendChild(hCb);
+    hWrap.appendChild(document.createTextNode(' Historicity'));
+    // Custom hover card (a native title can't carry the colour swatches). The
+    // blue/yellow words are tinted with the same hues the highlights use, and
+    // always show regardless of the toggle state.
+    const hTip = document.createElement('span');
+    hTip.id = 'historicity-hovertip';
+    hTip.style.cssText = 'display:none;position:absolute;bottom:calc(100% + 6px);left:10px;width:280px;'
+        + 'background:rgba(255,255,255,0.97);border:1px solid #999;border-radius:3px;'
+        + 'box-shadow:1px 2px 6px rgba(0,0,0,0.3);padding:7px 9px;z-index:1000;'
+        + 'font-family:TypewriterDry,monospace;font-size:11px;line-height:1.45;color:#222;'
+        + 'text-align:left;pointer-events:none;font-weight:normal;';
+    hTip.innerHTML = 'Shows direct excerpts from primary sources in '
+        + '<span style="background:#b0e0e6;border-radius:2px;padding:0 2px;">blue</span> '
+        + '(at the meeting/on date referred to), or '
+        + '<span style="background:#fdf3b3;border-radius:2px;padding:0 2px;">yellow</span> '
+        + '(verbatim but used another time). For completeness only.';
+    hWrap.appendChild(hTip);
+    hWrap.addEventListener('mouseenter', () => { hTip.style.display = 'block'; });
+    hWrap.addEventListener('mouseleave', () => { hTip.style.display = 'none'; });
+    diff.appendChild(hWrap);
+});
+// ── END EDUCATIONAL TOOLTIPS ──────────────────────────────────────────────────
 
 //#endcode

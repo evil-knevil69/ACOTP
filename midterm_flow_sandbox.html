@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ACOP 1974 Midterm — full flow sandbox (returns board + LBM scoreboard)</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;background:#1d2030;color:#eee;margin:0;padding:24px;}
+  h1{font-size:1.4rem;margin:0 0 4px;}
+  .sub{color:#9aa3c0;font-size:0.85rem;margin-bottom:18px;max-width:900px;line-height:1.5;}
+  .controls{background:#2b2f44;border-radius:10px;padding:16px 18px;max-width:900px;margin-bottom:18px;}
+  .row{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end;}
+  .ctl{flex:1;min-width:200px;}
+  label{display:block;font-size:0.78rem;color:#c7cde6;margin:0 0 4px;}
+  input[type=range]{width:100%;}
+  .val{float:right;font-weight:bold;color:#fff;}
+  .swing{font-size:1.5rem;font-weight:bold;color:#5b8def;}
+  button{background:#5566cc;color:#fff;border:0;border-radius:6px;padding:9px 14px;font-weight:bold;cursor:pointer;}
+  button.alt{background:#444a6b;} button.go{background:#3aa657;} button:disabled{opacity:0.4;cursor:default;}
+  .presets button{background:#3a3f5c;font-size:0.72rem;padding:6px 9px;margin-top:6px;}
+  /* ---- election-night screen ---- */
+  .screen{background:#2b2f44;border-radius:10px;padding:18px;max-width:900px;margin-bottom:18px;}
+  .scr-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #3d425c;padding-bottom:8px;margin-bottom:10px;}
+  .scr-title{font-size:1.1rem;font-weight:bold;letter-spacing:0.04em;}
+  .tally{font-size:1.6rem;font-weight:bold;}
+  .tally .d{color:#5b8def;} .tally .r{color:#e0556b;} .tally small{font-size:0.8rem;color:#9aa3c0;font-weight:normal;}
+  .board{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+  .tile{width:62px;height:46px;border-radius:5px;background:#3a3f5c;display:flex;flex-direction:column;align-items:center;justify-content:center;
+        font-size:0.72rem;color:#aab;transition:background .25s,color .25s;position:relative;}
+  .tile .ab{font-weight:bold;font-size:0.82rem;}
+  .tile .mg{font-size:0.6rem;opacity:0;transition:opacity .25s;}
+  .tile.called .mg{opacity:0.85;}
+  .tile.D{background:#2f4d8a;color:#dce6ff;} .tile.R{background:#8a2f3f;color:#ffdce2;}
+  .tile.flip{box-shadow:0 0 0 2px #ffd24a;}
+  .tile .seat{position:absolute;top:2px;right:4px;font-size:0.55rem;color:#ffd24a;}
+  .advisor{background:#222641;border-left:3px solid #5566cc;border-radius:6px;padding:10px 12px;margin-top:14px;font-size:0.82rem;line-height:1.5;color:#cfd6f0;}
+  .footer{margin-top:14px;display:flex;gap:10px;}
+  /* ---- LBM congressional scoreboard overlay ---- */
+  .overlay{position:fixed;inset:0;background:rgba(10,12,22,0.82);display:none;align-items:center;justify-content:center;z-index:20;}
+  .overlay.show{display:flex;}
+  .card{background:#2b2f44;border-radius:12px;padding:22px;width:520px;max-width:92vw;}
+  .card h2{margin:0 0 4px;font-size:1.2rem;} .card .csub{color:#9aa3c0;font-size:0.78rem;margin-bottom:16px;}
+  .chamber{background:#1d2030;border-radius:8px;padding:14px;margin-bottom:12px;}
+  .chamber-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+  .chamber-h .t{font-size:1.05rem;font-weight:bold;} .chamber-h .win{font-size:0.75rem;color:#9aa3c0;}
+  .nums{display:flex;justify-content:space-between;font-size:1.9rem;font-weight:bold;margin-bottom:8px;}
+  .nums .d{color:#5b8def;} .nums .r{color:#e0556b;} .sup{font-size:0.85rem;vertical-align:super;color:#9aa3c0;margin-left:3px;}
+  .bar{display:flex;height:20px;border-radius:4px;overflow:hidden;position:relative;background:#11131f;}
+  .bar .bd{background:#5b8def;} .bar .br{background:#e0556b;flex:1;} .bar .mark{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#fff;}
+  .note{font-size:0.72rem;color:#7d85a8;max-width:900px;margin-top:6px;line-height:1.5;}
+  code{background:#11131f;padding:1px 4px;border-radius:3px;color:#c7cde6;}
+</style>
+</head>
+<body>
+<h1>ACOP 1974 Midterm — full flow sandbox</h1>
+<div class="sub">Stand-alone preview of the midterm interrupt: an election-night <b>returns board</b> calls the 34 Class&nbsp;3 Senate seats in poll-closing order with a live tally, then a secondary <b>Congressional Scoreboard</b> (the LBM House+Senate big-board). Not wired to any question. In-game the board becomes the engine's real geographic <code>usmap</code>; everything here is the flow + wording preview. <b>All editable data and wording is in the single CONFIG block at the top of the script.</b></div>
+
+<div class="controls">
+  <div class="row">
+    <div class="ctl">
+      <label>President's Approval <span class="val" id="vAppr">47</span></label>
+      <input type="range" id="appr" min="20" max="70" value="47">
+    </div>
+    <div class="ctl">
+      <label>Watergate exposure (0–1) <span class="val" id="vWg">0.75</span></label>
+      <input type="range" id="wg" min="0" max="1" step="0.05" value="0.75">
+    </div>
+    <div class="ctl" style="text-align:center;">
+      <label>National swing</label>
+      <div class="swing" id="swingOut">D+16.9%</div>
+    </div>
+  </div>
+  <div class="row" style="margin-top:14px;">
+    <div class="presets ctl">
+      <label>Presets</label>
+      <button data-a="60" data-w="0.30">Ford steadies</button>
+      <button data-a="52" data-w="0.55">Pardon backlash</button>
+      <button data-a="47" data-w="0.75">★ Historic 1974</button>
+      <button data-a="40" data-w="0.90">Deeper rot</button>
+      <button data-a="30" data-w="1.00">Collapse</button>
+    </div>
+    <div class="ctl" style="text-align:right;">
+      <label>&nbsp;</label>
+      <button id="run" class="go">▶ Run Election Night</button>
+      <label style="display:inline;margin-left:8px;font-size:0.72rem;">
+        <input type="checkbox" id="noise"> add noise
+      </label>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN 1: returns board (the primary-interrupt map stand-in) ===== -->
+<div class="screen">
+  <div class="scr-head">
+    <span class="scr-title" id="boardTitle">SENATE SEATS</span>
+    <span class="tally">
+      <span class="d"><span id="tD">37</span></span>
+      <small> D &nbsp;—&nbsp; R </small>
+      <span class="r"><span id="tR">27</span></span>
+      <small id="tInd"> &nbsp;(+2 ind)</small>
+    </span>
+  </div>
+  <div id="callLine" style="font-size:0.8rem;color:#9aa3c0;min-height:1.2em;"></div>
+  <div class="board" id="board"></div>
+  <div class="advisor" id="advisor"></div>
+  <div class="footer">
+    <button id="scoreboardBtn" class="alt" disabled>📊 Congressional Scoreboard</button>
+    <button id="doneBtn" disabled>Go back to questions ▸</button>
+  </div>
+</div>
+
+<!-- ===== SCREEN 2: LBM congressional scoreboard (secondary option) ===== -->
+<div class="overlay" id="overlay">
+  <div class="card">
+    <h2 id="cardTitle">In other news…</h2>
+    <div class="csub" id="cardSub"></div>
+    <div class="chamber">
+      <div class="chamber-h"><span class="t">House</span><span class="win">218 to control</span></div>
+      <div class="nums"><span class="d"><span id="chD">291</span><span class="sup" id="chDg"></span></span>
+                        <span class="r"><span id="chR">144</span><span class="sup" id="chRg"></span></span></div>
+      <div class="bar"><div class="bd" id="chBar" style="width:67%"></div><div class="mark"></div><div class="br"></div></div>
+    </div>
+    <div class="chamber">
+      <div class="chamber-h"><span class="t">Senate</span><span class="win">51 to control</span></div>
+      <div class="nums"><span class="d"><span id="csD">60</span><span class="sup" id="csDg"></span></span>
+                        <span class="r"><span id="csR">38</span><span class="sup" id="csRg"></span></span></div>
+      <div class="bar"><div class="bd" id="csBar" style="width:60%"></div><div class="mark"></div><div class="br"></div></div>
+    </div>
+    <div style="text-align:right;"><button id="closeCard" class="alt">Close</button></div>
+  </div>
+</div>
+
+<div class="note">
+  House Δ vs 93rd Congress (D 242 / R 192); Senate Δ vs (D 56 / R 42 / I 2). Reveal timing here is sped up for testing — the engine's <code>electionNight('primary', 120, …)</code> uses a 120ms timestep over the full roll. Returns are ordered by poll close (East→West); colours and the live tally are driven by <code>computeSenate(swing)</code>, the scoreboard by <code>computeHouse(swing)</code>.
+</div>
+
+<script>
+/* =================================================================================
+   ███  CONFIG — EVERYTHING EDITABLE LIVES IN THIS ONE CONTIGUOUS BLOCK  ███
+   Wording, swing dials, leans, house seats, and the 34 Senate races.
+   Edit here; the engine below this block should not need touching.
+   ================================================================================= */
+var CONFIG = {
+
+  /* ---- 1. ALL ON-SCREEN WORDING ---- */
+  TEXT: {
+    boardTitle:   "SENATE SEATS",          // header over the returns board
+    indNote:      " (+2 ind)",             // Byrd VA + Buckley NY, held out of the race math
+    scoreboardBtn:"📊 Congressional Scoreboard",
+    doneBtn:      "Go back to questions ▸",
+    cardTitle:    "In other news…",
+    // advisor blurb shown under the board; {SWING}/{HR}/{SD}/{HG}/{SG} are filled in live
+    advisorWin:   "The networks have called it. We've lost the Congress, Mr. President — the Democrats take the House {HR}-seat caucus and hold the Senate. This is the Watergate wave we feared. (D+{SWING} national.)",
+    advisorHold:  "It could have been worse, sir. The bleeding is real — Δ{HG} in the House — but we are not wiped out. (D+{SWING} national.)",
+    callPrefix:   "Returns in from ",       // prepended to each state as it's called
+    cardSubTmpl:  "Midterm result at D+{SWING} swing — House Δ{HG}, Senate Δ{SG} vs the 93rd Congress."
+  },
+
+  /* ---- 2. SWING DIALS (Ford anchor: approval 47, watergate 0.75 → D+16.9%) ---- */
+  SWING: { MID:0.030, APPROVAL_REF:60, AC:0.174, WC:0.110 },
+  DEFAULT: { approval:47, watergate:0.75 },
+
+  /* ---- 3. BASELINES (93rd Congress, going into Nov 1974) ---- */
+  HBASE: { dem:242, rep:192 },
+  SBASE: { dem:56,  rep:42  },
+  SENATE_SEED: { D:37, R:27, I:2 },   // the 66 seats NOT up in 1974
+
+  /* ---- 4. HOUSE leans (2012 Obama/Romney two-party D margin — seat-sensitivity calib) ---- */
+  SLH:{AL:-0.46,AK:-0.28,AZ:-0.10,AR:-0.25,CA:+0.24,CO:+0.055,CT:+0.18,DE:+0.20,FL:+0.009,GA:-0.08,HI:+0.43,ID:-0.33,IL:+0.18,IN:-0.11,IA:+0.06,KS:-0.22,KY:-0.24,LA:-0.18,ME:+0.16,MD:+0.27,MA:+0.24,MI:+0.095,MN:+0.078,MS:-0.12,MO:-0.097,MT:-0.14,NE:-0.22,NV:+0.069,NH:+0.058,NJ:+0.18,NM:+0.10,NY:+0.29,NC:-0.02,ND:-0.20,OH:+0.03,OK:-0.34,OR:+0.13,PA:+0.054,RI:+0.28,SC:-0.11,SD:-0.18,TN:-0.21,TX:-0.16,UT:-0.49,VT:+0.36,VA:+0.039,WA:+0.15,WV:-0.27,WI:+0.069,WY:-0.42},
+
+  /* ---- 5. SENATE leans (1972 Nixon/McGovern two-party D margin) ---- */
+  SL74:{AL:-0.490,AK:-0.240,AZ:-0.345,AR:-0.370,CA:-0.105,CO:-0.295,CT:-0.163,DE:-0.155,FL:-0.315,GA:-0.450,HI:-0.050,ID:-0.345,IL:-0.195,IN:-0.305,IA:-0.128,KS:-0.305,KY:-0.278,LA:-0.430,ME:-0.100,MD:-0.100,MA:+0.089,MI:-0.140,MN:-0.080,MS:-0.555,MO:-0.224,MT:-0.225,NE:-0.368,NV:-0.245,NH:-0.175,NJ:-0.150,NM:-0.283,NY:-0.170,NC:-0.378,ND:-0.320,OH:-0.210,OK:-0.371,OR:-0.130,PA:-0.197,RI:-0.063,SC:-0.460,SD:-0.220,TN:-0.400,TX:-0.331,UT:-0.423,VT:-0.155,VA:-0.313,WA:-0.195,WV:-0.200,WI:-0.110,WY:-0.385},
+
+  /* ---- 6. HOUSE per-state: [seats(1970 apportionment, sum=435), structural bias] ---- */
+  HD:{AL:[7,+0.10],AK:[1,-0.15],AZ:[4,-0.05],AR:[4,+0.12],CA:[43,+0.12],CO:[5,+0.02],CT:[6,+0.15],DE:[1,+0.15],FL:[15,-0.04],GA:[10,+0.10],HI:[2,+0.25],ID:[2,-0.25],IL:[24,+0.10],IN:[11,-0.10],IA:[6,+0.02],KS:[5,-0.18],KY:[7,-0.05],LA:[8,+0.10],ME:[2,+0.08],MD:[8,+0.18],MA:[12,+0.20],MI:[19,-0.02],MN:[8,+0.05],MS:[5,+0.05],MO:[10,-0.08],MT:[2,-0.10],NE:[3,-0.15],NV:[1,+0.04],NH:[2,+0.05],NJ:[15,+0.08],NM:[2,+0.08],NY:[39,+0.15],NC:[11,-0.08],ND:[1,-0.15],OH:[23,-0.08],OK:[6,-0.20],OR:[4,+0.10],PA:[25,-0.06],RI:[2,+0.20],SC:[6,-0.05],SD:[2,-0.15],TN:[8,-0.15],TX:[24,-0.05],UT:[2,-0.20],VT:[1,+0.25],VA:[10,-0.05],WA:[7,+0.10],WV:[4,-0.10],WI:[9,-0.05],WY:[1,-0.25]},
+
+  /* ---- 7. THE 34 CLASS-3 SENATE RACES: name → [lean, dem_off, split_keep, wave] ----
+       wave = poll-closing group 1(earliest East)…8(latest, AK/HI), drives reveal order.
+       held = party holding the seat going IN (for flip highlight + tally seeding).      */
+  SEN:{
+    // Deep South — Solid-South incumbents ran far ahead of the Nixon map
+    "Alabama":       ['AL',+1.051,0.80,3,'D'],
+    "Arkansas":      ['AR',+1.371,0.65,4,'D'],   // Bumpers, open D
+    "Georgia":       ['GA',+0.901,0.80,1,'D'],
+    "Louisiana":     ['LA',+1.264,0.80,5,'D'],   // Long, near-walkover
+    "N. Carolina":   ['NC',+0.691,0.65,2,'D'],   // Morgan, open D
+    "S. Carolina":   ['SC',+0.864,0.80,1,'D'],
+    // D incumbent holds
+    "Alaska":        ['AK',+0.351,0.80,8,'D'],
+    "California":    ['CA',+0.228,0.80,7,'D'],
+    "Connecticut":   ['CT',+0.343,0.80,3,'D'],
+    "Hawaii":        ['HI',+0.676,0.80,8,'D'],   // no R opponent
+    "Idaho":         ['ID',+0.445,0.80,7,'D'],
+    "Illinois":      ['IL',+0.358,0.80,3,'D'],   // Stevenson III
+    "Indiana":       ['IN',+0.231,0.80,1,'D'],   // Bayh
+    "Iowa":          ['IA',+0.014,0.65,6,'D'],   // Culver, open D
+    "Missouri":      ['MO',+0.330,0.80,3,'D'],   // Eagleton
+    "S. Dakota":     ['SD',+0.139,0.80,5,'D'],   // McGovern
+    "Washington":    ['WA',+0.355,0.80,7,'D'],   // Magnuson
+    "Wisconsin":     ['WI',+0.261,0.80,5,'D'],   // Nelson
+    // R seats flipped to D in the wave
+    "Colorado":      ['CO',+0.465,0.65,5,'R'],   // Hart beat Dominick
+    "Florida":       ['FL',+0.343,0.60,3,'R'],   // Stone, open (Gurney R)
+    "Kentucky":      ['KY',+0.291,0.65,1,'R'],   // Ford beat Cook
+    "Ohio":          ['OH',+0.568,0.60,2,'R'],   // Glenn (seat already D via Metzenbaum appt)
+    "Vermont":       ['VT',+0.110,0.60,1,'R'],   // Leahy, open (Aiken R)
+    // R holds (survived the wave)
+    "Arizona":       ['AZ',+0.023,0.70,5,'R'],   // Goldwater
+    "Kansas":        ['KS',+0.169,0.70,5,'R'],   // Dole ~51%
+    "Maryland":      ['MD',-0.299,0.70,3,'R'],   // Mathias, liberal R
+    "New Hampshire": ['NH',+0.007,0.60,3,'R'],   // Wyman, 355-vote margin (re-run 1975)
+    "New York":      ['NY',-0.124,0.70,5,'R'],   // Javits, liberal R
+    "N. Dakota":     ['ND',+0.214,0.70,5,'R'],   // Young, barely held
+    "Oklahoma":      ['OK',+0.274,0.70,3,'R'],   // Bellmon, barely held
+    "Oregon":        ['OR',-0.213,0.70,7,'R'],   // Packwood
+    "Pennsylvania":  ['PA',-0.063,0.70,3,'R'],   // Schweiker
+    "Utah":          ['UT',+0.292,0.65,5,'R'],   // Garn, open R
+    // The one D→R flip against the wave
+    "Nevada":        ['NV',+0.115,0.60,6,'D']    // Laxalt beat Reid by ~600 votes
+  }
+};
+/* ===========================  END OF CONFIG  =================================== */
+
+
+/* =================================================================================
+   ENGINE — model math (mirrors midterm_model.js) + reveal animation. No data here.
+   ================================================================================= */
+var C = CONFIG;
+var num=function(x){return Number.isFinite(x)?x:0;}, clamp=function(v,lo,hi){return Math.max(lo,Math.min(hi,v));};
+var _rng=Math.random, _useNoise=false;   // expected-value mode = true zero noise (return mu)
+function rndN(mu,s){if(!_useNoise)return mu;var u=0,v=0;while(u===0)u=_rng();while(v===0)v=_rng();return mu+s*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+
+function nationalSwing(appr,wg){
+  var S=C.SWING;
+  return S.MID + clamp(S.APPROVAL_REF-appr,0,40)/40*S.AC + clamp(wg,0,1)*S.WC;
+}
+function computeHouse(sw){
+  var d=0;
+  for(var a in C.HD){var seats=C.HD[a][0],bias=C.HD[a][1];
+    var pm=(C.SLH[a]||0)+sw, hm=pm+bias*1.1-0.03+rndN(0,0.015);
+    if(seats===1){if(hm>0)d++;}
+    else{var sh=0.5+hm*2.0; sh=seats>=5?clamp(sh,0.15,0.85):clamp(sh,0,1); d+=Math.round(seats*sh);}}
+  d=clamp(d,0,435); return {dem:d,rep:435-d};
+}
+// returns per-race results (winner + margin) AND the chamber totals
+function computeSenate(sw){
+  var D=C.SENATE_SEED.D, R=C.SENATE_SEED.R, I=C.SENATE_SEED.I, races=[];
+  for(var n in C.SEN){var row=C.SEN[n], lean=row[0], off=row[1], keep0=row[2], wave=row[3], held=row[4];
+    var pm2p=(C.SL74[lean]||0)+sw, keep=clamp(num(keep0),0.40,0.98);
+    var m=clamp(pm2p+keep*num(off)+rndN(0,0.006),-0.90,0.90);
+    var w=m>0?'D':'R';
+    if(w==='D')D++; else R++;
+    races.push({name:n,ab:lean,margin:m,winner:w,wave:wave,held:held,flip:(w!==held)});
+  }
+  var tot=D+R+I; if(tot!==100)D+=100-tot;
+  return {dem:D,rep:R,ind:I,races:races};
+}
+
+/* ---------- small render helpers ---------- */
+var $=function(id){return document.getElementById(id);};
+function dlt(n){return n>0?'+'+n:(n<0?String(n):'NC');}
+function pct(sw){return 'D+'+(sw*100).toFixed(1)+'%';}
+
+/* ---------- live swing readout ---------- */
+function refreshSwing(){
+  var appr=+$('appr').value, wg=+$('wg').value;
+  $('vAppr').textContent=appr; $('vWg').textContent=wg.toFixed(2);
+  $('swingOut').textContent=pct(nationalSwing(appr,wg));
+}
+$('appr').oninput=refreshSwing; $('wg').oninput=refreshSwing;
+document.querySelectorAll('.presets button').forEach(function(b){
+  b.onclick=function(){$('appr').value=b.dataset.a; $('wg').value=b.dataset.w; refreshSwing();};
+});
+
+/* ---------- the election-night reveal ---------- */
+var lastSenate=null, lastHouse=null, lastSwing=0, revealTimer=null;
+
+function buildBoard(){
+  $('board').innerHTML='';
+  for(var n in C.SEN){
+    var t=document.createElement('div'); t.className='tile'; t.id='tile_'+C.SEN[n][0];
+    t.innerHTML='<span class="ab">'+C.SEN[n][0]+'</span><span class="mg"></span>';
+    $('board').appendChild(t);
+  }
+}
+
+function runElectionNight(){
+  if(revealTimer)clearInterval(revealTimer);
+  var appr=+$('appr').value, wg=+$('wg').value;
+  lastSwing=nationalSwing(appr,wg);
+  _useNoise = $('noise').checked;
+  lastSenate=computeSenate(lastSwing);
+  lastHouse=computeHouse(lastSwing);
+  _useNoise=false;
+
+  // reset board + tally to the seed
+  buildBoard();
+  $('boardTitle').textContent=C.TEXT.boardTitle;
+  $('tInd').textContent=C.TEXT.indNote;
+  $('advisor').textContent=''; $('callLine').textContent='';
+  $('scoreboardBtn').disabled=true; $('doneBtn').disabled=true; $('run').disabled=true;
+  var liveD=C.SENATE_SEED.D, liveR=C.SENATE_SEED.R;
+  $('tD').textContent=liveD; $('tR').textContent=liveR;
+
+  // order races by poll-closing wave
+  var order=lastSenate.races.slice().sort(function(a,b){return a.wave-b.wave;});
+  var i=0;
+  revealTimer=setInterval(function(){
+    if(i>=order.length){
+      clearInterval(revealTimer); revealTimer=null;
+      finishElectionNight();
+      return;
+    }
+    var r=order[i++];
+    var tile=$('tile_'+r.ab);
+    tile.classList.add('called',r.winner); if(r.flip)tile.classList.add('flip');
+    tile.querySelector('.mg').textContent=(r.winner)+'+'+(Math.abs(r.margin)*100).toFixed(0);
+    if(r.flip){var s=document.createElement('span');s.className='seat';s.textContent='FLIP';tile.appendChild(s);}
+    if(r.winner==='D')liveD++; else liveR++;
+    $('tD').textContent=liveD; $('tR').textContent=liveR;
+    $('callLine').textContent=C.TEXT.callPrefix+r.name+' — '+(r.winner==='D'?'Democratic':'Republican')+' '+(r.flip?'PICKUP':'hold');
+  },140);
+}
+
+function finishElectionNight(){
+  var hg=lastHouse.rep-C.HBASE.rep, sg=lastSenate.rep-C.SBASE.rep;
+  var demHeldHouse = lastHouse.dem>=218;
+  var msg=(demHeldHouse?C.TEXT.advisorWin:C.TEXT.advisorHold)
+    .replace('{SWING}',(lastSwing*100).toFixed(1))
+    .replace('{HR}',lastHouse.rep).replace('{SD}',lastSenate.dem)
+    .replace('{HG}',dlt(hg)).replace('{SG}',dlt(sg));
+  $('advisor').textContent=msg;
+  $('callLine').textContent='All seats called.';
+  $('scoreboardBtn').disabled=false; $('doneBtn').disabled=false; $('run').disabled=false;
+}
+
+/* ---------- secondary screen: LBM congressional scoreboard ---------- */
+function openScoreboard(){
+  var h=lastHouse, s=lastSenate;
+  var hg=h.rep-C.HBASE.rep, sg=s.rep-C.SBASE.rep;
+  $('cardTitle').textContent=C.TEXT.cardTitle;
+  $('cardSub').textContent=C.TEXT.cardSubTmpl
+    .replace('{SWING}',(lastSwing*100).toFixed(1)).replace('{HG}',dlt(hg)).replace('{SG}',dlt(sg));
+  $('chD').textContent=h.dem; $('chR').textContent=h.rep;
+  $('chDg').textContent=dlt(h.dem-C.HBASE.dem); $('chRg').textContent=dlt(h.rep-C.HBASE.rep);
+  $('csD').textContent=s.dem; $('csR').textContent=s.rep;
+  $('csDg').textContent=dlt(s.dem-C.SBASE.dem); $('csRg').textContent=dlt(s.rep-C.SBASE.rep);
+  $('chBar').style.width=(h.dem/435*100)+'%';
+  $('csBar').style.width=s.dem+'%';
+  $('overlay').classList.add('show');
+}
+$('run').onclick=runElectionNight;
+$('scoreboardBtn').onclick=openScoreboard;
+$('closeCard').onclick=function(){$('overlay').classList.remove('show');};
+$('doneBtn').onclick=function(){$('callLine').textContent='(returns to the question sequence — nothing wired here)';};
+
+/* ---------- init ---------- */
+$('boardTitle').textContent=C.TEXT.boardTitle;
+$('scoreboardBtn').textContent=C.TEXT.scoreboardBtn;
+$('doneBtn').textContent=C.TEXT.doneBtn;
+$('appr').value=C.DEFAULT.approval; $('wg').value=C.DEFAULT.watergate;
+refreshSwing(); buildBoard();
+</script>
+</body>
+</html>
