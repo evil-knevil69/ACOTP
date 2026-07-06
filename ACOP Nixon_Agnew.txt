@@ -16570,11 +16570,6 @@ function _slOpenUI() {
     h.style.cssText = 'font-size:22px;letter-spacing:0.2em;margin:0 0 6px;';
     panel.appendChild(h);
 
-    const sub = document.createElement('p');
-    sub.textContent = 'The record can only be committed between the Parts.';
-    sub.style.cssText = 'font-size:12px;margin:0 0 18px;opacity:0.75;';
-    panel.appendChild(sub);
-
     const status = document.createElement('p');
     status.style.cssText = 'font-size:12px;min-height:16px;margin:0 0 10px;';
     panel.appendChild(status);
@@ -16989,14 +16984,19 @@ document.addEventListener('keydown', (e) => {
     const st = document.createElement('style');
     st.id = '_manual_css';
     st.textContent =
-        '#manual_panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:560px;max-width:94vw;'+
-        'max-height:86vh;z-index:100000;background:#f5ecd6;color:#241c0e;border:1px solid #8a6d3b;border-radius:6px;'+
+        '#manual_panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;max-width:94vw;'+
+        'max-height:86vh;min-width:380px;min-height:220px;z-index:100000;'+
+        'background:#f5ecd6 url("https://file.garden/aXPgNT-ZRCxxpy0g/background.png") center/cover;'+
+        'color:#241c0e;border:1px solid #8a6d3b;border-radius:6px;'+
+        // resize needs a non-visible overflow on the panel itself; the body
+        // (flex:1, min-height:0) keeps its own scrollbar inside.
+        'resize:both;overflow:hidden;'+
         'box-shadow:0 10px 40px rgba(0,0,0,.55);display:flex;flex-direction:column;font-family:TypewriterDry,monospace;}'+
         '#manual_panel .man-head{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;'+
         'background:#3a2c14;color:#f2e6c8;cursor:move;border-top-left-radius:6px;border-top-right-radius:6px;letter-spacing:1px;}'+
         '#manual_panel .man-head b{font-size:14px;}'+
         '#manual_panel .man-close{cursor:pointer;border:0;background:#6b4f1d;color:#fff;font-weight:bold;border-radius:4px;padding:2px 9px;}'+
-        '#manual_panel .man-body{overflow-y:auto;padding:14px 16px;line-height:1.5;font-size:12.5px;}'+
+        '#manual_panel .man-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:14px 16px;line-height:1.5;font-size:12.5px;}'+
         '#manual_panel h3{margin:15px 0 5px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#6b4f1d;'+
         'border-bottom:1px solid #c8b87a;padding-bottom:3px;} #manual_panel h3:first-child{margin-top:0;}'+
         '#manual_panel .man-key{display:inline-block;min-width:18px;text-align:center;font-weight:bold;background:#241c0e;'+
@@ -17075,9 +17075,9 @@ function _placeManualButton() {
         btn = document.createElement('button');
         btn.id = 'game-manual-button';
         btn.textContent = 'Manual';
-        btn.style.cssText = 'position:absolute;z-index:9000;cursor:pointer;padding:4px 14px;'+
-            'font-family:TypewriterDry,monospace;font-size:13px;letter-spacing:1px;'+
-            'background:#3a2c14;color:#f2e6c8;border:1px solid #8a6d3b;border-radius:4px;';
+        // Deliberately unstyled beyond placement: a bare <button> picks up the
+        // site's default button look, matching the other injected buttons.
+        btn.style.cssText = 'position:absolute;z-index:9000;cursor:pointer;';
         btn.addEventListener('click', () => openGameManual());
         document.body.appendChild(btn);
     }
@@ -17243,12 +17243,19 @@ document.addEventListener('keydown', (e) => {
         text-decoration: none !important;
     }
     .fd-entry { margin: 0; line-height: 28px; }   /* each entry = exactly one ruled line */
+    /* line-height:1 on the two spans is what keeps a State of the Nation entry
+       exactly 28px: with the inherited 28px line-height, baseline-aligning the
+       11px label box and the 15px body box makes the line box ~30px (label
+       descent + body ascent overhang past the strut) and every entry drifts a
+       little further off the rules. Shrunk inline boxes sit inside the strut,
+       baselines still aligned. Verified in headless Chromium (28px exactly). */
     .fd-entry-label {
         font-family: 'TypewriterDry', 'Courier New', monospace;
         font-size: 11px;
         font-weight: bold;
         color: #5a3300;
         display: inline;
+        line-height: 1;
         text-transform: uppercase;
         letter-spacing: .1em;
     }
@@ -17257,6 +17264,7 @@ document.addEventListener('keydown', (e) => {
         font-size: 15px;
         color: #110500;
         display: inline;
+        line-height: 1;
     }
     .fd-crime-entry { margin-bottom: 18px; }
     .fd-crime-date {
