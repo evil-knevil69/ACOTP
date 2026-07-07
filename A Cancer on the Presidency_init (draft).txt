@@ -2865,8 +2865,10 @@ function setupMusicPlayer() {
 
     // Tape strip + tape resize
     function updateTapeVisuals() {
-    if (!audio.duration || isNaN(audio.duration)) return;
-    const pct = audio.currentTime / audio.duration * 100;
+    // Pre-play there is no duration yet — stay hidden, EXCEPT while the pin
+    // tool is active (it needs the strips visible to aim by, so draw at 0%).
+    if ((!audio.duration || isNaN(audio.duration)) && !window.__tapeToolActive) return;
+    const pct = (!audio.duration || isNaN(audio.duration)) ? 0 : audio.currentTime / audio.duration * 100;
 
     const maxTape = 210, minTape = 10;
     const tapeRange = maxTape - minTape;
@@ -2904,28 +2906,59 @@ function setupMusicPlayer() {
         updateTapeVisuals();
         return JSON.parse(JSON.stringify(_TAPE_GEO));
     };
+    // Pin-placement tool. The recorder is normally a drag surface (cursor:grab,
+    // mousedown moves it), so while the tool is active it takes the mouse over
+    // completely: the drag handler stands down (__tapeToolActive guard there),
+    // mousedown is swallowed in capture phase, and every click just places a
+    // pin. Works before any music has played (strips draw at 0%). Esc cancels.
     window.__tapeStripTool = () => {
         const body = document.getElementById('reel-body');
-        if (!body) { console.warn('tape recorder not on screen'); return; }
+        if (!body || !tapeRecorder) { console.warn('tape recorder not on screen'); return; }
+        if (window.__tapeToolActive) { console.warn('[tape tool] already active'); return; }
+        window.__tapeToolActive = true;
+        const prevCursor = tapeRecorder.style.cursor;
+        tapeRecorder.style.cursor = 'crosshair';
+        const hint = document.createElement('div');
+        hint.style.cssText = 'position:absolute;top:-26px;left:0;background:#111;color:#ffd24a;'
+            + "font:11px 'TypewriterDry',monospace;letter-spacing:1px;padding:3px 9px;"
+            + 'z-index:10001;white-space:nowrap;pointer-events:none;';
+        hint.textContent = 'TAPE TOOL — click the LEFT pin (Esc cancels)';
+        tapeRecorder.appendChild(hint);
+        updateTapeVisuals();   // make the strips visible to aim by, even pre-play
         let stage = 0; // 0 = expect left-pin click, 1 = right-pin click
-        console.log('[tape tool] click the LEFT tape pin…');
+        const swallow = (e) => { e.preventDefault(); e.stopPropagation(); };
+        const finish = () => {
+            window.__tapeToolActive = false;
+            tapeRecorder.style.cursor = prevCursor || 'grab';
+            tapeRecorder.removeEventListener('mousedown', swallow, true);
+            tapeRecorder.removeEventListener('click', onClick, true);
+            document.removeEventListener('keydown', onKey, true);
+            hint.remove();
+        };
         const onClick = (e) => {
+            e.preventDefault(); e.stopPropagation();
             const r = body.getBoundingClientRect();
             const x = Math.round(e.clientX - r.left), y = Math.round(e.clientY - r.top);
-            e.preventDefault(); e.stopPropagation();
             if (stage === 0) {
                 _TAPE_GEO.left.pin = { x, y };
                 stage = 1;
-                console.log('[tape tool] left pin = { x: ' + x + ', y: ' + y + ' } — now click the RIGHT tape pin…');
+                hint.textContent = 'left pin (' + x + ', ' + y + ') — now click the RIGHT pin';
+                console.log('[tape tool] left pin = { x: ' + x + ', y: ' + y + ' }');
             } else {
                 _TAPE_GEO.right.pin = { x, y };
-                body.removeEventListener('click', onClick, true);
                 console.log('[tape tool] right pin = { x: ' + x + ', y: ' + y + ' }. Paste into _TAPE_GEO:');
                 console.log(JSON.stringify(_TAPE_GEO));
+                hint.textContent = 'done — config printed to console';
+                setTimeout(finish, 1500);
             }
             updateTapeVisuals();
         };
-        body.addEventListener('click', onClick, true);
+        const onKey = (e) => { if (e.key === 'Escape') finish(); };
+        // Capture phase: for clicks on any child of the recorder these run
+        // BEFORE the recorder's own drag/button handlers and stop them.
+        tapeRecorder.addEventListener('mousedown', swallow, true);
+        tapeRecorder.addEventListener('click', onClick, true);
+        document.addEventListener('keydown', onKey, true);
     };
 
     let visualTimer = null;
@@ -3222,6 +3255,7 @@ playBtn.addEventListener('click', () => {
     });
 
     tapeRecorder.addEventListener('mousedown', (e) => {
+        if (window.__tapeToolActive) return;   // pin tool owns the mouse — no dragging
         if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'A' || e.target.tagName === 'SELECT') return;
         _playerDragged = true;
         isDragging = true;
