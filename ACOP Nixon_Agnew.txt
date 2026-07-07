@@ -17069,16 +17069,18 @@ honk.style.cssText = `
     background: transparent;
 `;
 
-// ── Easter egg: the campaign banner's rightmost quarter ──────────────────────
-// Clicks on the right quarter of the campaign sign rack up a counter (10s of
-// inactivity resets it, same as the other click eggs): 2 clicks → sound 1,
-// keep going to 10 → sound 2, and the truly dedicated reach 69 → sound 3
-// (nice), after which the counter wraps. Dragging the sign doesn't count.
-// FILL ME IN: the three sound URLs (an empty entry keeps that threshold
+// ── Easter egg: the main banner's rightmost quarter ──────────────────────────
+// Clicks on the right quarter of the MAIN BANNER (img#header — the full-width
+// Watergate masthead at the top of the page, the element the Konami code also
+// swaps) rack up a counter (10s of inactivity resets it, same as the other
+// click eggs). Sounds fire at 2, 10, 20 and — for the truly dedicated — 69
+// clicks (nice), after which the counter wraps.
+// FILL ME IN: the four sound URLs (an empty entry keeps that threshold
 // silent; the counting still works).
 var _BANNER_EGG_SOUNDS = {
     2:  '',   // FILL ME IN — e.g. 'https://file.garden/aXPgNT-ZRCxxpy0g/….mp3'
     10: '',   // FILL ME IN
+    20: '',   // FILL ME IN
     69: '',   // FILL ME IN
 };
 let bannerClickCount = 0;
@@ -17086,17 +17088,17 @@ let bannerClickTimer = null;
 let _bannerDownX = 0, _bannerDownY = 0;
 
 document.body.addEventListener('mousedown', (e) => {
-    if (!e.target.closest('#campaign_sign')) return;
+    if (!e.target.closest('#header')) return;
     _bannerDownX = e.clientX; _bannerDownY = e.clientY;
 });
 
 document.body.addEventListener('click', (e) => {
-    const sign = e.target.closest('#campaign_sign');
-    if (!sign) return;
-    // The sign is draggable — a drag that ends on the sign still fires a
-    // click, so ignore anything that moved more than a nudge.
+    const banner = e.target.closest('#header');
+    if (!banner) return;
+    // Ignore click events that travelled — a text-select or sloppy drag over
+    // the banner still fires a click on release.
     if (Math.abs(e.clientX - _bannerDownX) > 6 || Math.abs(e.clientY - _bannerDownY) > 6) return;
-    const r = sign.getBoundingClientRect();
+    const r = banner.getBoundingClientRect();
     if (e.clientX < r.right - r.width / 4) return;   // rightmost quarter only
     bannerClickCount++;
     if (bannerClickTimer) clearTimeout(bannerClickTimer);
