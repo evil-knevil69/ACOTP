@@ -2817,6 +2817,52 @@ function setupMusicPlayer() {
         // pause: no class = stopped
     }
 
+    // ── Tape-strip geometry ──────────────────────────────────────────────────
+    // Each strip is the TANGENT line from a fixed tape pin up to the current
+    // tape roll: top end touches the roll's outer edge (outermost-left of the
+    // left roll, outermost-right of the right roll), bottom end sits on the
+    // pin. Both the attachment point and the angle are recomputed as the rolls
+    // shrink/grow, so the strip always meets the roll edge exactly — the old
+    // hardcoded angle interpolation drifted off the roll as it played down.
+    //
+    // TUNING (in reel-body coordinates, like the tapes' left/top):
+    //   pin         — where the tape meets the black pin
+    //   angleOffset — extra degrees applied after the tangent solve (art fudge)
+    //   radiusPad   — px added to the roll radius before solving (art fudge)
+    // Live tools (browser console):
+    //   __tapeStripTool()            click the LEFT pin, then the RIGHT pin —
+    //                                geometry updates live, config printed for
+    //                                pasting back into _TAPE_GEO below
+    //   __tapeStripTune({left:{pin:{x,y},angleOffset,radiusPad}, right:{…}})
+    //                                merge any subset, updates live
+    var _TAPE_GEO = {
+        left:  { pin: { x: 124, y: 265 }, angleOffset: 0, radiusPad: 0 },
+        right: { pin: { x: 379, y: 265 }, angleOffset: 0, radiusPad: 0 },
+    };
+
+    // outerSign picks which of the two tangents from the pin we take: +1 walks
+    // the tangent point to the LEFT side of the roll, -1 to the RIGHT.
+    function _placeTapeStrip(el, cx, cy, r, geo, outerSign) {
+        const px = geo.pin.x, py = geo.pin.y;
+        const dx = px - cx, dy = py - cy;
+        const d = Math.hypot(dx, dy);
+        const rr = Math.max(1, r + (geo.radiusPad || 0));
+        if (d <= rr + 0.5) { el.style.height = '0px'; return; }   // pin inside the roll — hide
+        const base = Math.atan2(dy, dx);            // centre → pin direction
+        const swing = Math.acos(rr / d);            // half-angle subtended by the tangents
+        const g = base + outerSign * swing;
+        const tx = cx + rr * Math.cos(g);           // tangent point on the roll edge
+        const ty = cy + rr * Math.sin(g);
+        const h = Math.hypot(px - tx, py - ty);
+        // CSS rotate about 'top center': (0,h) → (-h·sinθ, h·cosθ); solve so the
+        // strip's bottom end lands on the pin.
+        const theta = Math.atan2(tx - px, py - ty) * 180 / Math.PI + (geo.angleOffset || 0);
+        el.style.left = (tx - 1.5) + 'px';          // 3px-wide strip, pivot at its top centre
+        el.style.top = ty + 'px';
+        el.style.height = h + 'px';
+        el.style.transform = 'rotate(' + theta + 'deg)';
+    }
+
     // Tape strip + tape resize
     function updateTapeVisuals() {
     if (!audio.duration || isNaN(audio.duration)) return;
@@ -2841,14 +2887,46 @@ function setupMusicPlayer() {
     rightTape.style.left = (rightCX - rightSize / 2) + "px";
     rightTape.style.top = (rightCY - rightSize / 2) + "px";
 
-    // Strip rotation
-    const leftLimits = [7, 2];
-    const rightLimits = [-20, 3];
-    const leftAngle = leftLimits[0] + (leftLimits[1] - leftLimits[0]) / 100 * pct;
-    const rightAngle = rightLimits[0] + (rightLimits[1] - rightLimits[0]) / 100 * pct;
-    leftStrip.style.transform = `rotate(${leftAngle}deg)`;
-    rightStrip.style.transform = `rotate(${rightAngle}deg)`;
+    // Strips: tangent from each pin to its roll (see _placeTapeStrip).
+    _placeTapeStrip(leftStrip,  leftCX,  leftCY,  leftSize / 2,  _TAPE_GEO.left,  +1);
+    _placeTapeStrip(rightStrip, rightCX, rightCY, rightSize / 2, _TAPE_GEO.right, -1);
     }
+
+    // Console tuning tools (see the _TAPE_GEO comment).
+    window.__tapeStripTune = (cfg) => {
+        ['left', 'right'].forEach(side => {
+            const c = cfg && cfg[side];
+            if (!c) return;
+            if (c.pin) Object.assign(_TAPE_GEO[side].pin, c.pin);
+            if ('angleOffset' in c) _TAPE_GEO[side].angleOffset = c.angleOffset;
+            if ('radiusPad' in c) _TAPE_GEO[side].radiusPad = c.radiusPad;
+        });
+        updateTapeVisuals();
+        return JSON.parse(JSON.stringify(_TAPE_GEO));
+    };
+    window.__tapeStripTool = () => {
+        const body = document.getElementById('reel-body');
+        if (!body) { console.warn('tape recorder not on screen'); return; }
+        let stage = 0; // 0 = expect left-pin click, 1 = right-pin click
+        console.log('[tape tool] click the LEFT tape pin…');
+        const onClick = (e) => {
+            const r = body.getBoundingClientRect();
+            const x = Math.round(e.clientX - r.left), y = Math.round(e.clientY - r.top);
+            e.preventDefault(); e.stopPropagation();
+            if (stage === 0) {
+                _TAPE_GEO.left.pin = { x, y };
+                stage = 1;
+                console.log('[tape tool] left pin = { x: ' + x + ', y: ' + y + ' } — now click the RIGHT tape pin…');
+            } else {
+                _TAPE_GEO.right.pin = { x, y };
+                body.removeEventListener('click', onClick, true);
+                console.log('[tape tool] right pin = { x: ' + x + ', y: ' + y + ' }. Paste into _TAPE_GEO:');
+                console.log(JSON.stringify(_TAPE_GEO));
+            }
+            updateTapeVisuals();
+        };
+        body.addEventListener('click', onClick, true);
+    };
 
     let visualTimer = null;
     function startVisuals(state) {
@@ -2913,8 +2991,11 @@ function setupMusicPlayer() {
     }
 
    function showStrips() {
-    leftStrip.style.height = '33px';
-    rightStrip.style.height = '261px';
+    // Heights (and angles) come from the tangent solve now — just recompute.
+    // Before audio metadata arrives updateTapeVisuals no-ops and the strips
+    // stay hidden (height 0); the 100ms visuals timer picks them up as soon
+    // as duration is known.
+    updateTapeVisuals();
 }
 
     // Button events
@@ -3311,7 +3392,8 @@ mplayerstyle.textContent = `
     height: 0;
     z-index: 2;
     background: url('https://file.garden/aXPgNT-ZRCxxpy0g/tape-strip.png') repeat-x top;
-    transition: height 0.3s ease;
+    /* no height transition: left/top/angle retarget every visuals tick, and a
+       lagging height made the strip tear away from the roll edge */
 }
 #leftTapeStrip {
     left: 121px;
