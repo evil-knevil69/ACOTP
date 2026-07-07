@@ -15686,40 +15686,39 @@ function ctsAchievement(achievement, difficultyChecker = true) {
 var _endAchFired = false; // once-per-run guard for the election-night placeholder
 // ── END ACHIEVEMENTS ─────────────────────────────────────────────────────────
 
-// ── CAMPAIGN LENGTH — selector + curated-set install + feature gating ────────
+// ── CAMPAIGN LENGTH — curated-set install + feature gating (game side) ───────
 // (CAMPAIGN_LENGTH_PLAN.md.) Two runs: 'full' (The Big Enchilada — the whole
-// scripted campaign, the DEFAULT) and 'short' (Cottage Cheese). The short
-// preset's pks list is the hand-curated, DATE-ASCENDING question order — see
-// the plan's §4.5 authoring rules. FILL ME IN: while pks is empty the preset
-// is INERT for questions (selecting it still plays the full set; only the
-// feature gates engage), so this ships safely unpopulated.
+// scripted campaign, the DEFAULT) and 'short' (Cottage Cheese).
+//
+// TIMING (why the UI is NOT here): the engine only executes the custom Code 2
+// at GAME START — after the options screen has come and gone — so the pre-game
+// dropdown lives in CODE 1 (with the edu/historicity toggles, which run at
+// election-select time). Code 1 records the choice on
+// window._acopCampaignLength; this side reads it once at load (below, after
+// tooltip baking) and installs the matching question set. Keys and labels must
+// stay in sync with Code 1's ACOP_LENGTH_UI.
+//
+// The short preset's pks list is the hand-curated, DATE-ASCENDING question
+// order — see the plan's §4.5 authoring rules. FILL ME IN: while pks is empty
+// the preset is INERT for questions (selecting it still plays the full set;
+// only the feature gates engage), so this ships safely unpopulated.
 var CAMPAIGN_LENGTHS = {
     full: {
-        label: 'The Big Enchilada',
         pks: null,   // null = the whole scripted order, untouched
-        desc: '<p><strong>The Big Enchilada.</strong></p>'
-            + '<p>PLACEHOLDER — the full campaign. Every question, every system, the whole '
-            + 'slow descent: diplomacy, the President&rsquo;s Men, the works.</p>'
-            + '<p>This is the intended way to play.</p>',
         features: { diplomacy: true, teamActions: true, pressure: true, reshuffle: true, midterm: true },
     },
     short: {
-        label: 'Cottage Cheese',
         pks: [
             // FILL ME IN — the short run's ordered, date-ascending pk list.
             // Include the PART transition pks for any section it spans; end on
             // a proper closing beat. Everything not listed is parked in the
             // tail (still reachable by pk for swaps/tunnels) and never plays.
         ],
-        desc: '<p><strong>Cottage Cheese.</strong></p>'
-            + '<p>PLACEHOLDER — the short campaign: the core beats only. The long-arc '
-            + 'systems (World Map diplomacy, the President&rsquo;s Men team actions, the '
-            + 'Watergate pressure machine) are switched off.</p>'
-            + '<p>Ketchup optional.</p>',
         features: { diplomacy: false, teamActions: false, pressure: false, reshuffle: false, midterm: false },
     },
 };
-var _campaignLength  = 'full';   // set by the pre-game dropdown; Enchilada by default
+// The dropdown's choice, handed over from Code 1. Falls back to the full run.
+var _campaignLength = (window._acopCampaignLength in CAMPAIGN_LENGTHS) ? window._acopCampaignLength : 'full';
 var _lengthInstalled = 'full';   // which preset's question set is currently installed
 // Pristine order + count, snapshotted at load (before any rebuild) so flipping
 // back to full always restores the authored sequence exactly. Eager, not lazy:
@@ -15738,8 +15737,9 @@ function _lengthAllows(feature) {
 // Rebuild questions_json IN PLACE (the engine's `e` shares the array reference)
 // as [curated..., parked tail...] and shrink question_count to the curated
 // length. PROPS.PARAMS is a live getter over global_parameter_json, so the
-// engine's header and end-of-run trigger follow automatically. Only reachable
-// pre-game — the dropdown exists solely on the options screen.
+// engine's header and end-of-run trigger follow automatically. Runs once at
+// Code 2 load (game start — the choice is final by then) and again on New Game
+// if the player changed the dropdown in between; idempotent per length.
 function _installCampaignLength() {
     if (_lengthInstalled === _campaignLength) return;
     var p = CAMPAIGN_LENGTHS[_campaignLength];
@@ -15934,6 +15934,10 @@ window.__onGameWindowMutation(() => {
                     _musicSectionPending = 0;
                     window.__resetSoundtrack?.();
                     _endAchFired = false;
+                    // The player may have changed the campaign-length dropdown
+                    // between games (Code 1 records it) — re-read + reinstall.
+                    _campaignLength = (window._acopCampaignLength in CAMPAIGN_LENGTHS) ? window._acopCampaignLength : 'full';
+                    _installCampaignLength();
                     _pressureOn = false;
                     _RESHUFFLE.reset();
                     HushMoneyStack = 0; CutThemLooseStack = 0;
@@ -16342,6 +16346,12 @@ applyTooltipsToObject(campaignTrail_temp.questions_json);
 applyTooltipsToObject(campaignTrail_temp.answers_json);
 applyTooltipsToObject(campaignTrail_temp.answer_feedback_json);
 
+// Campaign length: Code 2 executes at game start, so the pre-game dropdown's
+// choice (recorded by Code 1 on window._acopCampaignLength) is final — install
+// the matching question set now, AFTER tooltip baking (plan §6: never rebuild
+// before baking has run). A 'full' choice is a no-op.
+_installCampaignLength();
+
 // Failsafe: the full tooltip-card CSS lives in the init file. If that file isn't
 // loaded, .mytooltiptext loses its display:none and every baked card renders as
 // visible inline text inside the questions — this one rule prevents that.
@@ -16400,79 +16410,9 @@ document.addEventListener('mouseleave', () => {
     _hoveredTooltip = null;
 }, true);
 
-// ── CAMPAIGN LENGTH — selector UI (pre-game options screen) ──────────────────
-// Mirrors the voting-method block exactly: an <h3> + <select> inside a form,
-// followed by a .description_window_small rewritten on every change. Injected
-// between the voting method's description window and #difficulty_level, on the
-// same shared observer the other pre-game toggles use (id-guarded — the engine
-// rebuilds the options screen on each New Game).
-window.__onGameWindowMutation(() => {
-    // Primary anchor: the voting-method description window. Fallback: insert
-    // just above #difficulty_level — that element provably exists on the live
-    // options screen (the edu/historicity toggles anchor on it), so the
-    // selector still appears if the host engine names the description window
-    // differently.
-    const votingDesc = document.getElementById('opponent_selection_description_window');
-    const diffLevel = document.getElementById('difficulty_level');
-    if ((!votingDesc && !diffLevel) || document.getElementById('campaign_length_id')) return;
-
-    // Compact spacing for the whole options column: the extra block would
-    // otherwise push Back/Continue below the bottom edge of the window.
-    // Buttons may sit near the bottom — never past it.
-    if (!document.getElementById('campaign-length-css')) {
-        const st = document.createElement('style');
-        st.id = 'campaign-length-css';
-        st.textContent =
-            '#campaign_length_options form { margin: 0; }' +
-            '#campaign_length_options p { margin: 4px 0; }' +
-            '#campaign_length_options h3 { margin: 4px 0 3px; }' +
-            /* fixed-height card so swapping Enchilada/Cottage text never reflows the column */
-            '#campaign_length_description_window { margin: 5px 0; padding: 6px 10px;' +
-            ' font-size: 12px; line-height: 1.35; height: 96px; overflow-y: auto; box-sizing: border-box; }' +
-            '#campaign_length_description_window p { margin: 3px 0; }' +
-            /* claw back the engine rows' default 1em <p> margins on this screen */
-            '#inner_window_4 #game_options p, #inner_window_4 #difficulty_level p { margin: 4px 0; }' +
-            '#inner_window_4 #game_options h3, #inner_window_4 #difficulty_level h3 { margin: 4px 0 3px; }' +
-            '#inner_window_4 #opponent_selection_description_window { margin: 5px 0; padding: 6px 10px; }' +
-            '#inner_window_4 #opponent_selection_id_button_p { margin: 8px 0 0; }';
-        document.head.appendChild(st);
-    }
-
-    const opts = document.createElement('div');
-    opts.id = 'campaign_length_options';
-    let optionsHtml = '';
-    Object.keys(CAMPAIGN_LENGTHS).forEach(k => {
-        optionsHtml += '<option value="' + k + '"' + (k === _campaignLength ? ' selected' : '') + '>'
-            + CAMPAIGN_LENGTHS[k].label + '</option>';
-    });
-    opts.innerHTML =
-        '<form name="campaign_length_selection"><p>' +
-        '<h3>Select your campaign length.</h3>' +
-        '<select name="campaign_length_id" id="campaign_length_id">' + optionsHtml + '</select>' +
-        '</p></form>';
-
-    const descWin = document.createElement('div');
-    descWin.className = 'description_window_small';
-    descWin.id = 'campaign_length_description_window';
-    descWin.innerHTML = (CAMPAIGN_LENGTHS[_campaignLength] || CAMPAIGN_LENGTHS.full).desc;
-
-    // After the voting-method description, before #difficulty_level.
-    if (votingDesc) {
-        votingDesc.insertAdjacentElement('afterend', descWin);
-        votingDesc.insertAdjacentElement('afterend', opts);
-    } else {
-        diffLevel.insertAdjacentElement('beforebegin', opts);
-        opts.insertAdjacentElement('afterend', descWin);
-    }
-
-    const sel = opts.querySelector('#campaign_length_id');
-    sel.addEventListener('change', () => {
-        _campaignLength = sel.value;
-        descWin.innerHTML = (CAMPAIGN_LENGTHS[_campaignLength] || CAMPAIGN_LENGTHS.full).desc;
-        _installCampaignLength();   // pre-game only: rebuild order + count now
-    });
-});
-// ── END CAMPAIGN LENGTH selector ─────────────────────────────────────────────
+// (The campaign-length selector UI lives in CODE 1 — see the note on the
+// CAMPAIGN_LENGTHS config: Code 2 doesn't execute until the game starts, so
+// the pre-game options screen is only reachable from Code 1.)
 
 // ── SAVE / LOAD ───────────────────────────────────────────────────────────────
 // Ported from Obamanation's experimental SaveLoadSystem, heavily adapted.
@@ -17097,11 +17037,12 @@ honk.style.cssText = `
 `;
 
 // ── Easter egg: the main banner's rightmost quarter ──────────────────────────
-// Clicks on the right quarter of the MAIN BANNER (img#header — the full-width
-// Watergate masthead at the top of the page, the element the Konami code also
-// swaps) rack up a counter (10s of inactivity resets it, same as the other
-// click eggs). Sounds fire at 2, 10, 20 and — for the truly dedicated — 69
-// clicks (nice), after which the counter wraps.
+// Clicks on the right quarter of the MAIN BANNER — the picture inside
+// div.center at the top of the page (img#header in our engine copy; the
+// div.center img selector covers hosts where the image carries no id) — rack
+// up a counter (10s of inactivity resets it, same as the other click eggs).
+// Sounds fire at 2, 10, 20 and — for the truly dedicated — 69 clicks (nice),
+// after which the counter wraps.
 var _BANNER_EGG_SOUNDS = {
     2:  'https://file.garden/aXPgNT-ZRCxxpy0g/%5BRichard%20M.%20Nixon%5DBuzz%20......ing.%20.mp3',
     10: 'https://file.garden/aXPgNT-ZRCxxpy0g/%5BRichard%20M.%20Nixon%5DWhat%20......yaoi_.mp3',
@@ -17113,12 +17054,12 @@ let bannerClickTimer = null;
 let _bannerDownX = 0, _bannerDownY = 0;
 
 document.body.addEventListener('mousedown', (e) => {
-    if (!e.target.closest('#header')) return;
+    if (!e.target.closest('div.center img, img#header')) return;
     _bannerDownX = e.clientX; _bannerDownY = e.clientY;
 });
 
 document.body.addEventListener('click', (e) => {
-    const banner = e.target.closest('#header');
+    const banner = e.target.closest('div.center img, img#header');
     if (!banner) return;
     // Ignore click events that travelled — a text-select or sloppy drag over
     // the banner still fires a click on release.

@@ -251,10 +251,16 @@ config (two presets: 'full' = "The Big Enchilada" (default), 'short' = "Cottage 
 `_lengthAllows(feature)`, `_installCampaignLength()` (in-place questions_json rebuild:
 [curated..., parked tail...] + question_count shrink; pristine order/count snapshotted
 eagerly in `_LENGTH_ORIG` at load; PROPS.PARAMS reads question_count live so no engine
-poke needed), selector UI on the pre-game options screen (mirrors the voting-method
-block: h3 + select + .description_window_small rewritten on change, injected between
-the voting-method description and #difficulty_level; selection sticks for the session,
-resets to Enchilada on page load — same as the voting method). Feature gates live:
+poke needed), selector UI on the pre-game options screen — IN CODE 1, next to the
+edu/historicity toggles (CRITICAL: Code 2 only executes at GAME START, after the
+options screen is gone; Code 1 records the choice on window._acopCampaignLength and
+Code 2 reads it once at load, installing after tooltip baking, and again in the New
+Game reset branch). Mirrors the voting-method block (h3 + select +
+.description_window_small rewritten on change, between the voting-method description
+and #difficulty_level, with a #difficulty_level fallback anchor); selection sticks for
+the session, resets to Enchilada on page load — same as the voting method. Labels/desc
+texts live in Code 1's ACOP_LENGTH_UI; pks/feature gates in Code 2's CAMPAIGN_LENGTHS —
+keys must stay in sync. Feature gates live:
 diplomacy dropdown build in openWorldMap, _DIPLO_INCOME + Laird _everyTurn ticks,
 nw-team-actions build in openInnerCircle, pressure _everyTurn tick, _RESHUFFLE.offer,
 _MIDTERM pk-429 onShow. Save/load integration: question_count snapshotted/restored;

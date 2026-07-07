@@ -3790,4 +3790,101 @@ window.__onGameWindowMutation(() => {
 });
 // ── END EDUCATIONAL TOOLTIPS ──────────────────────────────────────────────────
 
+// ── CAMPAIGN LENGTH — pre-game selector (UI side) ─────────────────────────────
+// Lives HERE, not in Code 2: the engine only executes the custom Code 2 at
+// GAME START, after this options screen has come and gone — the same reason
+// the edu/historicity toggles above are in this file. This side owns the
+// labels + description texts and records the player's choice on
+// window._acopCampaignLength; Code 2 reads that once at load and installs the
+// matching question set + feature gates (grep CAMPAIGN_LENGTHS there — the
+// keys 'full'/'short' must stay in sync).
+// Mirrors the voting-method block: an h3 + <select> inside a form, followed by
+// a .description_window_small rewritten on every change.
+// FILL ME IN: the two description placeholder texts.
+var ACOP_LENGTH_UI = {
+    order: ['full', 'short'],
+    full: {
+        label: 'The Big Enchilada',
+        desc: '<p><strong>The Big Enchilada.</strong></p>'
+            + '<p>PLACEHOLDER — the full campaign. Every question, every system, the whole '
+            + 'slow descent: diplomacy, the President&rsquo;s Men, the works.</p>'
+            + '<p>This is the intended way to play.</p>',
+    },
+    short: {
+        label: 'Cottage Cheese',
+        desc: '<p><strong>Cottage Cheese.</strong></p>'
+            + '<p>PLACEHOLDER — the short campaign: the core beats only. The long-arc '
+            + 'systems (World Map diplomacy, the President&rsquo;s Men team actions, the '
+            + 'Watergate pressure machine) are switched off.</p>'
+            + '<p>Ketchup optional.</p>',
+    },
+};
+window._acopCampaignLength = window._acopCampaignLength || 'full';   // Enchilada by default
+
+window.__onGameWindowMutation(() => {
+    // Primary anchor: the voting-method description window. Fallback: insert
+    // just above #difficulty_level (which provably exists on this screen — the
+    // toggles above anchor on it).
+    const votingDesc = document.getElementById('opponent_selection_description_window');
+    const diffLevel = document.getElementById('difficulty_level');
+    if ((!votingDesc && !diffLevel) || document.getElementById('campaign_length_id')) return;
+
+    // Compact spacing for the whole options column: the extra block would
+    // otherwise push Back/Continue below the bottom edge of the window.
+    // Buttons may sit near the bottom — never past it.
+    if (!document.getElementById('campaign-length-css')) {
+        const st = document.createElement('style');
+        st.id = 'campaign-length-css';
+        st.textContent =
+            '#campaign_length_options form { margin: 0; }' +
+            '#campaign_length_options p { margin: 4px 0; }' +
+            '#campaign_length_options h3 { margin: 4px 0 3px; }' +
+            /* fixed-height card so swapping Enchilada/Cottage text never reflows the column */
+            '#campaign_length_description_window { margin: 5px 0; padding: 6px 10px;' +
+            ' font-size: 12px; line-height: 1.35; height: 96px; overflow-y: auto; box-sizing: border-box; }' +
+            '#campaign_length_description_window p { margin: 3px 0; }' +
+            /* claw back the engine rows' default 1em <p> margins on this screen */
+            '#inner_window_4 #game_options p, #inner_window_4 #difficulty_level p { margin: 4px 0; }' +
+            '#inner_window_4 #game_options h3, #inner_window_4 #difficulty_level h3 { margin: 4px 0 3px; }' +
+            '#inner_window_4 #opponent_selection_description_window { margin: 5px 0; padding: 6px 10px; }' +
+            '#inner_window_4 #opponent_selection_id_button_p { margin: 8px 0 0; }';
+        document.head.appendChild(st);
+    }
+
+    const current = (window._acopCampaignLength in ACOP_LENGTH_UI) ? window._acopCampaignLength : 'full';
+    const opts = document.createElement('div');
+    opts.id = 'campaign_length_options';
+    let optionsHtml = '';
+    ACOP_LENGTH_UI.order.forEach(k => {
+        optionsHtml += '<option value="' + k + '"' + (k === current ? ' selected' : '') + '>'
+            + ACOP_LENGTH_UI[k].label + '</option>';
+    });
+    opts.innerHTML =
+        '<form name="campaign_length_selection"><p>' +
+        '<h3>Select your campaign length.</h3>' +
+        '<select name="campaign_length_id" id="campaign_length_id">' + optionsHtml + '</select>' +
+        '</p></form>';
+
+    const descWin = document.createElement('div');
+    descWin.className = 'description_window_small';
+    descWin.id = 'campaign_length_description_window';
+    descWin.innerHTML = ACOP_LENGTH_UI[current].desc;
+
+    // After the voting-method description, before #difficulty_level.
+    if (votingDesc) {
+        votingDesc.insertAdjacentElement('afterend', descWin);
+        votingDesc.insertAdjacentElement('afterend', opts);
+    } else {
+        diffLevel.insertAdjacentElement('beforebegin', opts);
+        opts.insertAdjacentElement('afterend', descWin);
+    }
+
+    const sel = opts.querySelector('#campaign_length_id');
+    sel.addEventListener('change', () => {
+        window._acopCampaignLength = sel.value;   // Code 2 reads this at game start
+        descWin.innerHTML = (ACOP_LENGTH_UI[sel.value] || ACOP_LENGTH_UI.full).desc;
+    });
+});
+// ── END CAMPAIGN LENGTH selector ──────────────────────────────────────────────
+
 //#endcode
