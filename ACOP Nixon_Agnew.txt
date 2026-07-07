@@ -16407,8 +16407,14 @@ document.addEventListener('mouseleave', () => {
 // same shared observer the other pre-game toggles use (id-guarded — the engine
 // rebuilds the options screen on each New Game).
 window.__onGameWindowMutation(() => {
+    // Primary anchor: the voting-method description window. Fallback: insert
+    // just above #difficulty_level — that element provably exists on the live
+    // options screen (the edu/historicity toggles anchor on it), so the
+    // selector still appears if the host engine names the description window
+    // differently.
     const votingDesc = document.getElementById('opponent_selection_description_window');
-    if (!votingDesc || document.getElementById('campaign_length_id')) return;
+    const diffLevel = document.getElementById('difficulty_level');
+    if ((!votingDesc && !diffLevel) || document.getElementById('campaign_length_id')) return;
 
     // Compact spacing for the whole options column: the extra block would
     // otherwise push Back/Continue below the bottom edge of the window.
@@ -16451,8 +16457,13 @@ window.__onGameWindowMutation(() => {
     descWin.innerHTML = (CAMPAIGN_LENGTHS[_campaignLength] || CAMPAIGN_LENGTHS.full).desc;
 
     // After the voting-method description, before #difficulty_level.
-    votingDesc.insertAdjacentElement('afterend', descWin);
-    votingDesc.insertAdjacentElement('afterend', opts);
+    if (votingDesc) {
+        votingDesc.insertAdjacentElement('afterend', descWin);
+        votingDesc.insertAdjacentElement('afterend', opts);
+    } else {
+        diffLevel.insertAdjacentElement('beforebegin', opts);
+        opts.insertAdjacentElement('afterend', descWin);
+    }
 
     const sel = opts.querySelector('#campaign_length_id');
     sel.addEventListener('change', () => {
