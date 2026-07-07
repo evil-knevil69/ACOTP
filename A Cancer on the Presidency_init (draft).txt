@@ -1303,7 +1303,11 @@ e.watergatePage = () => {
 
 // Wait for the engine to render the election screen, then inject credits and watergate buttons and autoselect, replace radio buttons bloody fools errand that was 
 function replaceButtonText() {
-    document.querySelectorAll("button").forEach(btn => {
+    // Scope the sweep to #game_window: every button this rename targets lives
+    // there, and the whole-document query also swept the tape recorder, the
+    // Manual button and any open panels on every mutation batch.
+    const _gw = document.getElementById('game_window') || document;
+    _gw.querySelectorAll("button").forEach(btn => {
         // textContent, not innerText: innerText forces layout per read and this
         // sweep runs on every game-window mutation batch.
         const t = btn.textContent.trim();

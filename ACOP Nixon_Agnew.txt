@@ -16221,6 +16221,26 @@ function generatePenStroke() {
 
 tooltipList.sort((a, b) => b.searchString.length - a.searchString.length);
 
+// Compiled matchers, built ONCE on first use. getTooltips runs for every
+// string in questions/answers/feedback at load (applyTooltipsToObject) —
+// previously it escaped + compiled all ~29 regexes PER STRING, ~60k regex
+// constructions before the first question rendered. The list is static, so
+// compile once and rewind lastIndex per use.
+var _tooltipRegexCache = null;
+function _tooltipRegexes() {
+    if (!_tooltipRegexCache) {
+        _tooltipRegexCache = tooltipList.map(t => {
+            const escaped = t.searchString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            // Word-edge match. NB: inside a character class \b means backspace,
+            // not a word boundary — the old `[\b\s]` pattern silently required
+            // literal whitespace, so "Butz's", "Kissinger)" or "Butz:" never
+            // got a tooltip.
+            return new RegExp(`(?<!\\w)${escaped}(?!\\w)`, 'g');
+        });
+    }
+    return _tooltipRegexCache;
+}
+
 function getTooltips(str) {
     let matches = [];
     // Ranges covered by HTML tags: a term inside a tag (e.g. in an src/title
@@ -16232,12 +16252,10 @@ function getTooltips(str) {
     let tagM;
     while ((tagM = tagRe.exec(str)) !== null) tagRanges.push([tagM.index, tagM.index + tagM[0].length]);
     const inTag = (s, e) => tagRanges.some(r => s < r[1] && e > r[0]);
+    const regexes = _tooltipRegexes();
     tooltipList.forEach((tooltip, index) => {
-        const escaped = tooltip.searchString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        // Word-edge match. NB: inside a character class \b means backspace, not a
-        // word boundary — the old `[\b\s]` pattern silently required literal
-        // whitespace, so "Butz's", "Kissinger)" or "Butz:" never got a tooltip.
-        const regex = new RegExp(`(?<!\\w)${escaped}(?!\\w)`, 'g');
+        const regex = regexes[index];
+        regex.lastIndex = 0;   // shared instance — rewind from any prior use
         let match;
         while ((match = regex.exec(str)) !== null) {
             if (inTag(match.index, match.index + match[0].length)) continue;
@@ -16990,6 +17008,22 @@ function showHistoricalPanel(data) {
     if (target) target.appendChild(panel);
 }
 
+// Shared egg-audio player: mutes the tape while the clip plays and — the
+// important part — RESTORES it if the clip fails. 'ended' never fires on a
+// 404/blocked file or an autoplay rejection, so the old per-egg copies of
+// this pattern left the main tape muted forever when file.garden hiccuped.
+function _playEggAudio(url) {
+    const audio = document.getElementById('audio');
+    const clip = new Audio(url);
+    const restore = () => { if (audio) audio.muted = false; };
+    if (audio) audio.muted = true;
+    clip.addEventListener('ended', restore, { once: true });
+    clip.addEventListener('error', restore, { once: true });
+    const p = clip.play();
+    if (p && p.catch) p.catch(restore);
+    return clip;
+}
+
 let nixonClickCount = 0;
 let nixonClickTimer = null;
 
@@ -17001,15 +17035,9 @@ document.body.addEventListener('click', (e) => {
     if (nixonClickCount >= 3) {
         nixonClickCount = 0;
         clearTimeout(nixonClickTimer);
-        const audio = document.getElementById('audio');
-        const crook = new Audio (window.konamiActive
-        ? 'https://file.garden/aXPgNT-ZRCxxpy0g/drunkasever.mp3'
-        : 'https://file.garden/aXPgNT-ZRCxxpy0g/Richard_Nixon_-__I\'m_not_a_crook._.mp3');
-        if (audio) audio.muted = true;
-        crook.play();
-        crook.addEventListener('ended', () => {
-            if (audio) audio.muted = false;
-        }, { once: true });
+        _playEggAudio(window.konamiActive
+            ? 'https://file.garden/aXPgNT-ZRCxxpy0g/drunkasever.mp3'
+            : 'https://file.garden/aXPgNT-ZRCxxpy0g/Richard_Nixon_-__I\'m_not_a_crook._.mp3');
     }
 });
 let agnewClickCount = 0;
@@ -17023,15 +17051,9 @@ document.body.addEventListener('click', (e) => {
     if (agnewClickCount >= 3) {
         agnewClickCount = 0;
         clearTimeout(agnewClickTimer);
-        const audio = document.getElementById('audio');
-        const nabobs = new Audio(window.konamiActive
+        _playEggAudio(window.konamiActive
             ? 'https://file.garden/aXPgNT-ZRCxxpy0g/stampofapproval.mp3'
             : 'https://file.garden/aXPgNT-ZRCxxpy0g/Spiro%20Agnew%20-%20Nattering%20Nabobs%20of%20Negativism%20-%201970%20-%20(128%20Kbps).mp3');
-        if (audio) audio.muted = true;
-        nabobs.play();
-        nabobs.addEventListener('ended', () => {
-            if (audio) audio.muted = false;
-        }, { once: true });
     }
 });
 
@@ -17046,13 +17068,7 @@ document.body.addEventListener('click', (e) => {
     if (honkClickCount >= 2) {
         honkClickCount = 0;
         clearTimeout(honkClickTimer);
-        const audio = document.getElementById('audio');
-        const honkAudio = new Audio('https://file.garden/aXPgNT-ZRCxxpy0g/meepmeep.mp3');
-        if (audio) audio.muted = true;
-        honkAudio.play();
-        honkAudio.addEventListener('ended', () => {
-            if (audio) audio.muted = false;
-        }, { once: true });
+        _playEggAudio('https://file.garden/aXPgNT-ZRCxxpy0g/meepmeep.mp3');
     }
 });
 
@@ -17106,13 +17122,7 @@ document.body.addEventListener('click', (e) => {
     const eggUrl = _BANNER_EGG_SOUNDS[bannerClickCount];
     if (bannerClickCount >= 69) bannerClickCount = 0;   // grand finale wraps the counter
     if (!eggUrl) return;
-    const audio = document.getElementById('audio');
-    const egg = new Audio(eggUrl);
-    if (audio) audio.muted = true;
-    egg.play();
-    egg.addEventListener('ended', () => {
-        if (audio) audio.muted = false;
-    }, { once: true });
+    _playEggAudio(eggUrl);
 });
 
 const konamiCode = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
@@ -17304,6 +17314,7 @@ function openGameManual() {
 // window's bottom-right corner; recomputed from #game_window's live rect so it
 // tracks any resize. No-op until #game_window exists.
 var _manRO = null;
+var _manBtnW = 0; // cached offsetWidth — reading it every observer tick forced a layout
 function _placeManualButton() {
     const gw = document.getElementById('game_window');
     if (!gw) return false;
@@ -17317,6 +17328,7 @@ function _placeManualButton() {
         btn.style.cssText = 'position:absolute;z-index:9000;cursor:pointer;';
         btn.addEventListener('click', () => openGameManual());
         document.body.appendChild(btn);
+        _manBtnW = 0; // fresh element — re-measure below
     }
     // Track pure size changes of the game window (screen swaps also fire the
     // mutation observer below, and viewport changes fire window 'resize').
@@ -17325,8 +17337,9 @@ function _placeManualButton() {
         _manRO.observe(gw);
     }
     const r = gw.getBoundingClientRect();
+    if (!_manBtnW) _manBtnW = btn.offsetWidth;
     const top  = (r.bottom + window.scrollY + 6) + 'px';
-    const left = (r.right  + window.scrollX - btn.offsetWidth) + 'px'; // align to the right edge
+    const left = (r.right  + window.scrollX - _manBtnW) + 'px'; // align to the right edge
     // Runs on every game-window mutation batch — skip the style writes when
     // nothing moved so the common case stays free.
     if (btn.style.top !== top || btn.style.left !== left) {
@@ -17338,6 +17351,8 @@ function _placeManualButton() {
 _placeManualButton();
 window.addEventListener('resize', _placeManualButton);
 window.__onGameWindowMutation(() => _placeManualButton()); // catches first appearance + screen changes
+// A late font swap can change the button's width — re-measure once fonts settle.
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { _manBtnW = 0; _placeManualButton(); });
 // Fallback so the manual is always reachable while wiring the button: press 'M'.
 document.addEventListener('keydown', (e) => {
     if (e.ctrlKey || e.altKey || e.metaKey) return;
@@ -18042,7 +18057,17 @@ document.addEventListener('keydown', (e) => {
 
     _preload(_CRITICAL);
     const _idle = window.requestIdleCallback || (fn => setTimeout(fn, 200));
-    _idle(() => _preload(_IDLE));
+    // Drip the idle tier in small chunks across idle periods instead of firing
+    // all ~200 requests in one burst — on weaker machines that burst competes
+    // with the initial game load for network and image-decode time.
+    let _idleIdx = 0;
+    const _IDLE_CHUNK = 8;
+    const _drip = () => {
+        _preload(_IDLE.slice(_idleIdx, _idleIdx + _IDLE_CHUNK));
+        _idleIdx += _IDLE_CHUNK;
+        if (_idleIdx < _IDLE.length) _idle(_drip);
+    };
+    _idle(_drip);
 })();
 
 // [JETS_CYOA_CAMPAIGN_DATA_END]
