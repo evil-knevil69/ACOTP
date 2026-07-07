@@ -17071,14 +17071,15 @@ honk.style.cssText = `
 
 // ── Easter egg: the campaign banner's rightmost quarter ──────────────────────
 // Clicks on the right quarter of the campaign sign rack up a counter (10s of
-// inactivity resets it, same as the other click eggs). Sounds fire at 2, 10,
-// 20 and — for the truly dedicated — 69 clicks (nice), after which the
-// counter wraps. Dragging the sign doesn't count.
+// inactivity resets it, same as the other click eggs): 2 clicks → sound 1,
+// keep going to 10 → sound 2, and the truly dedicated reach 69 → sound 3
+// (nice), after which the counter wraps. Dragging the sign doesn't count.
+// FILL ME IN: the three sound URLs (an empty entry keeps that threshold
+// silent; the counting still works).
 var _BANNER_EGG_SOUNDS = {
-    2:  'https://file.garden/aXPgNT-ZRCxxpy0g/%5BRichard%20M.%20Nixon%5DBuzz%20......ing.%20.mp3',
-    10: 'https://file.garden/aXPgNT-ZRCxxpy0g/%5BRichard%20M.%20Nixon%5DWhat%20......yaoi_.mp3',
-    20: 'https://file.garden/aXPgNT-ZRCxxpy0g/bohemian.mp3',
-    69: 'https://file.garden/aXPgNT-ZRCxxpy0g/%5BRichard%20M.%20Nixon%5DGod%20d......ucker.mp3',
+    2:  '',   // FILL ME IN — e.g. 'https://file.garden/aXPgNT-ZRCxxpy0g/….mp3'
+    10: '',   // FILL ME IN
+    69: '',   // FILL ME IN
 };
 let bannerClickCount = 0;
 let bannerClickTimer = null;
