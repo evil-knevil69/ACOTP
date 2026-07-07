@@ -2837,7 +2837,7 @@ function setupMusicPlayer() {
     //                                merge any subset, updates live
     var _TAPE_GEO = {
         left:  { pin: { x: 124, y: 265 }, angleOffset: 0, radiusPad: 0 },
-        right: { pin: { x: 379, y: 265 }, angleOffset: 0, radiusPad: 0 },
+        right: { pin: { x: 371, y: 274 }, angleOffset: 0, radiusPad: 0 },
     };
 
     // outerSign picks which of the two tangents from the pin we take: +1 walks
