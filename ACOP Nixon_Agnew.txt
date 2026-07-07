@@ -17105,10 +17105,10 @@ honk.style.cssText = `
 // FILL ME IN: the four sound URLs (an empty entry keeps that threshold
 // silent; the counting still works).
 var _BANNER_EGG_SOUNDS = {
-    2:  '',   // FILL ME IN — e.g. 'https://file.garden/aXPgNT-ZRCxxpy0g/….mp3'
-    10: '',   // FILL ME IN
-    20: '',   // FILL ME IN
-    69: '',   // FILL ME IN
+    2:  'https://file.garden/aXPgNT-ZRCxxpy0g/%5BRichard%20M.%20Nixon%5DBuzz%20......ing.%20.mp3',
+    10: 'https://file.garden/aXPgNT-ZRCxxpy0g/%5BRichard%20M.%20Nixon%5DWhat%20......yaoi_.mp3', 
+    20: 'https://file.garden/aXPgNT-ZRCxxpy0g/bohemian.mp3',
+    69: 'https://file.garden/aXPgNT-ZRCxxpy0g/%5BRichard%20M.%20Nixon%5DGod%20d......ucker.mp3',
 };
 let bannerClickCount = 0;
 let bannerClickTimer = null;
