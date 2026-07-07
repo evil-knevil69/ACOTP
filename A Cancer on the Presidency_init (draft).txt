@@ -2818,41 +2818,58 @@ function setupMusicPlayer() {
     }
 
     // ── Tape-strip geometry ──────────────────────────────────────────────────
-    // Each strip is the TANGENT line from a fixed tape pin up to the current
-    // tape roll: top end touches the roll's outer edge (outermost-left of the
-    // left roll, outermost-right of the right roll), bottom end sits on the
-    // pin. Both the attachment point and the angle are recomputed as the rolls
-    // shrink/grow, so the strip always meets the roll edge exactly — the old
-    // hardcoded angle interpolation drifted off the roll as it played down.
+    // Each strip runs from a fixed tape pin up to the current tape roll; the
+    // attachment point and angle are recomputed as the roll shrinks/grows, so
+    // the strip always meets the roll edge (the old hardcoded angle sweep
+    // drifted off the roll as it played down). Two modes for where the top
+    // attaches:
+    //   'edge'    — the roll's OUTERMOST horizontal point (leftmost of the left
+    //               roll, rightmost of the right). Literal "outermost left/
+    //               right"; always visible. DEFAULT.
+    //   'tangent' — the true tangent line from the pin (tape peels off the roll
+    //               like real tape). Physically nicer, but HIDES while the pin
+    //               sits inside a fat roll (no external tangent exists then).
+    // Flip per side live with __tapeStripTune({left:{mode:'tangent'}}) to see
+    // which your art wants.
     //
-    // TUNING (in reel-body coordinates, like the tapes' left/top):
+    // TUNING (reel-body coordinates, like the tapes' left/top):
     //   pin         — where the tape meets the black pin
-    //   angleOffset — extra degrees applied after the tangent solve (art fudge)
+    //   mode        — 'edge' | 'tangent' (above)
+    //   angleOffset — extra degrees applied after the solve (art fudge)
     //   radiusPad   — px added to the roll radius before solving (art fudge)
+    //   tangentSide — tangent mode only: +1/-1, which tangent (flip if the tape
+    //                 wraps the wrong way)
     // Live tools (browser console):
     //   __tapeStripTool()            click the LEFT pin, then the RIGHT pin —
-    //                                geometry updates live, config printed for
-    //                                pasting back into _TAPE_GEO below
-    //   __tapeStripTune({left:{pin:{x,y},angleOffset,radiusPad}, right:{…}})
+    //                                updates live, prints config to paste below
+    //   __tapeStripTune({left:{pin:{x,y},mode,angleOffset,radiusPad,tangentSide}, right:{…}})
     //                                merge any subset, updates live
+    // Pin values below: placed by the author with __tapeStripTool (8 Jul 2026).
     var _TAPE_GEO = {
-        left:  { pin: { x: 124, y: 265 }, angleOffset: 0, radiusPad: 0 },
-        right: { pin: { x: 379, y: 265 }, angleOffset: 0, radiusPad: 0 },
+        left:  { pin: { x: 94,  y: 199 }, mode: 'edge', angleOffset: 0, radiusPad: 0 },
+        right: { pin: { x: 281, y: 200 }, mode: 'edge', angleOffset: 0, radiusPad: 0 },
     };
 
-    // outerSign picks which of the two tangents from the pin we take: +1 walks
-    // the tangent point to the LEFT side of the roll, -1 to the RIGHT.
+    // outerSign: +1 = left reel (outer side is LEFT), -1 = right reel (RIGHT).
     function _placeTapeStrip(el, cx, cy, r, geo, outerSign) {
         const px = geo.pin.x, py = geo.pin.y;
-        const dx = px - cx, dy = py - cy;
-        const d = Math.hypot(dx, dy);
         const rr = Math.max(1, r + (geo.radiusPad || 0));
-        if (d <= rr + 0.5) { el.style.height = '0px'; return; }   // pin inside the roll — hide
-        const base = Math.atan2(dy, dx);            // centre → pin direction
-        const swing = Math.acos(rr / d);            // half-angle subtended by the tangents
-        const g = base + outerSign * swing;
-        const tx = cx + rr * Math.cos(g);           // tangent point on the roll edge
-        const ty = cy + rr * Math.sin(g);
+        let tx, ty;
+        if (geo.mode === 'tangent') {
+            const dx = px - cx, dy = py - cy;
+            const d = Math.hypot(dx, dy);
+            if (d <= rr + 0.5) { el.style.height = '0px'; return; }  // pin under the roll — no tangent
+            const base = Math.atan2(dy, dx);        // centre → pin direction
+            const swing = Math.acos(rr / d);        // half-angle subtended by the tangents
+            const g = base + (geo.tangentSide || outerSign) * swing;
+            tx = cx + rr * Math.cos(g);             // tangent point on the roll edge
+            ty = cy + rr * Math.sin(g);
+        } else {
+            // 'edge' — the outermost horizontal point of the roll on its outer
+            // side (left reel → leftmost, right reel → rightmost).
+            tx = cx - outerSign * rr;
+            ty = cy;
+        }
         const h = Math.hypot(px - tx, py - ty);
         // CSS rotate about 'top center': (0,h) → (-h·sinθ, h·cosθ); solve so the
         // strip's bottom end lands on the pin.
@@ -2900,8 +2917,10 @@ function setupMusicPlayer() {
             const c = cfg && cfg[side];
             if (!c) return;
             if (c.pin) Object.assign(_TAPE_GEO[side].pin, c.pin);
+            if ('mode' in c) _TAPE_GEO[side].mode = c.mode;
             if ('angleOffset' in c) _TAPE_GEO[side].angleOffset = c.angleOffset;
             if ('radiusPad' in c) _TAPE_GEO[side].radiusPad = c.radiusPad;
+            if ('tangentSide' in c) _TAPE_GEO[side].tangentSide = c.tangentSide;
         });
         updateTapeVisuals();
         return JSON.parse(JSON.stringify(_TAPE_GEO));
