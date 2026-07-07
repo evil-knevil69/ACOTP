@@ -12179,8 +12179,8 @@ const _EVENT_DEFS = [
         continent: 'Europe',
         type: 'insurgency',
         label: 'The Years of Lead',
-        img: null, // PLACEHOLDER — drop in a GIF/still later
-        body: 'PLACEHOLDER. Anni di piombo — a wave of political terrorism convulsing Italy, with bombings, kidnappings and assassinations by both far-left (Red Brigades) and neo-fascist militants. The "strategy of tension" and shadowy state and NATO-linked involvement keep the Republic permanently on edge.',
+        img: 'https://file.garden/aXPgNT-ZRCxxpy0g/Events/yearsoflead-ezgif.com-resize.gif',
+        body: 'A polarised political and social structure has been torn asunder, and in its wake, violence arises as the great legitimiser and the national saviour. Red Brigades fight neo-fascist paramilitaries in the streets. Turning in their widening gyre, terror, explosions and assassinations, and the rough beast of state repression looms large. The centre cannot hold.',
         country: 'IT',
         positionOffset: { x: -22, y: -32 },
         state: () => 1, // permanent, like the Troubles
@@ -13545,15 +13545,15 @@ const OFFICIALS_EFFECTS = {
     _DEFAULT: "Effects of this appointment have not been catalogued yet.",
     _VACANT:  "The office stands vacant. Its duties fall to deputies and acting men — and nothing gets decided.",
 
-    Kissinger: "Kissinger will give you more diplomatic opportunities on the World Map but some foreign policy options will be closed off to you as he becomes more insubordinate.",
+    Kissinger: "Kissinger lets you improve diplomatic relations every 2 turns but some foreign policy options will be closed off to you as he becomes more insubordinate.",
 
     Haldeman:    "PLACEHOLDER — effects text to come.",
-    Rogers:      "PLACEHOLDER — effects text to come.",
+    Rogers:      "Rogers does nothing. The default prevails, you improve diplomatic relations every 3 turns and can send or reduce aid every 3 turns.",
     Laird:       "The old congressman never really left the Hill. With Laird at Defense, Congressional relations improve by 1 every 5 turns.",
     Kleindienst: "PLACEHOLDER — effects text to come.",
     Helms:       "PLACEHOLDER — effects text to come.",
     Gray:        "PLACEHOLDER — effects text to come.",
-    Rockefeller: "PLACEHOLDER — effects text to come.",
+    Rockefeller: "Rocky, the great benefactor of other people's money, will allow you to Send Aid every 2 turns.",
     Haig:        "PLACEHOLDER — effects text to come.",
     Scowcroft:   "PLACEHOLDER — effects text to come.",
     Richardson:  "PLACEHOLDER — effects text to come.",
@@ -13567,7 +13567,7 @@ const OFFICIALS_EFFECTS = {
     Wilson:      "PLACEHOLDER — effects text to come.",
     Felt:        "PLACEHOLDER — effects text to come.",
     Colby:       "PLACEHOLDER — effects text to come.",
-    Connally:    "PLACEHOLDER — effects text to come. (At State: Improve Relations +1 and Send Aid +1 every 3 turns, Reduce Aid +1 every 2.)",
+    Connally:    "Connally will allow you to Reduce Aid every 2 turns.",
 };
 // ── END OFFICIALS CARD-BACK TEXT ─────────────────────────────────────────────
 
@@ -17102,11 +17102,9 @@ honk.style.cssText = `
 // swaps) rack up a counter (10s of inactivity resets it, same as the other
 // click eggs). Sounds fire at 2, 10, 20 and — for the truly dedicated — 69
 // clicks (nice), after which the counter wraps.
-// FILL ME IN: the four sound URLs (an empty entry keeps that threshold
-// silent; the counting still works).
 var _BANNER_EGG_SOUNDS = {
     2:  'https://file.garden/aXPgNT-ZRCxxpy0g/%5BRichard%20M.%20Nixon%5DBuzz%20......ing.%20.mp3',
-    10: 'https://file.garden/aXPgNT-ZRCxxpy0g/%5BRichard%20M.%20Nixon%5DWhat%20......yaoi_.mp3', 
+    10: 'https://file.garden/aXPgNT-ZRCxxpy0g/%5BRichard%20M.%20Nixon%5DWhat%20......yaoi_.mp3',
     20: 'https://file.garden/aXPgNT-ZRCxxpy0g/bohemian.mp3',
     69: 'https://file.garden/aXPgNT-ZRCxxpy0g/%5BRichard%20M.%20Nixon%5DGod%20d......ucker.mp3',
 };

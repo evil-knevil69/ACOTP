@@ -3477,7 +3477,7 @@ var EDU_TOOLTIPS = [
     {
         searchStrings: ['impoundment', 'impound'],
         label: 'Impoundment',
-        body: 'The practice of not spending funds appropriated by Congress. It has been going on since Jefferson but critics say that it unconstitutionally breaks the power of the purse, particularly when used with ideological motives.'
+        body: 'The practice of not spending funds appropriated by Congress. It has been going on since Jefferson but critics say that it unconstitutionally breaks the power of the purse, particularly when used for ideological purposes.'
     },
 ];
 // ── end of the editable list — machinery below ───────────────────────────────
