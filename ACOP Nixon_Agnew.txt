@@ -17910,7 +17910,15 @@ document.addEventListener('keydown', (e) => {
     }
 
     function _checkAndSimplify() {
-        if (!document.getElementById('resume_questions_button')) return;
+        // Fire on BOTH the in-game electoral map and the election-night results
+        // map (finalMapScreenHtml → the disabled "Election Map" nav button),
+        // so the final map gets the same SVG smoothing, thick strokes, lamp
+        // glow and state labels. (Detection mirrors Code 1's __isFinalElectionMap
+        // — separate scope, so inlined here.)
+        const _finalBtn = document.getElementById('final_election_map_button');
+        const _onMap = document.getElementById('resume_questions_button')
+            || (_finalBtn && _finalBtn.disabled && document.querySelector('#map_container svg'));
+        if (!_onMap) return;
         document.getElementById('map_container')?.classList.add('election-map');
         const svg = document.querySelector('#map_container svg');
         if (svg) _addLampFilter(svg);

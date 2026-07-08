@@ -1697,8 +1697,25 @@ window.playCreditsMusic = function() {
 // session; now driven by the shared #game_window observer. The body is idempotent
 // (every injection is guarded by getElementById/dataset), so running it on DOM
 // mutations instead of a timer is equivalent setup-on-screen-change.
+// True on the election-night RESULTS map (engine's finalMapScreenHtml): the
+// "Election Map" nav button is present AND disabled (we're on it) and the
+// usmap SVG has rendered. Distinguishes it from the other final screens (which
+// carry the footer but no map) and from the in-game electoral map (resume btn).
+function __isFinalElectionMap() {
+    const btn = document.getElementById('final_election_map_button');
+    return !!(btn && btn.disabled && document.querySelector('#map_container svg'));
+}
+
 function __mapVisitTick() {
-    const mapVisible = !!document.getElementById('resume_questions_button');
+    const inGameMap = !!document.getElementById('resume_questions_button');
+    const finalMap  = __isFinalElectionMap();
+    // The election-night results map gets the SAME TV treatment as the in-game
+    // electoral map (frame + CRT glass + scanlines + SVG smoothing). The only
+    // divergence is the footer — the final map's 6 nav buttons vs the in-game
+    // resume/globe — handled by the .acop-final-tv class + override CSS below.
+    const mapVisible = inGameMap || finalMap;
+    const gw = document.getElementById('game_window');
+    if (gw) gw.classList.toggle('acop-final-tv', finalMap && !inGameMap);
     if (mapVisible) {
         _ensureGsap();
         if (!document.getElementById('logo-hide-style')) {
@@ -1988,6 +2005,38 @@ function __mapVisitTick() {
             @keyframes light-off {
                 0% { opacity: 1; }
                 80% { opacity: 0; }
+            }
+
+            /* ── FINAL ELECTION MAP only (.acop-final-tv on #game_window) ──────
+               The in-game map's footer holds two small buttons at top:580/
+               left:600; the final map's footer holds SIX nav buttons, which at
+               that anchor would run off the screen. Re-lay them as a centred
+               row across the lower third of the TV, scaled to fit. */
+            /* Deterministic positioning context so the absolute footer (and the
+               result containers) anchor to the 1113x692 window, not the page. */
+            #game_window.acop-final-tv { position: relative !important; }
+            #game_window.acop-final-tv #map_footer {
+                position: absolute !important;
+                top: auto !important;
+                bottom: 40px !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                display: flex !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                align-items: center !important;
+                gap: 5px 6px !important;
+                width: 760px !important;
+                max-width: 760px !important;
+                z-index: 20 !important;
+                pointer-events: auto !important;
+            }
+            #game_window.acop-final-tv #map_footer .final_menu_button {
+                font-size: 11px !important;
+                line-height: 1.1 !important;
+                padding: 4px 8px !important;
+                margin: 0 !important;
+                white-space: nowrap !important;
             }
             `;
             document.head.appendChild(s);
@@ -3571,7 +3620,7 @@ function _ensureGsap() {
 //Custom map background style- thanks to Strawberry Master for putting this in the Discord
 const customStyling = document.createElement("style");
 customStyling.innerHTML = `#map_container {
-    background-image: url("https://i.ibb.co/b5vyszSF/tvnoise2-ezgif-com-optimize-1.gif");
+    background-image: url("https://file.garden/aXPgNT-ZRCxxpy0g/tvnoise2-ezgif.com-optimize%20(1).gif");
     background-size: cover;
 }`;
 customStyling.id=`map_image`

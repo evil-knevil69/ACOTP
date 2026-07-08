@@ -156,6 +156,21 @@ synced before the observer ticks so the restored (lower) question_number isn't r
 New Game and wiped; `_musicSectionPending` re-enters the phase's music section. Console
 access: `window.ACOPSaveLoad`.
 
+**14. Final election map = TV treatment (Jul 2026)**
+The election-night results map (engine `finalMapScreenHtml`) now gets the SAME TV look as
+the in-game electoral map: noise-gif background, ELECTIONMAPTV.png frame, CRT glass +
+scanlines, and RDP-smoothed SVG boundaries with thick strokes + lamp-glow + state labels.
+Mechanism: both the Code 1 chrome (`__mapVisitTick`) and the Code 2 smoothing
+(`_checkAndSimplify`) were gated on `#resume_questions_button` (in-game map only); both now
+ALSO fire when `__isFinalElectionMap()` is true — the disabled `#final_election_map_button`
+plus a rendered `#map_container svg` (exclusive to that screen; the other final screens have
+the button enabled and no usmap). The only divergence is the footer: the in-game map's 2
+buttons sit at top:580/left:600, but the final map has 6 nav buttons, so `#game_window` gets
+an `acop-final-tv` class and override CSS re-lays them as a centred row (tunable: the
+`bottom` value in the `.acop-final-tv #map_footer` rule) with `#game_window` forced
+position:relative for a deterministic anchor. Noise gif URL moved to file.garden. The map
+background + result-panel drag-positioning were already shared (ungated), so no change there.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
