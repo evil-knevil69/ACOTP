@@ -3962,8 +3962,19 @@ window.__onGameWindowMutation(() => {
             /* claw back the engine rows' default 1em <p> margins on this screen */
             '#inner_window_4 #game_options p, #inner_window_4 #difficulty_level p { margin: 4px 0; }' +
             '#inner_window_4 #game_options h3, #inner_window_4 #difficulty_level h3 { margin: 4px 0 3px; }' +
-            '#inner_window_4 #opponent_selection_description_window { margin: 5px 0; padding: 6px 10px; }' +
-            '#inner_window_4 #opponent_selection_id_button_p { margin: 8px 0 0; }';
+            /* Campaign length "close the gap": drop the voting-desc bottom margin
+               and the campaign block's top margin so it sits snug beneath the
+               voting-method description (flow-based — adapts to the real gap,
+               never overlaps, never grows the container). */
+            '#inner_window_4 #opponent_selection_description_window { margin: 5px 0 0 0; padding: 6px 10px; }' +
+            '#inner_window_4 #campaign_length_options { margin-top: 0; }' +
+            /* Checkboxes (Expletives Deleted / Educational tooltips / Historicity)
+               nudged down 20px; buttons down 15px. position:relative keeps the
+               container height fixed and doesn't reflow siblings. */
+            '#difficulty_level > #expletives-toggle-wrap,' +
+            '#difficulty_level > #edu-tips-toggle-wrap,' +
+            '#difficulty_level > #historicity-toggle-wrap { position: relative; top: 20px; }' +
+            '#inner_window_4 #opponent_selection_id_button_p { margin: 8px 0 0; position: relative; top: 15px; }';
         document.head.appendChild(st);
     }
 
