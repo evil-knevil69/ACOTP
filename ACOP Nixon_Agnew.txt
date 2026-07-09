@@ -17855,7 +17855,12 @@ document.addEventListener('keydown', (e) => {
     };
 
     function _injectStateLabels() {
-        if (!document.getElementById('resume_questions_button')) return;
+        // Same map gate as _checkAndSimplify (its only caller): in-game electoral
+        // map OR the final election map. The old resume-button-only gate meant the
+        // final map got smoothing + thick strokes but NO state labels.
+        const _fBtn = document.getElementById('final_election_map_button');
+        if (!document.getElementById('resume_questions_button')
+            && !(_fBtn && _fBtn.disabled && document.querySelector('#map_container svg'))) return;
         const svg = document.querySelector('#map_container svg');
         if (!svg || svg.querySelector('text.state-label')) return;
         const plugin = typeof $ !== 'undefined' && $('#map_container').data('plugin-usmap');
