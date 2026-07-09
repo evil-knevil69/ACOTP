@@ -2038,6 +2038,97 @@ function __mapVisitTick() {
                 margin: 0 !important;
                 white-space: nowrap !important;
             }
+
+            /* ── Broadcast scoreboard: the EV readout dressed as the 1976 ABC
+               News graphic — gold-framed RECESSED pills, EMBOSSED glowing text,
+               with the map's CRT scanlines washing over it. __scoreboardTick
+               rebuilds each <li> into name/num spans + a --pill-color var. */
+            #game_window.acop-final-tv #overall_result {
+                position: relative !important;
+                overflow: visible !important;
+                font-family: 'Arial Rounded MT Bold','Trebuchet MS',Arial,sans-serif !important;
+                filter: blur(0.4px) !important;   /* CRT soft-focus (like the reference photo) */
+                /* self-contained red broadcast card */
+                background: radial-gradient(ellipse 90% 80% at 50% 28%, #ef3a13 0%, #c01404 58%, #8f0e00 100%) !important;
+                padding: 10px 16px 14px !important;
+                border-radius: 10px !important;
+                box-shadow: inset 0 0 60px 12px rgba(80,0,0,0.5), 0 6px 20px rgba(0,0,0,0.55) !important;
+            }
+            #game_window.acop-final-tv #overall_result h3 {
+                text-align: center !important;
+                color: #fdf3e8 !important;
+                font-weight: 900 !important;
+                letter-spacing: 1px !important;
+                text-shadow: 0 -1px 0 rgba(255,255,255,0.5), 0 2px 2px rgba(90,0,0,0.7),
+                             0 0 12px rgba(255,205,160,0.85), 0 0 22px rgba(255,110,50,0.45) !important;
+            }
+            #game_window.acop-final-tv #overall_result ul {
+                list-style: none !important;
+                margin: 0 !important;
+                padding: 4px 8px !important;
+            }
+            #game_window.acop-final-tv #overall_result li.acop-score-pill {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                box-sizing: border-box !important;
+                height: 40px !important;
+                margin: 24px 3px !important;   /* collapses to 24px between pills; clears the ~18px of gold rings */
+                padding: 0 16px !important;
+                border-radius: 999px !important;
+                background: var(--pill-color, #182365) !important;
+                color: #f2f4ff !important;
+                /* recessed well inside a raised gold rim */
+                box-shadow:
+                    0 0 0 2px #4e310a,
+                    0 0 0 6px #edbc62,
+                    0 0 0 7px #f6d78e,
+                    0 0 0 9px #6b440e,
+                    inset 0 6px 12px rgba(0,0,0,0.6),
+                    inset 0 2px 3px rgba(0,0,0,0.7),
+                    inset 0 -4px 9px rgba(255,255,255,0.18),
+                    0 4px 9px rgba(0,0,0,0.35) !important;
+            }
+            #game_window.acop-final-tv #overall_result .acop-pill-name,
+            #game_window.acop-final-tv #overall_result .acop-pill-num {
+                font-weight: 900 !important;
+                letter-spacing: 1px !important;
+                font-size: 17px !important;
+                text-transform: uppercase !important;
+                /* embossed: tight top highlight + hard bottom shadow + soft glow */
+                text-shadow: 0 -1px 0 rgba(255,255,255,0.3), 0 2px 2px rgba(0,0,0,0.75),
+                             0 0 8px rgba(255,255,255,0.32) !important;
+            }
+            #game_window.acop-final-tv #overall_result p {
+                text-align: center !important;
+                color: #f4dfa6 !important;
+                font-weight: 900 !important;
+                letter-spacing: 4px !important;
+                font-size: 12px !important;
+                margin: 6px 0 0 !important;
+                text-shadow: 0 -1px 0 rgba(255,255,255,0.4), 0 2px 2px rgba(90,30,0,0.7),
+                             0 0 9px rgba(255,220,140,0.7) !important;
+            }
+            #game_window.acop-final-tv #overall_result .acop-proj {
+                text-align: center !important;
+                color: #fdf3e8 !important;
+                font-weight: 900 !important;
+                letter-spacing: 1px !important;
+                font-size: 13px !important;
+                margin: 8px 0 0 !important;
+                text-shadow: 0 -1px 0 rgba(255,255,255,0.5), 0 2px 2px rgba(90,0,0,0.7),
+                             0 0 10px rgba(255,205,160,0.8) !important;
+            }
+            /* the map's CRT scanlines, washed over the scoreboard */
+            #game_window.acop-final-tv #overall_result::after {
+                content: '' !important;
+                position: absolute !important;
+                inset: -4px !important;
+                pointer-events: none !important;
+                z-index: 6 !important;
+                background: repeating-linear-gradient(to bottom,
+                    transparent 0px, transparent 2px, rgba(0,0,0,0.15) 3px, rgba(0,0,0,0.15) 4px) !important;
+            }
             `;
             document.head.appendChild(s);
         }
@@ -2569,6 +2660,44 @@ function __mapVisitTick() {
                             }
                         }
 window.__onGameWindowMutation(__mapVisitTick);
+
+// Final election map: dress the electoral-vote readout (#overall_result) as the
+// 1976 ABC broadcast scoreboard — rebuild each <li> ("Name: EV / PV%") into
+// name/num spans carrying the candidate's colour as --pill-color, and append an
+// "ABC News Projection" footer. Styling (gold-framed recessed pills, embossed
+// glow, CRT scanlines) is the .acop-final-tv CSS in logo-hide-style above.
+// One-shot per render, guarded by a dataset flag (a fresh render re-transforms).
+function __scoreboardTick() {
+    if (!__isFinalElectionMap()) return;
+    const box = document.getElementById('overall_result');
+    if (!box || box.dataset.acopScored) return;
+    const lis = box.querySelectorAll('ul > li');
+    if (!lis.length) return;
+    box.dataset.acopScored = '1';
+    lis.forEach(li => {
+        const swatch = li.querySelector('span');
+        const color = swatch ? getComputedStyle(swatch).backgroundColor : '';
+        if (swatch) swatch.remove();
+        const raw = li.textContent.trim();               // "Ford: 160 / 47.9%"
+        const ci = raw.indexOf(':');
+        const name = (ci >= 0 ? raw.slice(0, ci) : raw).trim();
+        const rest = (ci >= 0 ? raw.slice(ci + 1) : '').trim();  // "160 / 47.9%"
+        const num = (rest.split('/')[0] || rest).trim();  // "160"  (PV%-only runs keep the %)
+        li.classList.add('acop-score-pill');
+        if (color) li.style.setProperty('--pill-color', color);
+        li.textContent = '';                              // clear, then rebuild via textContent (no injection)
+        const n = document.createElement('span'); n.className = 'acop-pill-name'; n.textContent = name;
+        const v = document.createElement('span'); v.className = 'acop-pill-num';  v.textContent = num;
+        li.appendChild(n); li.appendChild(v);
+    });
+    if (!box.querySelector('.acop-proj')) {
+        const proj = document.createElement('p');
+        proj.className = 'acop-proj';
+        proj.textContent = 'ABC News Projection';
+        box.appendChild(proj);
+    }
+}
+window.__onGameWindowMutation(__scoreboardTick);
 
                 const _gameStartBtn = document.getElementById("game_start");
                 if (_gameStartBtn) _gameStartBtn.addEventListener("click", function() {

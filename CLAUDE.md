@@ -170,6 +170,13 @@ an `acop-final-tv` class and override CSS re-lays them as a centred row (tunable
 `bottom` value in the `.acop-final-tv #map_footer` rule) with `#game_window` forced
 position:relative for a deterministic anchor. Noise gif URL moved to file.garden. The map
 background + result-panel drag-positioning were already shared (ungated), so no change there.
+Scoreboard: on the final map the EV readout (`#overall_result`) is dressed as the 1976 ABC
+News broadcast graphic — `__scoreboardTick` (a second observer subscriber) rebuilds each
+`<li>` ("Name: EV / PV%") into name/num spans carrying the candidate colour as
+`--pill-color`, appends an "ABC News Projection" footer, and the `.acop-final-tv
+#overall_result` CSS renders gold-framed RECESSED pills, EMBOSSED glowing text, a red
+radial card and CRT scanlines (0.4px blur for the tube softness). Guarded by
+`dataset.acopScored`; one-shot per render.
 
 ### A Cancer on the Presidency_init (draft).txt
 
