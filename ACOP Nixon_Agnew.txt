@@ -15936,6 +15936,7 @@ window.__onGameWindowMutation(() => {
                     _musicSectionPending = 0;
                     window.__resetSoundtrack?.();
                     _endAchFired = false;
+                    _projStingPlayed = false;
                     // The player may have changed the campaign-length dropdown
                     // between games (Code 1 records it) — re-read + reinstall.
                     _campaignLength = (window._acopCampaignLength in CAMPAIGN_LENGTHS) ? window._acopCampaignLength : 'full';
@@ -16435,7 +16436,7 @@ document.addEventListener('mouseleave', () => {
 var _SL_SCALARS = [
     // run counters / flow
     '_questionCount', '_pressureOn', '_allendeSpeechPlayed', '_actionCrimesRevealed',
-    '_campaignLength', '_lengthInstalled', '_endAchFired',
+    '_campaignLength', '_lengthInstalled', '_endAchFired', '_projStingPlayed',
     // ticket
     '_president', '_vp', '_ticketStage', 'Nominee',
     // top-line stats
@@ -16976,6 +16977,23 @@ function _playEggAudio(url) {
     if (p && p.catch) p.catch(restore);
     return clip;
 }
+
+// ── Projection sting ──────────────────────────────────────────────────────────
+// When the network calls it: the engine's Election Night outcome popup
+// (showOutcomePopup — detected by its #overlay_result_button, which exists
+// nowhere else) appears the moment a candidate crosses the winning EV mark.
+// Play the ABC News election night theme over that moment, win or lose — the
+// network plays it either way. Once per run (New Game resets it); fails
+// silent while the URL is unset, same convention as the banner-egg sounds.
+// Routed through _playEggAudio so the tape ducks and is restored on end/error.
+var _PROJ_STING_URL = '';   // FILL ME IN — the ABC News election night theme
+var _projStingPlayed = false;
+window.__onGameWindowMutation(() => {
+    if (_projStingPlayed || !_PROJ_STING_URL) return;
+    if (!document.getElementById('overlay_result_button')) return;
+    _projStingPlayed = true;
+    _playEggAudio(_PROJ_STING_URL);
+});
 
 let nixonClickCount = 0;
 let nixonClickTimer = null;

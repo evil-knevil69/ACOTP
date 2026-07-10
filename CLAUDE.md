@@ -190,7 +190,10 @@ the "Processing Results, wait one moment…" beat (footer swapped, button gone, 
 `#overall_result ul` + map svg still up) — otherwise the TV tore down and the cards
 flashed back to sticky notes between Election Night and the results screens. The TV frame
 PNG + noise gif are in the preloader's idle tier (Code 2) so the first map open doesn't
-pop in.
+pop in. Projection sting: when the outcome popup fires at 270 (engine `showOutcomePopup`,
+detected by its unique `#overlay_result_button`), Code 2 plays `_PROJ_STING_URL` (FILL ME
+IN — the ABC News election night theme) through `_playEggAudio`; once per run
+(`_projStingPlayed`, New-Game-reset + in `_SL_SCALARS`), silent while the URL is unset.
 State card: `#state_result` (Election Night + final map ONLY — the in-game map uses
 `#state_info`, untouched) is dressed as the ABC '76 per-state graphic by
 `__statePanelTick` (third observer subscriber): "EV / STATE / PRESIDENT" header, then two
