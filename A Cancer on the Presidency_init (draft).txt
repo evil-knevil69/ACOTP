@@ -2156,6 +2156,26 @@ function __mapVisitTick() {
                 text-shadow: 0 -1px 0 rgba(255,255,255,0.5), 0 2px 2px rgba(90,0,0,0.7),
                              0 0 10px rgba(255,205,160,0.8) !important;
             }
+            /* Gentle tube flicker: tiny irregular brightness dips over a long
+               loop so it reads as analogue drift, not a strobe. Opacity-only
+               (compositor-cheap; animating filter would re-rasterize the blur). */
+            @keyframes acopScoreFlicker {
+                0%   { opacity: 1; }
+                6%   { opacity: 0.97; }
+                8%   { opacity: 1; }
+                31%  { opacity: 0.985; }
+                33%  { opacity: 1; }
+                57%  { opacity: 0.96; }
+                59%  { opacity: 0.99; }
+                61%  { opacity: 1; }
+                84%  { opacity: 0.98; }
+                86%  { opacity: 1; }
+                100% { opacity: 1; }
+            }
+            #game_window.acop-final-tv #overall_result {
+                animation: acopScoreFlicker 4.3s linear infinite !important;
+            }
+
             /* the map's CRT scanlines, washed over the scoreboard */
             #game_window.acop-final-tv #overall_result::after {
                 content: '' !important;
