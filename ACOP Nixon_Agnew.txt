@@ -15938,6 +15938,8 @@ window.__onGameWindowMutation(() => {
                     _endAchFired = false;
                     _projStingPlayed = false;
                     _enightStingPlayed = false;
+                    _enightIntroPlayed = false;
+                    _enightIntroArmed = false;
                     // The player may have changed the campaign-length dropdown
                     // between games (Code 1 records it) — re-read + reinstall.
                     _campaignLength = (window._acopCampaignLength in CAMPAIGN_LENGTHS) ? window._acopCampaignLength : 'full';
@@ -16438,6 +16440,7 @@ var _SL_SCALARS = [
     // run counters / flow
     '_questionCount', '_pressureOn', '_allendeSpeechPlayed', '_actionCrimesRevealed',
     '_campaignLength', '_lengthInstalled', '_endAchFired', '_projStingPlayed', '_enightStingPlayed',
+    '_enightIntroPlayed',
     // ticket
     '_president', '_vp', '_ticketStage', 'Nominee',
     // top-line stats
@@ -17012,6 +17015,48 @@ window.__onGameWindowMutation(() => {
         || document.getElementById('overlay_result_button')) return;
     _enightStingPlayed = true;
     _playEggAudio(_ENIGHT_STING_URL);
+});
+
+// ── Opening title animation ──────────────────────────────────────────────────
+// After OK dismisses that opening popup, play a short animation over the map —
+// the title card of the coverage. State machine on the observer: ARM while the
+// opener popup is up (same detection as the sting above), FIRE on the tick
+// where the popup is gone but the tally screen remains. No engine handlers
+// touched. GIF-friendly: gifs don't report an end, so the overlay fades out
+// and removes itself after durationMs. Sits inside #map_container at z-index 1
+// — above the map, under the CRT scanlines (z2) and the TV frame — with
+// pointer-events off so the tally and state clicks are never blocked.
+// Silent/inert while url is unset; once per run, New-Game reset.
+var _ENIGHT_INTRO = {
+    url: '',           // FILL ME IN — gif/webp/apng overlaid on the map
+    durationMs: 4000,  // total time on screen, fades included
+};
+var _enightIntroPlayed = false;
+var _enightIntroArmed = false;   // transient — Election Night can't be saved into
+window.__onGameWindowMutation(() => {
+    if (_enightIntroPlayed || !_ENIGHT_INTRO.url) return;
+    if (!document.getElementById('final_result_button')) { _enightIntroArmed = false; return; }
+    if (document.getElementById('election_night_window')) {
+        if (!document.getElementById('overlay_result_button')) _enightIntroArmed = true;
+        return;
+    }
+    if (!_enightIntroArmed) return;
+    const map = document.getElementById('map_container');
+    if (!map) return;
+    _enightIntroPlayed = true;
+    _enightIntroArmed = false;
+    const img = document.createElement('img');
+    img.id = 'enight-intro-anim';
+    img.src = _ENIGHT_INTRO.url;
+    img.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);'
+        + 'max-width:85%;max-height:85%;z-index:1;pointer-events:none;'
+        + 'opacity:0;transition:opacity 0.4s;';
+    map.appendChild(img);
+    requestAnimationFrame(() => { img.style.opacity = '1'; });
+    setTimeout(() => {
+        img.style.opacity = '0';
+        setTimeout(() => img.remove(), 450);
+    }, Math.max(500, _ENIGHT_INTRO.durationMs - 450));
 });
 
 let nixonClickCount = 0;

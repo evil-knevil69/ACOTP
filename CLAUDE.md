@@ -197,7 +197,12 @@ IN — the ABC News election night theme) through `_playEggAudio`; once per run
 Opening-of-coverage sting, same conventions: `_ENIGHT_STING_URL`/`_enightStingPlayed`
 fires on the advisor popup that opens Election Night ("Election night has arrived.
 Settle in…") — `#election_night_window` + `#final_result_button` WITHOUT
-`#overlay_result_button` (only the 270 popup carries that).
+`#overlay_result_button` (only the 270 popup carries that). Opening title animation
+(`_ENIGHT_INTRO` {url FILL ME IN, durationMs}, `_enightIntroPlayed`): observer state
+machine ARMS while that opener popup is up and FIRES when it's dismissed — an <img>
+overlaid centre-map inside `#map_container` (z1: above the map, under scanlines/frame),
+pointer-events none, fades in/out and self-removes after durationMs (gifs don't report
+an end).
 State card: `#state_result` (Election Night + final map ONLY — the in-game map uses
 `#state_info`, untouched) is dressed as the ABC '76 per-state graphic by
 `__statePanelTick` (third observer subscriber): "EV / STATE / PRESIDENT" header, then two
