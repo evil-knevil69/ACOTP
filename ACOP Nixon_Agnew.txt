@@ -17860,6 +17860,7 @@ document.addEventListener('keydown', (e) => {
         // final map got smoothing + thick strokes but NO state labels.
         const _fBtn = document.getElementById('final_election_map_button');
         if (!document.getElementById('resume_questions_button')
+            && !document.getElementById('final_result_button')   /* Election Night */
             && !(_fBtn && _fBtn.disabled && document.querySelector('#map_container svg'))) return;
         const svg = document.querySelector('#map_container svg');
         if (!svg || svg.querySelector('text.state-label')) return;
@@ -17922,6 +17923,7 @@ document.addEventListener('keydown', (e) => {
         // — separate scope, so inlined here.)
         const _finalBtn = document.getElementById('final_election_map_button');
         const _onMap = document.getElementById('resume_questions_button')
+            || document.getElementById('final_result_button')   /* Election Night */
             || (_finalBtn && _finalBtn.disabled && document.querySelector('#map_container svg'));
         if (!_onMap) return;
         document.getElementById('map_container')?.classList.add('election-map');

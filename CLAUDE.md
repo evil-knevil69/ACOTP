@@ -175,8 +175,14 @@ News broadcast graphic — `__scoreboardTick` (a second observer subscriber) reb
 `<li>` ("Name: EV / PV%") into name/num spans carrying the candidate colour as
 `--pill-color`, appends an "ABC News Projection" footer, and the `.acop-final-tv
 #overall_result` CSS renders gold-framed RECESSED pills, EMBOSSED glowing text, a red
-radial card and CRT scanlines (0.4px blur for the tube softness). Guarded by
-`dataset.acopScored`; one-shot per render.
+radial card and CRT scanlines (0.4px blur for the tube softness). Idempotent PER <li>
+(not one-shot): Election Night rewrites the <ul> every ~2s, so each tick re-dresses only
+unclassed rows; the projection footer is a <div>, NOT a <p> (the engine's
+`$('#overall_result > p').html(…)` tally update would overwrite a <p> footer).
+Election Night (engine `electionNight()`, detected by `#final_result_button` — unique to
+that screen) gets the full treatment too: TV chrome + smoothing gates extended in both
+files, same `.acop-final-tv` class (its footer flex row centres the single
+"Go to Final Results" button).
 
 ### A Cancer on the Presidency_init (draft).txt
 

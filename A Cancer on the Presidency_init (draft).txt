@@ -1706,16 +1706,25 @@ function __isFinalElectionMap() {
     return !!(btn && btn.disabled && document.querySelector('#map_container svg'));
 }
 
+// True on the ELECTION NIGHT screen (engine's electionNight(): the live
+// count-in with "Go to Final Results"). #final_result_button only exists there.
+function __isElectionNight() {
+    return !!document.getElementById('final_result_button');
+}
+
 function __mapVisitTick() {
     const inGameMap = !!document.getElementById('resume_questions_button');
     const finalMap  = __isFinalElectionMap();
-    // The election-night results map gets the SAME TV treatment as the in-game
-    // electoral map (frame + CRT glass + scanlines + SVG smoothing). The only
-    // divergence is the footer — the final map's 6 nav buttons vs the in-game
-    // resume/globe — handled by the .acop-final-tv class + override CSS below.
-    const mapVisible = inGameMap || finalMap;
+    const electionNight = __isElectionNight();
+    // Election Night and the final results map get the SAME TV treatment as
+    // the in-game electoral map (frame + CRT glass + scanlines + smoothing).
+    // Both also share the .acop-final-tv class: it re-lays the footer as a
+    // centred bottom row (6 nav buttons on the final map, the single "Go to
+    // Final Results" button on election night) and dresses the EV readout as
+    // the ABC broadcast scoreboard.
+    const mapVisible = inGameMap || finalMap || electionNight;
     const gw = document.getElementById('game_window');
-    if (gw) gw.classList.toggle('acop-final-tv', finalMap && !inGameMap);
+    if (gw) gw.classList.toggle('acop-final-tv', (finalMap || electionNight) && !inGameMap);
     if (mapVisible) {
         _ensureGsap();
         if (!document.getElementById('logo-hide-style')) {
@@ -2661,19 +2670,21 @@ function __mapVisitTick() {
                         }
 window.__onGameWindowMutation(__mapVisitTick);
 
-// Final election map: dress the electoral-vote readout (#overall_result) as the
-// 1976 ABC broadcast scoreboard — rebuild each <li> ("Name: EV / PV%") into
-// name/num spans carrying the candidate's colour as --pill-color, and append an
-// "ABC News Projection" footer. Styling (gold-framed recessed pills, embossed
-// glow, CRT scanlines) is the .acop-final-tv CSS in logo-hide-style above.
-// One-shot per render, guarded by a dataset flag (a fresh render re-transforms).
+// Election Night + final election map: dress the electoral-vote readout
+// (#overall_result) as the 1976 ABC broadcast scoreboard — rebuild each <li>
+// ("Name: EV / PV%") into name/num spans carrying the candidate's colour as
+// --pill-color, and append an "ABC News Projection" footer. Styling
+// (gold-framed recessed pills, embossed glow, CRT scanlines) is the
+// .acop-final-tv CSS in logo-hide-style above.
+// Idempotent PER <li>, not per panel: Election Night rewrites the <ul> every
+// ~2s as states are called (a one-shot flag would leave the list plain after
+// the first engine update), so each tick re-dresses only unclassed rows.
 function __scoreboardTick() {
-    if (!__isFinalElectionMap()) return;
+    if (!__isFinalElectionMap() && !__isElectionNight()) return;
     const box = document.getElementById('overall_result');
-    if (!box || box.dataset.acopScored) return;
-    const lis = box.querySelectorAll('ul > li');
+    if (!box) return;
+    const lis = box.querySelectorAll('ul > li:not(.acop-score-pill)');
     if (!lis.length) return;
-    box.dataset.acopScored = '1';
     lis.forEach(li => {
         const swatch = li.querySelector('span');
         const color = swatch ? getComputedStyle(swatch).backgroundColor : '';
@@ -2691,7 +2702,10 @@ function __scoreboardTick() {
         li.appendChild(n); li.appendChild(v);
     });
     if (!box.querySelector('.acop-proj')) {
-        const proj = document.createElement('p');
+        // A <div>, NOT a <p>: Election Night's updater rewrites every direct
+        // child p ($('#overall_result > p').html('X% complete…')) each tally
+        // tick — a <p> footer would be overwritten with the percentage text.
+        const proj = document.createElement('div');
         proj.className = 'acop-proj';
         proj.textContent = 'ABC News Projection';
         box.appendChild(proj);
