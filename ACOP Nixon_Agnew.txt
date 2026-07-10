@@ -15514,13 +15514,15 @@ var _MIDTERM = {
       '#_mt_ov .mthead{display:flex;justify-content:space-between;align-items:baseline;max-width:780px;margin:0 auto 6px;border-bottom:1px solid #3d425c;padding-bottom:8px;}'+
       '#_mt_ov .mtlab{font-size:.95rem;font-weight:bold;letter-spacing:.04em;}'+
       '#_mt_ov .mttally{font-size:1.5rem;font-weight:bold;}'+
-      '#_mt_ov .mtd{color:#5b8def;} #_mt_ov .mtr{color:#e0556b;} #_mt_ov .mttally small{font-size:.7rem;color:#9aa3c0;font-weight:normal;}'+
+      /* Party colours use the mod's 1976 convention: DEMOCRATS RED, REPUBLICANS BLUE
+         (matches candidate_json: Nixon #0000FF, the Opposition #ff0000). */
+      '#_mt_ov .mtd{color:#e0556b;} #_mt_ov .mtr{color:#5b8def;} #_mt_ov .mttally small{font-size:.7rem;color:#9aa3c0;font-weight:normal;}'+
       '#_mt_ov .mtcall{max-width:780px;margin:0 auto;font-size:.78rem;color:#9aa3c0;min-height:1.1em;}'+
       '#_mt_ov .mtboard{display:flex;flex-wrap:wrap;gap:6px;max-width:780px;margin:10px auto;justify-content:center;}'+
       '#_mt_ov .mttile{width:60px;height:44px;border-radius:5px;background:#3a3f5c;display:flex;flex-direction:column;'+
       'align-items:center;justify-content:center;font-size:.7rem;color:#aab;transition:background .25s,color .25s;position:relative;}'+
       '#_mt_ov .mttile .ab{font-weight:bold;font-size:.8rem;} #_mt_ov .mttile .mg{font-size:.58rem;opacity:0;transition:opacity .25s;}'+
-      '#_mt_ov .mttile.called .mg{opacity:.85;} #_mt_ov .mttile.D{background:#2f4d8a;color:#dce6ff;} #_mt_ov .mttile.R{background:#8a2f3f;color:#ffdce2;}'+
+      '#_mt_ov .mttile.called .mg{opacity:.85;} #_mt_ov .mttile.D{background:#8a2f3f;color:#ffdce2;} #_mt_ov .mttile.R{background:#2f4d8a;color:#dce6ff;}'+
       '#_mt_ov .mttile.flip{box-shadow:0 0 0 2px #ffd24a;} #_mt_ov .mttile .seat{position:absolute;top:1px;right:3px;font-size:.5rem;color:#ffd24a;}'+
       '#_mt_ov .mtadv{max-width:780px;margin:14px auto;background:#1c2036;border-left:3px solid #5566cc;border-radius:6px;padding:11px 13px;font-size:.85rem;line-height:1.5;color:#cfd6f0;min-height:1.2em;}'+
       '#_mt_ov .mtfoot{max-width:780px;margin:0 auto;display:flex;gap:10px;justify-content:center;}'+
@@ -15535,7 +15537,7 @@ var _MIDTERM = {
       '#_mt_card .nums{display:flex;justify-content:space-between;font-size:1.9rem;font-weight:bold;margin-bottom:8px;}'+
       '#_mt_card .sup{font-size:.8rem;vertical-align:super;color:#9aa3c0;margin-left:3px;}'+
       '#_mt_card .bar{display:flex;height:20px;border-radius:4px;overflow:hidden;position:relative;background:#11131f;}'+
-      '#_mt_card .bd{background:#5b8def;} #_mt_card .br{background:#e0556b;flex:1;} #_mt_card .mk{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#fff;}';
+      '#_mt_card .bd{background:#e0556b;} #_mt_card .br{background:#5b8def;flex:1;} #_mt_card .mk{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#fff;}';
       document.head.appendChild(st);
     }
 
