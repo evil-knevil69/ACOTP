@@ -2074,9 +2074,10 @@ function __mapVisitTick() {
                 background: transparent !important;
                 background-color: transparent !important;
             }
-            /* only the scoreboard's pushpin — the state-results panel keeps
-               its sticky-note look (and pin) even on the TV screens */
-            #game_window.acop-final-tv #overall_result_container-pin { display: none !important; }
+            /* both panels lose their sticky-note pushpins on the TV screens
+               (the state card gets the broadcast treatment below) */
+            #game_window.acop-final-tv #overall_result_container-pin,
+            #game_window.acop-final-tv #state_result_container-pin { display: none !important; }
             #game_window.acop-final-tv #overall_result h3 {
                 text-align: center !important;
                 color: #fdf3e8 !important;
@@ -2185,6 +2186,190 @@ function __mapVisitTick() {
                 z-index: 6 !important;
                 background: repeating-linear-gradient(to bottom,
                     transparent 0px, transparent 2px, rgba(0,0,0,0.15) 3px, rgba(0,0,0,0.15) 4px) !important;
+            }
+
+            /* ── Broadcast state card: #state_result dressed as the ABC '76
+               per-state graphic — red image fading to black at the tube edge,
+               "EV / STATE / PRESIDENT" header, and two gold-rimmed royal-blue
+               panels: candidate names + raw vote counts left, party + % right.
+               __statePanelTick rebuilds the content; undressed shapes (the
+               click-a-state placeholder, "returns not yet available") keep the
+               engine markup and just get the card + broadcast text below. */
+            #game_window.acop-final-tv #state_result_container {
+                transform: none !important;
+                background: transparent !important;
+                background-color: transparent !important;
+                min-height: 0 !important;
+                width: 240px !important;   /* the two panels need more room than the 210px note */
+            }
+            /* beat the base "#state_result_container * { font-family: Georgia }" */
+            #game_window.acop-final-tv #state_result_container * {
+                font-family: 'Arial Rounded MT Bold','Trebuchet MS',Arial,sans-serif !important;
+            }
+            #game_window.acop-final-tv #state_result {
+                position: relative !important;
+                overflow: visible !important;
+                font-family: 'Arial Rounded MT Bold','Trebuchet MS',Arial,sans-serif !important;
+                filter: blur(0.4px) !important;
+                background-color: transparent !important;
+                background: radial-gradient(ellipse 90% 80% at 50% 28%,
+                    #ef3a13 0%, #c01404 52%, #7a0c00 76%, #1a0300 100%) !important;
+                padding: 14px 12px 16px !important;
+                border-radius: 12px !important;
+                box-shadow: inset 0 0 34px 16px #000 !important;
+                /* same gentle tube flicker as the scoreboard, phase-shifted so
+                   the two cards don't dip in unison */
+                animation: acopScoreFlicker 4.3s linear -2.15s infinite !important;
+            }
+            #game_window.acop-final-tv #state_result::after {
+                content: '' !important;
+                position: absolute !important;
+                inset: -4px !important;
+                pointer-events: none !important;
+                z-index: 6 !important;
+                background: repeating-linear-gradient(to bottom,
+                    transparent 0px, transparent 2px, rgba(0,0,0,0.15) 3px, rgba(0,0,0,0.15) 4px) !important;
+            }
+            /* undressed engine markup (placeholder / not-yet-available) */
+            #game_window.acop-final-tv #state_result h3 {
+                text-align: center !important;
+                color: #fdf3e8 !important;
+                font-weight: 900 !important;
+                letter-spacing: 1px !important;
+                text-shadow: 0 -1px 0 rgba(255,255,255,0.5), 0 2px 2px rgba(90,0,0,0.7),
+                             0 0 12px rgba(255,205,160,0.85) !important;
+            }
+            #game_window.acop-final-tv #state_result p {
+                text-align: center !important;
+                color: #f4dfa6 !important;
+                font-weight: 700 !important;
+                font-size: 12px !important;
+                text-shadow: 0 2px 2px rgba(90,30,0,0.7) !important;
+            }
+            /* header: EV count where ABC put "4% PCTS", state + office centred */
+            #game_window.acop-final-tv .acop-sr-head {
+                display: flex !important;
+                align-items: flex-start !important;
+                gap: 8px !important;
+                margin: 0 2px 6px !important;
+            }
+            #game_window.acop-final-tv .acop-sr-evs { text-align: center !important; }
+            #game_window.acop-final-tv .acop-sr-evnum {
+                display: block !important;
+                font-size: 21px !important;
+                font-weight: 900 !important;
+                color: #fdf3e8 !important;
+                text-shadow: 0 -1px 0 rgba(255,255,255,0.5), 0 2px 2px rgba(90,0,0,0.7),
+                             0 0 10px rgba(255,205,160,0.8) !important;
+            }
+            #game_window.acop-final-tv .acop-sr-evlbl {
+                display: block !important;
+                font-size: 9px !important;
+                font-weight: 900 !important;
+                letter-spacing: 2px !important;
+                color: #f4dfa6 !important;
+                text-shadow: 0 1px 1px rgba(90,30,0,0.7) !important;
+            }
+            #game_window.acop-final-tv .acop-sr-title {
+                flex: 1 1 auto !important;
+                min-width: 0 !important;
+                text-align: center !important;
+            }
+            #game_window.acop-final-tv .acop-sr-state {
+                display: block !important;
+                font-size: 19px !important;
+                line-height: 1.05 !important;
+                font-weight: 900 !important;
+                letter-spacing: 1px !important;
+                overflow-wrap: break-word !important;   /* DISTRICT OF COLUMBIA wraps */
+                color: #fdf3e8 !important;
+                text-shadow: 0 -1px 0 rgba(255,255,255,0.5), 0 2px 2px rgba(90,0,0,0.7),
+                             0 0 12px rgba(255,205,160,0.85), 0 0 22px rgba(255,110,50,0.45) !important;
+            }
+            #game_window.acop-final-tv .acop-sr-office {
+                display: block !important;
+                font-size: 10px !important;
+                font-weight: 900 !important;
+                letter-spacing: 4px !important;
+                color: #f4dfa6 !important;
+                text-shadow: 0 1px 1px rgba(90,30,0,0.7), 0 0 8px rgba(255,220,140,0.6) !important;
+            }
+            /* the two gold-rimmed panels; margins keep the ring box-shadows
+               (which take no layout space, ~8px reach) clear of everything */
+            #game_window.acop-final-tv .acop-sr-panels {
+                display: flex !important;
+                align-items: stretch !important;
+                gap: 19px !important;
+                margin: 16px 8px 6px !important;
+            }
+            #game_window.acop-final-tv .acop-sr-main,
+            #game_window.acop-final-tv .acop-sr-side {
+                box-sizing: border-box !important;
+                padding: 8px !important;
+                border-radius: 12px !important;
+                background: #2b2fb3 !important;
+                /* recessed well inside a raised gold rim (slimmer than the pills) */
+                box-shadow:
+                    0 0 0 2px #4e310a,
+                    0 0 0 5px #edbc62,
+                    0 0 0 6px #f6d78e,
+                    0 0 0 8px #6b440e,
+                    inset 0 6px 12px rgba(0,0,0,0.55),
+                    inset 0 2px 3px rgba(0,0,0,0.7),
+                    inset 0 -4px 9px rgba(255,255,255,0.16),
+                    0 4px 9px rgba(0,0,0,0.35) !important;
+            }
+            #game_window.acop-final-tv .acop-sr-main { flex: 1 1 auto !important; min-width: 0 !important; }
+            #game_window.acop-final-tv .acop-sr-side { flex: 0 0 64px !important; }
+            /* fixed-height rows so the % panel lines up with its candidate
+               (beats the base "#state_result_container * { height:auto }") */
+            #game_window.acop-final-tv .acop-sr-row,
+            #game_window.acop-final-tv .acop-sr-prow {
+                height: 42px !important;
+                box-sizing: border-box !important;
+                padding-top: 4px !important;
+            }
+            #game_window.acop-final-tv .acop-sr-name {
+                display: block !important;
+                font-size: 12px !important;
+                font-weight: 900 !important;
+                letter-spacing: 1px !important;
+                text-transform: uppercase !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                text-align: left !important;
+                color: #eef1ff !important;
+                text-shadow: 0 -1px 0 rgba(255,255,255,0.3), 0 2px 2px rgba(0,0,0,0.75) !important;
+            }
+            #game_window.acop-final-tv .acop-sr-votes {
+                display: block !important;
+                font-size: 14px !important;
+                font-weight: 900 !important;
+                letter-spacing: 1px !important;
+                text-align: right !important;
+                color: #f5f7ff !important;
+                text-shadow: 0 -1px 0 rgba(255,255,255,0.3), 0 2px 2px rgba(0,0,0,0.75),
+                             0 0 8px rgba(255,255,255,0.3) !important;
+            }
+            #game_window.acop-final-tv .acop-sr-party {
+                display: block !important;
+                font-size: 9px !important;
+                font-weight: 900 !important;
+                letter-spacing: 1px !important;
+                text-align: center !important;
+                white-space: nowrap !important;
+                color: #ccd4ff !important;
+                text-shadow: 0 1px 1px rgba(0,0,0,0.7) !important;
+            }
+            #game_window.acop-final-tv .acop-sr-pct {
+                display: block !important;
+                font-size: 14px !important;
+                font-weight: 900 !important;
+                text-align: center !important;
+                color: #f5f7ff !important;
+                text-shadow: 0 -1px 0 rgba(255,255,255,0.3), 0 2px 2px rgba(0,0,0,0.75),
+                             0 0 8px rgba(255,255,255,0.3) !important;
             }
             `;
             document.head.appendChild(s);
@@ -2760,6 +2945,84 @@ function __scoreboardTick() {
     }
 }
 window.__onGameWindowMutation(__scoreboardTick);
+
+// Election Night + final election map: dress the per-state readout
+// (#state_result) as the ABC '76 state graphic — "EV / STATE / PRESIDENT"
+// header, candidate names + raw vote counts in the main gold-rimmed panel,
+// party abbreviation + rounded % in the side panel. Styling is the
+// .acop-final-tv state-card CSS in logo-hide-style above.
+// The engine rewrites #state_result's innerHTML on every state click, wiping
+// the dressing — so the tick re-dresses whenever it sees engine result markup
+// (a <ul>) without our .acop-sr-head marker. The engine's markup only carries
+// "Name: 53.4%", so the card is rebuilt from final_state_results (raw votes)
+// + candidate_json (party, colour handled by the panel itself), looked up via
+// the state name the engine wrote into its first <p>. Any lookup failure
+// leaves the engine markup untouched — the CSS alone still gives it the red
+// broadcast-card look, so it fails safe.
+var _ACOP_PARTY_ABBR = {
+    'republican': 'REP.', 'democratic': 'DEM.', 'democrat': 'DEM.',
+    'libertarian': 'LIB.', 'independent': 'IND.', 'the fourth estate': 'PRESS'
+};
+function __statePanelTick() {
+    if (!__isFinalElectionMap() && !__isElectionNight()) return;
+    const box = document.getElementById('state_result');
+    if (!box || box.querySelector('.acop-sr-head') || !box.querySelector('ul')) return;
+    const ct = window.campaignTrail_temp;
+    if (!ct || !ct.states_json || !ct.final_state_results || !ct.candidate_json) return;
+    const nameP = box.querySelector('p');
+    const stateName = nameP ? nameP.textContent.trim() : '';
+    const stateObj = ct.states_json.find(s => s.fields && s.fields.name === stateName);
+    if (!stateObj) return;
+    const sr = ct.final_state_results.find(r => String(r.state) === String(stateObj.pk));
+    if (!sr || !sr.result) return;
+    // mirror the engine's own row selection exactly (same slice, same filter,
+    // same order) so the card always shows what the plain panel would have
+    const rows = sr.result.slice(0, 4).filter(r => r.percent > 0);
+    if (!rows.length) return;
+
+    const el = (tag, cls, text) => {
+        const n = document.createElement(tag);
+        n.className = cls;
+        if (text != null) n.textContent = text;   // textContent only — no injection
+        return n;
+    };
+    const head = el('div', 'acop-sr-head');
+    const evs = Number(stateObj.fields.electoral_votes) || 0;
+    if (evs > 0) {
+        const evBox = el('div', 'acop-sr-evs');
+        evBox.appendChild(el('span', 'acop-sr-evnum', String(evs)));
+        evBox.appendChild(el('span', 'acop-sr-evlbl', evs === 1 ? 'EV' : 'EVS'));
+        head.appendChild(evBox);
+    }
+    const title = el('div', 'acop-sr-title');
+    title.appendChild(el('span', 'acop-sr-state', stateName.toUpperCase()));
+    title.appendChild(el('span', 'acop-sr-office', 'PRESIDENT'));
+    head.appendChild(title);
+
+    const panels = el('div', 'acop-sr-panels');
+    const main = el('div', 'acop-sr-main');
+    const side = el('div', 'acop-sr-side');
+    rows.forEach(r => {
+        const cand = ct.candidate_json.find(c => String(c.pk) === String(r.candidate));
+        const f = (cand && cand.fields) || {};
+        const row = el('div', 'acop-sr-row');
+        row.appendChild(el('div', 'acop-sr-name', (f.last_name || '—').toUpperCase()));
+        row.appendChild(el('div', 'acop-sr-votes', Math.round(r.votes || 0).toLocaleString('en-US')));
+        main.appendChild(row);
+        const prow = el('div', 'acop-sr-prow');
+        prow.appendChild(el('div', 'acop-sr-party',
+            _ACOP_PARTY_ABBR[String(f.party || '').toLowerCase()] || 'IND.'));
+        prow.appendChild(el('div', 'acop-sr-pct', Math.round(100 * (r.percent || 0)) + '%'));
+        side.appendChild(prow);
+    });
+    panels.appendChild(main);
+    panels.appendChild(side);
+
+    box.textContent = '';
+    box.appendChild(head);
+    box.appendChild(panels);
+}
+window.__onGameWindowMutation(__statePanelTick);
 
                 const _gameStartBtn = document.getElementById("game_start");
                 if (_gameStartBtn) _gameStartBtn.addEventListener("click", function() {

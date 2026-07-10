@@ -182,7 +182,21 @@ unclassed rows; the projection footer is a <div>, NOT a <p> (the engine's
 Election Night (engine `electionNight()`, detected by `#final_result_button` — unique to
 that screen) gets the full treatment too: TV chrome + smoothing gates extended in both
 files, same `.acop-final-tv` class (its footer flex row centres the single
-"Go to Final Results" button).
+"Go to Final Results" button). Both cards carry a gentle CRT flicker
+(`acopScoreFlicker`, opacity-only, 4.3s loop; the state card runs it -2.15s out of phase).
+State card: `#state_result` (Election Night + final map ONLY — the in-game map uses
+`#state_info`, untouched) is dressed as the ABC '76 per-state graphic by
+`__statePanelTick` (third observer subscriber): "EV / STATE / PRESIDENT" header, then two
+gold-rimmed royal-blue panels — candidate names + RAW VOTE COUNTS left, party abbr +
+rounded % right (`_ACOP_PARTY_ABBR`; unknown parties → IND.). The engine's click handler
+only writes "Name: 53.4%", so the card is REBUILT from `final_state_results` (`.votes`) +
+`candidate_json` (`party`), looked up by the state name in the engine's first `<p>`; row
+selection mirrors the engine exactly (`result.slice(0,4).filter(percent>0)`, engine
+order). The engine rewrites `#state_result` innerHTML on every state click, so the tick
+re-dresses whenever it sees a `<ul>` without `.acop-sr-head`. Fails safe: placeholder /
+"returns not yet available" / unknown-state markup is left as-is (the CSS alone still
+gives it the red card + broadcast text). Container widened to 240px under
+`.acop-final-tv`; both panels' sticky-note tilt/yellow/pins neutralized there.
 
 ### A Cancer on the Presidency_init (draft).txt
 
