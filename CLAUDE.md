@@ -183,7 +183,14 @@ Election Night (engine `electionNight()`, detected by `#final_result_button` —
 that screen) gets the full treatment too: TV chrome + smoothing gates extended in both
 files, same `.acop-final-tv` class (its footer flex row centres the single
 "Go to Final Results" button). Both cards carry a gentle CRT flicker
-(`acopScoreFlicker`, opacity-only, 4.3s loop; the state card runs it -2.15s out of phase).
+(`acopScoreFlicker`, opacity-only, 4.3s loop; the state card runs it -2.15s out of phase);
+the whole flicker block sits in a `prefers-reduced-motion: no-preference` media query, so
+OS-level "reduce motion" gets steady cards. `__isElectionNight()` also stays true through
+the "Processing Results, wait one moment…" beat (footer swapped, button gone, but
+`#overall_result ul` + map svg still up) — otherwise the TV tore down and the cards
+flashed back to sticky notes between Election Night and the results screens. The TV frame
+PNG + noise gif are in the preloader's idle tier (Code 2) so the first map open doesn't
+pop in.
 State card: `#state_result` (Election Night + final map ONLY — the in-game map uses
 `#state_info`, untouched) is dressed as the ABC '76 per-state graphic by
 `__statePanelTick` (third observer subscriber): "EV / STATE / PRESIDENT" header, then two

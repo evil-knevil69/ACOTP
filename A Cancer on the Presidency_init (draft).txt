@@ -1709,7 +1709,18 @@ function __isFinalElectionMap() {
 // True on the ELECTION NIGHT screen (engine's electionNight(): the live
 // count-in with "Go to Final Results"). #final_result_button only exists there.
 function __isElectionNight() {
-    return !!document.getElementById('final_result_button');
+    if (document.getElementById('final_result_button')) return true;
+    // "Processing Results, wait one moment…": clicking Go to Final Results
+    // replaces the footer (killing the button) while the tally screen is still
+    // up — without this the whole TV tore down for that beat and the cards
+    // flashed back to yellow sticky notes. Only election night and the final
+    // map ever pair a #map_container svg with a #overall_result <ul>; the
+    // in-game map (resume button) and the final screens (which all carry
+    // #final_election_map_button) are excluded explicitly.
+    return !!(document.querySelector('#overall_result ul')
+        && document.querySelector('#map_container svg')
+        && !document.getElementById('resume_questions_button')
+        && !document.getElementById('final_election_map_button'));
 }
 
 function __mapVisitTick() {
@@ -2159,22 +2170,32 @@ function __mapVisitTick() {
             }
             /* Gentle tube flicker: tiny irregular brightness dips over a long
                loop so it reads as analogue drift, not a strobe. Opacity-only
-               (compositor-cheap; animating filter would re-rasterize the blur). */
-            @keyframes acopScoreFlicker {
-                0%   { opacity: 1; }
-                6%   { opacity: 0.97; }
-                8%   { opacity: 1; }
-                31%  { opacity: 0.985; }
-                33%  { opacity: 1; }
-                57%  { opacity: 0.96; }
-                59%  { opacity: 0.99; }
-                61%  { opacity: 1; }
-                84%  { opacity: 0.98; }
-                86%  { opacity: 1; }
-                100% { opacity: 1; }
-            }
-            #game_window.acop-final-tv #overall_result {
-                animation: acopScoreFlicker 4.3s linear infinite !important;
+               (compositor-cheap; animating filter would re-rasterize the blur).
+               Whole block honours the OS "reduce motion" setting — systems that
+               opt out of animation get steady cards (everything else about the
+               broadcast look is static, so nothing else changes). The state
+               card runs the same loop phase-shifted so the two cards don't dip
+               in unison. */
+            @media (prefers-reduced-motion: no-preference) {
+                @keyframes acopScoreFlicker {
+                    0%   { opacity: 1; }
+                    6%   { opacity: 0.97; }
+                    8%   { opacity: 1; }
+                    31%  { opacity: 0.985; }
+                    33%  { opacity: 1; }
+                    57%  { opacity: 0.96; }
+                    59%  { opacity: 0.99; }
+                    61%  { opacity: 1; }
+                    84%  { opacity: 0.98; }
+                    86%  { opacity: 1; }
+                    100% { opacity: 1; }
+                }
+                #game_window.acop-final-tv #overall_result {
+                    animation: acopScoreFlicker 4.3s linear infinite !important;
+                }
+                #game_window.acop-final-tv #state_result {
+                    animation: acopScoreFlicker 4.3s linear -2.15s infinite !important;
+                }
             }
 
             /* the map's CRT scanlines, washed over the scoreboard */
@@ -2217,9 +2238,7 @@ function __mapVisitTick() {
                 padding: 14px 12px 16px !important;
                 border-radius: 12px !important;
                 box-shadow: inset 0 0 34px 16px #000 !important;
-                /* same gentle tube flicker as the scoreboard, phase-shifted so
-                   the two cards don't dip in unison */
-                animation: acopScoreFlicker 4.3s linear -2.15s infinite !important;
+                /* tube flicker: applied in the reduced-motion media block below */
             }
             #game_window.acop-final-tv #state_result::after {
                 content: '' !important;
@@ -3012,7 +3031,10 @@ function __statePanelTick() {
         const prow = el('div', 'acop-sr-prow');
         prow.appendChild(el('div', 'acop-sr-party',
             _ACOP_PARTY_ABBR[String(f.party || '').toLowerCase()] || 'IND.'));
-        prow.appendChild(el('div', 'acop-sr-pct', Math.round(100 * (r.percent || 0)) + '%'));
+        // broadcast-style integers, but a candidate with real votes should
+        // never read "0%" — anything that rounds to zero shows as <1%
+        const p100 = 100 * (r.percent || 0);
+        prow.appendChild(el('div', 'acop-sr-pct', p100 < 0.5 ? '<1%' : Math.round(p100) + '%'));
         side.appendChild(prow);
     });
     panels.appendChild(main);
@@ -4471,6 +4493,12 @@ window.__onGameWindowMutation(() => {
                never overlaps, never grows the container). */
             '#inner_window_4 #opponent_selection_description_window { margin: 5px 0 0 0; padding: 6px 10px; }' +
             '#inner_window_4 #campaign_length_options { margin-top: 0; }' +
+            /* Pull the campaign-length block (select + its description card)
+               a further 20px up toward the voting-method settings. Visual
+               shift only (position:relative) — the flow slot is unchanged, so
+               the checkboxes/buttons below don't move. */
+            '#inner_window_4 #campaign_length_options,' +
+            '#inner_window_4 #campaign_length_description_window { position: relative; top: -20px; }' +
             /* Checkboxes (Expletives Deleted / Educational tooltips / Historicity)
                nudged down 20px; buttons down 15px. position:relative keeps the
                container height fixed and doesn't reflow siblings. */

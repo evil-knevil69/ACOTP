@@ -17961,6 +17961,11 @@ document.addEventListener('keydown', (e) => {
 
     // Tier 2 — panel assets, loaded when user opens Inner Circle / world map
     const _IDLE = [
+        // TV chrome (electoral map / election night / final map) — without
+        // these the first map open shows the map before the frame + noise
+        // pop in over it
+        'https://file.garden/aXPgNT-ZRCxxpy0g/ELECTIONMAPTV.png',
+        'https://file.garden/aXPgNT-ZRCxxpy0g/tvnoise2-ezgif.com-optimize%20(1).gif',
         // Event icons (always-on events shown as soon as world map opens)
         'https://file.garden/aXPgNT-ZRCxxpy0g/Events/Troubles-ezgif.com-optimize.gif',
         'https://file.garden/aXPgNT-ZRCxxpy0g/Events/0331_vietnam9.jpg',
