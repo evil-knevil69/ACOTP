@@ -13366,6 +13366,290 @@ function openInnerCircle() {
     }));
 }
 
+// ── ENEMIES LIST ──────────────────────────────────────────────────────────────
+// (Pattern studied from 1969-1972 Kennedy/Long's "File" pop-out — see the
+// Battlefront/Homefront analysis. Adapted to Nixon: three categories.)
+//
+//   TRAITORS   — political & bureaucratic opponents (Cox, Sirica…).
+//                ACCRETIONAL (added by events/answers) and RE-RANKED: each
+//                carries a live THREAT score; the list sorts by it descending.
+//   HYPOCRITES — the Democratic field for '76. KL-style: an authored CLASS
+//                grade (A–F, static) plus a live standing score that drives
+//                the ranking; hover [?] explains each man's path to the
+//                nomination and shows the live standing. ACCRETIONAL (Udall,
+//                Carter, Brown join later via events) and the section CLOSES
+//                (freezes — no adds, no bumps) when _EN_CLOSE_PK is shown.
+//   THE MEDIA  — accretional only, insertion order, no ranking.
+//
+// Authoring API (call from answer hooks / onShow, or the console):
+//   enemyAdd('Jimmy Carter')          add by roster name (idempotent);
+//                                     category comes from the roster
+//   enemyAdd('Jimmy Carter', 3)       …with a starting score/threat override
+//   enemyBump('Archibald Cox', +2)    bump threat (traitors) / standing
+//                                     (hypocrites); AUTO-ADDS an absent name
+//                                     at its roster default first
+//   Console: window.ACOPEnemies = { add, bump, state, open }
+// Unknown names warn and no-op. Hypocrite adds/bumps after the close are
+// silently ignored. The five starting hypocrites are present from turn one;
+// traitors and media start empty and fill as the game turns on the player.
+//
+// SAVE/LOAD: _ENEMIES is a const container — captured/restored by mutation in
+// _slCaptureMod/_slRestoreMod (via _enemiesSnapshot/_enemiesRestore below).
+// NEW GAME: _enemiesReset() in the reset branch.
+// FILL ME IN: _EN_CLOSE_PK (the pk that settles the Democratic field) and the
+// roster image URLs.
+
+var _EN_CLOSE_PK = null;   // FILL ME IN — pk after which the Hypocrites field is set
+
+var ENEMIES_ROSTER = {
+    // ── Traitors ── threat: default score when first added
+    'Archibald Cox': { cat: 'traitors', img: '', threat: 5,
+        blurb: 'The Professor. Harvard chair, Kennedy man, and now he wants subpoena power. A special prosecutor is a knife the Attorney General holds by the blade.' },
+    'John Sirica': { cat: 'traitors', img: '', threat: 4,
+        blurb: '"Maximum John." A Republican judge, nominally. He sentences like he\'s trying to make men talk — because he is.' },
+    'Sam Ervin': { cat: 'traitors', img: '', threat: 4,
+        blurb: 'Plays the country lawyer on television while running the most dangerous committee on the Hill. The folksier he sounds, the closer he is.' },
+    'John Dean': { cat: 'traitors', img: '', threat: 3,
+        blurb: 'The Counsel knows where everything is. That was the point of him. It is also the problem with him.' },
+    'Mark Felt': { cat: 'traitors', img: '', threat: 2,
+        blurb: 'Hoover\'s heir presumptive, passed over. A man at the Bureau\'s number two desk with a grievance is a leak looking for a reporter.' },
+
+    // ── Hypocrites ── cls: authored grade; score: starting standing;
+    //                  path: the [?] tooltip (their route to the nomination)
+    'Ted Kennedy': { cat: 'hypocrites', img: '', cls: 'A', score: 6,
+        blurb: 'The last brother. The name alone polls better than any record could. Every camera in Washington is a mirror he\'s checking.',
+        path: 'The dynasty\'s claim: money, machine and martyrdom. He leads any field he enters — only Chappaquiddick keeps him honest, and only just.' },
+    'Hubert Humphrey': { cat: 'hypocrites', img: '', cls: 'B', score: 5,
+        blurb: 'The Happy Warrior, still warring. Labor never stopped taking his calls. He\'s buried two eulogies for his own career and given both.',
+        path: 'The waiting game: skip the primaries, keep labor close, and let a deadlocked convention come crawling back to the old warhorse.' },
+    'Scoop Jackson': { cat: 'hypocrites', img: '', cls: 'B', score: 4, label: "Henry 'Scoop' Jackson",
+        blurb: 'The Senator from Boeing. A Democrat with our defense policy and their spending. Dangerous precisely because he isn\'t ridiculous.',
+        path: 'The hard-hat lane: defense, busing backlash and Big Labor. He gains whenever the country wants a Democrat who sounds like a Republican.' },
+    'Frank Church': { cat: 'hypocrites', img: '', cls: 'C', score: 2,
+        blurb: 'The choirboy of the Foreign Relations Committee. Give him one intelligence scandal and he\'ll build a pulpit out of it.',
+        path: 'The investigator\'s route: every secret that surfaces — ours, the Agency\'s, anyone\'s — is another plank in his platform.' },
+    'Birch Bayh': { cat: 'hypocrites', img: '', cls: 'C', score: 2,
+        blurb: 'The liberals\' handyman. Rewrites the Constitution the way other men fix fences. Harmless until the establishment needs a body.',
+        path: 'The establishment-liberal lane: endorsements, ADA ratings and party regulars. He rises if the left needs a safe pair of hands.' },
+    'Mo Udall': { cat: 'hypocrites', img: '', cls: 'B', score: 2,
+        blurb: 'The funny one. Arizona\'s gift to the op-ed page. Wit is what liberals have instead of delegates — usually.',
+        path: 'The clean-liberal lane: if Kennedy stays out and Bayh stumbles, the reform vote consolidates behind the tall one with the jokes.' },
+    'Jimmy Carter': { cat: 'hypocrites', img: '', cls: 'D', score: 0,
+        blurb: 'A peanut farmer. The Governor of Georgia, apparently. Jerry says write the name down anyway. Fine. It\'s written down.',
+        path: 'The outsider\'s route: nobody, from nowhere, promising never to lie. The worse Washington smells, the better nowhere looks.' },
+    'Jerry Brown': { cat: 'hypocrites', img: '', cls: 'D', score: 1,
+        blurb: 'Pat Brown\'s boy, gone strange. Sleeps on a mattress on the floor and calls it philosophy. California finds this charming.',
+        path: 'The novelty lane: youth, austerity and koans. A late entry who feeds on whatever enthusiasm the front-runners have failed to spend.' },
+
+    // ── The Media ──
+    'Bob Woodward': { cat: 'media', img: '',
+        blurb: 'A Metro desk nobody with a Navy haircut and a source he meets in parking garages. Metro. Desk. Nobody.' },
+    'Carl Bernstein': { cat: 'media', img: '',
+        blurb: 'The other one. Long hair, no degree, dials phones like a debt collector. Between the two of them there is one complete reporter, which is one too many.' },
+    'Katharine Graham': { cat: 'media', img: '',
+        blurb: 'She owns the Post and half of Georgetown\'s dinner conversation. The paper prints what the parties she hosts already believe.' },
+    'Jack Anderson': { cat: 'media', img: '',
+        blurb: 'The columnist. Nine hundred papers, no scruples, and files that should not exist. He\'s been a problem since Eisenhower.' },
+    'Daniel Schorr': { cat: 'media', img: '',
+        blurb: 'CBS\'s house prosecutor. Reads indictments on the evening news in the voice other men reserve for scripture.' },
+};
+
+var _EN_START_HYPOCRITES = ['Ted Kennedy', 'Hubert Humphrey', 'Scoop Jackson', 'Frank Church', 'Birch Bayh'];
+
+const _ENEMIES = {
+    traitors: {},     // name -> threat score
+    hypocrites: {},   // name -> standing score
+    media: [],        // names, insertion order
+    closed: false,    // Hypocrites field settled (no more adds/bumps)
+};
+
+function _enemiesReset() {
+    Object.keys(_ENEMIES.traitors).forEach(k => { delete _ENEMIES.traitors[k]; });
+    Object.keys(_ENEMIES.hypocrites).forEach(k => { delete _ENEMIES.hypocrites[k]; });
+    _ENEMIES.media.length = 0;
+    _ENEMIES.closed = false;
+    _EN_START_HYPOCRITES.forEach(n => { _ENEMIES.hypocrites[n] = ENEMIES_ROSTER[n].score || 0; });
+}
+_enemiesReset();   // starting state at load
+
+function _enemiesSnapshot() {
+    return JSON.parse(JSON.stringify(_ENEMIES));
+}
+function _enemiesRestore(m) {
+    if (!m) { _enemiesReset(); return; }   // pre-feature save: back to the starting field
+    Object.keys(_ENEMIES.traitors).forEach(k => { delete _ENEMIES.traitors[k]; });
+    Object.assign(_ENEMIES.traitors, m.traitors || {});
+    Object.keys(_ENEMIES.hypocrites).forEach(k => { delete _ENEMIES.hypocrites[k]; });
+    Object.assign(_ENEMIES.hypocrites, m.hypocrites || {});
+    _ENEMIES.media.length = 0;
+    (m.media || []).forEach(n => _ENEMIES.media.push(n));
+    _ENEMIES.closed = !!m.closed;
+}
+
+function enemyAdd(name, startAt) {
+    const def = ENEMIES_ROSTER[name];
+    if (!def) { console.warn('[enemies] unknown name: ' + name); return false; }
+    if (def.cat === 'media') {
+        if (_ENEMIES.media.indexOf(name) === -1) _ENEMIES.media.push(name);
+        return true;
+    }
+    if (def.cat === 'hypocrites' && _ENEMIES.closed) return false;   // field is set
+    const bucket = _ENEMIES[def.cat];
+    if (!(name in bucket)) {
+        bucket[name] = (startAt != null) ? startAt
+            : (def.cat === 'traitors' ? (def.threat || 0) : (def.score || 0));
+    }
+    return true;
+}
+
+function enemyBump(name, delta) {
+    const def = ENEMIES_ROSTER[name];
+    if (!def) { console.warn('[enemies] unknown name: ' + name); return false; }
+    if (def.cat === 'media') return enemyAdd(name);   // no scores — treat as an add
+    if (def.cat === 'hypocrites' && _ENEMIES.closed) return false;
+    if (!enemyAdd(name)) return false;                // accretional: bump implies presence
+    _ENEMIES[def.cat][name] += (delta || 0);
+    return true;
+}
+
+window.ACOPEnemies = {
+    add: enemyAdd,
+    bump: enemyBump,
+    state: () => _ENEMIES,
+    open: () => openEnemiesPanel(document.querySelector('.inner_window_question')),
+};
+
+// KL's grade palette (A hot -> F cold-blooded)
+var _EN_CLS_COLOR = { A: '#D9321E', B: '#D3C683', C: '#2DD543', D: '#8CBADB', F: '#8f1204' };
+// Traitor threat label from the live score
+function _enThreatLabel(t) {
+    if (t >= 8) return { txt: 'CRITICAL', color: '#8f1204' };
+    if (t >= 5) return { txt: 'SEVERE',   color: '#D9321E' };
+    if (t >= 3) return { txt: 'HIGH',     color: '#e07b39' };
+    if (t >= 1) return { txt: 'ELEVATED', color: '#D3C683' };
+    return { txt: 'LOW', color: '#2DD543' };
+}
+
+;(() => {
+    const st = document.createElement('style');
+    st.textContent = `
+        #enemies_panel {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png');
+            background-size: cover;
+            background-position: center;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 12px 8px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+        #enemies_panel h2 {
+            font-family: 'TypewriterDry', sans-serif;
+            text-align: center;
+            margin: 0 0 10px;
+            font-size: 18px;
+        }
+        .en-columns { display: flex; gap: 10px; align-items: flex-start; margin: 0 auto; max-width: 980px; }
+        .en-col { flex: 1 1 0; min-width: 0; }
+        .en-section-h {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 15px;
+            letter-spacing: 1px;
+            margin: 2px 0 0;
+            border-bottom: 1px solid #555;
+            padding-bottom: 2px;
+        }
+        .en-section-sub {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 10.5px;
+            color: #444;
+            margin: 2px 0 6px;
+        }
+        .en-card {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 7px;
+            border: 1px solid #888;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.84);
+            box-shadow: 1px 1px 4px rgba(0,0,0,0.18);
+            padding: 6px;
+            margin-bottom: 6px;
+        }
+        .en-photo {
+            width: 52px; height: 52px; flex: 0 0 52px;
+            border-radius: 3px; background: #ccc; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'TypewriterDry', sans-serif; font-size: 9px; color: #666;
+        }
+        .en-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .en-body { min-width: 0; }
+        .en-name { font-family: 'TypewriterDry', sans-serif; font-size: 13px; font-weight: bold; margin: 0; }
+        .en-grade { font-family: 'TypewriterDry', sans-serif; font-size: 11px; font-weight: bold; margin: 0 0 2px; }
+        .en-blurb { font-family: 'TypewriterDry', sans-serif; font-size: 10.5px; line-height: 1.3; margin: 0; color: #222; }
+        .en-empty { font-family: 'TypewriterDry', sans-serif; font-size: 11px; color: #666; margin: 6px 0; }
+        .en-tip {
+            position: absolute; top: 4px; right: 6px;
+            font-family: 'TypewriterDry', sans-serif; font-size: 11px;
+            color: #2361a8; cursor: help; font-weight: bold;
+        }
+        .en-tipbox {
+            position: absolute; z-index: 200; right: 0; top: 18px;
+            width: 210px; background: #201d18; color: #f0e9db;
+            border: 1px solid #6b5a33; border-radius: 3px;
+            font-family: 'TypewriterDry', sans-serif; font-size: 10.5px;
+            line-height: 1.35; padding: 7px 8px; pointer-events: none;
+        }
+        .en-closed-note {
+            font-family: 'TypewriterDry', sans-serif; font-size: 10.5px;
+            color: #7a1010; margin: 0 0 6px;
+        }
+    `;
+    document.head.appendChild(st);
+})();
+
+function _enCard(name, gradeHtmlParts) {
+    const def = ENEMIES_ROSTER[name] || {};
+    const card = document.createElement('div');
+    card.className = 'en-card';
+    const photo = document.createElement('div');
+    photo.className = 'en-photo';
+    if (def.img) {
+        const im = document.createElement('img');
+        im.src = def.img;
+        photo.appendChild(im);
+    } else {
+        photo.textContent = 'PHOTO';
+    }
+    card.appendChild(photo);
+    const body = document.createElement('div');
+    body.className = 'en-body';
+    const nm = document.createElement('p');
+    nm.className = 'en-name';
+    nm.textContent = def.label || name;
+    body.appendChild(nm);
+    if (gradeHtmlParts) {
+        const gr = document.createElement('p');
+        gr.className = 'en-grade';
+        gr.appendChild(document.createTextNode(gradeHtmlParts.label + ' '));
+        const val = document.createElement('span');
+        val.style.color = gradeHtmlParts.color;
+        val.textContent = gradeHtmlParts.value;
+        gr.appendChild(val);
+        body.appendChild(gr);
+    }
+    const bl = document.createElement('p');
+    bl.className = 'en-blurb';
+    bl.textContent = def.blurb || '';
+    body.appendChild(bl);
+    card.appendChild(body);
+    return card;
+}
+
 function openEnemiesPanel(questions) {
     document.getElementById('enemies_panel')?.remove();
 
@@ -13373,20 +13657,85 @@ function openEnemiesPanel(questions) {
     panel.id = 'enemies_panel';
 
     const title = document.createElement('h2');
-    title.textContent = "Enemies List";
+    title.textContent = 'Enemies List';
     panel.appendChild(title);
 
-    const list = document.createElement('div');
-    list.className = 'enemies-list';
+    const cols = document.createElement('div');
+    cols.className = 'en-columns';
 
-    const placeholder = document.createElement('p');
-    placeholder.style.fontFamily = "'TypewriterDry', sans-serif";
-    placeholder.style.fontSize = '16px';
-    placeholder.style.color = '#555';
-    placeholder.textContent = '— No enemies tracked yet —';
-    list.appendChild(placeholder);
+    const mkCol = (heading, sub) => {
+        const col = document.createElement('div');
+        col.className = 'en-col';
+        const h = document.createElement('h3');
+        h.className = 'en-section-h';
+        h.textContent = heading;
+        col.appendChild(h);
+        const s = document.createElement('p');
+        s.className = 'en-section-sub';
+        s.textContent = sub;
+        col.appendChild(s);
+        return col;
+    };
+    const mkEmpty = (col, txt) => {
+        const p = document.createElement('p');
+        p.className = 'en-empty';
+        p.textContent = txt;
+        col.appendChild(p);
+    };
 
-    panel.appendChild(list);
+    // ── Traitors: sorted by live threat, descending ──
+    const colT = mkCol('TRAITORS', 'Those working against you from within.');
+    const traitors = Object.entries(_ENEMIES.traitors).sort((a, b) => b[1] - a[1]);
+    if (!traitors.length) mkEmpty(colT, '— none identified. Yet. —');
+    traitors.forEach(([name, threat]) => {
+        const lv = _enThreatLabel(threat);
+        colT.appendChild(_enCard(name, { label: 'THREAT:', value: lv.txt, color: lv.color }));
+    });
+    cols.appendChild(colT);
+
+    // ── Hypocrites: authored CLASS grade, ranked by live standing ──
+    const colH = mkCol('HYPOCRITES', 'The Democratic field. One of them thinks he\'s next.');
+    if (_ENEMIES.closed) {
+        const note = document.createElement('p');
+        note.className = 'en-closed-note';
+        note.textContent = 'The field is set.';
+        colH.appendChild(note);
+    }
+    const hyps = Object.entries(_ENEMIES.hypocrites).sort((a, b) => b[1] - a[1]);
+    if (!hyps.length) mkEmpty(colH, '— nobody worth the ink —');
+    hyps.forEach(([name, score]) => {
+        const def = ENEMIES_ROSTER[name] || {};
+        const card = _enCard(name, {
+            label: 'CLASS:', value: def.cls || '?',
+            color: _EN_CLS_COLOR[def.cls] || '#555',
+        });
+        // [?] hover: the man's path to the nomination + his live standing
+        if (def.path) {
+            const tip = document.createElement('span');
+            tip.className = 'en-tip';
+            tip.textContent = '[?]';
+            tip.addEventListener('mouseenter', () => {
+                const box = document.createElement('div');
+                box.className = 'en-tipbox';
+                box.textContent = def.path + ' (Standing: ' + _ENEMIES.hypocrites[name] + ')';
+                tip.appendChild(box);
+            });
+            tip.addEventListener('mouseleave', () => {
+                tip.querySelector('.en-tipbox')?.remove();
+            });
+            card.appendChild(tip);
+        }
+        colH.appendChild(card);
+    });
+    cols.appendChild(colH);
+
+    // ── The Media: accretion order, no ranking ──
+    const colM = mkCol('THE MEDIA', 'They were never on your side.');
+    if (!_ENEMIES.media.length) mkEmpty(colM, '— quiet. For now. —');
+    _ENEMIES.media.forEach(name => colM.appendChild(_enCard(name, null)));
+    cols.appendChild(colM);
+
+    panel.appendChild(cols);
 
     const btnRow = document.createElement('div');
     btnRow.className = 'ic-panel-buttons';
@@ -15957,6 +16306,7 @@ window.__onGameWindowMutation(() => {
                     Object.keys(COUNTRY_LOYAL).forEach(c => { window[c + '_STAB'] = 0; });
                     _president = 'nixon'; _vp = 'agnew'; _ticketStage = 1; _refreshTicket();
                     _actionCrimes.length = 0; _actionCrimesRevealed = false;
+                    _enemiesReset();
                 }
                 _lastQNum = _gs.question_number;
 
@@ -15970,6 +16320,9 @@ window.__onGameWindowMutation(() => {
                     _questionCount++;
                     _runTurnTicks();
                     const qd = (currentPK != null && questionData[currentPK]) || {};
+                    // Enemies list: the pk that settles the Democratic field —
+                    // Hypocrites freeze (no further adds or bumps).
+                    if (_EN_CLOSE_PK != null && currentPK === _EN_CLOSE_PK) _ENEMIES.closed = true;
                     if (qd.signImg) changeImage(qd.signImg);
                     _newEvents.clear();
                     if (qd.onShow) qd.onShow();
@@ -16515,6 +16868,7 @@ function _slCaptureMod() {
         reshuffle: JSON.parse(JSON.stringify({ active: _RESHUFFLE.active, pending: _RESHUFFLE.pending })),
         midtermFired: _MIDTERM._fired,
         eventDebutPk: Object.assign({}, _wmEventDebutPk),
+        enemies: _enemiesSnapshot(),
     };
 }
 
@@ -16545,6 +16899,7 @@ function _slRestoreMod(m) {
     _MIDTERM._fired = !!m.midtermFired;
     Object.keys(_wmEventDebutPk).forEach(k => { delete _wmEventDebutPk[k]; });
     Object.assign(_wmEventDebutPk, m.eventDebutPk || {});
+    _enemiesRestore(m.enemies);   // absent on a pre-feature save -> starting field
     _refreshTicket();
 }
 

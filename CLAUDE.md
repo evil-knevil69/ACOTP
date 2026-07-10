@@ -217,6 +217,23 @@ re-dresses whenever it sees a `<ul>` without `.acop-sr-head`. Fails safe: placeh
 gives it the red card + broadcast text). Container widened to 240px under
 `.acop-final-tv`; both panels' sticky-note tilt/yellow/pins neutralized there.
 
+**15. Enemies List (Jul 2026, pattern from 1969-1972 Kennedy/Long's "File" pop-out)**
+`openEnemiesPanel` (Enemies/Friends → Enemies List) now renders three columns from
+`ENEMIES_ROSTER` + the `_ENEMIES` state container (Code 2, just before the Officials
+panel data): TRAITORS (accretional + re-ranked by live `threat` score → label
+CRITICAL/SEVERE/HIGH/ELEVATED/LOW), HYPOCRITES (the '76 Democratic field: authored
+KL-style CLASS grade A–F + live `score` drives ranking; `[?]` hover = path-to-nomination
+text + live Standing; starts with Kennedy/Humphrey/Jackson/Church/Bayh; Udall/Carter/
+Brown join via events; section FREEZES at `_EN_CLOSE_PK` — FILL ME IN), THE MEDIA
+(accretional only, insertion order). Authoring API: `enemyAdd(name[, startAt])`,
+`enemyBump(name, delta)` (auto-adds absent names at roster default; media bump == add;
+unknown names warn + no-op; hypocrite ops ignored after close). Console:
+`window.ACOPEnemies`. Save/load: `_ENEMIES` is a const container —
+`_enemiesSnapshot()/_enemiesRestore()` wired into `_slCaptureMod/_slRestoreMod`
+(pre-feature saves fall back to the starting field); New Game reset calls
+`_enemiesReset()`. Roster `img` URLs are all '' (FILL ME IN). ADD NEW PEOPLE TO
+`ENEMIES_ROSTER`, not to the panel code.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
