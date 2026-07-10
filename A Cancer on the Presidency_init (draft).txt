@@ -2057,12 +2057,26 @@ function __mapVisitTick() {
                 overflow: visible !important;
                 font-family: 'Arial Rounded MT Bold','Trebuchet MS',Arial,sans-serif !important;
                 filter: blur(0.4px) !important;   /* CRT soft-focus (like the reference photo) */
-                /* self-contained red broadcast card */
-                background: radial-gradient(ellipse 90% 80% at 50% 28%, #ef3a13 0%, #c01404 58%, #8f0e00 100%) !important;
-                padding: 10px 16px 14px !important;
-                border-radius: 10px !important;
-                box-shadow: inset 0 0 60px 12px rgba(80,0,0,0.5), 0 6px 20px rgba(0,0,0,0.55) !important;
+                /* red broadcast image whose edges fade to black, like the
+                   picture reaching the edge of a TV tube — no card border */
+                background-color: transparent !important;   /* beat the base #FFFF99 longhand */
+                background: radial-gradient(ellipse 90% 80% at 50% 28%,
+                    #ef3a13 0%, #c01404 52%, #7a0c00 76%, #1a0300 100%) !important;
+                padding: 14px 12px 16px !important;
+                border-radius: 12px !important;
+                box-shadow: inset 0 0 34px 16px #000 !important;
             }
+            /* The in-game map dresses this panel as a tilted yellow sticky note
+               (base CSS: #FFFF99 + rotateZ(-1deg) + pushpin). On the TV screens
+               it must sit straight and flush with the broadcast image. */
+            #game_window.acop-final-tv #overall_result_container {
+                transform: none !important;
+                background: transparent !important;
+                background-color: transparent !important;
+            }
+            /* only the scoreboard's pushpin — the state-results panel keeps
+               its sticky-note look (and pin) even on the TV screens */
+            #game_window.acop-final-tv #overall_result_container-pin { display: none !important; }
             #game_window.acop-final-tv #overall_result h3 {
                 text-align: center !important;
                 color: #fdf3e8 !important;
@@ -2080,10 +2094,11 @@ function __mapVisitTick() {
                 display: flex !important;
                 justify-content: space-between !important;
                 align-items: center !important;
+                gap: 8px !important;   /* long names must never touch the number */
                 box-sizing: border-box !important;
                 height: 40px !important;
                 margin: 24px 3px !important;   /* collapses to 24px between pills; clears the ~18px of gold rings */
-                padding: 0 16px !important;
+                padding: 0 11px !important;
                 border-radius: 999px !important;
                 background: var(--pill-color, #182365) !important;
                 color: #f2f4ff !important;
@@ -2102,8 +2117,21 @@ function __mapVisitTick() {
             #game_window.acop-final-tv #overall_result .acop-pill-num {
                 font-weight: 900 !important;
                 letter-spacing: 1px !important;
-                font-size: 17px !important;
+                font-size: 15px !important;
                 text-transform: uppercase !important;
+                white-space: nowrap !important;
+            }
+            /* The NUMBER is the datum — it never shrinks or truncates. The name
+               yields: it flexes, and ellipsizes only if it truly cannot fit. */
+            #game_window.acop-final-tv #overall_result .acop-pill-name {
+                flex: 1 1 auto !important;
+                min-width: 0 !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                text-align: left !important;
+            }
+            #game_window.acop-final-tv #overall_result .acop-pill-num {
+                flex: 0 0 auto !important;
                 /* embossed: tight top highlight + hard bottom shadow + soft glow */
                 text-shadow: 0 -1px 0 rgba(255,255,255,0.3), 0 2px 2px rgba(0,0,0,0.75),
                              0 0 8px rgba(255,255,255,0.32) !important;
