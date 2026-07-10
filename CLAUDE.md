@@ -225,7 +225,8 @@ CRITICAL/SEVERE/HIGH/ELEVATED/LOW), HYPOCRITES (the '76 Democratic field: author
 KL-style CLASS grade A–F + live `score` drives ranking; `[?]` hover = path-to-nomination
 text + live Standing; starts with Kennedy/Humphrey/Jackson/Church/Bayh; Udall/Carter/
 Brown join via events; section FREEZES at `_EN_CLOSE_PK` — FILL ME IN), THE MEDIA
-(accretional only, insertion order). Authoring API: `enemyAdd(name[, startAt])`,
+(accretional only, insertion order; starts with 'Woodward & Bernstein' — ONE entry for
+the pair, via `_EN_START_MEDIA`). Full handoff/authoring doc: `ENEMIES_LIST.md`. Authoring API: `enemyAdd(name[, startAt])`,
 `enemyBump(name, delta)` (auto-adds absent names at roster default; media bump == add;
 unknown names warn + no-op; hypocrite ops ignored after close). Console:
 `window.ACOPEnemies`. Save/load: `_ENEMIES` is a const container —

@@ -13390,8 +13390,9 @@ function openInnerCircle() {
 //                                     at its roster default first
 //   Console: window.ACOPEnemies = { add, bump, state, open }
 // Unknown names warn and no-op. Hypocrite adds/bumps after the close are
-// silently ignored. The five starting hypocrites are present from turn one;
-// traitors and media start empty and fill as the game turns on the player.
+// silently ignored. The five starting hypocrites and Woodward & Bernstein
+// (one media entry for the pair) are present from turn one; traitors start
+// empty and fill as the game turns on the player.
 //
 // SAVE/LOAD: _ENEMIES is a const container — captured/restored by mutation in
 // _slCaptureMod/_slRestoreMod (via _enemiesSnapshot/_enemiesRestore below).
@@ -13442,10 +13443,8 @@ var ENEMIES_ROSTER = {
         path: 'The novelty lane: youth, austerity and koans. A late entry who feeds on whatever enthusiasm the front-runners have failed to spend.' },
 
     // ── The Media ──
-    'Bob Woodward': { cat: 'media', img: '',
-        blurb: 'A Metro desk nobody with a Navy haircut and a source he meets in parking garages. Metro. Desk. Nobody.' },
-    'Carl Bernstein': { cat: 'media', img: '',
-        blurb: 'The other one. Long hair, no degree, dials phones like a debt collector. Between the two of them there is one complete reporter, which is one too many.' },
+    'Woodward & Bernstein': { cat: 'media', img: '',
+        blurb: '"Woodstein." A Metro desk nobody with a Navy haircut, and a long-haired partner who dials phones like a debt collector. Between the two of them there is one complete reporter, which is one too many.' },
     'Katharine Graham': { cat: 'media', img: '',
         blurb: 'She owns the Post and half of Georgetown\'s dinner conversation. The paper prints what the parties she hosts already believe.' },
     'Jack Anderson': { cat: 'media', img: '',
@@ -13455,6 +13454,7 @@ var ENEMIES_ROSTER = {
 };
 
 var _EN_START_HYPOCRITES = ['Ted Kennedy', 'Hubert Humphrey', 'Scoop Jackson', 'Frank Church', 'Birch Bayh'];
+var _EN_START_MEDIA = ['Woodward & Bernstein'];   // on the list from day one
 
 const _ENEMIES = {
     traitors: {},     // name -> threat score
@@ -13469,6 +13469,7 @@ function _enemiesReset() {
     _ENEMIES.media.length = 0;
     _ENEMIES.closed = false;
     _EN_START_HYPOCRITES.forEach(n => { _ENEMIES.hypocrites[n] = ENEMIES_ROSTER[n].score || 0; });
+    _EN_START_MEDIA.forEach(n => { _ENEMIES.media.push(n); });
 }
 _enemiesReset();   // starting state at load
 
