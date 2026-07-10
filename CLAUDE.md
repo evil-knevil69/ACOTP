@@ -194,6 +194,10 @@ pop in. Projection sting: when the outcome popup fires at 270 (engine `showOutco
 detected by its unique `#overlay_result_button`), Code 2 plays `_PROJ_STING_URL` (FILL ME
 IN — the ABC News election night theme) through `_playEggAudio`; once per run
 (`_projStingPlayed`, New-Game-reset + in `_SL_SCALARS`), silent while the URL is unset.
+Opening-of-coverage sting, same conventions: `_ENIGHT_STING_URL`/`_enightStingPlayed`
+fires on the advisor popup that opens Election Night ("Election night has arrived.
+Settle in…") — `#election_night_window` + `#final_result_button` WITHOUT
+`#overlay_result_button` (only the 270 popup carries that).
 State card: `#state_result` (Election Night + final map ONLY — the in-game map uses
 `#state_info`, untouched) is dressed as the ABC '76 per-state graphic by
 `__statePanelTick` (third observer subscriber): "EV / STATE / PRESIDENT" header, then two

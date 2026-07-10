@@ -15937,6 +15937,7 @@ window.__onGameWindowMutation(() => {
                     window.__resetSoundtrack?.();
                     _endAchFired = false;
                     _projStingPlayed = false;
+                    _enightStingPlayed = false;
                     // The player may have changed the campaign-length dropdown
                     // between games (Code 1 records it) — re-read + reinstall.
                     _campaignLength = (window._acopCampaignLength in CAMPAIGN_LENGTHS) ? window._acopCampaignLength : 'full';
@@ -16436,7 +16437,7 @@ document.addEventListener('mouseleave', () => {
 var _SL_SCALARS = [
     // run counters / flow
     '_questionCount', '_pressureOn', '_allendeSpeechPlayed', '_actionCrimesRevealed',
-    '_campaignLength', '_lengthInstalled', '_endAchFired', '_projStingPlayed',
+    '_campaignLength', '_lengthInstalled', '_endAchFired', '_projStingPlayed', '_enightStingPlayed',
     // ticket
     '_president', '_vp', '_ticketStage', 'Nominee',
     // top-line stats
@@ -16993,6 +16994,24 @@ window.__onGameWindowMutation(() => {
     if (!document.getElementById('overlay_result_button')) return;
     _projStingPlayed = true;
     _playEggAudio(_PROJ_STING_URL);
+});
+
+// And the OPENING of coverage: the advisor popup that greets the player as
+// Election Night begins ("Election night has arrived. Settle in and wait for
+// the returns…"). Same engine overlay (#election_night_window over the tally
+// screen's #final_result_button), distinguished from the 270-crossing
+// projection popup by the ABSENCE of #overlay_result_button — only that later
+// popup carries it. Same conventions as above: once per run, silent while the
+// URL is unset, tape ducked/restored via _playEggAudio.
+var _ENIGHT_STING_URL = '';   // FILL ME IN — the opening-of-coverage theme
+var _enightStingPlayed = false;
+window.__onGameWindowMutation(() => {
+    if (_enightStingPlayed || !_ENIGHT_STING_URL) return;
+    if (!document.getElementById('final_result_button')
+        || !document.getElementById('election_night_window')
+        || document.getElementById('overlay_result_button')) return;
+    _enightStingPlayed = true;
+    _playEggAudio(_ENIGHT_STING_URL);
 });
 
 let nixonClickCount = 0;
