@@ -247,8 +247,9 @@ auto-drafted from `CTS_Questions.docx` — everyone NAMED in the questions so fa
 lacked a tooltip, EXCEPT the President's Men chart cards (which deliberately have none).
 Bodies are first-draft (revise + add photos); block is comment-fenced "PLACEHOLDER
 tooltips" right before the alias-expansion pass. Triggers avoid short/ambiguous words
-(no bare Pat/John/Nelson/Al/Wilson/Jack/Kay). 181 matchers total, no duplicate triggers;
-verified 93 distinct people resolve against the real question text with no false hits.
+(no bare Pat/John/Nelson/Al/Wilson/Jack/Kay). Nixon (the protagonist) and Agnew (the VP,
+has a candidate card) are deliberately excluded. No duplicate triggers; verified 92
+distinct people resolve against the real question text with no false hits.
 
 **19. President's Men: exposure-radiation glow on the chart wires (Jul 2026)**
 `_drawOrgLinks` now paints an ember glow under any connector currently carrying exposure

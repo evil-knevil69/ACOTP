@@ -16837,8 +16837,6 @@ const tooltipList = [
       body: "Your pugnacious speechwriter and in-house hardliner. Writes the red meat, keeps the grudges warm, and never met a culture war he didn't like." },
     { searchStrings: ["Rose Mary Woods", "Rose Mary"], img: null, label: "Rose Mary Woods",
       body: "Your fiercely loyal personal secretary since the 1950s. Guards your diary, your calls and your confidence — and, one day, a certain stretch of tape." },
-    { searchStrings: ["Spiro Agnew", "Agnew"], img: null, label: "Spiro Agnew",
-      body: "Your Vice President — an over-promoted Maryland machine pol with a gift for sonorous invective against the media. Believes '76 is his, and cannot see the corruption case gathering around him." },
 
     // ── Watergate figures (not on the chart) ──
     { searchStrings: ["John Sirica", "Sirica"], img: null, label: "John Sirica",
