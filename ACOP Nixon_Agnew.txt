@@ -12108,7 +12108,7 @@ var LaRueSTATUS = 5;
 var StansSTATUS = 5;
 var KalmbachSTATUS = 5;
 var KleindienstSTATUS = 5;
-var ColsonSTATUS = 4;
+var ColsonSTATUS = 5;   // active (was 4 = cut loose)
 var Command = 0;
 var LawandOrder = 1;
 var Haldemanloyalty = 10;
@@ -15208,7 +15208,52 @@ var _RESHUFFLE = {
             if (typeof _taHandleNodeClick === 'function' && _taHandleNodeClick(node)) return;
             if (!node.classList.contains('nw-flipped')) _updateOrgBack(node);
             node.classList.toggle('nw-flipped');
+            _hideOrgTip();   // the flipped card-back takes over from the tooltip
         });
+
+        // Hover = a quick read of the card-back stats without flipping.
+        // ONE tooltip element on <body> (the chart's flip transforms would
+        // clip/skew a child), refilled with LIVE values on every entry.
+        // Suppressed on an already-flipped card (its back is showing) and on
+        // people with no tracked stats. Reopening the panel replaces the tip.
+        document.getElementById('nw-hover-tip')?.remove();
+        const orgTip = document.createElement('div');
+        orgTip.id = 'nw-hover-tip';
+        orgTip.style.cssText = 'position:fixed;z-index:10001;display:none;pointer-events:none;'
+            + 'background:#201d18;color:#f0e9db;border:1px solid #6b5a33;border-radius:3px;'
+            + "font-family:'TypewriterDry',monospace;font-size:12px;line-height:1.45;padding:6px 10px;"
+            + 'box-shadow:2px 2px 6px rgba(0,0,0,0.45);white-space:nowrap;';
+        document.body.appendChild(orgTip);
+        function _hideOrgTip() { orgTip.style.display = 'none'; }
+        wrapper.addEventListener('mouseover', function(e) {
+            const node = e.target.closest('.nw-node');
+            if (!node || node.classList.contains('nw-flipped')) { _hideOrgTip(); return; }
+            const id = node.dataset.person;
+            const rows = [];
+            if (id === 'Nixon') {
+                rows.push(['Watergate Exposure', WatergateExposure + ' / 20']);
+            } else {
+                const loyalty  = window._getOrgStat(id, 'loyalty');
+                const exposure = window._getOrgStat(id, 'exposure');
+                if (loyalty  != null) rows.push(['Loyalty',  loyalty  + ' / 10']);
+                if (exposure != null) rows.push(['Exposure', exposure + ' / 10']);
+            }
+            if (!rows.length) { _hideOrgTip(); return; }
+            orgTip.textContent = '';
+            rows.forEach(([k, v]) => {
+                const line = document.createElement('div');
+                const b = document.createElement('b');
+                b.textContent = k + ': ';
+                line.appendChild(b);
+                line.appendChild(document.createTextNode(v));
+                orgTip.appendChild(line);
+            });
+            const r = node.getBoundingClientRect();
+            orgTip.style.display = 'block';
+            orgTip.style.left = Math.min(r.right + 8, innerWidth - orgTip.offsetWidth - 6) + 'px';
+            orgTip.style.top  = Math.max(4, r.top) + 'px';
+        });
+        wrapper.addEventListener('mouseleave', _hideOrgTip);
     };
 
     window._drawOrgLinks = function() {

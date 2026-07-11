@@ -241,6 +241,13 @@ unknown names warn + no-op; hypocrite ops ignored after close). Console:
 `_enemiesReset()`. Roster `img` URLs are all '' (FILL ME IN). ADD NEW PEOPLE TO
 `ENEMIES_ROSTER`, not to the panel code.
 
+**18. President's Men: stat hover + Colson active (Jul 2026)**
+Hovering any organogram card shows a tooltip with its card-back stats (Loyalty x/10,
+Exposure x/10; Nixon = Watergate Exposure x/20) read LIVE from `_getOrgStat` — one
+`#nw-hover-tip` element on `<body>` (the flip transforms would clip a child), hidden on
+flip/mouseleave/no-data, replaced on re-render. Click-to-flip unchanged. `ColsonSTATUS`
+start value 4 → 5 (Cut Loose → Active).
+
 **17. Midterm engine reskin — 1970s broadcast (Jul 2026)**
 `_MIDTERM`'s injected CSS (`#_mt_css`) redressed as the same ABC-'76 package as the
 Election Night cards: tube-black studio radial + full-screen CRT scanlines (::after,
