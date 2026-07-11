@@ -241,6 +241,15 @@ unknown names warn + no-op; hypocrite ops ignored after close). Console:
 `_enemiesReset()`. Roster `img` URLs are all '' (FILL ME IN). ADD NEW PEOPLE TO
 `ENEMIES_ROSTER`, not to the panel code.
 
+**20. Placeholder people-tooltips from the question bank (Jul 2026)**
+~60 new `tooltipList` entries (one per person, via `searchStrings` aliases; `img: null`)
+auto-drafted from `CTS_Questions.docx` — everyone NAMED in the questions so far who
+lacked a tooltip, EXCEPT the President's Men chart cards (which deliberately have none).
+Bodies are first-draft (revise + add photos); block is comment-fenced "PLACEHOLDER
+tooltips" right before the alias-expansion pass. Triggers avoid short/ambiguous words
+(no bare Pat/John/Nelson/Al/Wilson/Jack/Kay). 181 matchers total, no duplicate triggers;
+verified 93 distinct people resolve against the real question text with no false hits.
+
 **19. President's Men: exposure-radiation glow on the chart wires (Jul 2026)**
 `_drawOrgLinks` now paints an ember glow under any connector currently carrying exposure
 upward, mirroring the pressure engine's radiation rules exactly via a new `_expFlowLevel(src,tgt)`
