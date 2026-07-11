@@ -15891,40 +15891,101 @@ var _MIDTERM = {
     var hg=R.house.rep-this.CFG.HBASE.rep, sg=R.senate.rep-this.CFG.SBASE.rep;
 
     // ----- styles (injected once) -----
+    // 1974 = a network election-night broadcast: same ABC-'76 package as the
+    // Election Night cards (tube-black studio, embossed cream type, gold rules,
+    // recessed panels, CRT scanlines; flicker honours prefers-reduced-motion).
+    // Selectors/classes are LOAD-BEARING (the JS toggles them) — reskin only.
+    // No filter:blur here: the overlay is full-screen and blur would cost a
+    // whole-viewport layer on weak machines; soft text-shadows sell the tube.
     if(!document.getElementById('_mt_css')){
       var st=document.createElement('style'); st.id='_mt_css';
       st.textContent=
-      '#_mt_ov{position:fixed;inset:0;z-index:9999;background:rgba(10,12,22,.94);color:#eee;'+
-      'font-family:Arial,Helvetica,sans-serif;overflow:auto;padding:26px;box-sizing:border-box;}'+
-      '#_mt_ov h2{font-size:1.5rem;margin:0 0 2px;letter-spacing:.04em;text-align:center;}'+
-      '#_mt_ov .mtsub{color:#9aa3c0;font-size:.8rem;text-align:center;margin-bottom:16px;}'+
-      '#_mt_ov .mthead{display:flex;justify-content:space-between;align-items:baseline;max-width:780px;margin:0 auto 6px;border-bottom:1px solid #3d425c;padding-bottom:8px;}'+
-      '#_mt_ov .mtlab{font-size:.95rem;font-weight:bold;letter-spacing:.04em;}'+
-      '#_mt_ov .mttally{font-size:1.5rem;font-weight:bold;}'+
+      '#_mt_ov{position:fixed;inset:0;z-index:9999;color:#fdf3e8;'+
+      'background:radial-gradient(ellipse 120% 90% at 50% 28%,#2a1608 0%,#150b04 55%,#000 100%);'+
+      "font-family:'Arial Rounded MT Bold','Trebuchet MS',Arial,sans-serif;overflow:auto;padding:26px;box-sizing:border-box;}"+
+      /* CRT scanlines washed over the whole studio (fixed: survives scrolling) */
+      '#_mt_ov::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:5;'+
+      'background:repeating-linear-gradient(to bottom,transparent 0px,transparent 2px,rgba(0,0,0,0.18) 3px,rgba(0,0,0,0.18) 4px);}'+
+      '#_mt_ov h2{font-size:1.7rem;margin:0 0 2px;letter-spacing:3px;text-align:center;font-weight:900;color:#fdf3e8;'+
+      'text-shadow:0 -1px 0 rgba(255,255,255,0.5),0 2px 2px rgba(90,0,0,0.7),0 0 12px rgba(255,205,160,0.85),0 0 22px rgba(255,110,50,0.45);}'+
+      '#_mt_ov .mtsub{color:#f4dfa6;font-size:.72rem;letter-spacing:1px;text-align:center;margin-bottom:16px;'+
+      'text-shadow:0 1px 1px rgba(90,30,0,0.7);}'+
+      '#_mt_ov .mthead{display:flex;justify-content:space-between;align-items:baseline;max-width:780px;margin:0 auto 6px;'+
+      'border-bottom:2px solid #edbc62;box-shadow:0 2px 0 #6b440e;padding-bottom:8px;}'+
+      '#_mt_ov .mtlab{font-size:.9rem;font-weight:900;letter-spacing:2px;color:#f4dfa6;'+
+      'text-shadow:0 1px 1px rgba(90,30,0,0.7),0 0 8px rgba(255,220,140,0.6);}'+
+      '#_mt_ov .mttally{font-size:1.6rem;font-weight:900;'+
+      'text-shadow:0 -1px 0 rgba(255,255,255,0.3),0 2px 2px rgba(0,0,0,0.75),0 0 8px rgba(255,255,255,0.3);}'+
       /* Party colours use the mod's 1976 convention: DEMOCRATS RED, REPUBLICANS BLUE
          (matches candidate_json: Nixon #0000FF, the Opposition #ff0000). */
-      '#_mt_ov .mtd{color:#e0556b;} #_mt_ov .mtr{color:#5b8def;} #_mt_ov .mttally small{font-size:.7rem;color:#9aa3c0;font-weight:normal;}'+
-      '#_mt_ov .mtcall{max-width:780px;margin:0 auto;font-size:.78rem;color:#9aa3c0;min-height:1.1em;}'+
-      '#_mt_ov .mtboard{display:flex;flex-wrap:wrap;gap:6px;max-width:780px;margin:10px auto;justify-content:center;}'+
-      '#_mt_ov .mttile{width:60px;height:44px;border-radius:5px;background:#3a3f5c;display:flex;flex-direction:column;'+
-      'align-items:center;justify-content:center;font-size:.7rem;color:#aab;transition:background .25s,color .25s;position:relative;}'+
-      '#_mt_ov .mttile .ab{font-weight:bold;font-size:.8rem;} #_mt_ov .mttile .mg{font-size:.58rem;opacity:0;transition:opacity .25s;}'+
-      '#_mt_ov .mttile.called .mg{opacity:.85;} #_mt_ov .mttile.D{background:#8a2f3f;color:#ffdce2;} #_mt_ov .mttile.R{background:#2f4d8a;color:#dce6ff;}'+
-      '#_mt_ov .mttile.flip{box-shadow:0 0 0 2px #ffd24a;} #_mt_ov .mttile .seat{position:absolute;top:1px;right:3px;font-size:.5rem;color:#ffd24a;}'+
-      '#_mt_ov .mtadv{max-width:780px;margin:14px auto;background:#1c2036;border-left:3px solid #5566cc;border-radius:6px;padding:11px 13px;font-size:.85rem;line-height:1.5;color:#cfd6f0;min-height:1.2em;}'+
-      '#_mt_ov .mtfoot{max-width:780px;margin:0 auto;display:flex;gap:10px;justify-content:center;}'+
-      '#_mt_ov button{background:#5566cc;color:#fff;border:0;border-radius:6px;padding:10px 16px;font-weight:bold;cursor:pointer;font-size:.85rem;}'+
-      '#_mt_ov button.alt{background:#444a6b;} #_mt_ov button:disabled{opacity:.4;cursor:default;}'+
-      '#_mt_card{position:fixed;inset:0;z-index:10000;background:rgba(8,10,18,.86);display:none;align-items:center;justify-content:center;}'+
-      '#_mt_card.show{display:flex;} #_mt_card .card{background:#2b2f44;border-radius:12px;padding:22px;width:520px;max-width:92vw;}'+
-      '#_mt_card h3{margin:0 0 2px;font-size:1.2rem;} #_mt_card .csub{color:#9aa3c0;font-size:.78rem;margin-bottom:16px;}'+
-      '#_mt_card .ch{background:#1d2030;border-radius:8px;padding:14px;margin-bottom:12px;}'+
+      '#_mt_ov .mtd{color:#ff6a57;} #_mt_ov .mtr{color:#7fa5ff;} #_mt_ov .mttally small{font-size:.7rem;color:#d8c49a;font-weight:normal;letter-spacing:1px;}'+
+      '#_mt_ov .mtcall{max-width:780px;margin:0 auto;font-size:.78rem;letter-spacing:1px;color:#f4dfa6;min-height:1.1em;'+
+      'text-shadow:0 1px 1px rgba(90,30,0,0.7);}'+
+      '#_mt_ov .mtboard{display:flex;flex-wrap:wrap;gap:7px;max-width:780px;margin:12px auto;justify-content:center;}'+
+      /* uncalled: a dead studio lamp — dark recessed well behind a gold hairline */
+      '#_mt_ov .mttile{width:60px;height:44px;border-radius:6px;background:#171006;color:#9c8a63;'+
+      'box-shadow:0 0 0 1px #6b440e,inset 0 3px 6px rgba(0,0,0,0.8),inset 0 -2px 4px rgba(255,255,255,0.05);'+
+      'display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.7rem;'+
+      'transition:background .25s,color .25s,box-shadow .25s;position:relative;}'+
+      '#_mt_ov .mttile .ab{font-weight:900;font-size:.8rem;letter-spacing:1px;} #_mt_ov .mttile .mg{font-size:.58rem;opacity:0;transition:opacity .25s;}'+
+      '#_mt_ov .mttile.called .mg{opacity:.9;}'+
+      /* called: the lamp lights — period panel colours, recessed in a gold rim */
+      '#_mt_ov .mttile.called{box-shadow:0 0 0 1px #4e310a,0 0 0 3px #edbc62,0 0 0 4px #6b440e,'+
+      'inset 0 3px 6px rgba(0,0,0,0.55),inset 0 -2px 4px rgba(255,255,255,0.15);}'+
+      '#_mt_ov .mttile.D{background:#8a1d10;color:#ffe3d6;text-shadow:0 1px 1px rgba(0,0,0,0.6);}'+
+      '#_mt_ov .mttile.R{background:#22307d;color:#dfe6ff;text-shadow:0 1px 1px rgba(0,0,0,0.6);}'+
+      '#_mt_ov .mttile.flip{box-shadow:0 0 0 1px #4e310a,0 0 0 3px #f6d78e,0 0 0 5px #b98a2e,'+
+      'inset 0 3px 6px rgba(0,0,0,0.55),0 0 14px rgba(246,215,142,0.55);}'+
+      '#_mt_ov .mttile .seat{position:absolute;top:1px;right:3px;font-size:.5rem;font-weight:900;color:#f6d78e;'+
+      'text-shadow:0 1px 1px rgba(0,0,0,0.8);}'+
+      /* advisor verdict: a broadcast lower-third chyron — gold-ruled, cream type */
+      '#_mt_ov .mtadv{max-width:780px;margin:14px auto;background:rgba(22,14,5,0.85);'+
+      'border-top:2px solid #edbc62;border-bottom:2px solid #6b440e;'+
+      'padding:11px 13px;font-size:.85rem;line-height:1.5;color:#fdf3e8;min-height:1.2em;'+
+      'text-shadow:0 1px 1px rgba(0,0,0,0.7);}'+
+      '#_mt_ov .mtfoot{max-width:780px;margin:0 auto;display:flex;gap:12px;justify-content:center;}'+
+      /* gold-rimmed studio buttons */
+      '#_mt_ov button,#_mt_card button{background:#7a0c00;color:#fdf3e8;border:0;border-radius:999px;'+
+      'padding:10px 18px;font-weight:900;letter-spacing:1px;cursor:pointer;font-size:.85rem;'+
+      "font-family:'Arial Rounded MT Bold','Trebuchet MS',Arial,sans-serif;"+
+      'box-shadow:0 0 0 2px #4e310a,0 0 0 4px #edbc62,0 0 0 5px #6b440e,inset 0 2px 4px rgba(255,255,255,0.25),inset 0 -3px 6px rgba(0,0,0,0.5);'+
+      'text-shadow:0 -1px 0 rgba(255,255,255,0.3),0 1px 2px rgba(0,0,0,0.7);}'+
+      '#_mt_ov button.alt,#_mt_card button.alt{background:#22307d;} #_mt_ov button:disabled{opacity:.35;cursor:default;}'+
+      '#_mt_card{position:fixed;inset:0;z-index:10000;background:rgba(5,3,1,.88);display:none;align-items:center;justify-content:center;'+
+      "font-family:'Arial Rounded MT Bold','Trebuchet MS',Arial,sans-serif;}"+
+      /* the balance-of-power card: red broadcast image fading to black at the tube edge */
+      '#_mt_card.show{display:flex;} #_mt_card .card{position:relative;'+
+      'background:radial-gradient(ellipse 90% 80% at 50% 28%,#ef3a13 0%,#c01404 52%,#7a0c00 76%,#1a0300 100%);'+
+      'border-radius:12px;box-shadow:inset 0 0 34px 16px #000;padding:22px;width:520px;max-width:92vw;color:#fdf3e8;}'+
+      '#_mt_card .card::after{content:"";position:absolute;inset:-4px;pointer-events:none;z-index:6;'+
+      'background:repeating-linear-gradient(to bottom,transparent 0px,transparent 2px,rgba(0,0,0,0.15) 3px,rgba(0,0,0,0.15) 4px);}'+
+      '#_mt_card h3{margin:0 0 2px;font-size:1.25rem;font-weight:900;letter-spacing:1px;text-align:center;'+
+      'text-shadow:0 -1px 0 rgba(255,255,255,0.5),0 2px 2px rgba(90,0,0,0.7),0 0 12px rgba(255,205,160,0.85);}'+
+      '#_mt_card .csub{color:#f4dfa6;font-size:.75rem;letter-spacing:1px;text-align:center;margin-bottom:16px;'+
+      'text-shadow:0 1px 1px rgba(90,30,0,0.7);}'+
+      /* chamber panels: recessed royal blue behind a slim gold rim (margins clear the rings) */
+      '#_mt_card .ch{background:#2b2fb3;border-radius:12px;padding:14px;margin:0 6px 18px;'+
+      'box-shadow:0 0 0 2px #4e310a,0 0 0 5px #edbc62,0 0 0 6px #f6d78e,0 0 0 8px #6b440e,'+
+      'inset 0 6px 12px rgba(0,0,0,0.55),inset 0 2px 3px rgba(0,0,0,0.7),inset 0 -4px 9px rgba(255,255,255,0.16);}'+
       '#_mt_card .chh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}'+
-      '#_mt_card .chh .t{font-size:1.05rem;font-weight:bold;} #_mt_card .chh .w{font-size:.72rem;color:#9aa3c0;}'+
-      '#_mt_card .nums{display:flex;justify-content:space-between;font-size:1.9rem;font-weight:bold;margin-bottom:8px;}'+
-      '#_mt_card .sup{font-size:.8rem;vertical-align:super;color:#9aa3c0;margin-left:3px;}'+
-      '#_mt_card .bar{display:flex;height:20px;border-radius:4px;overflow:hidden;position:relative;background:#11131f;}'+
-      '#_mt_card .bd{background:#e0556b;} #_mt_card .br{background:#5b8def;flex:1;} #_mt_card .mk{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#fff;}';
+      '#_mt_card .chh .t{font-size:1.05rem;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:#eef1ff;'+
+      'text-shadow:0 -1px 0 rgba(255,255,255,0.3),0 2px 2px rgba(0,0,0,0.75);}'+
+      '#_mt_card .chh .w{font-size:.7rem;letter-spacing:1px;color:#ccd4ff;text-shadow:0 1px 1px rgba(0,0,0,0.7);}'+
+      '#_mt_card .nums{display:flex;justify-content:space-between;font-size:1.9rem;font-weight:900;margin-bottom:8px;'+
+      'text-shadow:0 -1px 0 rgba(255,255,255,0.3),0 2px 2px rgba(0,0,0,0.75),0 0 8px rgba(255,255,255,0.3);}'+
+      '#_mt_card .nums .mtd{color:#ff6a57;} #_mt_card .nums .mtr{color:#7fa5ff;}'+
+      '#_mt_card .sup{font-size:.8rem;vertical-align:super;color:#ccd4ff;margin-left:3px;}'+
+      '#_mt_card .bar{display:flex;height:20px;border-radius:4px;overflow:hidden;position:relative;background:#0c0e2a;'+
+      'box-shadow:0 0 0 1px #6b440e,inset 0 2px 4px rgba(0,0,0,0.7);}'+
+      '#_mt_card .bd{background:#c0392b;} #_mt_card .br{background:#3d5bbf;flex:1;} #_mt_card .mk{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#f6d78e;}'+
+      /* the same gentle tube flicker as the Election Night cards; steady when
+         the OS asks for reduced motion */
+      '@media (prefers-reduced-motion: no-preference){'+
+      '@keyframes _mtFlicker{0%{opacity:1;}6%{opacity:0.97;}8%{opacity:1;}31%{opacity:0.985;}33%{opacity:1;}'+
+      '57%{opacity:0.96;}59%{opacity:0.99;}61%{opacity:1;}84%{opacity:0.98;}86%{opacity:1;}100%{opacity:1;}}'+
+      '#_mt_card .card{animation:_mtFlicker 4.3s linear infinite;}'+
+      '#_mt_ov .mthead{animation:_mtFlicker 4.3s linear -2.15s infinite;}'+
+      '}';
       document.head.appendChild(st);
     }
 

@@ -241,6 +241,18 @@ unknown names warn + no-op; hypocrite ops ignored after close). Console:
 `_enemiesReset()`. Roster `img` URLs are all '' (FILL ME IN). ADD NEW PEOPLE TO
 `ENEMIES_ROSTER`, not to the panel code.
 
+**17. Midterm engine reskin — 1970s broadcast (Jul 2026)**
+`_MIDTERM`'s injected CSS (`#_mt_css`) redressed as the same ABC-'76 package as the
+Election Night cards: tube-black studio radial + full-screen CRT scanlines (::after,
+fixed), embossed cream headline, gold-ruled tally header, seat tiles as dark recessed
+"dead lamps" that light up in period red/blue inside gold rims when called (FLIP =
+brighter gold ring + glow), verdict as a gold-ruled chyron, gold-rimmed pill buttons,
+and the balance-of-power card as a red fade-to-black TV card with royal-blue gold-rimmed
+chamber panels + `_mtFlicker` (own keyframes — Code 1's live only on map screens) inside
+a prefers-reduced-motion query. NO filter:blur on the overlay (full-viewport layer cost).
+Selectors/classes unchanged — the JS toggles them; reskin only. Party direction stays
+D-red/R-blue. Verified: midterm_check.js 13/13 (mechanics roll + skin + reduced motion).
+
 **16. Authoring ergonomics pass (Jul 2026)**
 - AUTHORING INDEX comment boxes at the top of BOTH files — every content surface
   with its grep anchor, the cross-file sync pairs (achievement names,
