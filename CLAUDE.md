@@ -43,9 +43,15 @@ chosen per-occurrence when you write the text. Default occurrence → normal car
 an occurrence you mark → alt card. (e.g. Kissinger normally "Read a book.",
 marked "Former National Security Adviser, current professional gossiper.")
 
-**Step 1 — give the `tooltipList` entry an `alt` (in `ACOP Nixon_Agnew.txt`, the
-`const tooltipList = [` array, ~line 14947).** Only put the fields that change;
-anything omitted from `alt` falls back to the default. Usually just `body`:
+**Step 1 — give the `tooltipList` entry an `alt` (in `ACOP Nixon_Agnew.txt`, grep
+`const tooltipList = [`).** Only put the fields that change; anything omitted
+from `alt` falls back to the default. Usually just `body`.
+
+NOTE on aliases (Jul 2026): a person with several trigger strings is now ONE
+entry with `searchStrings: ["Henry Kissinger", "Kissinger"]` — an expansion
+pass right after the array clones it per alias (shared img/label/body/alt, so
+the person is edited once). `label` may be omitted (defaults to the first
+alias). Never hand-duplicate a card per alias again:
 
 ```js
 {
@@ -234,6 +240,21 @@ unknown names warn + no-op; hypocrite ops ignored after close). Console:
 (pre-feature saves fall back to the starting field); New Game reset calls
 `_enemiesReset()`. Roster `img` URLs are all '' (FILL ME IN). ADD NEW PEOPLE TO
 `ENEMIES_ROSTER`, not to the panel code.
+
+**16. Authoring ergonomics pass (Jul 2026)**
+- AUTHORING INDEX comment boxes at the top of BOTH files — every content surface
+  with its grep anchor, the cross-file sync pairs (achievement names,
+  campaign-length keys), and the rules that bite (_SL_SCALARS, var-only, FILL ME
+  IN/PLACEHOLDER greps). Banner comments added on the big engine-JSON blocks
+  (questions/answers/feedback/states/issues/candidate scores).
+- `tooltipList` alias support: `searchStrings: [..]` on ONE entry replaces the
+  old hand-duplicated card-per-alias (7 people were duplicated); expansion pass
+  sits right after the array. Matcher set verified byte-identical pre/post.
+- Officials merged to ONE ENTRY PER PERSON: card-back `effects` text moved from
+  the separate `OFFICIALS_EFFECTS` map onto each `OFFICIALS_ROSTER` entry
+  (`effects:` — string, or post-varName-keyed map). `OFFICIALS_EFFECTS` now
+  holds only `_DEFAULT`/`_VACANT` fallbacks. Card-back lookup verified identical
+  for all people pre/post.
 
 ### A Cancer on the Presidency_init (draft).txt
 

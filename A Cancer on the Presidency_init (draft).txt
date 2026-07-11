@@ -1,3 +1,19 @@
+// ╔═══════════════════════════════════════════════════════════════════════════╗
+// ║ CODE 1 — AUTHORING INDEX (loads at election-select; UI + engine setup)     ║
+// ║ Grep the anchor. Most content authoring lives in CODE 2 — see the index   ║
+// ║ at the top of ACOP Nixon_Agnew.txt.                                        ║
+// ╠═══════════════════════════════════════════════════════════════════════════╣
+// ║   election_json ……………… summary blurb, reading list, election art           ║
+// ║   candidate_json ………………… candidate descriptions/endings text, portraits     ║
+// ║   campaignTrail_temp.achievements … the CTS achievement registry           ║
+// ║       (name/art/description). Names must EXACTLY match the                 ║
+// ║       ctsAchievement() calls in Code 2. FILL ME IN: real set.              ║
+// ║   ACOP_LENGTH_UI ………………… campaign-length labels + description texts         ║
+// ║       (PLACEHOLDERs). Keys must match Code 2's CAMPAIGN_LENGTHS.           ║
+// ║   setupMusicPlayer ………… the default playlist (Song entries)                ║
+// ║   tooltip card CSS / edu-tooltip styling …… visual only                    ║
+// ╚═══════════════════════════════════════════════════════════════════════════╝
+
 campaignTrail_temp.election_json = [
     {
         "model": "campaign_trail.election",

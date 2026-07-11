@@ -1,3 +1,42 @@
+// ╔═══════════════════════════════════════════════════════════════════════════╗
+// ║ CODE 2 — AUTHORING INDEX                                                   ║
+// ║ Every place content gets written, in file order. Grep the anchor.         ║
+// ╠═══════════════════════════════════════════════════════════════════════════╣
+// ║ BULK Q&A TEXT (engine JSON — the docx import pipeline handles highlights):║
+// ║   questions_json ……………… the questions                                      ║
+// ║   answers_json ………………… the answers                                         ║
+// ║   answer_feedback_json … advisor feedback                                  ║
+// ║ PER-QUESTION CONFIG:                                                       ║
+// ║   questionData …… date, signImg, transition, onShow, stinger, historical   ║
+// ║ WORLD MAP:                                                                 ║
+// ║   COUNTRIES ……………… single source of per-country data (loyal, name, flag)   ║
+// ║   _EVENT_DEFS …………… world events (label, img, body, country, lifespan)     ║
+// ║ PEOPLE:                                                                    ║
+// ║   OFFICIALS_ROSTER … one entry per person: image, bio, roles, effects      ║
+// ║                      (card-back) — 17 effects still PLACEHOLDER            ║
+// ║   ENEMIES_ROSTER ……… Traitors/Hypocrites/Media cards (ENEMIES_LIST.md);    ║
+// ║                      _EN_CLOSE_PK FILL ME IN                               ║
+// ║   tooltipList ………………… hover cards; searchStrings: [aliases] — ONE entry    ║
+// ║                      per person, however many aliases                      ║
+// ║ AUDIO:                                                                     ║
+// ║   SOUNDTRACK ………………… section playlists/moods (FILL ME IN;                  ║
+// ║                      SOUNDTRACK_PLAN.md)                                   ║
+// ║   _PROJ_STING_URL / _ENIGHT_STING_URL / _ENIGHT_INTRO … election-night     ║
+// ║                      stings + title animation (FILL ME IN)                 ║
+// ║   _BANNER_EGG_SOUNDS … banner-click egg tiers                              ║
+// ║ STRUCTURE:                                                                 ║
+// ║   CAMPAIGN_LENGTHS …… short run's pk list (FILL ME IN). Labels/desc live   ║
+// ║                      in CODE 1's ACOP_LENGTH_UI — keys must match!         ║
+// ║   ctsAchievement calls … names must EXACTLY match Code 1's                 ║
+// ║                      campaignTrail_temp.achievements registry              ║
+// ║ RULES THAT BITE:                                                           ║
+// ║   • new per-run var → add it to _SL_SCALARS (SAVELOAD_MAINTENANCE.md)      ║
+// ║   • new-Function scope: top-level declarations use var; never redeclare    ║
+// ║     a const/let name                                                       ║
+// ║   • grep FILL ME IN / PLACEHOLDER for the live to-do list                  ║
+// ╚═══════════════════════════════════════════════════════════════════════════╝
+
+// ── BULK TEXT: the questions ──────────────────────────────────────────────────
 campaignTrail_temp.questions_json = [
     {
         "model": "campaign_trail.question",
@@ -226,6 +265,7 @@ campaignTrail_temp.questions_json = [
     }
 ];
 
+// ── BULK TEXT: the answers ────────────────────────────────────────────────────
 campaignTrail_temp.answers_json = [
     {
         "model": "campaign_trail.answer",
@@ -933,6 +973,7 @@ campaignTrail_temp.answers_json = [
     }
 ];
 
+// ── ENGINE DATA: states ───────────────────────────────────────────────────────
 campaignTrail_temp.states_json = [
     {
         "model": "campaign_trail.state",
@@ -1599,6 +1640,7 @@ campaignTrail_temp.states_json = [
     }
 ];
 
+// ── ENGINE DATA: issues ───────────────────────────────────────────────────────
 campaignTrail_temp.issues_json = [
     {
         "model": "campaign_trail.issue",
@@ -4270,6 +4312,7 @@ campaignTrail_temp.state_issue_score_json = [
     }
 ];
 
+// ── ENGINE DATA: candidate issue scores ───────────────────────────────────────
 campaignTrail_temp.candidate_issue_score_json = [
     {
         "model": "campaign_trail.candidate_issue_score",
@@ -10458,6 +10501,7 @@ campaignTrail_temp.answer_score_state_json = [
     }
 ];
 
+// ── BULK TEXT: advisor feedback ───────────────────────────────────────────────
 campaignTrail_temp.answer_feedback_json = [
     {
         "model": "campaign_trail.answer_feedback",
@@ -13754,9 +13798,9 @@ function openEnemiesPanel(questions) {
 }
 
 // ── Officials panel data ──────────────────────────────────────────────────────
-// Maps person name -> { image, bio, roles }.  image is '' until a URL is supplied.
-// When a position variable changes (e.g. ChiefOfStaff = 'Haig'), re-opening
-// the panel will automatically show the new occupant.
+// Maps person name -> { image, bio, roles, effects }.  image is '' until a URL
+// is supplied. When a position variable changes (e.g. ChiefOfStaff = 'Haig'),
+// re-opening the panel will automatically show the new occupant.
 //
 // A person can hold different posts over the course of the game (Kissinger as
 // NSA then also Secretary of State; Haig as NSA then Chief of Staff; Rogers as
@@ -13768,10 +13812,12 @@ function openEnemiesPanel(questions) {
 // through to `bio`, so there's no need to duplicate it.
 const OFFICIALS_ROSTER = {
     'Haldeman': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         bio: "H.R. Haldeman controls all access to the Oval Office with methodical precision. A former advertising executive, he is Nixon's most trusted enforcer and wise to the optics of your decision making. [p][b]Expect to have clear command and control but limited policy expertise or an understanding of legal technicalities.[/b][/p]"
     },
     'Kissinger': {
+        effects: "Kissinger lets you improve diplomatic relations every 2 turns but some foreign policy options will be closed off to you as he becomes more insubordinate.",
         image: '',
         // Default/primary post: National Security Advisor.
         bio: "Kissinger has used his position at the NSA to usurp the State Department. He maintains control over his own backchannel diplomacy, which bore fruit with the opening of China and détente. Calculating and media-savvy, [b]expect subtle and clever decisions, which become increasingly insubordinate the more he becomes convinced of his indispensibility.[/b]",
@@ -13780,6 +13826,7 @@ const OFFICIALS_ROSTER = {
         }
     },
     'Rogers': {
+        effects: "Rogers does nothing. The default prevails, you improve diplomatic relations every 3 turns and can send or reduce aid every 3 turns.",
         image: '',
         // Default/primary post: Secretary of State.
         bio: "One of your oldest comrades, you once walked the streets together all night working out the Checkers Speech. You chose Rogers for State because he was loyal, and uninterested in foreign policy. Under him, State has been sidelined in favor of centralising decision making inside the White House. [p][b]With Rogers in post, expect more direct control over foreign policy decisions[/b][/p].",
@@ -13788,26 +13835,32 @@ const OFFICIALS_ROSTER = {
         }
     },
     'Laird': {
+        effects: "The old congressman never really left the Hill. With Laird at Defense, Congressional relations improve by 1 every 5 turns.",
         image: '',
         bio: "Melvin Laird is proud of the successes under his belt, including Vietnamization and getting to the end of the hated draft. Defense spending is likely to fall for the first time in a decade under his administration. A veteran of the House, he has an excellent relationship with Congress and enough standing to push against the military brass and other Departments. Unfortunately he is exhausted and wants to go back into electoral politics as soon as possible."
     },
     'Kleindienst': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         bio: "Richard Kleindienst serves as Attorney General, having stepped up after Mitchell's departure under a gathering cloud of political scandal. A loyal partisan lawyer, his tenure will be defined by his proximity to Watergate's spreading contamination."
     },
     'Helms': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         bio: "Richard Helms is a career intelligence officer and relies on the institutional depth of the CIA to stand up to you. You have never got on with him and his streak of independence. [p][b]Helms will want to pursue a more activist approach from the CIA, including domestic spying and will use the Agency's vast network of analysts, operatives and other experts to challenge you if he feels it justified.[/b][/p]"
     },
     'Gray': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         bio: "Gray is a Nixon loyalist without the institutional standing to resist White House pressure. If you play him right he will let you have more control over the FBI than you ever imagined."
     },
     'Rockefeller': {
+        effects: "Rocky, the great benefactor of other people's money, will allow you to Send Aid every 2 turns.",
         image: '',
         bio: "Nelson Rockefeller, the four-term Governor of New York and fading star of the Republican party. He has long had Nixon's most persistent rival for the Republican establishment's affections, brings a patrician internationalism and a vast personal network to the State Department. Nixon originally offered him Defense; Rocky turned it down and held out for State — and here, in this telling, he gets it. Long a force in foreign policy circles and Kissinger's original patron, he is as comfortable in European chancelleries as in domestic politics."
     },
     'Haig': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         // Default/primary post: National Security Advisor.
         bio: "Alexander Haig came 214th out of 310 at West Point. Yet, he plays the bureaucratic game as a natural, while presenting a facade of unsentimental military efficiency. [p][b]Stepping up as National Security Advisor, expect more hawkish advice without Kissinger's intellectual ferocity and possibly, the masking of dissenting views within the ranks.[/b][/p]",
@@ -13816,10 +13869,12 @@ const OFFICIALS_ROSTER = {
         }
     },
     'Scowcroft': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         bio: "Brent Scowcroft is not an attention seeker. serves as deputy NSA under Kissinger, a soft-spoken Air Force strategist who prizes rigorous process over personal celebrity. Where Kissinger improvises, Scowcroft systematises — a steady institutional hand on the NSC apparatus."
     },
     'Richardson': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         // Default/primary post: Secretary of Defense.
         bio: "Elliot Richardson is Nixon's most trusted administrator, capable enough to be moved between the most demanding cabinet posts. His appointment to oversee the Watergate Special Prosecutor will eventually force an impossible choice between loyalty to Nixon and the rule of law — and Richardson will choose the law.",
@@ -13828,6 +13883,7 @@ const OFFICIALS_ROSTER = {
         }
     },
     'Schlesinger': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         // Default/primary post: CIA Director.
         bio: "James Schlesinger is a blunt defence intellectual who overhauls the CIA before moving to the Pentagon. As Secretary of Defense he clashes repeatedly with Kissinger over détente and nuclear policy, and is said to have quietly instructed the military to query any unusual White House orders in Nixon's final days.",
@@ -13836,42 +13892,52 @@ const OFFICIALS_ROSTER = {
         }
     },
     'Saxbe': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         bio: "William Saxbe, the plain-spoken Ohio senator, inherits the Justice Department in the wreckage left by the Saturday Night Massacre. With Cox already fired and Jaworski installed, his job is to keep a shattered institution standing while impeachment closes in on the White House."
     },
     'Cox': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         bio: "Archibald Cox, the Harvard law professor and Brahmin of the Eastern Establishment. The worst possible choice appointed as Watergate Special Prosecutor, pursues Nixon's tapes with a methodical tenacity that will make him a constitutional martyr. His firing in the Saturday Night Massacre produces a public firestorm that accelerates the presidency's unravelling."
     },
     'Jaworski': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         bio: "Leon Jaworski, the Texas corporate lawyer who replaces Cox, proves equally relentless in pursuit of the tapes. He takes the fight to the Supreme Court and secures the unanimous ruling that finally breaks Nixon's last line of defence."
     },
     'Ruckelshaus': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         bio: "William Ruckelshaus serves briefly as acting FBI Director before moving to the Deputy Attorney General role. When ordered to fire Cox in the Saturday Night Massacre, he refuses without hesitation and resigns — one of the cleaner moments in the whole sordid affair."
     },
     'Kelley': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         bio: "Clarence Kelley, the Kansas City police chief, is brought in as permanent FBI Director to restore stability after the chaos of Gray and Ruckelshaus. A career law enforcement professional with no Watergate entanglement, he is as much a symbol of institutional repair as an operational appointment."
     },
     'Sullivan': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         bio: "William Sullivan ran the FBI's Intelligence Division for a decade and is the architect of COINTELPRO. He's a hardline anti-communist who cultivated White House ties and fell out with Hoover before his death. [p][b]He will give you more operational control over the Bureau than any other candidate — but his baggage is considerable, and career FBI men will never fully accept an insider who went outside.[/b][/p]"
     },
     'Wilson': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         bio: "Jerry Wilson reformed the Washington DC Metropolitan Police from the inside and earned a national reputation as a moderniser. An outsider to the FBI's institutional culture, which is precisely the point. [p][b]He brings credibility with the public and none of Hoover's ghosts — but career Bureau men will regard him as an interloper, and managing the FBI's entrenched hierarchy will be his first and hardest test.[/b][/p]"
     },
     'Felt': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         bio: "Mark Felt is the FBI's Associate Director and the anointed heir of the Hoover machine. He expected this job. Being passed over for the loyalist Gray has left a wound that will not close — and someone inside the Bureau is already feeding the Washington Post. [p][b]Appointing Felt means dealing with the old guard on their own terms. He knows where every body is buried. That cuts both ways.[/b][/p]"
     },
     'Colby': {
+        effects: "PLACEHOLDER — effects text to come.",
         image: '',
         bio: "William Colby, career CIA officer and Vietnam veteran of the agency's most brutal programmes, succeeds Schlesinger as Director. His willingness to open the agency's files to congressional oversight — the so-called Family Jewels — will enrage the intelligence old guard and define the post-Nixon reckoning."
     },
     'Connally': {
+        effects: "Connally will allow you to Reduce Aid every 2 turns.",
         image: '',
         bio: "PLACEHOLDER — John Connally, the Texas Democrat turned Nixon favourite. LBJ's protégé, wounded in the Kennedy motorcade, Treasury Secretary who took America off gold. Offered State in the post-election reshuffle of late 1972 — in this telling he might take it. Nixon's preferred heir; a bruiser with a chequebook. Proper bio to come."
     },
@@ -13881,43 +13947,14 @@ const OFFICIALS_ROSTER = {
     }
 };
 
-// ── OFFICIALS CARD-BACK TEXT (flip feature) ──────────────────────────────────
-// Clicking a card on the Officials screen flips it (same mechanic as All the
-// President's Men) to show the gameplay effects of having that person in post.
-// PURE CUSTOM TEXT — not linked to any game variables. Edit freely.
-//
-// Keyed by PERSON (same keys as OFFICIALS_ROSTER above). A value can be:
-//   - a string                       → shown whatever post they hold
-//   - { default: "…", SOS: "…", … }  → per-post override (varNames: ChiefOfStaff,
-//     NSA, SOS, SOD, AttorneyGeneral, SP, FBI, CIA), falling back to `default`.
-// Anyone without an entry gets OFFICIALS_EFFECTS._DEFAULT.
+// ── OFFICIALS CARD-BACK TEXT fallbacks ───────────────────────────────────────
+// Per-person effects text lives ON the OFFICIALS_ROSTER entry (`effects:` —
+// a string, or a map of post varName -> string for people whose effects differ
+// by post). Only the two fallbacks remain here: _DEFAULT (person has no
+// effects text yet) and _VACANT (the post is empty).
 const OFFICIALS_EFFECTS = {
     _DEFAULT: "Effects of this appointment have not been catalogued yet.",
     _VACANT:  "The office stands vacant. Its duties fall to deputies and acting men — and nothing gets decided.",
-
-    Kissinger: "Kissinger lets you improve diplomatic relations every 2 turns but some foreign policy options will be closed off to you as he becomes more insubordinate.",
-
-    Haldeman:    "PLACEHOLDER — effects text to come.",
-    Rogers:      "Rogers does nothing. The default prevails, you improve diplomatic relations every 3 turns and can send or reduce aid every 3 turns.",
-    Laird:       "The old congressman never really left the Hill. With Laird at Defense, Congressional relations improve by 1 every 5 turns.",
-    Kleindienst: "PLACEHOLDER — effects text to come.",
-    Helms:       "PLACEHOLDER — effects text to come.",
-    Gray:        "PLACEHOLDER — effects text to come.",
-    Rockefeller: "Rocky, the great benefactor of other people's money, will allow you to Send Aid every 2 turns.",
-    Haig:        "PLACEHOLDER — effects text to come.",
-    Scowcroft:   "PLACEHOLDER — effects text to come.",
-    Richardson:  "PLACEHOLDER — effects text to come.",
-    Schlesinger: "PLACEHOLDER — effects text to come.",
-    Saxbe:       "PLACEHOLDER — effects text to come.",
-    Cox:         "PLACEHOLDER — effects text to come.",
-    Jaworski:    "PLACEHOLDER — effects text to come.",
-    Ruckelshaus: "PLACEHOLDER — effects text to come.",
-    Kelley:      "PLACEHOLDER — effects text to come.",
-    Sullivan:    "PLACEHOLDER — effects text to come.",
-    Wilson:      "PLACEHOLDER — effects text to come.",
-    Felt:        "PLACEHOLDER — effects text to come.",
-    Colby:       "PLACEHOLDER — effects text to come.",
-    Connally:    "Connally will allow you to Reduce Aid every 2 turns.",
 };
 // ── END OFFICIALS CARD-BACK TEXT ─────────────────────────────────────────────
 
@@ -14283,7 +14320,7 @@ function openOfficialsPanel(questions) {
         // Flip wrapper: the card above is the front face; the back shows the
         // custom OFFICIALS_EFFECTS text for whoever holds the post.
         let fx = isVacant ? OFFICIALS_EFFECTS._VACANT
-               : (OFFICIALS_EFFECTS[person] ?? OFFICIALS_EFFECTS._DEFAULT);
+               : (OFFICIALS_ROSTER[person]?.effects ?? OFFICIALS_EFFECTS._DEFAULT);
         if (fx && typeof fx === 'object') fx = fx[varName] ?? fx.default ?? OFFICIALS_EFFECTS._DEFAULT;
 
         const back = document.createElement('div');
@@ -16400,39 +16437,20 @@ window.__onGameWindowMutation(() => {
 
 const tooltipList = [
     {
-        searchString: "Henry Kissinger",
+        searchStrings: ["Henry Kissinger", "Kissinger"],
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/kissinger.jpeg",
         label: "Henry Kissinger",
         body: "You know who he is. Read a book.",
         alt: { body: "Former National Security Adviser, current professional gossiper." }
     },
     {
-        searchString: "Kissinger",
-        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/kissinger.jpeg",
-        label: "Henry Kissinger",
-        body: "You know who he is. Read a book.",
-        alt: { body: "Former National Security Adviser, current professional gossiper." }
-    },
-    {
-        searchString: "Earl Butz",
+        searchStrings: ["Earl Butz", "Butz"],
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/butz.jpg",
         label: "Earl Butz",
         body: "Secretary of Agriculture. Known for crude humour and blind support for agribusiness."
     },
     {
-        searchString: "Butz",
-        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/butz.jpg",
-        label: "Earl Butz",
-        body: "Secretary of Agriculture. Known for crude humour and blind support for agribusiness."
-    },
-    {
-        searchString: "Oriana Fallaci",
-        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/oriana_fallaci.jpg",
-        label: "Oriana Fallaci",
-        body: "Italian journalist. Uncompromising, unsparing interviewer. Joined the Resistance in WW2, shot and left for dead in '68 by the Mexican Police. Explains alot."
-    },
-    {
-        searchString: "Fallaci",
+        searchStrings: ["Oriana Fallaci", "Fallaci"],
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/oriana_fallaci.jpg",
         label: "Oriana Fallaci",
         body: "Italian journalist. Uncompromising, unsparing interviewer. Joined the Resistance in WW2, shot and left for dead in '68 by the Mexican Police. Explains alot."
@@ -16468,13 +16486,7 @@ const tooltipList = [
         body: "Outgoing Defense Secretary. Architect of the volunteer army and Vietnamization. Leaving for personal reasons."
     },
     {
-        searchString: "Ike",
-        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/Eisenhower.jpeg",
-        label: "Dwight Eisenhower (R)",
-        body: "34th President. You were his VP for two terms. Your relationship was one of formality and distrust, marred by your tireless search for affirmation, and a father figure, from behind that famously blank visage."
-    },
-    {
-        searchString: "Eisenhower",
+        searchStrings: ["Eisenhower", "Ike"],
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/Eisenhower.jpeg",
         label: "Dwight Eisenhower (R)",
         body: "34th President. You were his VP for two terms. Your relationship was one of formality and distrust, marred by your tireless search for affirmation, and a father figure, from behind that famously blank visage."
@@ -16498,13 +16510,7 @@ const tooltipList = [
         body: "Nixon broke a crown during an election eve dinner with his family and had to receive emergency dentistry. Good omen."
     },
     {
-        searchString: "Moynihan",
-        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/moynihan_slideshow.jpg",
-        label: "Daniel Patrick Moynihan",
-        body: "Chief domestic policy advisor to the president before Ehrlichman. Current academic and insightful if liberal critic of the current welfare apparatus. Best speaking to him before the Harvard faculty bar opens."
-    },
-    {
-        searchString: "Pat Moynihan",
+        searchStrings: ["Pat Moynihan", "Moynihan"],
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/moynihan_slideshow.jpg",
         label: "Daniel Patrick Moynihan",
         body: "Chief domestic policy advisor to the president before Ehrlichman. Current academic and insightful if liberal critic of the current welfare apparatus. Best speaking to him before the Harvard faculty bar opens."
@@ -16522,13 +16528,7 @@ const tooltipList = [
         body: "Chief negotiator for the North Vietnamese. Implacable, resolute and trenchant. Kissinger calls him Ducky."
     },
     {
-        searchString: "Felt",
-        img: null,
-        label: "Mark Felt",
-        body: "Deputy FBI director under Hoover and now Gray. You smell his greed and entitlement but know he's playing a dangerous game."
-    },
-    {
-        searchString: "Mark Felt",
+        searchStrings: ["Mark Felt", "Felt"],
         img: null,
         label: "Mark Felt",
         body: "Deputy FBI director under Hoover and now Gray. You smell his greed and entitlement but know he's playing a dangerous game."
@@ -16564,18 +16564,31 @@ const tooltipList = [
         body: "Ex-Congressman. Your first political opponent back in 1946. You fought a tough, unrelenting and dirty campaign to unseat him, smearing him as a fellow-traveller. You consider this the seed that flourished into the media's hatred of you."
     },
     {
-        searchString: "Henry Peterson",
-        img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/JFKpetersenH.jpg",
-        label: "Henry Peterson",
-        body: "Assistant Attorney General (Criminal Division). Straight-shooting, smart. Unfortunately he trusts you, shares case files with you and is unable to believe there would ever be a direct connection between Watergate and the White House."
-    },
-    {
-        searchString: "Peterson",
+        searchStrings: ["Henry Peterson", "Peterson"],
         img: "https://file.garden/aXPgNT-ZRCxxpy0g/tooltipphotos/Republicans/JFKpetersenH.jpg",
         label: "Henry Peterson",
         body: "Assistant Attorney General (Criminal Division). Straight-shooting, smart. Unfortunately he trusts you, shares case files with you and is unable to believe there would ever be a direct connection between Watergate and the White House."
     },
 ];
+
+// ── Alias expansion — one card per PERSON, not per alias ─────────────────────
+// Bulk-entry rule: write ONE entry with
+//     searchStrings: ["Henry Kissinger", "Kissinger"]
+// and it is expanded here into one matcher per alias, all SHARING the same
+// img/label/body/alt (edit the person once, every alias follows). `label` may
+// be omitted — it defaults to the first alias / the searchString. Entries with
+// a plain searchString are untouched, so both styles are fine.
+for (let _ti = tooltipList.length - 1; _ti >= 0; _ti--) {
+    const _t = tooltipList[_ti];
+    if (_t.label == null) _t.label = _t.searchString || (_t.searchStrings ? _t.searchStrings[0] : '');
+    if (!_t.searchStrings) continue;
+    const _clones = _t.searchStrings.map(s => {
+        const c = Object.assign({}, _t, { searchString: s });
+        delete c.searchStrings;
+        return c;
+    });
+    tooltipList.splice(_ti, 1, ..._clones);
+}
 
 function generatePenStroke() {
     const height = 6;
