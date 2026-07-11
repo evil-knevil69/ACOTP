@@ -241,6 +241,21 @@ unknown names warn + no-op; hypocrite ops ignored after close). Console:
 `_enemiesReset()`. Roster `img` URLs are all '' (FILL ME IN). ADD NEW PEOPLE TO
 `ENEMIES_ROSTER`, not to the panel code.
 
+**19. President's Men: exposure-radiation glow on the chart wires (Jul 2026)**
+`_drawOrgLinks` now paints an ember glow under any connector currently carrying exposure
+upward, mirroring the pressure engine's radiation rules exactly via a new `_expFlowLevel(src,tgt)`
+(needs `_pressureOn` + `_lengthAllows('pressure')`; band from src exposure ≥2/≥5/≥8 → lvl 1/2/3;
+cut-loose halves; flipped/hush-paused src radiates nothing; clean receiver (exp ≤2, or Nixon's
+`WatergateExposure` ≤2 on the last rung) absorbs nothing; only along real `_ORG_EDGES`).
+Bands are amber/orange/red (`_GLOW_STYLE`), blurred (`#nw-glow` filter), on a `#nw-glow-layer`
+`<g>` appended FIRST so it haloes under the grey lines + red strings, pulsing faster when hotter
+(`nwGlowPulse`, inside a prefers-reduced-motion query). Covers every route: CSS tree elbows
+(re-traced as glow paths), the manually-plotted connectors (Colson→Hunt, the Hunt+Liddy join,
+Mitchell→McCord), the red strings (`_drawOrgArc` now RETURNS its `d`; bidirectional strings take
+the hotter direction), and the Nixon rung (per-inner-circle drops + the shared bar/stem glow at
+the hottest feeder, up into Nixon's card). `_syncOrgStates` re-runs `_drawOrgLinks` so the glow
+tracks live stat changes. Manual: "Watch the wires" line added. Verified: orgglow_check 9/9.
+
 **18. President's Men: stat hover + Colson active (Jul 2026)**
 Hovering any organogram card shows a tooltip with its card-back stats (Loyalty x/10,
 Exposure x/10; Nixon = Watergate Exposure x/20) read LIVE from `_getOrgStat` — one

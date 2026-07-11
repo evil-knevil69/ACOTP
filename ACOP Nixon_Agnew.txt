@@ -15256,6 +15256,45 @@ var _RESHUFFLE = {
         wrapper.addEventListener('mouseleave', _hideOrgTip);
     };
 
+    // ── Exposure radiation glow ────────────────────────────────────────────────
+    // How hot is the edge src→tgt right now? 0 = nothing passing, 1/2/3 = the
+    // pressure engine's slow/medium/fast radiation bands. MIRRORS the engine's
+    // rules exactly (see the pressure _everyTurn tick): needs src exposure ≥2
+    // to radiate at all (≥5 medium, ≥8 fast), cut-loose halves the flow, a
+    // flipped or hush-money-paused man radiates nothing, and a CLEAN receiver
+    // (exposure ≤2; Nixon's own dial for the last rung) absorbs nothing.
+    // Whole thing is inert until the pressure engine wakes (PART II) and on
+    // short runs. try/catch: renders before the pressure block loads fail safe.
+    function _expFlowLevel(src, tgt) {
+        try {
+            if (!_pressureOn || (typeof _lengthAllows === 'function' && !_lengthAllows('pressure'))) return 0;
+            // only edges the engine actually radiates along (matters for the
+            // strings, which get asked about BOTH directions)
+            if (tgt === 'Nixon') {
+                if (['Haldeman', 'Ehrlichman', 'Dean', 'Colson', 'Mitchell'].indexOf(src) === -1) return 0;
+            } else if ((_ORG_EDGES[src] || []).indexOf(tgt) === -1) return 0;
+            const s = _ORG_PRESSURE[src];
+            if (!s || _flipped.has(src) || (_pausedUntil[src] || 0) >= _questionCount) return 0;
+            const e = s.exp();
+            let lvl = e >= 8 ? 3 : e >= 5 ? 2 : e >= 2 ? 1 : 0;
+            if (!lvl) return 0;
+            if (s.st() === 4 && lvl > 1) lvl--;   // cut loose: half impact upward
+            if (tgt === 'Nixon') {
+                if (WatergateExposure <= 2) return 0;   // the President is clean
+            } else {
+                const t = _ORG_PRESSURE[tgt];
+                if (!t || _flipped.has(tgt) || t.exp() <= 2) return 0;
+            }
+            return lvl;
+        } catch (err) { return 0; }
+    }
+    // ember palette per band: amber smoulder → orange → red heat
+    const _GLOW_STYLE = {
+        1: { stroke: '#e8a33d', width: 4, op: 0.40 },
+        2: { stroke: '#f2701f', width: 6, op: 0.60 },
+        3: { stroke: '#ff3a0e', width: 8, op: 0.80 },
+    };
+
     window._drawOrgLinks = function() {
         const svg   = document.getElementById('nw-svg-overlay');
         const inner = document.getElementById('nw-chart-inner');
@@ -15266,8 +15305,57 @@ var _RESHUFFLE = {
                 <feDisplacementMap in="SourceGraphic" in2="fiber" scale="1.3" xChannelSelector="R" yChannelSelector="G" result="textured"/>
                 <feGaussianBlur in="textured" stdDeviation="0.25"/>
             </filter>
+            <filter id="nw-glow" filterUnits="userSpaceOnUse" x="-200" y="-200" width="9999" height="9999">
+                <feGaussianBlur stdDeviation="2.8"/>
+            </filter>
         </defs>`;
         const cr = inner.getBoundingClientRect();
+
+        // Glow layer sits UNDER the lines/strings (appended first) so the heat
+        // haloes the chart's threads instead of covering them. Pulse CSS is
+        // injected once; hotter edges breathe faster; honours reduced motion.
+        if (!document.getElementById('nw-glow-style')) {
+            const gs = document.createElement('style');
+            gs.id = 'nw-glow-style';
+            gs.textContent =
+                '.nw-exp-glow { fill: none; stroke-linecap: round; pointer-events: none; }' +
+                '@media (prefers-reduced-motion: no-preference) {' +
+                '  @keyframes nwGlowPulse { from { opacity: 0.6; } to { opacity: 1; } }' +
+                '  .nw-exp-glow { animation: nwGlowPulse 2.6s ease-in-out infinite alternate; }' +
+                '  .nw-exp-glow.lvl2 { animation-duration: 1.9s; }' +
+                '  .nw-exp-glow.lvl3 { animation-duration: 1.2s; }' +
+                '}';
+            document.head.appendChild(gs);
+        }
+        const glowG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        glowG.id = 'nw-glow-layer';
+        svg.appendChild(glowG);
+        const glowLine = (d, lvl) => {
+            if (!lvl) return;
+            const g = _GLOW_STYLE[lvl];
+            const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            p.setAttribute('d', d);
+            p.setAttribute('class', 'nw-exp-glow lvl' + lvl);
+            p.setAttribute('stroke', g.stroke);
+            p.setAttribute('stroke-width', g.width);
+            p.setAttribute('stroke-opacity', g.op);
+            p.setAttribute('filter', 'url(#nw-glow)');
+            glowG.appendChild(p);
+        };
+        // A tree edge's visual route: child top-centre, up to the junction bar
+        // (20px above the child row), across, down into the parent's underside.
+        const glowTreeEdge = (srcId, tgtId) => {
+            const lvl = _expFlowLevel(srcId, tgtId);
+            if (!lvl) return;
+            const a = document.querySelector(`.nw-node[data-person="${srcId}"]`);
+            const b = document.querySelector(`.nw-node[data-person="${tgtId}"]`);
+            if (!a || !b) return;
+            const ar = a.getBoundingClientRect(), br = b.getBoundingClientRect();
+            const x1 = ar.left + ar.width / 2 - cr.left, y1 = ar.top - cr.top;
+            const x2 = br.left + br.width / 2 - cr.left, y2 = br.bottom - cr.top;
+            const bar = y1 - 20;
+            glowLine(`M ${x1} ${y1} L ${x1} ${bar} L ${x2} ${bar} L ${x2} ${y2}`, lvl);
+        };
 
         const makeLine = (d) => {
             const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -15277,6 +15365,13 @@ var _RESHUFFLE = {
             p.setAttribute('fill', 'none');
             svg.appendChild(p);
         };
+
+        // The in-column ladder rungs (CSS-drawn tree elbows), lit per edge.
+        // Liddy has no upward edge — the man never talks — so Magruder→Liddy
+        // stays cold by design. Stans→LaRue has no drawn line; skipped.
+        [['Segretti', 'Chapin'], ['Chapin', 'Haldeman'], ['Strachan', 'Haldeman'],
+         ['Krogh', 'Ehrlichman'], ['Magruder', 'Mitchell'], ['LaRue', 'Mitchell'],
+         ['Stans', 'Mitchell'], ['Kalmbach', 'Stans']].forEach(([s, t]) => glowTreeEdge(s, t));
 
         // ── Position floated nodes + draw their connectors ────────────────────────
         (function() {
@@ -15382,6 +15477,8 @@ var _RESHUFFLE = {
             // Colson -> Hunt: straight vertical line from Colson bottom-center to Hunt top-center
             const colsonCX = colsonR.left + colsonR.width / 2 - cr.left;
             makeLine(`M ${colsonCX} ${colsonR.bottom - cr.top} L ${huntCX} ${huntTop}`);
+            // Hunt radiates up this line to Colson
+            glowLine(`M ${huntCX} ${huntTop} L ${colsonCX} ${colsonR.bottom - cr.top}`, _expFlowLevel('Hunt', 'Colson'));
 
             // Hunt + Liddy -> WG: two-parent join from bottom-center of each card
             const huntBY = huntFloat.getBoundingClientRect().bottom - cr.top;
@@ -15390,6 +15487,11 @@ var _RESHUFFLE = {
             makeLine(`M ${liddyCX} ${liddyBY} L ${liddyCX} ${barY}`);
             makeLine(`M ${huntCX}  ${barY}    L ${liddyCX} ${barY}`);
             makeLine(`M ${barCX}   ${barY}    L ${barCX}   ${wgTop}`);
+            // the Burglars radiate up the join to each parent along its own limb
+            glowLine(`M ${barCX} ${wgTop} L ${barCX} ${barY} L ${huntCX} ${barY} L ${huntCX} ${huntBY}`,
+                _expFlowLevel('Burglars', 'Hunt'));
+            glowLine(`M ${barCX} ${wgTop} L ${barCX} ${barY} L ${liddyCX} ${barY} L ${liddyCX} ${liddyBY}`,
+                _expFlowLevel('Burglars', 'Liddy'));
 
             // Mitchell -> McCord: branch off at the same level as Mitchell's other children
             if (mitchellEl && magruderEl && mccordFloat) {
@@ -15399,6 +15501,9 @@ var _RESHUFFLE = {
                 const mccordCX = parseFloat(mccordFloat.style.left) + nodeW / 2;
                 const mitchCX  = mitchR.left + mitchR.width / 2 - cr.left;
                 makeLine(`M ${mitchCX} ${mitchR.bottom - cr.top} L ${mitchCX} ${branchY} L ${mccordCX} ${branchY} L ${mccordCX} ${wgTop}`);
+                // McCord radiates up the same elbow to Mitchell
+                glowLine(`M ${mccordCX} ${wgTop} L ${mccordCX} ${branchY} L ${mitchCX} ${branchY} L ${mitchCX} ${mitchR.bottom - cr.top}`,
+                    _expFlowLevel('McCord', 'Mitchell'));
             }
 
         })();
@@ -15421,13 +15526,31 @@ var _RESHUFFLE = {
                 makeLine(`M ${x1} ${y1} L ${x1} ${ymid}`);
                 makeLine(`M ${minX} ${ymid} L ${maxX} ${ymid}`);
                 cols.forEach(({ x, y }) => makeLine(`M ${x} ${ymid} L ${x} ${y}`));
+                // The last rung: each inner-circle man's drop glows with what he
+                // is passing to the President; the shared bar + stem carry the
+                // hottest of them, all the way up into Nixon's card.
+                let hottest = 0;
+                roots.forEach((r, i) => {
+                    const lvl = _expFlowLevel(r.dataset.person, 'Nixon');
+                    if (!lvl) return;
+                    hottest = Math.max(hottest, lvl);
+                    glowLine(`M ${cols[i].x} ${cols[i].y} L ${cols[i].x} ${ymid}`, lvl);
+                });
+                if (hottest) {
+                    glowLine(`M ${minX} ${ymid} L ${maxX} ${ymid}`, hottest);
+                    glowLine(`M ${x1} ${ymid} L ${x1} ${y1}`, hottest);
+                }
             }
         }
 
         _crossLinks.forEach(({ from, to, fromEdge = 'top', toEdge = 'top' }) => {
             const a = document.querySelector(`.nw-node[data-person="${from}"]`);
             const b = document.querySelector(`.nw-node[data-person="${to}"]`);
-            if (a && b) _drawOrgArc(svg, cr, a, b, null, false, false, true, fromEdge, toEdge);
+            if (!a || !b) return;
+            const d = _drawOrgArc(svg, cr, a, b, null, false, false, true, fromEdge, toEdge);
+            // the red strings carry radiation too; LaRue↔Kalmbach flows both
+            // ways in the engine, so the string takes the hotter direction
+            glowLine(d, Math.max(_expFlowLevel(from, to), _expFlowLevel(to, from)));
         });
     };
 
@@ -15481,6 +15604,7 @@ var _RESHUFFLE = {
             if (dashed) path.setAttribute('stroke-dasharray', '4 3');
             svg.appendChild(path);
         }
+        return d;   // callers glow the same route (exposure radiation)
     }
 
     window._setOrgState = function(personId, state) {
@@ -15516,6 +15640,10 @@ var _RESHUFFLE = {
             ['Stans',     StansSTATUS],     ['Kalmbach',  KalmbachSTATUS],  ['Dean',     DeanSTATUS],
             ['Colson',    ColsonSTATUS],    ['WatergateBurglars', Watergateburglarsstatus],
         ].forEach(([id, val]) => window._setOrgState(id, toState(val)));
+        // Stats just changed (team action, load, turn tick with the panel up) —
+        // rebuild the link layer so the radiation glow tracks the new numbers.
+        // _drawOrgLinks is idempotent (wipes and redraws the whole svg).
+        if (document.getElementById('nw-svg-overlay')) window._drawOrgLinks();
     };
 })();
 
@@ -17780,7 +17908,7 @@ function openGameManual() {
         '<li><b>Officials</b> — your cabinet. Click any card to flip it and read what that appointment does for you.</li></ul>'+
         '<h3>All the President’s Men — the pressure</h3>'+
         '<p>Every man in the conspiracy has two numbers, shown when you flip his card: <b>Loyalty</b> (10 = a true believer, 0 = ready to talk) and <b>Exposure</b> (how far the investigation has reached him). Nixon’s own card shows your <b>Watergate Exposure</b> — the number that ultimately decides your fate.</p>'+
-        '<p><b>Exposure climbs.</b> Each turn a man’s exposure leaks upward to the men above him on the chart — the more exposed he is, the faster it spreads. A man who is still clean is shielded and absorbs nothing from below. Left unchecked it works its way up the chain and, in the end, to the President himself.</p>'+
+        '<p><b>Exposure climbs.</b> Each turn a man’s exposure leaks upward to the men above him on the chart — the more exposed he is, the faster it spreads. A man who is still clean is shielded and absorbs nothing from below. Left unchecked it works its way up the chain and, in the end, to the President himself. <b>Watch the wires:</b> a line glows where exposure is passing along it, hotter and redder the faster it flows — follow the glow up the organisation to see how close the fire has crept to the Oval Office.</p>'+
         '<p><b>Men crack.</b> The more exposed a man is, the faster his loyalty erodes — and once his loyalty bottoms out while his exposure is high, he may turn <b>state’s witness</b>. A witness is a catastrophe: his testimony throws fresh exposure onto everyone he was tied to, and if one of the inner circle (Haldeman, Ehrlichman, Colson, Mitchell, Dean) flips, it lands directly on you. Minor exposure fades on its own over time — unless the man has been indicted or jailed, which keeps him in the headlines.</p>'+
         '<p><b>Your tools.</b> Four actions sit at the top-left of the screen, each with limited uses earned through the game. They only work on the junior staff — the men below the top row (Dean included), never the President or the inner four:</p><ul>'+
         '<li><b>Hush Money</b> — buy a man off: +1 loyalty, and his loyalty stops eroding and his exposure stops spreading for a few turns.</li>'+
