@@ -12999,8 +12999,10 @@ function addInnerCircleButton() {
     btn.style.marginLeft = '10px';
     btn.addEventListener('click', openInnerCircle);
     // The button is recreated on every engine render; re-apply the reshuffle
-    // glow while an offer is live this turn.
+    // glow while an offer is live this turn, and the team-action glow while
+    // unseen charges are waiting on the President's Men screen.
     if (typeof _RESHUFFLE !== 'undefined' && _RESHUFFLE.isActive()) btn.classList.add('rs-glow');
+    if (_taUnseen) btn.classList.add('ta-glow');
     ref.insertAdjacentElement('afterend', btn);
 }
 
@@ -13152,10 +13154,32 @@ const _TEAM_ACTIONS = [
 
 function _teamAction(key) { return _TEAM_ACTIONS.find(a => a.key === key); }
 
+// New team-action charges the player hasn't seen yet: the Enemies/Friends
+// button glows (like the reshuffle offer) until they open the President's Men
+// screen, so a Hush Money / Cut Them Loose / Clemency / Pin the Blame charge
+// granted mid-question isn't missed. Per-run flag (in _SL_SCALARS, New-Game
+// reset). Mirrors the world-map button's "new diplomacy charge" signal.
+var _taUnseen = false;
+// Paint or clear the glow on the Enemies/Friends button, if it's on screen.
+function _syncTeamActionGlow() {
+    const btn = document.getElementById('inner_circle_button');
+    if (btn) btn.classList.toggle('ta-glow', _taUnseen);
+}
+
 // Grant charges (answers call this — or bump the var and call _syncTeamActionBtns()).
 function _addTeamAction(key, n) {
     const a = _teamAction(key);
-    if (a) { a.set(Math.max(0, a.get() + (n == null ? 1 : n))); _syncTeamActionBtns(); }
+    if (!a) return;
+    const delta = (n == null ? 1 : n);
+    a.set(Math.max(0, a.get() + delta));
+    _syncTeamActionBtns();
+    // A fresh charge arrived while the player is elsewhere → flag the button.
+    // (If the President's Men panel is already open they can see the count tick
+    // up, so no glow is needed.)
+    if (delta > 0 && !document.getElementById('inner_circle_panel')) {
+        _taUnseen = true;
+        _syncTeamActionGlow();
+    }
 }
 
 // Spend one charge. Returns true if a charge was available. The click handler
@@ -13338,6 +13362,7 @@ function openInnerCircle() {
     const questions = document.querySelector('.inner_window_question');
     if (questions) questions.style.display = 'none';
     document.getElementById('inner_circle_button')?.remove();
+    _taUnseen = false;   // they're here now — the new charges have been seen
 
     const panel = document.createElement('div');
     panel.id = 'inner_circle_panel';
@@ -14198,6 +14223,17 @@ const OFFICIALS_VARS = {
         @keyframes rs-pulse {
             0%, 100% { box-shadow: 0 0 3px 1px  rgba(255, 200, 60, 0.55); }
             50%      { box-shadow: 0 0 12px 5px rgba(255, 200, 60, 0.95); }
+        }
+        /* ── New team-action charges waiting (see _taUnseen) — a distinct
+              green so it reads apart from the amber reshuffle glow, and both
+              can pulse on the Enemies/Friends button at once. ── */
+        .ta-glow {
+            animation: ta-pulse 1.1s ease-in-out infinite;
+            border-radius: 3px;
+        }
+        @keyframes ta-pulse {
+            0%, 100% { box-shadow: 0 0 3px 1px  rgba(80, 200, 110, 0.55); }
+            50%      { box-shadow: 0 0 12px 5px rgba(80, 200, 110, 0.95); }
         }
         .oc-pending {
             margin-top: 6px;
@@ -16569,6 +16605,7 @@ window.__onGameWindowMutation(() => {
                     _RESHUFFLE.reset();
                     HushMoneyStack = 0; CutThemLooseStack = 0;
                     OfferClemencyStack = 0; PinTheBlameStack = 0;
+                    _taUnseen = false;
                     _clemencies.length = 0;
                     WatergateExposure = 1;
                     ImproveRelationsStack = 0; SendAidStack = 0;
@@ -17250,7 +17287,7 @@ var _SL_SCALARS = [
     'ratfucking', 'ITT', 'FakeCables', 'MilkFund', 'Vesco', 'oojHush',
     'oojClemency', 'dncbreakin', 'OilEmbargo', 'SaturdayNightMassacre',
     // action stacks
-    'HushMoneyStack', 'CutThemLooseStack', 'OfferClemencyStack', 'PinTheBlameStack',
+    'HushMoneyStack', 'CutThemLooseStack', 'OfferClemencyStack', 'PinTheBlameStack', '_taUnseen',
     'ImproveRelationsStack', 'SendAidStack', 'ReduceAidStack', 'DestabiliseStack',
     // world events
     'Vietnam', 'chad', 'khmer', 'laos', 'eritrea', 'managua', 'cyprusInvasion',
@@ -18083,7 +18120,7 @@ function openGameManual() {
         '<p>Every man in the conspiracy has two numbers, shown when you flip his card: <b>Loyalty</b> (10 = a true believer, 0 = ready to talk) and <b>Exposure</b> (how far the investigation has reached him). Nixon’s own card shows your <b>Watergate Exposure</b> — the number that ultimately decides your fate.</p>'+
         '<p><b>Exposure climbs.</b> Each turn a man’s exposure leaks upward to the men above him on the chart — the more exposed he is, the faster it spreads. A man who is still clean is shielded and absorbs nothing from below. Left unchecked it works its way up the chain and, in the end, to the President himself. <b>Watch the wires:</b> a line glows where exposure is passing along it, hotter and redder the faster it flows — follow the glow up the organisation to see how close the fire has crept to the Oval Office.</p>'+
         '<p><b>Men crack.</b> The more exposed a man is, the faster his loyalty erodes — and once his loyalty bottoms out while his exposure is high, he may turn <b>state’s witness</b>. A witness is a catastrophe: his testimony throws fresh exposure onto everyone he was tied to, and if one of the inner circle (Haldeman, Ehrlichman, Colson, Mitchell, Dean) flips, it lands directly on you. Minor exposure fades on its own over time — unless the man has been indicted or jailed, which keeps him in the headlines.</p>'+
-        '<p><b>Your tools.</b> Four actions sit at the top-left of the screen, each with limited uses earned through the game. They only work on the junior staff — the men below the top row (Dean included), never the President or the inner four:</p><ul>'+
+        '<p><b>Your tools.</b> Four actions sit at the top-left of the screen, each with limited uses earned through the game. When you earn a fresh use, the <b>Enemies/Friends</b> button glows green until you next open this screen. They only work on the junior staff — the men below the top row (Dean included), never the President or the inner four:</p><ul>'+
         '<li><b>Hush Money</b> — buy a man off: +1 loyalty, and his loyalty stops eroding and his exposure stops spreading for a few turns.</li>'+
         '<li><b>Cut Them Loose</b> — publicly disown a man still in post; distances him, but does nothing to stop him cracking.</li>'+
         '<li><b>Offer Clemency</b> — dangle a pardon before a loyal man who’s been indicted or jailed: a temporary loyalty boost that evaporates the moment his situation changes.</li>'+

@@ -241,6 +241,14 @@ unknown names warn + no-op; hypocrite ops ignored after close). Console:
 `_enemiesReset()`. Roster `img` URLs are all '' (FILL ME IN). ADD NEW PEOPLE TO
 `ENEMIES_ROSTER`, not to the panel code.
 
+**21. Enemies/Friends button glows on new team-action charges (Jul 2026)**
+Mirrors the reshuffle glow: when `_addTeamAction` grants a Hush Money / Cut Them Loose /
+Clemency / Pin the Blame charge while the President's Men panel is NOT open, `_taUnseen`
+is set and `#inner_circle_button` gets a `.ta-glow` (green `ta-pulse`, distinct from the
+amber `rs-glow` so both can pulse at once). `addInnerCircleButton` re-applies it on each
+engine re-render; `openInnerCircle` clears `_taUnseen`. Per-run flag in `_SL_SCALARS` +
+New-Game reset. Manual line added. Verified: taglow_check 7/7.
+
 **20. Placeholder people-tooltips from the question bank (Jul 2026)**
 ~60 new `tooltipList` entries (one per person, via `searchStrings` aliases; `img: null`)
 auto-drafted from `CTS_Questions.docx` — everyone NAMED in the questions so far who
