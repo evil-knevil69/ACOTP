@@ -241,15 +241,18 @@ unknown names warn + no-op; hypocrite ops ignored after close). Console:
 `_enemiesReset()`. Roster `img` URLs are all '' (FILL ME IN). ADD NEW PEOPLE TO
 `ENEMIES_ROSTER`, not to the panel code.
 
-**22. Cabinet reshuffle grace window (Jul 2026)**
-Reshuffle offers no longer lapse after a single turn: `_RESHUFFLE.offer(slots, opts)` now
-stamps a `grace` (default `_RS_DEFAULT_GRACE = 2` extra turns; `opts.grace` overrides,
-`grace: 0` restores the old one-turn behaviour). The `_everyTurn` expire gate fires only
-once `turn > active.turn + (active.grace || 0)`, so the offer stays actionable — and the
-Enemies/Friends + Officials glow keeps pulsing — for the arming turn plus the grace turns;
-unfilled slots still fall VACANT when it finally lapses. Save-safe: `active` is
-snapshotted wholesale, and a legacy offer with no `grace` field reads as 0 (old rule).
-Manual line updated. Verified: reshuffle_grace_check 11/11.
+**22. Cabinet reshuffle: two-turn window + random forced pick (Jul 2026)**
+Reshuffle offers stay live for TWO turns (`_RESHUFFLE.offer(slots, opts)` stamps a
+`grace`, default `_RS_DEFAULT_GRACE = 1` extra turn beyond the arming turn; `opts.grace`
+overrides, `grace: 0` = the old one-turn deadline). The `_everyTurn` expire gate fires
+only once `turn > active.turn + (active.grace || 0)`, and the Enemies/Friends + Officials
+glow keeps pulsing the whole window. On lapse, unfilled slots are now DECIDED AT RANDOM
+from that slot's candidates and seated (respecting `delay` → immediate or queued in
+`pending`) — NOT left vacant — so a player can't dodge a malus-carrying official by
+ignoring the offer. A slot offered with no candidates still falls vacant. Save-safe:
+`active`/`pending` snapshotted wholesale; a legacy offer with no `grace` field reads as 0.
+Manual line updated. Verified: reshuffle_grace_check 13/13 (incl. 400-trial random spread
+across all candidates + delayed-pick queueing).
 
 **21. Enemies/Friends button glows on new team-action charges (Jul 2026)**
 Mirrors the reshuffle glow: when `_addTeamAction` grants a Hush Money / Cut Them Loose /
