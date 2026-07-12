@@ -241,6 +241,16 @@ unknown names warn + no-op; hypocrite ops ignored after close). Console:
 `_enemiesReset()`. Roster `img` URLs are all '' (FILL ME IN). ADD NEW PEOPLE TO
 `ENEMIES_ROSTER`, not to the panel code.
 
+**22. Cabinet reshuffle grace window (Jul 2026)**
+Reshuffle offers no longer lapse after a single turn: `_RESHUFFLE.offer(slots, opts)` now
+stamps a `grace` (default `_RS_DEFAULT_GRACE = 2` extra turns; `opts.grace` overrides,
+`grace: 0` restores the old one-turn behaviour). The `_everyTurn` expire gate fires only
+once `turn > active.turn + (active.grace || 0)`, so the offer stays actionable — and the
+Enemies/Friends + Officials glow keeps pulsing — for the arming turn plus the grace turns;
+unfilled slots still fall VACANT when it finally lapses. Save-safe: `active` is
+snapshotted wholesale, and a legacy offer with no `grace` field reads as 0 (old rule).
+Manual line updated. Verified: reshuffle_grace_check 11/11.
+
 **21. Enemies/Friends button glows on new team-action charges (Jul 2026)**
 Mirrors the reshuffle glow: when `_addTeamAction` grants a Hush Money / Cut Them Loose /
 Clemency / Pin the Blame charge while the President's Men panel is NOT open, `_taUnseen`

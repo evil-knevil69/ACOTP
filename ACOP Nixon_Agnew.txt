@@ -14526,7 +14526,9 @@ function openOfficialsPanel(questions) {
 
 // ── CABINET RESHUFFLE ─────────────────────────────────────────────────────────
 // Offer the player a partial reshuffle via the Officials screen, armed from a
-// question's onShow and live FOR THAT TURN ONLY. While live, the glow trail is:
+// question's onShow. The offer stays live for a GRACE WINDOW of a few turns
+// (default _RS_DEFAULT_GRACE) — the arming turn plus that many more — so a fast
+// answer doesn't silently forfeit a cabinet post. While live, the glow trail is:
 // Enemies/Friends button → Officials button → the swappable role cards. Clicking
 // a glowing role opens the candidate picker (bottom-left); an appointment can
 // take effect immediately (delay 0) or N turns later.
@@ -14536,12 +14538,15 @@ function openOfficialsPanel(questions) {
 //       SOS: { candidates: ['Rockefeller', 'Kissinger'], delay: 2 },
 //       FBI: { candidates: ['Kelley', 'Felt', 'Wilson'], delay: 0 },
 //   })
+//   // give this one offer a tighter/looser deadline:
+//   onShow: () => _RESHUFFLE.offer({ SOS: { candidates: ['Connally'], delay: 0 } }, { grace: 0 })
 // varNames: ChiefOfStaff, NSA, SOS, SOD, AttorneyGeneral, SP, FBI, CIA.
 // Candidates are OFFICIALS_ROSTER keys. delay = turns until they take office.
-// NOT choosing has a cost: when the offer lapses at end of turn, every slot the
-// player left unfilled falls VACANT ('none').
+// NOT choosing has a cost: when the grace window lapses, every slot the player
+// left unfilled falls VACANT ('none'). grace: 0 restores the old one-turn window.
 // Console test:  _RESHUFFLE.offer({ SOS: { candidates: ['Rockefeller'], delay: 2 } })
 // ──────────────────────────────────────────────────────────────────────────────
+var _RS_DEFAULT_GRACE = 2;   // extra turns the offer survives beyond the one it's armed on
 const OFFICIALS_SETTERS = {
     ChiefOfStaff:    v => { ChiefOfStaff = v; },
     NSA:             v => { NSA = v; },
@@ -14557,9 +14562,16 @@ var _RESHUFFLE = {
     active: null,   // { slots: { varName: {candidates, delay} }, turn } — this turn's offer
     pending: [],    // [{ varName, person, dueTurn }] — appointments not yet in office
 
-    offer(slots) {
+    offer(slots, opts) {
         if (!_lengthAllows('reshuffle')) return; // no cabinet reshuffles on short runs
-        this.active = { slots: Object.assign({}, slots), turn: _questionCount };
+        opts = opts || {};
+        this.active = {
+            slots: Object.assign({}, slots),
+            turn: _questionCount,
+            // last turn the offer is still actionable (inclusive); expire fires
+            // the turn AFTER this. grace 0 = the old single-turn behaviour.
+            grace: (opts.grace != null ? opts.grace : _RS_DEFAULT_GRACE),
+        };
         const b = document.getElementById('inner_circle_button');
         if (b) b.classList.add('rs-glow');
     },
@@ -15714,7 +15726,9 @@ function _runTurnTicks() {
 // when their turn comes up. Ticks run before onShow, so a delay of d chosen on
 // turn T seats the new official at the top of turn T+d.
 _everyTurn(turn => {
-    if (_RESHUFFLE.active && turn > _RESHUFFLE.active.turn) _RESHUFFLE.expire();
+    // Lapse only once the grace window has fully passed (old saves have no
+    // grace field → 0, i.e. the original one-turn behaviour).
+    if (_RESHUFFLE.active && turn > _RESHUFFLE.active.turn + (_RESHUFFLE.active.grace || 0)) _RESHUFFLE.expire();
     for (let i = _RESHUFFLE.pending.length - 1; i >= 0; i--) {
         const p = _RESHUFFLE.pending[i];
         if (turn >= p.dueTurn) {
@@ -18127,7 +18141,7 @@ function openGameManual() {
         '<li><b>Pin the Blame</b> — available only once your own exposure is dangerously high: hang it on a wavering man (his exposure up, his loyalty down) to take the heat off yourself. A devil’s bargain — you’re manufacturing the next man to crack.</li></ul>'+
         '<p>The machine only truly comes alive in Part II (“Fulmination”); before that, the numbers move only through your answers.</p>'+
         '<h3>Officials</h3>'+
-        '<p>Your cabinet — State, Defense, Justice, National Security, CIA, FBI. Flip a card for the effects of that person in post. At certain moments you’ll be invited to <b>reshuffle</b>: the Enemies/Friends and Officials buttons glow, and the swappable roles glow — click one to choose a successor. Ignore it and the post falls <b>vacant</b>.</p>'+
+        '<p>Your cabinet — State, Defense, Justice, National Security, CIA, FBI. Flip a card for the effects of that person in post. At certain moments you’ll be invited to <b>reshuffle</b>: the Enemies/Friends and Officials buttons glow, and the swappable roles glow — click one to choose a successor. You have a few turns to decide; leave it too long and the post falls <b>vacant</b>.</p>'+
         '<h3>World map</h3>'+
         '<p>Toggle display layers along the bars: <b>Allegiance</b> (colours by how pro-US a country is), <b>Flags</b>, <b>Events</b>, <b>Capitals</b>, <b>Night</b>, <b>SIGINT</b>, and <b>Stats</b> (shows the exact relations number and destabilisation count in a country’s hover, and the detailed outcome of your diplomacy actions — with it off, actions land silently).</p>'+
         '<p>The <b>Diplomacy</b> dropdown holds four actions — arm one, then click a target country:</p><ul>'+
