@@ -193,8 +193,13 @@ files, same `.acop-final-tv` class (its footer flex row centres the single
 the whole flicker block sits in a `prefers-reduced-motion: no-preference` media query, so
 OS-level "reduce motion" gets steady cards. `__isElectionNight()` also stays true through
 the "Processing Results, wait one moment…" beat (footer swapped, button gone, but
-`#overall_result ul` + map svg still up) — otherwise the TV tore down and the cards
-flashed back to sticky notes between Election Night and the results screens. The TV frame
+`#overall_result ul` + `#state_result` + map svg still up) — otherwise the TV tore down and
+the cards flashed back to sticky notes between Election Night and the results screens. That
+beat-fallback REQUIRES `#state_result`: the VISIT map and the in-game "Estimated Support"
+map also pair `#map_container svg` with an `#overall_result ul`, but use `#state_info`, so
+without the `#state_result` discriminator the TV chrome (`logo-hide-style`) + `.acop-final-tv`
+scoreboard bled onto those screens (visit map showed the TV layer, its overall_result got
+the scoreboard pills, and the header/window sizing conflicted with `visit-hide-style`). The TV frame
 PNG + noise gif are in the preloader's idle tier (Code 2) so the first map open doesn't
 pop in. Projection sting: when the outcome popup fires at 270 (engine `showOutcomePopup`,
 detected by its unique `#overlay_result_button`), Code 2 plays `_PROJ_STING_URL` (FILL ME

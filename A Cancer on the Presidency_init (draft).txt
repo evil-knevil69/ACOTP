@@ -1729,11 +1729,15 @@ function __isElectionNight() {
     // "Processing Results, wait one moment…": clicking Go to Final Results
     // replaces the footer (killing the button) while the tally screen is still
     // up — without this the whole TV tore down for that beat and the cards
-    // flashed back to yellow sticky notes. Only election night and the final
-    // map ever pair a #map_container svg with a #overall_result <ul>; the
-    // in-game map (resume button) and the final screens (which all carry
-    // #final_election_map_button) are excluded explicitly.
+    // flashed back to yellow sticky notes.
+    // #state_result is the discriminator: ONLY Election Night and the final map
+    // build a #state_result panel. The VISIT map and the in-game "Estimated
+    // Support" map also pair a #map_container svg with an #overall_result <ul>,
+    // but they use #state_info — without this check the TV chrome + scoreboard
+    // bled onto those screens. The in-game map (resume button) and the other
+    // final screens (#final_election_map_button) are excluded explicitly.
     return !!(document.querySelector('#overall_result ul')
+        && document.getElementById('state_result')
         && document.querySelector('#map_container svg')
         && !document.getElementById('resume_questions_button')
         && !document.getElementById('final_election_map_button'));
