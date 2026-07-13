@@ -348,13 +348,44 @@ function _applyTheme(name) {
     document.querySelectorAll('.game_header').forEach(h => { h.innerHTML = corrr; });
 }
 
-// Build + mount the picker. Placement is intentionally isolated in ONE place:
-// change this to relocate it (e.g. onto the options screen or a page corner).
-// Default: a compact control pinned to the page's top-right, present on every
-// screen, styled to match the mod. Mounted once (body persists across screens).
+// Build the <select>: options from the registry, current selection marked,
+// onchange → _applyTheme. Carries the stable `.acop-theme-select` class (the
+// hook used for idempotence + tests) in BOTH mount modes below.
+function _buildThemeSelect() {
+    const sel = document.createElement('select');
+    sel.className = 'acop-theme-select';
+    Object.keys(ACOP_THEMES).forEach(name => {
+        const o = document.createElement('option');
+        o.value = name; o.textContent = name;
+        if (name === _acopTheme) o.selected = true;
+        sel.appendChild(o);
+    });
+    sel.addEventListener('change', () => _applyTheme(sel.value));
+    return sel;
+}
+
+// Mount the picker. Preferred path — mirroring 1972: More Than Ever — is to
+// REPLACE the host site's native theme <select id="themePicker"> in place, so
+// it inherits the host's chrome styling and sits where players expect it. If
+// the host doesn't supply that element (older/other hosts, the standalone
+// showcase), fall back to a compact control pinned to the page's top-right.
+// Mounted once (guarded on the shared `.acop-theme-select` class); relocating
+// the picker is isolated to this one function.
 function _mountThemePicker() {
-    if (document.getElementById('acop-theme-picker')) return;
+    if (document.querySelector('.acop-theme-select')) return;   // already mounted (either mode)
     if (!document.body) return;
+
+    // Preferred: hijack the host's native picker (MTE-style replaceWith).
+    const host = document.getElementById('themePicker');
+    if (host) {
+        const sel = _buildThemeSelect();
+        sel.id = 'themePicker';                 // keep the id so host CSS still styles it
+        host.replaceWith(sel);
+        _applyTheme(_acopTheme);                // apply current (default) once, like MTE
+        return;
+    }
+
+    // Fallback: floating control, present on every screen, styled to match the mod.
     const wrap = document.createElement('div');
     wrap.id = 'acop-theme-picker';
     wrap.style.cssText = 'position:fixed;top:8px;right:10px;z-index:100000;'
@@ -364,18 +395,11 @@ function _mountThemePicker() {
         + 'box-shadow:1px 2px 6px rgba(0,0,0,0.4);opacity:0.85;';
     const label = document.createElement('span');
     label.textContent = 'THEME';
-    const sel = document.createElement('select');
+    const sel = _buildThemeSelect();
     sel.id = 'acop-theme-select';
     sel.style.cssText = "font-family:'TypewriterDry',monospace;font-size:11px;"
         + 'background:#2b2416;color:#f0e6cf;border:1px solid #6b5a33;border-radius:2px;'
         + 'padding:1px 4px;cursor:pointer;';
-    Object.keys(ACOP_THEMES).forEach(name => {
-        const o = document.createElement('option');
-        o.value = name; o.textContent = name;
-        if (name === _acopTheme) o.selected = true;
-        sel.appendChild(o);
-    });
-    sel.addEventListener('change', () => _applyTheme(sel.value));
     wrap.appendChild(label); wrap.appendChild(sel);
     document.body.appendChild(wrap);
 }

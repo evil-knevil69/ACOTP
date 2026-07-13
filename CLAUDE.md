@@ -334,12 +334,18 @@ game-window/header/container colours via `nct_stuff.themes[selectedTheme]`, and 
 `.game_header` (corrr alone only affects the engine's future renders). The shipped ACOP
 look IS the default entry (`'A Cancer on the Presidency'`, capturing `ACOP_DEFAULT_CORRR`),
 so the selector starts on it and changes nothing until switched. `_mountThemePicker()`
-builds the `<select>` from the registry keys and pins a compact control to the page's
-top-right (fixed, every screen, mounted once on `document.body`); relocating it is
-isolated to that one function. Selection is session-only (`_acopTheme`, not persisted).
-TO ADD A THEME: copy the default entry in `ACOP_THEMES`, rename, swap URLs/colours — it
-appears in the dropdown automatically (commented `Tricky Dick Noir` stub shows the shape).
-Verified: theme_check 11/11 (mount/idempotence, default look, live repaint on switch,
+mounts the picker the SAME way 1972: More Than Ever does — it REPLACES the host site's
+native `<select id="themePicker">` in place (MTE-style `replaceWith`, keeping `id`
+so the host's chrome styling still applies), building the options from the registry
+keys. If the host doesn't supply that element (older/other hosts, the standalone
+showcase), it falls back to a compact control pinned to the page's top-right (fixed,
+every screen, mounted once on `document.body`). Both modes share the `_buildThemeSelect()`
+helper and a `.acop-theme-select` class (the idempotence + test hook). Relocating/reskinning
+the picker is isolated to `_mountThemePicker()`. Selection is session-only (`_acopTheme`,
+not persisted). TO ADD A THEME: copy the default entry in `ACOP_THEMES`, rename, swap
+URLs/colours — it appears in the dropdown automatically (commented `Tricky Dick Noir`
+stub shows the shape). Verified: theme_check 14/14 (host-replace mode + floating-fallback
+mode: mount/idempotence, host-picker hijack, default look, live repaint on switch,
 corrr sync into the header, new-theme registration, unknown-name fallback).
 
 ### A Cancer on the Presidency_init (draft).txt
