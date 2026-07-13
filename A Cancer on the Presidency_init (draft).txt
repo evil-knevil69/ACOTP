@@ -4406,10 +4406,9 @@ window.applyExpletiveMarkup = function (html) {
     return changed ? tpl.innerHTML : html;
 };
 
-// ALWAYS starts OFF — deliberately not persisted (a remembered '1' from a past
-// visit would make the checkbox read as checked-by-default). Session-only.
-var _expletivesOn = false;
-if (document.body) document.body.classList.remove('expletives-on');
+var _expletivesOn = false;   // OFF by default — opt in via the checkbox
+try { _expletivesOn = localStorage.getItem('acop_expletives') === '1'; } catch (e) {}
+if (document.body) document.body.classList.toggle('expletives-on', _expletivesOn);
 // ── END EXPLETIVES DELETED ────────────────────────────────────────────────────
 
 // Hover display — reuses Code 2's #tooltip-portal element (and this file's
@@ -4514,7 +4513,8 @@ window.__onGameWindowMutation(() => {
     xCb.id = 'expletives-toggle';
     xCb.checked = _expletivesOn;
     xCb.addEventListener('change', () => {
-        _expletivesOn = xCb.checked;   // session-only, never persisted (starts OFF)
+        _expletivesOn = xCb.checked;
+        try { localStorage.setItem('acop_expletives', xCb.checked ? '1' : '0'); } catch (e) {}
         document.body.classList.toggle('expletives-on', _expletivesOn);
     });
     xWrap.appendChild(xCb);
