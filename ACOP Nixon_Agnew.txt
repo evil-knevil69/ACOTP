@@ -13589,6 +13589,34 @@ window.ACOPEnemies = {
     open: () => openEnemiesPanel(document.querySelector('.inner_window_question')),
 };
 
+// ── EVENT-DRIVEN THEME SWAP (ported from 1996: The End of History) ───────────
+// EOH repaints the whole page when certain answers are clicked (its Q1 CYOA
+// swaps the Soviet look for the Windows-95 one: nct_stuff colours, body
+// background, header banner, corrr — all inline in the answer hook). ACOP
+// routes the same trick through Code 1's theme registry instead: call
+//     themeSwap('Theme Name')
+// from a question's onShow (questionData) or an answer-effect branch, and the
+// page repaints live via window._acopApplyTheme — the theme picker dropdown
+// follows the change, and the player can still switch manually afterwards.
+// The name must exist in ACOP_THEMES (Code 1) — unknown names warn + no-op,
+// so a themeSwap authored before its theme is registered fails safe.
+// Save/load: _gameTheme (in _SL_SCALARS) remembers the LAST EVENT-SWAPPED
+// theme; loading a save re-applies it (a manual picker choice is a session
+// preference and deliberately isn't persisted). New Game clears it and
+// returns to the default look only if an event had swapped — a player's own
+// picker choice survives starting over. Console: window.ACOPThemeSwap.
+var _gameTheme = '';   // '' = no event swap yet this run
+function themeSwap(name) {
+    if (!window.ACOP_THEMES || !(name in window.ACOP_THEMES)) {
+        console.warn('[ACOP] themeSwap: unknown theme "' + name + '" — add it to ACOP_THEMES (Code 1)');
+        return false;
+    }
+    _gameTheme = name;
+    try { window._acopApplyTheme(name); } catch (e) {}
+    return true;
+}
+window.ACOPThemeSwap = themeSwap;
+
 // KL's grade palette (A hot -> F cold-blooded)
 var _EN_CLS_COLOR = { A: '#D9321E', B: '#D3C683', C: '#2DD543', D: '#8CBADB', F: '#8f1204' };
 // Traitor threat label from the live score
@@ -16666,6 +16694,12 @@ window.__onGameWindowMutation(() => {
                     _president = 'nixon'; _vp = 'agnew'; _ticketStage = 1; _refreshTicket();
                     _actionCrimes.length = 0; _actionCrimesRevealed = false;
                     _enemiesReset();
+                    // Only unwind an EVENT-driven theme swap — a look the player
+                    // picked themselves in the dropdown survives a New Game.
+                    if (_gameTheme) {
+                        _gameTheme = '';
+                        try { window._acopApplyTheme?.('A Cancer on the Presidency'); } catch (e) {}
+                    }
                 }
                 _lastQNum = _gs.question_number;
 
@@ -17301,7 +17335,7 @@ var _SL_SCALARS = [
     // run counters / flow
     '_questionCount', '_pressureOn', '_allendeSpeechPlayed', '_actionCrimesRevealed',
     '_campaignLength', '_lengthInstalled', '_endAchFired', '_projStingPlayed', '_enightStingPlayed',
-    '_enightIntroPlayed',
+    '_enightIntroPlayed', '_gameTheme',
     // ticket
     '_president', '_vp', '_ticketStage', 'Nominee',
     // top-line stats
@@ -17409,6 +17443,10 @@ function _slRestoreMod(m) {
     Object.assign(_wmEventDebutPk, m.eventDebutPk || {});
     _enemiesRestore(m.enemies);   // absent on a pre-feature save -> starting field
     _refreshTicket();
+    // Re-apply an event-swapped theme (the _gameTheme scalar was just restored
+    // above). '' = no event swap in that run — leave the current look alone,
+    // it's the player's own picker preference.
+    if (_gameTheme) { try { window._acopApplyTheme?.(_gameTheme); } catch (e) {} }
 }
 
 // questionSwapper permutes questions_json in place (same objects, new order),

@@ -347,6 +347,19 @@ URLs/colours — it appears in the dropdown automatically (commented `Tricky Dic
 stub shows the shape). Verified: theme_check 14/14 (host-replace mode + floating-fallback
 mode: mount/idempotence, host-picker hijack, default look, live repaint on switch,
 corrr sync into the header, new-theme registration, unknown-name fallback).
+EVENT-DRIVEN SWAP (Jul 2026, ported from 1996: The End of History — EOH repaints
+inline in its answer hook; ACOP routes it through the registry): `themeSwap('Name')`
+in Code 2 (grep `EVENT-DRIVEN THEME SWAP`) — call from a question's `onShow` or an
+answer-effect branch; repaints live via `window._acopApplyTheme` (Code 1 exposes
+`window.ACOP_THEMES` + `window._acopApplyTheme`; `_applyTheme` now also syncs the
+picker dropdown). Unknown names warn + no-op (author the themeSwap before the theme
+exists = fails safe). Save/load: `_gameTheme` in `_SL_SCALARS` = last EVENT swap
+('' = none); restore re-applies it; New Game unwinds to the default ONLY if an
+event had swapped (a manual picker choice survives both — session preference,
+deliberately unpersisted). Console: `window.ACOPThemeSwap`. Verified:
+themeswap_check 10/10 (cross-file wiring, live repaint, picker sync, unknown-name
+no-op + warn, manual pick after event swap, save/reset wiring greps);
+theme_check 14/14 + saveload 10/10 unchanged.
 
 **24. Fog of War toggle (Jul 2026)**
 (Expletives Deleted was briefly made non-persistent here, then reverted on

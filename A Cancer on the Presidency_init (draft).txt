@@ -342,11 +342,18 @@ var _acopTheme = 'A Cancer on the Presidency';   // current selection (session o
 
 // Apply a theme by name, then push the (possibly new) corrr into any header
 // already on screen — corrr alone only affects the engine's FUTURE renders.
+// Also syncs the picker dropdown(s), so a swap triggered by GAME EVENTS
+// (Code 2's themeSwap, ported from 1996: End of History) shows up there too.
 function _applyTheme(name) {
     _acopTheme = (name in ACOP_THEMES) ? name : 'A Cancer on the Presidency';
     try { ACOP_THEMES[_acopTheme](); } catch (e) {}
     document.querySelectorAll('.game_header').forEach(h => { h.innerHTML = corrr; });
+    document.querySelectorAll('.acop-theme-select').forEach(s => { s.value = _acopTheme; });
 }
+// Code 2 runs in its own Function scope — expose the registry + applier so
+// question events can swap themes (and authors can register themes) from there.
+window.ACOP_THEMES = ACOP_THEMES;
+window._acopApplyTheme = _applyTheme;
 
 // Build the <select>: options from the registry, current selection marked,
 // onchange → _applyTheme. Carries the stable `.acop-theme-select` class (the
