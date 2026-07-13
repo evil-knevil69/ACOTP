@@ -4406,9 +4406,10 @@ window.applyExpletiveMarkup = function (html) {
     return changed ? tpl.innerHTML : html;
 };
 
-var _expletivesOn = false;   // OFF by default — opt in via the checkbox
-try { _expletivesOn = localStorage.getItem('acop_expletives') === '1'; } catch (e) {}
-if (document.body) document.body.classList.toggle('expletives-on', _expletivesOn);
+// ALWAYS starts OFF — deliberately not persisted (a remembered '1' from a past
+// visit would make the checkbox read as checked-by-default). Session-only.
+var _expletivesOn = false;
+if (document.body) document.body.classList.remove('expletives-on');
 // ── END EXPLETIVES DELETED ────────────────────────────────────────────────────
 
 // Hover display — reuses Code 2's #tooltip-portal element (and this file's
@@ -4456,6 +4457,14 @@ document.addEventListener('mouseleave', () => {
 var _historicityOn = false;
 try { _historicityOn = localStorage.getItem('acop_historicity') === '1'; } catch (e) {}
 if (document.body) document.body.classList.toggle('historicity-on', _historicityOn);
+
+// Fog of War — ON by default, opt-out, persisted. When on, body.fog-of-war-on
+// blurs the LIVE team-loyalty numbers on the President's Men chart (card backs
+// + the stat hover tip — the .nw-fog spans in Code 2), so the player can't see
+// exactly when a man will bust. A number at 1 or below always shows.
+var _fogOfWarOn = true;
+try { _fogOfWarOn = localStorage.getItem('acop_fog_of_war') !== '0'; } catch (e) {}
+if (document.body) document.body.classList.toggle('fog-of-war-on', _fogOfWarOn);
 
 // "Educational tooltips" + "Historicity" checkboxes, injected next to the
 // difficulty selector on the pre-game screen (id-guarded; the shared observer
@@ -4505,8 +4514,7 @@ window.__onGameWindowMutation(() => {
     xCb.id = 'expletives-toggle';
     xCb.checked = _expletivesOn;
     xCb.addEventListener('change', () => {
-        _expletivesOn = xCb.checked;
-        try { localStorage.setItem('acop_expletives', xCb.checked ? '1' : '0'); } catch (e) {}
+        _expletivesOn = xCb.checked;   // session-only, never persisted (starts OFF)
         document.body.classList.toggle('expletives-on', _expletivesOn);
     });
     xWrap.appendChild(xCb);
@@ -4558,6 +4566,35 @@ window.__onGameWindowMutation(() => {
     hWrap.addEventListener('mouseenter', () => { hTip.style.display = 'block'; });
     hWrap.addEventListener('mouseleave', () => { hTip.style.display = 'none'; });
     diff.appendChild(hWrap);
+
+    // "Fog of War" — ON by default (see _fogOfWarOn above). Blurs the live
+    // team-loyalty numbers on the President's Men chart.
+    const fWrap = document.createElement('label');
+    fWrap.id = 'fog-of-war-toggle-wrap';
+    fWrap.style.cssText = 'display:block;margin-top:4px;position:relative;';
+    const fCb = document.createElement('input');
+    fCb.type = 'checkbox';
+    fCb.id = 'fog-of-war-toggle';
+    fCb.checked = _fogOfWarOn;
+    fCb.addEventListener('change', () => {
+        _fogOfWarOn = fCb.checked;
+        try { localStorage.setItem('acop_fog_of_war', fCb.checked ? '1' : '0'); } catch (e) {}
+        document.body.classList.toggle('fog-of-war-on', _fogOfWarOn);
+    });
+    fWrap.appendChild(fCb);
+    fWrap.appendChild(document.createTextNode(' Fog of War'));
+    const fTip = document.createElement('span');
+    fTip.id = 'fog-of-war-hovertip';
+    fTip.style.cssText = 'display:none;position:absolute;bottom:calc(100% + 6px);left:10px;width:250px;'
+        + 'background:rgba(255,255,255,0.97);border:1px solid #999;border-radius:3px;'
+        + 'box-shadow:1px 2px 6px rgba(0,0,0,0.3);padding:7px 9px;z-index:1000;'
+        + 'font-family:TypewriterDry,monospace;font-size:11px;line-height:1.45;color:#222;'
+        + 'text-align:left;pointer-events:none;font-weight:normal;';
+    fTip.textContent = 'Obscure team loyalty ratings, you don’t know when they’ll bust.';
+    fWrap.appendChild(fTip);
+    fWrap.addEventListener('mouseenter', () => { fTip.style.display = 'block'; });
+    fWrap.addEventListener('mouseleave', () => { fTip.style.display = 'none'; });
+    diff.appendChild(fWrap);
 });
 // ── END EDUCATIONAL TOOLTIPS ──────────────────────────────────────────────────
 

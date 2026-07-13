@@ -348,6 +348,22 @@ stub shows the shape). Verified: theme_check 14/14 (host-replace mode + floating
 mode: mount/idempotence, host-picker hijack, default look, live repaint on switch,
 corrr sync into the header, new-theme registration, unknown-name fallback).
 
+**24. Fog of War toggle + Expletives Deleted always-off (Jul 2026)**
+"Expletives Deleted" now ALWAYS starts unchecked — persistence removed (a
+remembered localStorage '1' made it look checked-by-default); session-only.
+New pre-game checkbox **"Fog of War"** (Code 1, under Historicity; ON by
+default, opt-out persisted in `acop_fog_of_war`, body class `fog-of-war-on`;
+hover: "Obscure team loyalty ratings, you don't know when they'll bust.").
+Effect (Code 2, President's Men): the LIVE loyalty NUMBER on card backs and
+the stat hover tip is wrapped in `.nw-fog` and blurred under
+`body.fog-of-war-on` (fixed 2ch width so a fogged 10 isn't wider than a 7,
+user-select none) — the "/ 10" scale, Exposure, and Nixon's Watergate
+Exposure stay legible. A man at loyalty ≤1 renders UNfogged (about to bust —
+render-time decision; both surfaces rebuild live). Manual line added.
+Verified: fog_check 14/14 (blur on/off, only-the-number, ≤1 reveal, Nixon
+exempt, checkbox defaults incl. stale-localStorage expletives, opt-out
+persistence); orgtip_check 10/10 unchanged.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.

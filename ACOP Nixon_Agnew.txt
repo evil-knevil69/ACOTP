@@ -14944,6 +14944,19 @@ var _RESHUFFLE = {
             color: #222;
             margin-bottom: 2px;
         }
+        /* ── Fog of War (pre-game toggle → body.fog-of-war-on, Code 1): the
+              LIVE loyalty number is blurred — you don't know when a man will
+              bust — until he's about to crack (loyalty ≤1 renders unfogged).
+              Fixed-width + centred so a fogged 10 isn't wider than a fogged 7,
+              and unselectable so the digit can't be copied out of the blur.
+              Only the number fogs; the "/ 10" scale stays legible. ── */
+        body.fog-of-war-on .nw-fog {
+            display: inline-block;
+            min-width: 2ch;
+            text-align: center;
+            filter: blur(4px);
+            user-select: none;
+        }
         .nw-back-bar {
             width: 100%;
             height: 5px;
@@ -15255,7 +15268,11 @@ var _RESHUFFLE = {
                 return;
             }
             let html = '<div class="nw-back-content">';
-            if (loyalty  != null) html += `<div class="nw-back-stat"><div class="nw-back-label">Loyalty</div><div class="nw-back-value">${loyalty} / 10</div></div>`;
+            // Fog of War: the loyalty NUMBER (not the "/ 10") is wrapped so the
+            // pre-game toggle can blur it — except once the man is about to
+            // crack (loyalty ≤1), which always shows. Render-time decision:
+            // the back is rebuilt on every flip, so it tracks the live stat.
+            if (loyalty  != null) html += `<div class="nw-back-stat"><div class="nw-back-label">Loyalty</div><div class="nw-back-value"><span${loyalty > 1 ? ' class="nw-fog"' : ''}>${loyalty}</span> / 10</div></div>`;
             if (exposure != null) html += `<div class="nw-back-stat"><div class="nw-back-label">Exposure</div><div class="nw-back-value">${exposure} / 10</div></div>`;
             html += '</div>';
             back.innerHTML = html;
@@ -15289,23 +15306,30 @@ var _RESHUFFLE = {
             const node = e.target.closest('.nw-node');
             if (!node || node.classList.contains('nw-flipped')) { _hideOrgTip(); return; }
             const id = node.dataset.person;
+            // rows: [label, number, scale, fogged] — a fogged loyalty number is
+            // wrapped in .nw-fog (blurred under the Fog of War pre-game toggle,
+            // see the card-back note); the "/ 10" scale text stays legible.
             const rows = [];
             if (id === 'Nixon') {
-                rows.push(['Watergate Exposure', WatergateExposure + ' / 20']);
+                rows.push(['Watergate Exposure', WatergateExposure, ' / 20', false]);
             } else {
                 const loyalty  = window._getOrgStat(id, 'loyalty');
                 const exposure = window._getOrgStat(id, 'exposure');
-                if (loyalty  != null) rows.push(['Loyalty',  loyalty  + ' / 10']);
-                if (exposure != null) rows.push(['Exposure', exposure + ' / 10']);
+                if (loyalty  != null) rows.push(['Loyalty',  loyalty,  ' / 10', loyalty > 1]);
+                if (exposure != null) rows.push(['Exposure', exposure, ' / 10', false]);
             }
             if (!rows.length) { _hideOrgTip(); return; }
             orgTip.textContent = '';
-            rows.forEach(([k, v]) => {
+            rows.forEach(([k, v, scale, fog]) => {
                 const line = document.createElement('div');
                 const b = document.createElement('b');
                 b.textContent = k + ': ';
                 line.appendChild(b);
-                line.appendChild(document.createTextNode(v));
+                const num = document.createElement('span');
+                if (fog) num.className = 'nw-fog';
+                num.textContent = v;
+                line.appendChild(num);
+                line.appendChild(document.createTextNode(scale));
                 orgTip.appendChild(line);
             });
             const r = node.getBoundingClientRect();
@@ -18143,7 +18167,7 @@ function openGameManual() {
         '<li><b>All the President’s Men</b> — the Watergate conspiracy: loyalty, exposure, and who might crack.</li>'+
         '<li><b>Officials</b> — your cabinet. Click any card to flip it and read what that appointment does for you.</li></ul>'+
         '<h3>All the President’s Men — the pressure</h3>'+
-        '<p>Every man in the conspiracy has two numbers, shown when you flip his card: <b>Loyalty</b> (10 = a true believer, 0 = ready to talk) and <b>Exposure</b> (how far the investigation has reached him). Nixon’s own card shows your <b>Watergate Exposure</b> — the number that ultimately decides your fate.</p>'+
+        '<p>Every man in the conspiracy has two numbers, shown when you flip his card: <b>Loyalty</b> (10 = a true believer, 0 = ready to talk) and <b>Exposure</b> (how far the investigation has reached him). With <b>Fog of War</b> on (the pre-game default), a man’s loyalty stays blurred — you won’t know when he’ll bust until he’s at breaking point. Nixon’s own card shows your <b>Watergate Exposure</b> — the number that ultimately decides your fate.</p>'+
         '<p><b>Exposure climbs.</b> Each turn a man’s exposure leaks upward to the men above him on the chart — the more exposed he is, the faster it spreads. A man who is still clean is shielded and absorbs nothing from below. Left unchecked it works its way up the chain and, in the end, to the President himself. <b>Watch the wires:</b> a line glows where exposure is passing along it, hotter and redder the faster it flows — follow the glow up the organisation to see how close the fire has crept to the Oval Office.</p>'+
         '<p><b>Men crack.</b> The more exposed a man is, the faster his loyalty erodes — and once his loyalty bottoms out while his exposure is high, he may turn <b>state’s witness</b>. A witness is a catastrophe: his testimony throws fresh exposure onto everyone he was tied to, and if one of the inner circle (Haldeman, Ehrlichman, Colson, Mitchell, Dean) flips, it lands directly on you. Minor exposure fades on its own over time — unless the man has been indicted or jailed, which keeps him in the headlines.</p>'+
         '<p><b>Your tools.</b> Four actions sit at the top-left of the screen, each with limited uses earned through the game. When you earn a fresh use, the <b>Enemies/Friends</b> button glows green until you next open this screen. They only work on the junior staff — the men below the top row (Dean included), never the President or the inner four:</p><ul>'+
