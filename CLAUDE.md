@@ -326,6 +326,22 @@ D-red/R-blue. Verified: midterm_check.js 13/13 (mechanics roll + skin + reduced 
   holds only `_DEFAULT`/`_VACANT` fallbacks. Card-back lookup verified identical
   for all people pre/post.
 
+**23. Theme selector (Jul 2026, mechanism ported from 1972: More Than Ever)**
+Code 1, right after `corrr` is defined. `ACOP_THEMES` is a name→function registry —
+each entry repaints the page live (body background, `#header` banner, the
+game-window/header/container colours via `nct_stuff.themes[selectedTheme]`, and `corrr`).
+`_applyTheme(name)` runs the chosen fn then pushes the new `corrr` into any on-screen
+`.game_header` (corrr alone only affects the engine's future renders). The shipped ACOP
+look IS the default entry (`'A Cancer on the Presidency'`, capturing `ACOP_DEFAULT_CORRR`),
+so the selector starts on it and changes nothing until switched. `_mountThemePicker()`
+builds the `<select>` from the registry keys and pins a compact control to the page's
+top-right (fixed, every screen, mounted once on `document.body`); relocating it is
+isolated to that one function. Selection is session-only (`_acopTheme`, not persisted).
+TO ADD A THEME: copy the default entry in `ACOP_THEMES`, rename, swap URLs/colours — it
+appears in the dropdown automatically (commented `Tricky Dick Noir` stub shows the shape).
+Verified: theme_check 11/11 (mount/idempotence, default look, live repaint on switch,
+corrr sync into the header, new-theme registration, unknown-name fallback).
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.

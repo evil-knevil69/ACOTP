@@ -296,6 +296,92 @@ corrr = `
 </h2>
 </div>
 `;
+
+// ── THEME SELECTOR (mechanism ported from 1972: More Than Ever) ────────────────
+// A name→function registry: each entry repaints the whole page live — page
+// background, the top banner (#header), the game-window/header/container colours
+// (via the engine's nct_stuff theme store), and `corrr` (the per-screen logo
+// header the engine stamps into every .game_header). The picker <select> is
+// built from the registry keys; its onchange runs the chosen function.
+//
+// The SHIPPED ACOP look is the default theme, so the selector starts on it and
+// changes nothing until the player picks another. All deps are engine-provided
+// (nct_stuff, corrr, #header, .container) — the same ones MTE's selector used.
+//
+// TO ADD A THEME: copy the default entry, rename it, and swap the image URLs /
+// colours. It appears in the dropdown automatically — no other wiring.
+var ACOP_DEFAULT_CORRR = corrr;   // capture the shipped logo header for the default theme
+
+var ACOP_THEMES = {
+    'A Cancer on the Presidency': function () {
+        const t = (typeof nct_stuff !== 'undefined') && nct_stuff.themes[nct_stuff.selectedTheme];
+        if (t) { t.coloring_title = 'transparent'; t.coloring_window = 'transparent'; }
+        const gh = document.getElementsByClassName('game_header')[0];
+        if (gh) gh.style.backgroundColor = 'transparent';
+        const gw = document.getElementById('game_window');
+        if (gw) gw.style.backgroundColor = 'transparent';
+        const cont = document.getElementsByClassName('container')[0];
+        if (cont) cont.style.backgroundColor = 'transparent';
+        const hdr = document.getElementById('header');
+        if (hdr) hdr.src = 'https://file.garden/aXPgNT-ZRCxxpy0g/watergatebannerv4.png';
+        document.body.background = 'https://file.garden/aXPgNT-ZRCxxpy0g/backgroundv69.gif';
+        corrr = ACOP_DEFAULT_CORRR;
+    },
+
+    // ── ADD THEMES BELOW ── copy the entry above, rename, swap URLs/colours.
+    // 'Tricky Dick Noir': function () {
+    //     const t = nct_stuff.themes[nct_stuff.selectedTheme];
+    //     t.coloring_title = '#111'; t.coloring_window = '#111';
+    //     document.getElementById('header').src = 'https://…/noir-banner.png';
+    //     document.body.background = 'https://…/noir-bg.png';
+    //     corrr = `<div>…alt logo…</div>`;
+    // },
+};
+
+var _acopTheme = 'A Cancer on the Presidency';   // current selection (session only)
+
+// Apply a theme by name, then push the (possibly new) corrr into any header
+// already on screen — corrr alone only affects the engine's FUTURE renders.
+function _applyTheme(name) {
+    _acopTheme = (name in ACOP_THEMES) ? name : 'A Cancer on the Presidency';
+    try { ACOP_THEMES[_acopTheme](); } catch (e) {}
+    document.querySelectorAll('.game_header').forEach(h => { h.innerHTML = corrr; });
+}
+
+// Build + mount the picker. Placement is intentionally isolated in ONE place:
+// change this to relocate it (e.g. onto the options screen or a page corner).
+// Default: a compact control pinned to the page's top-right, present on every
+// screen, styled to match the mod. Mounted once (body persists across screens).
+function _mountThemePicker() {
+    if (document.getElementById('acop-theme-picker')) return;
+    if (!document.body) return;
+    const wrap = document.createElement('div');
+    wrap.id = 'acop-theme-picker';
+    wrap.style.cssText = 'position:fixed;top:8px;right:10px;z-index:100000;'
+        + "font-family:'TypewriterDry',monospace;font-size:11px;letter-spacing:.06em;"
+        + 'background:rgba(32,27,18,0.82);color:#f0e6cf;border:1px solid #6b5a33;'
+        + 'border-radius:3px;padding:3px 6px;display:flex;align-items:center;gap:6px;'
+        + 'box-shadow:1px 2px 6px rgba(0,0,0,0.4);opacity:0.85;';
+    const label = document.createElement('span');
+    label.textContent = 'THEME';
+    const sel = document.createElement('select');
+    sel.id = 'acop-theme-select';
+    sel.style.cssText = "font-family:'TypewriterDry',monospace;font-size:11px;"
+        + 'background:#2b2416;color:#f0e6cf;border:1px solid #6b5a33;border-radius:2px;'
+        + 'padding:1px 4px;cursor:pointer;';
+    Object.keys(ACOP_THEMES).forEach(name => {
+        const o = document.createElement('option');
+        o.value = name; o.textContent = name;
+        if (name === _acopTheme) o.selected = true;
+        sel.appendChild(o);
+    });
+    sel.addEventListener('change', () => _applyTheme(sel.value));
+    wrap.appendChild(label); wrap.appendChild(sel);
+    document.body.appendChild(wrap);
+}
+_mountThemePicker();
+// ── END THEME SELECTOR ─────────────────────────────────────────────────────────
+
 document.getElementById("inner_window_1").children[0].innerHTML = `<div class="typewriter" style="margin-top: 5px;"><h1>November 1972</h1></div>`;
 document.getElementById("inner_window_1").children[1].innerHTML = `<div class="blurtosharp"><p align="left"><br>Commentators often consider the '72 election to be the final death knell of the utopian dreams of the 1960s. The crest of Hunter Thompson's famous wave finally rolled back by the silent majority.<br>
 <br>
