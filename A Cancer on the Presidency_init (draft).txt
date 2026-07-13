@@ -281,6 +281,11 @@ document.getElementById("header").src = "https://file.garden/aXPgNT-ZRCxxpy0g/wa
 
 document.body.background = "https://file.garden/aXPgNT-ZRCxxpy0g/backgroundv69.gif";
 
+// Scale the background to the viewport WIDTH (height in proportion; tiles
+// vertically if the page outgrows it) — MTE's "100% auto" treatment, see
+// BACKGROUND_IMAGES.md §4.
+document.body.style.backgroundSize = "100% auto";
+
 
 
 
@@ -325,15 +330,20 @@ var ACOP_THEMES = {
         const hdr = document.getElementById('header');
         if (hdr) hdr.src = 'https://file.garden/aXPgNT-ZRCxxpy0g/watergatebannerv4.png';
         document.body.background = 'https://file.garden/aXPgNT-ZRCxxpy0g/backgroundv69.gif';
+        document.body.style.backgroundSize = '100% auto';   // fit viewport width
         corrr = ACOP_DEFAULT_CORRR;
     },
 
     // ── ADD THEMES BELOW ── copy the entry above, rename, swap URLs/colours.
+    // NOTE: every entry must set body backgroundSize itself ('100% auto' to
+    // fit width, '' for natural-size tiling) — themes stay self-contained, no
+    // MTE-style leak between them (BACKGROUND_IMAGES.md §3).
     // 'Tricky Dick Noir': function () {
     //     const t = nct_stuff.themes[nct_stuff.selectedTheme];
     //     t.coloring_title = '#111'; t.coloring_window = '#111';
     //     document.getElementById('header').src = 'https://…/noir-banner.png';
     //     document.body.background = 'https://…/noir-bg.png';
+    //     document.body.style.backgroundSize = '100% auto';
     //     corrr = `<div>…alt logo…</div>`;
     // },
 };
