@@ -392,6 +392,33 @@ once the photo decodes (skipped if the tip was already hidden by mouseleave).
 Verified: wmtip_check 9/9 (wiring, corner placement, oversize pin, the
 late-loading-tall-photo re-place, hidden-before-load stays hidden).
 
+**26. Batch: P1 question counter + reshuffle deadline telegraph + memo feedback (Jul 2026)**
+- **P1 wired** (was Pending): the question label reads `Question X` where X =
+  `_questionCount` (turns lapsed, free corQuestions included; no "of 25" — the final
+  turn can read >25, intended). Implemented INSIDE `attachDateToProgressBar` (Code 2),
+  which already owned the `#progress_bar h3` rewrite + date hover-swap: it now runs for
+  EVERY question (dated or not — the old `if (!date) return` sat above the label write),
+  and the hover-restore text uses the same turns-lapsed label. End-of-run logic reads
+  `question_number` directly, unaffected.
+- **Reshuffle deadline telegraph**: new `_RESHUFFLE.turnsLeft()` (turns beyond the
+  current one, 0 = last turn, null = no offer). While an offer is live the Officials
+  panel shows an `.oc-deadline` chip above the chart ("this turn and N more to decide" /
+  red "LAST TURN: decide now, or the choice is made for you"), and on the final turn
+  every rs-glow surface (Enemies/Friends button, Officials button, the glowing role
+  cards) adds `.rs-last` — a faster RED pulse (`rs-pulse-last`) instead of the amber.
+- **Advisor feedback = White House memo** (Code 1 CSS, grep `ADVISOR FEEDBACK AS A
+  WHITE HOUSE MEMO`): the feedback popup (`#visit_window:has(#no_feedback_button)` —
+  same discriminator the older text-align rule uses; the button is display:none'd by the
+  Historical swap but stays in the DOM so `:has()` still matches; plus `#feedback_window`,
+  the engine's other advisor popup) gets paper texture + cream fallback, the engine's
+  "Advisor Feedback" h3 hidden (font-size:0) with "THE WHITE HOUSE / WASHINGTON" +
+  double-ruled "MEMORANDUM" stamped via h3 pseudos, typewriter body + buttons, and the
+  advisor photo white-framed and tilted. Real visit popups (no #no_feedback_button) are
+  untouched.
+Verified: trio_check 12/12 (label for dated + dateless questions, hover swap,
+turnsLeft lifecycle, all rs-last wiring greps, memo computed styles + visit-popup
+discriminator); reshuffle_grace 13/13, taglow 7/7, saveload 10/10 unchanged; both parse.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
@@ -405,27 +432,8 @@ No changes from this session — both Sandinista! and feature branch versions ar
 
 ## Pending — decided, not yet implemented
 
-**P1. Question counter display → show turns lapsed (`_questionCount`), drop "of 25"**
-Decision (23 Jun): change the on-screen question label from `Question X of 25` to just
-`Question X`, where X is the mod's turn counter `_questionCount` (line 14311) — NOT the
-engine's `question_number`. Rationale: the player should see *turns lapsed*, including free
-conditional/counterfactual (`corQuestion`) questions, which advance `_questionCount` but not
-`question_number`. The calendar dates convey how near the ending is; no ceiling is shown.
-
-Implementation notes for when wired:
-- Engine builds the label at `campaign_trail.js:1310`:
-  `<h3>Question ${e.question_number + 1} of ${PROPS.PARAMS.question_count}</h3>`
-- Do NOT fork the engine. Rewrite the `<h3>` text inside the existing mutation observer
-  (`__onGameWindowMutation`, around `ACOP Nixon_Agnew.txt:14600`), right after the
-  `_questionCount++` at line 14603 — at that point the counter is already bumped for the
-  question on screen, so label and counter stay in sync with no off-by-one. First question
-  reads "Question 1" (0 → 1).
-- Purely cosmetic: the end-of-run trigger (`campaign_trail.js:1787, 1800`) reads
-  `question_number` / `question_count` directly and never the label text, so the 25-slot
-  hard stop is unaffected.
-- Consequence to accept: because every free question increments `_questionCount`, the final
-  turn will read higher than 25 (e.g. "Question 31") depending on how many conditionals fired.
-  That is intended.
+(P1 — the "Question X" turns-lapsed counter — was implemented Jul 2026; see
+change-log item 26.)
 
 **P2. Follow-along transcription box (tape player component)**
 Decision: build a standalone tape-player component that plays a White House tape audio clip

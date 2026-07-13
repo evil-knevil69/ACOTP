@@ -1092,6 +1092,85 @@ div.center img#header {
 #visit_window:has(#no_feedback_button) p {
     text-align: left !important;
 }
+/* ── ADVISOR FEEDBACK AS A WHITE HOUSE MEMO ──────────────────────────────────
+   The feedback variant of #visit_window is discriminated by its
+   #no_feedback_button (real visit popups don't have one — same trick as the
+   text-align rule above; the button is display:none'd by the Historical
+   swap but stays in the DOM, so :has() still matches). #feedback_window is
+   the engine's other advisor popup (advisorFeedback()) — same memo skin.
+   The engine's "Advisor Feedback" h3 text is hidden (font-size:0) and the
+   letterhead + MEMORANDUM rubric are stamped in via pseudo-elements. */
+#visit_window:has(#no_feedback_button),
+#feedback_window {
+    background: #f3edda url('https://file.garden/aXPgNT-ZRCxxpy0g/background.png') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    border: 1px solid #b5a988 !important;
+    box-shadow: 3px 5px 16px rgba(0, 0, 0, 0.35) !important;
+}
+#visit_window:has(#no_feedback_button) h3,
+#feedback_window h3 {
+    font-size: 0 !important;
+    line-height: 0 !important;
+    background: transparent !important;
+    text-align: center !important;
+    margin: 6px 0 12px !important;
+}
+#visit_window:has(#no_feedback_button) h3::before,
+#feedback_window h3::before {
+    content: 'THE WHITE HOUSE\AWASHINGTON';
+    white-space: pre;
+    display: block;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 12px;
+    line-height: 1.5;
+    letter-spacing: 3.5px;
+    color: #1c1c1c;
+}
+#visit_window:has(#no_feedback_button) h3::after,
+#feedback_window h3::after {
+    content: 'MEMORANDUM';
+    display: block;
+    width: 62%;
+    margin: 9px auto 0;
+    padding-top: 7px;
+    border-top: 3px double #5c5340;
+    font-family: 'TypewriterDry', monospace;
+    font-size: 13px;
+    letter-spacing: 6px;
+    color: #222;
+}
+/* the advisor photo, paper-clipped to the memo */
+#visit_window:has(#no_feedback_button) img,
+#feedback_window img {
+    border: 4px solid #fff !important;
+    outline: 1px solid #c4b989 !important;
+    box-shadow: 1px 2px 7px rgba(0, 0, 0, 0.3) !important;
+    transform: rotate(-1.4deg);
+    margin: 2px 0 8px !important;
+}
+#visit_window:has(#no_feedback_button) p,
+#feedback_window p {
+    font-family: 'TypewriterDry', monospace !important;
+    font-size: 13px !important;
+    line-height: 1.55 !important;
+    color: #1c1c1c !important;
+    padding: 0 14px !important;
+}
+#visit_window:has(#no_feedback_button) button,
+#feedback_window button {
+    font-family: 'TypewriterDry', monospace !important;
+    letter-spacing: 0.06em;
+    background: #eae3cd !important;
+    border: 1px solid #8f8468 !important;
+    border-radius: 2px !important;
+    color: #2a2416 !important;
+    cursor: pointer;
+}
+#visit_window:has(#no_feedback_button) button:hover,
+#feedback_window button:hover {
+    background: #f6f0dd !important;
+}
 #visit_overlay {
     min-height: 725px !important;
 }

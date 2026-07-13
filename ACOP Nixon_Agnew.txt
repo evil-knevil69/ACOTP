@@ -13001,7 +13001,10 @@ function addInnerCircleButton() {
     // The button is recreated on every engine render; re-apply the reshuffle
     // glow while an offer is live this turn, and the team-action glow while
     // unseen charges are waiting on the President's Men screen.
-    if (typeof _RESHUFFLE !== 'undefined' && _RESHUFFLE.isActive()) btn.classList.add('rs-glow');
+    if (typeof _RESHUFFLE !== 'undefined' && _RESHUFFLE.isActive()) {
+        btn.classList.add('rs-glow');
+        if (_RESHUFFLE.turnsLeft() <= 0) btn.classList.add('rs-last');   // final turn: red
+    }
     if (_taUnseen) btn.classList.add('ta-glow');
     ref.insertAdjacentElement('afterend', btn);
 }
@@ -13414,7 +13417,10 @@ function openInnerCircle() {
         panel.remove();
         openOfficialsPanel(questions);
     });
-    if (typeof _RESHUFFLE !== 'undefined' && _RESHUFFLE.isActive()) officialsBtn.classList.add('rs-glow');
+    if (typeof _RESHUFFLE !== 'undefined' && _RESHUFFLE.isActive()) {
+        officialsBtn.classList.add('rs-glow');
+        if (_RESHUFFLE.turnsLeft() <= 0) officialsBtn.classList.add('rs-last');
+    }
     btnRow.appendChild(officialsBtn);
 
     const backBtn = document.createElement('button');
@@ -14252,6 +14258,33 @@ const OFFICIALS_VARS = {
             0%, 100% { box-shadow: 0 0 3px 1px  rgba(255, 200, 60, 0.55); }
             50%      { box-shadow: 0 0 12px 5px rgba(255, 200, 60, 0.95); }
         }
+        /* Final turn of the reshuffle window: the amber glow turns red and
+           quickens (turnsLeft() <= 0 — decide now or it's decided for you). */
+        .rs-glow.rs-last {
+            animation: rs-pulse-last 0.7s ease-in-out infinite;
+        }
+        @keyframes rs-pulse-last {
+            0%, 100% { box-shadow: 0 0 3px 1px  rgba(226, 58, 40, 0.6); }
+            50%      { box-shadow: 0 0 14px 6px rgba(226, 58, 40, 1.0); }
+        }
+        /* Deadline chip above the Officials chart while an offer is live */
+        .oc-deadline {
+            margin: 2px auto 8px;
+            padding: 4px 10px;
+            width: fit-content;
+            border: 1px solid #997a4d;
+            border-radius: 3px;
+            background: rgba(255, 235, 195, 0.9);
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 10px;
+            letter-spacing: 0.08em;
+            color: #6b4f1d;
+        }
+        .oc-deadline.oc-deadline-last {
+            border-color: #a02218;
+            background: rgba(255, 205, 195, 0.92);
+            color: #7c150c;
+        }
         /* ── New team-action charges waiting (see _taUnseen) — a distinct
               green so it reads apart from the amber reshuffle glow, and both
               can pulse on the Enemies/Friends button at once. ── */
@@ -14461,12 +14494,20 @@ function openOfficialsPanel(questions) {
 
     panel.appendChild(grid);
 
-    // Reshuffle: glow the swappable role cards while an offer is live.
+    // Reshuffle: glow the swappable role cards while an offer is live, and
+    // say how long the window stays open (red once this is the last turn).
     if (_RESHUFFLE.isActive()) {
+        const last = _RESHUFFLE.turnsLeft() <= 0;
         Object.keys(_RESHUFFLE.active.slots).forEach(vn => {
             const f = grid.querySelector('.oc-flip[data-var-name="' + vn + '"]');
-            if (f) f.classList.add('rs-glow');
+            if (f) { f.classList.add('rs-glow'); if (last) f.classList.add('rs-last'); }
         });
+        const note = document.createElement('div');
+        note.className = 'oc-deadline' + (last ? ' oc-deadline-last' : '');
+        note.textContent = last
+            ? 'RESHUFFLE OFFER — LAST TURN: decide now, or the choice is made for you'
+            : 'RESHUFFLE OFFER — this turn and ' + _RESHUFFLE.turnsLeft() + ' more to decide';
+        panel.insertBefore(note, grid);
     }
 
     // Candidate picker, pinned bottom-left of the screen (sticky: it hugs the
@@ -14609,6 +14650,13 @@ var _RESHUFFLE = {
     isActive() { return !!(this.active && Object.keys(this.active.slots).length); },
     slotFor(varName) { return (this.active && this.active.slots[varName]) || null; },
     pendingFor(varName) { return this.pending.find(p => p.varName === varName) || null; },
+    // Turns REMAINING to act, beyond the current one: 1 = this turn and one
+    // more, 0 = this is the LAST turn (expire fires next turn). null = no
+    // live offer. Drives the deadline chip + the red last-turn glow.
+    turnsLeft() {
+        if (!this.isActive()) return null;
+        return this.active.turn + (this.active.grace || 0) - _questionCount;
+    },
 
     choose(varName, person) {
         const slot = this.slotFor(varName);
@@ -17822,13 +17870,19 @@ function fadeText(el, newText) {
 }
 
 function attachDateToProgressBar(date, qNum, pk) {
-    if (!date) return;
     const h3 = document.querySelector('#progress_bar h3');
     if (!h3) return;
-    const total = campaignTrail_temp.global_parameter_json[0].fields.question_count;
-    const questionInfo = 'Question ' + (qNum + 1) + ' of ' + total;
+    // P1 (see CLAUDE.md): the label shows TURNS LAPSED — the mod's
+    // _questionCount, which free corQuestions advance too — and drops the
+    // "of 25": the calendar dates convey how near the ending is. The final
+    // turn can read higher than 25; that's intended. Purely cosmetic: the
+    // engine's end-of-run trigger reads question_number directly, never this
+    // label. Runs for EVERY question (dated or not); the date hover-swap only
+    // wires up when the question has a date.
+    const questionInfo = 'Question ' + _questionCount;
     h3.dataset.dateAttached = String(pk);
     h3.textContent = questionInfo;
+    if (!date) return;
     h3.style.cursor = 'default';
     h3.addEventListener('pointerenter', () => fadeText(h3, date));
     h3.addEventListener('pointerleave', () => fadeText(h3, questionInfo));
