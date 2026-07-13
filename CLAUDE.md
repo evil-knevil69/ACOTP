@@ -365,6 +365,20 @@ Verified: fog_check 15/15 (blur on/off, only-the-number, ≤1 reveal, Nixon
 exempt, checkbox defaults, expletives persistence, fog opt-out persistence);
 orgtip_check 10/10 unchanged.
 
+**25. World map: event polaroids + capital photos never clipped (Jul 2026)**
+The event-icon hover polaroid and the capital-pin click photo panel could get
+cut off at the window edge: the polaroid's mouseenter only clamped
+horizontally, and the capital panel clamped against a hardcoded 220×160 guess
+— both photos load lazily (`height:auto`), so the tip was placed small and
+then grew past the bottom of the screen. Fixes in `openWorldMap` (Code 2):
+`_placeTip` now hard-pins the tip fully inside the window after its
+flip-to-other-side-of-cursor logic (also benefits the flag tooltip + capital
+name pill, which share it); both call sites use `_placeTip` with the REAL
+measured size; and a new `_replaceOnImgLoad(tip, ev, pad)` re-runs placement
+once the photo decodes (skipped if the tip was already hidden by mouseleave).
+Verified: wmtip_check 9/9 (wiring, corner placement, oversize pin, the
+late-loading-tall-photo re-place, hidden-before-load stays hidden).
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.

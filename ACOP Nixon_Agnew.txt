@@ -19812,8 +19812,22 @@ function openWorldMap() {
         let x = ev.clientX + pad, y = ev.clientY + pad;
         if (x + tw > window.innerWidth)  x = ev.clientX - tw - pad;
         if (y + th > window.innerHeight) y = ev.clientY - th - pad;
+        // Hard clamp: if flipping to the other side of the cursor still
+        // overflows (tall tip near an edge), pin it fully inside the window
+        // rather than letting it clip.
+        x = Math.min(Math.max(4, x), window.innerWidth  - tw - 4);
+        y = Math.min(Math.max(4, y), window.innerHeight - th - 4);
         tip.style.left = x + 'px';
         tip.style.top  = y + 'px';
+    };
+    // Photo tips (event polaroids, capital snapshots) grow when their lazily
+    // loaded image arrives, pushing the bottom off-screen if they were placed
+    // before it decoded. Re-run the placement once the image has a real size.
+    const _replaceOnImgLoad = (tip, ev, pad) => {
+        const im = tip.querySelector('img');
+        if (im && !im.complete) im.addEventListener('load', () => {
+            if (tip.style.display !== 'none') _placeTip(tip, ev, pad);
+        }, { once: true });
     };
 
     // Full-window container
@@ -21646,12 +21660,11 @@ function openWorldMap() {
                     capImgPanel.dataset.code = code;
                     capImgPanel.innerHTML = `<div style="font-family:TypewriterDry,monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:4px;text-align:center">${cityName}</div><img src="${url}" style="display:block;max-width:200px;width:auto;height:auto;border-radius:2px">`;
                     capImgPanel.style.display = 'block';
-                    const pad = 12;
-                    let x = e.clientX + pad, y = e.clientY + pad;
-                    if (x + 220 > window.innerWidth) x = e.clientX - 220 - pad;
-                    if (y + 160 > window.innerHeight) y = e.clientY - 160 - pad;
-                    capImgPanel.style.left = x + 'px';
-                    capImgPanel.style.top  = y + 'px';
+                    // Measured placement (the old hardcoded 220x160 guess under-
+                    // estimated tall photos, clipping them at the window edge),
+                    // re-run when the lazily loaded photo pops in.
+                    _placeTip(capImgPanel, e, 12);
+                    _replaceOnImgLoad(capImgPanel, e, 12);
                 });
 
                 dot.addEventListener('mousedown', ev => {
@@ -21864,11 +21877,8 @@ function openWorldMap() {
                     if (_editMode || def.state() !== 1) return;
                     evTooltip.innerHTML = _eventPolaroidHtml(def);
                     evTooltip.style.display = 'block';
-                    const _pad = 16;
-                    let _x = e.clientX + _pad, _y = e.clientY + _pad;
-                    if (_x + 270 > window.innerWidth) _x = e.clientX - 270 - _pad;
-                    evTooltip.style.left = _x + 'px';
-                    evTooltip.style.top  = _y + 'px';
+                    _placeTip(evTooltip, e, 16);
+                    _replaceOnImgLoad(evTooltip, e, 16);
                 });
                 g.addEventListener('mousemove', e => { if (!_editMode) _placeTip(evTooltip, e, 16); });
                 g.addEventListener('mouseleave', () => { evTooltip.style.display = 'none'; });
