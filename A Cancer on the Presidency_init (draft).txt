@@ -1752,7 +1752,7 @@ function __mapVisitTick() {
     // Both also share the .acop-final-tv class: it re-lays the footer as a
     // centred bottom row (6 nav buttons on the final map, the single "Go to
     // Final Results" button on election night) and dresses the EV readout as
-    // the ABC broadcast scoreboard.
+    // the ACOP broadcast scoreboard.
     const mapVisible = inGameMap || finalMap || electionNight;
     const gw = document.getElementById('game_window');
     if (gw) gw.classList.toggle('acop-final-tv', (finalMap || electionNight) && !inGameMap);
@@ -2079,7 +2079,7 @@ function __mapVisitTick() {
                 white-space: nowrap !important;
             }
 
-            /* ── Broadcast scoreboard: the EV readout dressed as the 1976 ABC
+            /* ── Broadcast scoreboard: the EV readout dressed as the 1976 ACOP
                News graphic — gold-framed RECESSED pills, EMBOSSED glowing text,
                with the map's CRT scanlines washing over it. __scoreboardTick
                rebuilds each <li> into name/num spans + a --pill-color var. */
@@ -2229,7 +2229,7 @@ function __mapVisitTick() {
                     transparent 0px, transparent 2px, rgba(0,0,0,0.15) 3px, rgba(0,0,0,0.15) 4px) !important;
             }
 
-            /* ── Broadcast state card: #state_result dressed as the ABC '76
+            /* ── Broadcast state card: #state_result dressed as the ACOP '76
                per-state graphic — red image fading to black at the tube edge,
                "EV / STATE / PRESIDENT" header, and two gold-rimmed royal-blue
                panels: candidate names + raw vote counts left, party + % right.
@@ -2285,7 +2285,7 @@ function __mapVisitTick() {
                 font-size: 12px !important;
                 text-shadow: 0 2px 2px rgba(90,30,0,0.7) !important;
             }
-            /* header: EV count where ABC put "4% PCTS", state + office centred */
+            /* header: EV count where ACOP put "4% PCTS", state + office centred */
             #game_window.acop-final-tv .acop-sr-head {
                 display: flex !important;
                 align-items: flex-start !important;
@@ -2943,9 +2943,9 @@ function __mapVisitTick() {
 window.__onGameWindowMutation(__mapVisitTick);
 
 // Election Night + final election map: dress the electoral-vote readout
-// (#overall_result) as the 1976 ABC broadcast scoreboard — rebuild each <li>
+// (#overall_result) as the 1976 ACOP broadcast scoreboard — rebuild each <li>
 // ("Name: EV / PV%") into name/num spans carrying the candidate's colour as
-// --pill-color, and append an "ABC News Projection" footer. Styling
+// --pill-color, and append an "ACOP News Projection" footer. Styling
 // (gold-framed recessed pills, embossed glow, CRT scanlines) is the
 // .acop-final-tv CSS in logo-hide-style above.
 // Idempotent PER <li>, not per panel: Election Night rewrites the <ul> every
@@ -2979,14 +2979,14 @@ function __scoreboardTick() {
         // tick — a <p> footer would be overwritten with the percentage text.
         const proj = document.createElement('div');
         proj.className = 'acop-proj';
-        proj.textContent = 'ABC News Projection';
+        proj.textContent = 'ACOP News Projection';
         box.appendChild(proj);
     }
 }
 window.__onGameWindowMutation(__scoreboardTick);
 
 // Election Night + final election map: dress the per-state readout
-// (#state_result) as the ABC '76 state graphic — "EV / STATE / PRESIDENT"
+// (#state_result) as the ACOP '76 state graphic — "EV / STATE / PRESIDENT"
 // header, candidate names + raw vote counts in the main gold-rimmed panel,
 // party abbreviation + rounded % in the side panel. Styling is the
 // .acop-final-tv state-card CSS in logo-hide-style above.

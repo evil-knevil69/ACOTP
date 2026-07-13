@@ -16126,7 +16126,7 @@ var _MIDTERM = {
     var hg=R.house.rep-this.CFG.HBASE.rep, sg=R.senate.rep-this.CFG.SBASE.rep;
 
     // ----- styles (injected once) -----
-    // 1974 = a network election-night broadcast: same ABC-'76 package as the
+    // 1974 = a network election-night broadcast: same ACOP-'76 package as the
     // Election Night cards (tube-black studio, embossed cream type, gold rules,
     // recessed panels, CRT scanlines; flicker honours prefers-reduced-motion).
     // Selectors/classes are LOAD-BEARING (the JS toggles them) — reskin only.
@@ -17825,11 +17825,11 @@ function _playEggAudio(url) {
 // When the network calls it: the engine's Election Night outcome popup
 // (showOutcomePopup — detected by its #overlay_result_button, which exists
 // nowhere else) appears the moment a candidate crosses the winning EV mark.
-// Play the ABC News election night theme over that moment, win or lose — the
+// Play the ACOP News election night theme over that moment, win or lose — the
 // network plays it either way. Once per run (New Game resets it); fails
 // silent while the URL is unset, same convention as the banner-egg sounds.
 // Routed through _playEggAudio so the tape ducks and is restored on end/error.
-var _PROJ_STING_URL = '';   // FILL ME IN — the ABC News election night theme
+var _PROJ_STING_URL = '';   // FILL ME IN — the ACOP News election night theme
 var _projStingPlayed = false;
 window.__onGameWindowMutation(() => {
     if (_projStingPlayed || !_PROJ_STING_URL) return;

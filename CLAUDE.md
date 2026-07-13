@@ -176,10 +176,10 @@ an `acop-final-tv` class and override CSS re-lays them as a centred row (tunable
 `bottom` value in the `.acop-final-tv #map_footer` rule) with `#game_window` forced
 position:relative for a deterministic anchor. Noise gif URL moved to file.garden. The map
 background + result-panel drag-positioning were already shared (ungated), so no change there.
-Scoreboard: on the final map the EV readout (`#overall_result`) is dressed as the 1976 ABC
+Scoreboard: on the final map the EV readout (`#overall_result`) is dressed as the 1976 ACOP
 News broadcast graphic — `__scoreboardTick` (a second observer subscriber) rebuilds each
 `<li>` ("Name: EV / PV%") into name/num spans carrying the candidate colour as
-`--pill-color`, appends an "ABC News Projection" footer, and the `.acop-final-tv
+`--pill-color`, appends an "ACOP News Projection" footer, and the `.acop-final-tv
 #overall_result` CSS renders gold-framed RECESSED pills, EMBOSSED glowing text, a red
 radial card and CRT scanlines (0.4px blur for the tube softness). Idempotent PER <li>
 (not one-shot): Election Night rewrites the <ul> every ~2s, so each tick re-dresses only
@@ -203,7 +203,7 @@ the scoreboard pills, and the header/window sizing conflicted with `visit-hide-s
 PNG + noise gif are in the preloader's idle tier (Code 2) so the first map open doesn't
 pop in. Projection sting: when the outcome popup fires at 270 (engine `showOutcomePopup`,
 detected by its unique `#overlay_result_button`), Code 2 plays `_PROJ_STING_URL` (FILL ME
-IN — the ABC News election night theme) through `_playEggAudio`; once per run
+IN — the ACOP News election night theme) through `_playEggAudio`; once per run
 (`_projStingPlayed`, New-Game-reset + in `_SL_SCALARS`), silent while the URL is unset.
 Opening-of-coverage sting, same conventions: `_ENIGHT_STING_URL`/`_enightStingPlayed`
 fires on the advisor popup that opens Election Night ("Election night has arrived.
@@ -215,7 +215,7 @@ overlaid centre-map inside `#map_container` (z1: above the map, under scanlines/
 pointer-events none, fades in/out and self-removes after durationMs (gifs don't report
 an end).
 State card: `#state_result` (Election Night + final map ONLY — the in-game map uses
-`#state_info`, untouched) is dressed as the ABC '76 per-state graphic by
+`#state_info`, untouched) is dressed as the ACOP '76 per-state graphic by
 `__statePanelTick` (third observer subscriber): "EV / STATE / PRESIDENT" header, then two
 gold-rimmed royal-blue panels — candidate names + RAW VOTE COUNTS left, party abbr +
 rounded % right (`_ACOP_PARTY_ABBR`; unknown parties → IND.). The engine's click handler
@@ -300,7 +300,7 @@ flip/mouseleave/no-data, replaced on re-render. Click-to-flip unchanged. `Colson
 start value 4 → 5 (Cut Loose → Active).
 
 **17. Midterm engine reskin — 1970s broadcast (Jul 2026)**
-`_MIDTERM`'s injected CSS (`#_mt_css`) redressed as the same ABC-'76 package as the
+`_MIDTERM`'s injected CSS (`#_mt_css`) redressed as the same ACOP-'76 package as the
 Election Night cards: tube-black studio radial + full-screen CRT scanlines (::after,
 fixed), embossed cream headline, gold-ruled tally header, seat tiles as dark recessed
 "dead lamps" that light up in period red/blue inside gold rims when called (FLIP =
