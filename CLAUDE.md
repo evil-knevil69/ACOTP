@@ -419,6 +419,23 @@ Verified: trio_check 12/12 (label for dated + dateless questions, hover swap,
 turnsLeft lifecycle, all rs-last wiring greps, memo computed styles + visit-popup
 discriminator); reshuffle_grace 13/13, taglow 7/7, saveload 10/10 unchanged; both parse.
 
+**27. Mental-state feedback images (Jul 2026)**
+The advisor photo on the feedback memo tracks Nixon's decline. Config
+`MENTAL_FEEDBACK_IMGS` (Code 2, next to `_visitAdvisorImages`; in the AUTHORING
+INDEX): bands over `MentalState` (higher = worse, same scale as the
+State-of-the-Nation tiers — ≤4 composed, ≤6, ≤7, >7), first band whose `max` >=
+value wins. `url: ''` = keep the engine's default advisor image, so the feature
+ships INERT until the gif URLs are filled in (grep FILL ME IN — user has Nixon
+shoving Ziegler + freezing up in front of people). Swap happens in the shared
+observer next to the visit-image randomiser: feedback popups only
+(`#visit_window:has(#no_feedback_button)` + `#feedback_window`; visit popups
+need `#confirm_visit_button` so the two never both fire), once per popup
+(dataset guard), `object-fit: cover` added on swap so any gif aspect crops
+cleanly in the engine's 208×128 frame. Suggestion 8 (fog "whispers") is deemed
+already covered by authored feedback text (e.g. "McCord is off the reservation").
+Verified: msimg_check 6/6 (banding, shipped-inert default, swap + object-fit,
+composed default, once-per-popup, visit-popup untouched).
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.

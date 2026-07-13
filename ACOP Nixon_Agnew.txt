@@ -18,6 +18,8 @@
 // ║                      _EN_CLOSE_PK FILL ME IN                               ║
 // ║   tooltipList ………………… hover cards; searchStrings: [aliases] — ONE entry    ║
 // ║                      per person, however many aliases                      ║
+// ║   MENTAL_FEEDBACK_IMGS … advisor-photo gifs per MentalState band           ║
+// ║                      (FILL ME IN — shoving Ziegler, freezing up)           ║
 // ║ AUDIO:                                                                     ║
 // ║   SOUNDTRACK ………………… section playlists/moods (FILL ME IN;                  ║
 // ║                      SOUNDTRACK_PLAN.md)                                   ║
@@ -15815,6 +15817,26 @@ const _visitAdvisorImages = [
     'https://file.garden/aXPgNT-ZRCxxpy0g/Map%20Pics/planefeedback5.gif',
 ].filter(Boolean);
 
+// ── MENTAL-STATE FEEDBACK IMAGES ──────────────────────────────────────────────
+// The advisor photo on the feedback memo tracks Nixon's decline: the FIRST
+// band whose `max` >= MentalState wins (higher MentalState = worse — same
+// scale as the State-of-the-Nation tiers: ≤4 holding it together, ≤6 refusing
+// to get out of bed, ≤7 talking to paintings, >7 the madman). A band with
+// url: '' keeps the engine's default advisor image, so the feature is INERT
+// until URLs are filled in. gifs welcome — the popup <img> is 208x128 and the
+// swap adds object-fit:cover so any aspect crops cleanly.
+// FILL ME IN: the Nixon gifs (shoving Ziegler, freezing up in public, …).
+var MENTAL_FEEDBACK_IMGS = [
+    { max: 4,        url: '' },   // composed — engine default (feedback2.jpg)
+    { max: 6,        url: '' },   // FILL ME IN — fraying (e.g. drinking, distant)
+    { max: 7,        url: '' },   // FILL ME IN — e.g. freezing up in front of people
+    { max: Infinity, url: '' },   // FILL ME IN — e.g. shoving Ziegler
+];
+function _mentalFeedbackUrl() {
+    for (const band of MENTAL_FEEDBACK_IMGS) if (MentalState <= band.max) return band.url || '';
+    return '';
+}
+
 let _lastQuestionPK = null;
 let _lastQNum = null; // engine question_number last seen — a decrease means New Game without reload
 const _newEvents = new Set(); // event ids that became active this question — shown red
@@ -16829,6 +16851,22 @@ window.__onGameWindowMutation(() => {
                 visitImg.onload = () => { visitImg.style.transition = 'opacity 0.15s'; visitImg.style.opacity = '1'; };
                 visitImg.onerror = () => { visitImg.style.opacity = '1'; };
                 visitImg.src = newSrc;
+            }
+
+            // Mental-state advisor image (see MENTAL_FEEDBACK_IMGS): the memo's
+            // photo degrades as Nixon does. The feedback variant of the visit
+            // popup carries #no_feedback_button (the visit block above requires
+            // #confirm_visit_button instead, so the two never both fire);
+            // #feedback_window is the engine's other advisor popup. Once per
+            // popup (dataset guard); url '' keeps the engine default.
+            const fbImg = document.querySelector('#visit_window:has(#no_feedback_button) #visit_content img, #feedback_window #feedback_content img');
+            if (fbImg && !fbImg.dataset.msImgSet) {
+                fbImg.dataset.msImgSet = '1';
+                const msUrl = _mentalFeedbackUrl();
+                if (msUrl) {
+                    fbImg.style.objectFit = 'cover';   // gifs of any aspect crop cleanly in the 208x128 frame
+                    fbImg.src = msUrl;
+                }
             }
 
             const noFeedbackBtn = document.getElementById('no_feedback_button');
