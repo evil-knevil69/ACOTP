@@ -205,15 +205,24 @@ pop in. Projection sting: when the outcome popup fires at 270 (engine `showOutco
 detected by its unique `#overlay_result_button`), Code 2 plays `_PROJ_STING_URL` (FILL ME
 IN — the ACOP News election night theme) through `_playEggAudio`; once per run
 (`_projStingPlayed`, New-Game-reset + in `_SL_SCALARS`), silent while the URL is unset.
-Opening-of-coverage sting, same conventions: `_ENIGHT_STING_URL`/`_enightStingPlayed`
-fires on the advisor popup that opens Election Night ("Election night has arrived.
-Settle in…") — `#election_night_window` + `#final_result_button` WITHOUT
-`#overlay_result_button` (only the 270 popup carries that). Opening title animation
-(`_ENIGHT_INTRO` {url FILL ME IN, durationMs}, `_enightIntroPlayed`): observer state
-machine ARMS while that opener popup is up and FIRES when it's dismissed — an <img>
-overlaid centre-map inside `#map_container` (z1: above the map, under scanlines/frame),
-pointer-events none, fades in/out and self-removes after durationMs (gifs don't report
-an end).
+Opening of coverage — SETS (Jul 2026, replaced the single `_ENIGHT_STING_URL` +
+`_ENIGHT_INTRO`): `_ENIGHT_SETS` (in the AUTHORING INDEX) is an array of
+{sting, intro:{url, durationMs}} PAIRS — sting and title animation that belong
+together. When the opener advisor popup appears ("Election night has arrived.
+Settle in…" — `#election_night_window` + `#final_result_button` WITHOUT
+`#overlay_result_button`; only the 270 popup carries that), the run rolls ONE set
+uniformly at random (`_enightSetIdx`, -1 until rolled; in `_SL_SCALARS` +
+New-Game reset): its sting plays under the popup (`_enightStingPlayed`), and its
+animation fires when OK dismisses it (`_enightIntroPlayed`; observer state machine
+ARMS while the popup is up, FIRES when it's gone) — an <img> overlaid centre-map
+inside `#map_container` (z1: above the map, under scanlines/frame), pointer-events
+none, fades in/out and self-removes after the set's durationMs (gifs don't report
+an end). Per-piece fail-safe: sting '' = that set opens silent, intro.url '' = no
+animation; ships with both sets empty (FILL ME IN ×2). Add sets freely — the roll
+covers the whole array. Verified: enightsets_check 9/9 (pairing, once-per-run,
+both-sets spread over 60 rolls, silent-sting set still animates, shipped-inert,
+overlay self-removal, reset + scalar greps); sting_check reworked to projection-only
+9/9 (anim_check retired into enightsets_check).
 State card: `#state_result` (Election Night + final map ONLY — the in-game map uses
 `#state_info`, untouched) is dressed as the ACOP '76 per-state graphic by
 `__statePanelTick` (third observer subscriber): "EV / STATE / PRESIDENT" header, then two
