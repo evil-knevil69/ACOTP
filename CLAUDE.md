@@ -406,18 +406,14 @@ late-loading-tall-photo re-place, hidden-before-load stays hidden).
   red "LAST TURN: decide now, or the choice is made for you"), and on the final turn
   every rs-glow surface (Enemies/Friends button, Officials button, the glowing role
   cards) adds `.rs-last` — a faster RED pulse (`rs-pulse-last`) instead of the amber.
-- **Advisor feedback = White House memo** (Code 1 CSS, grep `ADVISOR FEEDBACK AS A
-  WHITE HOUSE MEMO`): the feedback popup (`#visit_window:has(#no_feedback_button)` —
-  same discriminator the older text-align rule uses; the button is display:none'd by the
-  Historical swap but stays in the DOM so `:has()` still matches; plus `#feedback_window`,
-  the engine's other advisor popup) gets paper texture + cream fallback, the engine's
-  "Advisor Feedback" h3 hidden (font-size:0) with "THE WHITE HOUSE / WASHINGTON" +
-  double-ruled "MEMORANDUM" stamped via h3 pseudos, typewriter body + buttons, and the
-  advisor photo white-framed and tilted. Real visit popups (no #no_feedback_button) are
-  untouched.
-Verified: trio_check 12/12 (label for dated + dateless questions, hover swap,
-turnsLeft lifecycle, all rs-last wiring greps, memo computed styles + visit-popup
-discriminator); reshuffle_grace 13/13, taglow 7/7, saveload 10/10 unchanged; both parse.
+- **Advisor feedback = White House memo — REVERTED** (user preference, Jul 2026):
+  the memo CSS skin was added and then removed same-day; Code 1's feedback styling is
+  back to the engine default (byte-identical to pre-memo). The
+  `#visit_window:has(#no_feedback_button)` discriminator knowledge stays useful — the
+  original left-align rule and the mental-state image swap (item 27) both use it.
+Verified: trio_check 9/9 (label for dated + dateless questions, hover swap,
+turnsLeft lifecycle, all rs-last wiring greps, memo-skin ABSENCE + left-align rule
+intact); reshuffle_grace 13/13, taglow 7/7, saveload 10/10 unchanged; both parse.
 
 **27. Mental-state feedback images (Jul 2026)**
 The advisor photo on the feedback memo tracks Nixon's decline. Config
