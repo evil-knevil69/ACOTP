@@ -406,9 +406,11 @@ late-loading-tall-photo re-place, hidden-before-load stays hidden).
   red "LAST TURN: decide now, or the choice is made for you"), and on the final turn
   every rs-glow surface (Enemies/Friends button, Officials button, the glowing role
   cards) adds `.rs-last` — a faster RED pulse (`rs-pulse-last`) instead of the amber.
-- **Advisor feedback = White House memo — REVERTED** (user preference, Jul 2026):
-  the memo CSS skin was added and then removed same-day; Code 1's feedback styling is
-  back to the engine default (byte-identical to pre-memo). The
+- **Advisor feedback = White House memo — REVERTED** (Jul 2026): the feedback text
+  is personal, reflective and second-person — wrong register for a formal memo frame,
+  so don't re-pitch document-style dressings for it. The skin was added and removed
+  same-day; Code 1's feedback styling is back to the engine default
+  (byte-identical to pre-memo). The
   `#visit_window:has(#no_feedback_button)` discriminator knowledge stays useful — the
   original left-align rule and the mental-state image swap (item 27) both use it.
 Verified: trio_check 9/9 (label for dated + dateless questions, hover swap,
