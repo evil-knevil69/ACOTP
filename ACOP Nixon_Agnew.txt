@@ -16853,6 +16853,15 @@ window.__onGameWindowMutation(() => {
                 visitImg.src = newSrc;
             }
 
+            // Mental-state bleed: Code 1 dims the question window a touch per
+            // band (body.acop-ms-dim-1/2/3; ≤4 clear, ≤6, ≤7, >7 — the same
+            // tiers as the feedback images below). Derived state, re-stamped
+            // every tick — save/load and New Game need no extra wiring.
+            const _msDimBand = MentalState <= 4 ? 0 : MentalState <= 6 ? 1 : MentalState <= 7 ? 2 : 3;
+            for (let _i = 1; _i <= 3; _i++) {
+                document.body.classList.toggle('acop-ms-dim-' + _i, _msDimBand === _i);
+            }
+
             // Mental-state advisor image (see MENTAL_FEEDBACK_IMGS): the memo's
             // photo degrades as Nixon does. The feedback variant of the visit
             // popup carries #no_feedback_button (the visit block above requires

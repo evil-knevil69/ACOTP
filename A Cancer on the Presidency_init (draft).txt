@@ -608,6 +608,24 @@ style.innerHTML = `
 #answer_select_button.acop-awake {
     filter: drop-shadow(0 0 4px rgba(199, 170, 96, 0.7));
 }
+/* ── Mental-state bleed: the question page drains as Nixon does ──────────────
+   Code 2 stamps body.acop-ms-dim-1/2/3 from the MentalState bands (≤4 none,
+   ≤6, ≤7, >7 — the State-of-the-Nation tiers). A filter, NOT an overlay:
+   #game_window isn't reliably position:relative (see the final-map notes),
+   so an inset overlay could re-anchor the portrait strip. Deliberately
+   slight — the paper cools and dims a few degrees, text stays readable. */
+#inner_window_question {
+    transition: filter 1.6s ease;
+}
+body.acop-ms-dim-1 #inner_window_question {
+    filter: brightness(0.97);
+}
+body.acop-ms-dim-2 #inner_window_question {
+    filter: brightness(0.94) sepia(0.06);
+}
+body.acop-ms-dim-3 #inner_window_question {
+    filter: brightness(0.89) sepia(0.12) saturate(0.92);
+}
 #candidate_summary > ul > li:nth-child(3) {
   display: none;
 }

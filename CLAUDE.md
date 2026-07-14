@@ -453,6 +453,18 @@ Verified: qpage_check 11/11 (build state, band gone + rule, wash exclusive to
 the picked row + moves + clears, warm tick, awake glow with bevel intact,
 once-per-form guard).
 
+**29. Mental-state bleed on the question page (Jul 2026)**
+The question window drains a touch as Nixon deteriorates. Code 2's shared
+observer stamps `body.acop-ms-dim-1/2/3` every tick from `MentalState`
+(≤4 clear, ≤6, ≤7, >7 — same tiers as the feedback images/State of the
+Nation); derived state, so save/load + New Game need no wiring. Code 1 CSS
+dims `#inner_window_question` via FILTER (brightness .97 / .94+sepia .06 /
+.89+sepia .12+saturate .92, 1.6s ease) — deliberately slight, max ~11%.
+NOT an overlay: `#game_window` isn't reliably position:relative (see the
+final-map notes) and an inset overlay could re-anchor the portrait strip.
+Recovers cleanly if MentalState improves. Verified: msdim_check 7/7 (all
+band edges, recovery); qpage_check 11/11 unchanged.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
