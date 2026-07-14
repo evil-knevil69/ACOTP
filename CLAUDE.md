@@ -434,6 +434,25 @@ already covered by authored feedback text (e.g. "McCord is off the reservation")
 Verified: msimg_check 6/6 (banding, shipped-inert default, swap + object-fit,
 composed default, once-per-popup, visit-popup untouched).
 
+**28. Question page polish: band→rule, picked wash, CONTINUE wake (Jul 2026)**
+All Code 1. (1) `.inner_inner_window h3` — the translucent grey band behind the
+question text is gone (transparent bg); a thin oxblood rule
+(`rgba(122,32,22,0.55)`) under the narration separates it from the options.
+(2) The chosen answer row gets `.acop-picked` — a light manila wash
+(`rgba(199,170,96,0.22)`, 1px inset edge, 3px radius) and the checkbox tick
+warms to oxblood via the `--stroke` custom property; rows gained 4px/8px
+padding so the wash has room (all rows, so nothing jumps on selection). Class
+sync lives in `replaceRadioButtons`'s change handler (centralised: programmatic
+unchecks fire no change events). (3) `#answer_select_button` starts
+`.acop-asleep` (opacity .45, reset at each question build — the button element
+can be reused across renders) and wakes on selection with a manila
+`drop-shadow` FILTER — deliberately NOT box-shadow, which would clobber the
+button's existing bevel. Unpicking re-sleeps it. Opacity-only: the button stays
+clickable, engine behaviour untouched.
+Verified: qpage_check 11/11 (build state, band gone + rule, wash exclusive to
+the picked row + moves + clears, warm tick, awake glow with bevel intact,
+once-per-form guard).
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
