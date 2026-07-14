@@ -16870,7 +16870,12 @@ window.__onGameWindowMutation(() => {
             // #confirm_visit_button instead, so the two never both fire);
             // #feedback_window is the engine's other advisor popup. Once per
             // popup (dataset guard); url '' keeps the engine default.
-            const fbImg = document.querySelector('#visit_window:has(#no_feedback_button) #visit_content img, #feedback_window #feedback_content img');
+            // Cheap ID gate first: this subscriber runs on every observer tick,
+            // and the :has() query is the only non-ID lookup on that hot path —
+            // skip it entirely unless a feedback popup is actually up.
+            const fbImg = (document.getElementById('no_feedback_button') || document.getElementById('feedback_window'))
+                ? document.querySelector('#visit_window:has(#no_feedback_button) #visit_content img, #feedback_window #feedback_content img')
+                : null;
             if (fbImg && !fbImg.dataset.msImgSet) {
                 fbImg.dataset.msImgSet = '1';
                 const msUrl = _mentalFeedbackUrl();
