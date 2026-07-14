@@ -1090,7 +1090,11 @@ div.center img#header {
     text-wrap: balance;
 }
 #visit_window:has(#no_feedback_button) p {
-    text-align: left !important;
+    /* fully justified (a justified block's last line sits left by default);
+       text-wrap:balance from the general overlay rule above would shorten
+       lines and stretch the word gaps under justify, so restore normal wrap */
+    text-align: justify !important;
+    text-wrap: wrap;
 }
 #visit_overlay {
     min-height: 725px !important;
