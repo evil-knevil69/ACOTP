@@ -302,6 +302,39 @@ corrr = `
 </div>
 `;
 
+// ── LOW DEMAND MODE ("The rate of increase is decreasing") ────────────────────
+// Pre-game checkbox (OFF by default, opt-in persisted in acop_low_fx). ONE
+// signal: body.low-fx-on. The CSS side (grep LOW DEMAND MODE in the main
+// stylesheet) kills the backdrop-filter blurs, freezes every infinite pulse/
+// flicker to a static state, drops the TV lamp-glow + noise gif and the
+// game-window edge mask; the JS side (Code 2 reads the body class live via
+// _lowFx()) skips film grain, event-icon SMIL loops, the idle preloader and
+// the Night/SIGINT layers; and the animated page background swaps for a
+// static tone below. Playability-neutral by design: every SIGNAL (glows,
+// scoreboards, toggles other than Night/SIGINT) survives, only motion and
+// bandwidth go.
+var _lowFxOn = false;
+try { _lowFxOn = localStorage.getItem('acop_low_fx') === '1'; } catch (e) {}
+if (document.body) document.body.classList.toggle('low-fx-on', _lowFxOn);
+
+// The animated page gif is the single biggest constant repaint + download.
+// Low mode overrides it with an inline style (beats the body background
+// attribute; cleared when the mode is off). Re-synced at load, on checkbox
+// change, and after every theme apply (theme fns rewrite the attribute).
+var _LOWFX_STATIC_BG = '';   // optional FILL ME IN — a static still of backgroundv69; '' = flat tone
+function _syncLowFxBg() {
+    if (!document.body) return;
+    if (document.body.classList.contains('low-fx-on')) {
+        document.body.style.backgroundImage = _LOWFX_STATIC_BG ? "url('" + _LOWFX_STATIC_BG + "')" : 'none';
+        document.body.style.backgroundColor = '#262019';
+    } else {
+        document.body.style.backgroundImage = '';
+        document.body.style.backgroundColor = '';
+    }
+}
+_syncLowFxBg();
+// ── END LOW DEMAND MODE (state) ────────────────────────────────────────────────
+
 // ── THEME SELECTOR (mechanism ported from 1972: More Than Ever) ────────────────
 // A name→function registry: each entry repaints the whole page live — page
 // background, the top banner (#header), the game-window/header/container colours
@@ -359,6 +392,7 @@ function _applyTheme(name) {
     try { ACOP_THEMES[_acopTheme](); } catch (e) {}
     document.querySelectorAll('.game_header').forEach(h => { h.innerHTML = corrr; });
     document.querySelectorAll('.acop-theme-select').forEach(s => { s.value = _acopTheme; });
+    _syncLowFxBg();   // theme fns rewrite the body background — low mode re-overrides
 }
 // Code 2 runs in its own Function scope — expose the registry + applier so
 // question events can swap themes (and authors can register themes) from there.
@@ -626,6 +660,56 @@ body.acop-ms-dim-2 #inner_window_question {
 body.acop-ms-dim-3 #inner_window_question {
     filter: brightness(0.89) sepia(0.12) saturate(0.92);
 }
+/* ── LOW DEMAND MODE (body.low-fx-on — see the state block near the top) ─────
+   CSS half of the mode. Rules of thumb: SIGNALS stay (glows keep their colour
+   as a STATIC halo), only infinite motion and expensive filters go. */
+/* map tooltips: backdrop-filter re-blurs everything behind the tip on every
+   mousemove — solid paper instead */
+body.low-fx-on #wm-tooltip,
+body.low-fx-on #wm-event-tooltip {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+}
+/* pulse glows → static mid-intensity halos (reshuffle amber, team-action
+   green, last-turn red) */
+body.low-fx-on .rs-glow,
+body.low-fx-on .ta-glow {
+    animation: none !important;
+}
+body.low-fx-on .rs-glow { box-shadow: 0 0 8px 3px rgba(255, 200, 60, 0.75) !important; }
+body.low-fx-on .ta-glow { box-shadow: 0 0 8px 3px rgba(80, 200, 110, 0.75) !important; }
+body.low-fx-on .rs-glow.rs-last { box-shadow: 0 0 9px 4px rgba(226, 58, 40, 0.85) !important; }
+/* CRT flickers off: election-night cards (must out-specific the !important
+   rules in the per-screen logo-hide-style) + the midterm broadcast */
+body.low-fx-on #game_window.acop-final-tv #overall_result,
+body.low-fx-on #game_window.acop-final-tv #state_result {
+    animation: none !important;
+}
+body.low-fx-on #_mt_card .card,
+body.low-fx-on #_mt_ov .mthead {
+    animation: none !important;
+}
+/* org-chart exposure wires: keep the ember colour as a solid stroke — stop
+   the pulse, drop the SVG gaussian blur (the most expensive animation in the
+   mod). filter:none beats the filter="url(#nw-glow)" presentation attribute. */
+body.low-fx-on .nw-exp-glow {
+    animation: none !important;
+    opacity: 0.85 !important;
+    filter: none !important;
+}
+/* TV maps: lamp-glow gaussian filters off the state groups (thick strokes +
+   labels carry the look) */
+body.low-fx-on #map_container.election-map svg g {
+    filter: none !important;
+}
+/* the full-window edge-feather mask forces an extra composited layer on
+   every screen */
+body.low-fx-on #game_window {
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+}
+/* ── END LOW DEMAND MODE (CSS) ── */
 #candidate_summary > ul > li:nth-child(3) {
   display: none;
 }
@@ -4315,6 +4399,12 @@ const customStyling = document.createElement("style");
 customStyling.innerHTML = `#map_container {
     background-image: url("https://file.garden/aXPgNT-ZRCxxpy0g/tvnoise2-ezgif.com-optimize%20(1).gif");
     background-size: cover;
+}
+/* LOW DEMAND MODE: the animated static gif is a constant full-window repaint
+   on every map screen — a flat tube-black reads the same at rest. */
+body.low-fx-on #map_container {
+    background-image: none !important;
+    background-color: #111 !important;
 }`;
 customStyling.id=`map_image`
 document.head.appendChild(customStyling);
@@ -4682,6 +4772,36 @@ window.__onGameWindowMutation(() => {
     fWrap.addEventListener('mouseenter', () => { fTip.style.display = 'block'; });
     fWrap.addEventListener('mouseleave', () => { fTip.style.display = 'none'; });
     diff.appendChild(fWrap);
+
+    // "The rate of increase is decreasing" — low demand mode (see the state
+    // block near the top of this file). OFF by default, opt-in persisted.
+    const lWrap = document.createElement('label');
+    lWrap.id = 'low-fx-toggle-wrap';
+    lWrap.style.cssText = 'display:block;margin-top:4px;position:relative;';
+    const lCb = document.createElement('input');
+    lCb.type = 'checkbox';
+    lCb.id = 'low-fx-toggle';
+    lCb.checked = _lowFxOn;
+    lCb.addEventListener('change', () => {
+        _lowFxOn = lCb.checked;
+        try { localStorage.setItem('acop_low_fx', lCb.checked ? '1' : '0'); } catch (e) {}
+        document.body.classList.toggle('low-fx-on', _lowFxOn);
+        _syncLowFxBg();
+    });
+    lWrap.appendChild(lCb);
+    lWrap.appendChild(document.createTextNode(' The rate of increase is decreasing'));
+    const lTip = document.createElement('span');
+    lTip.id = 'low-fx-hovertip';
+    lTip.style.cssText = 'display:none;position:absolute;bottom:calc(100% + 6px);left:10px;width:250px;'
+        + 'background:rgba(255,255,255,0.97);border:1px solid #999;border-radius:3px;'
+        + 'box-shadow:1px 2px 6px rgba(0,0,0,0.3);padding:7px 9px;z-index:1000;'
+        + 'font-family:TypewriterDry,monospace;font-size:11px;line-height:1.45;color:#222;'
+        + 'text-align:left;pointer-events:none;font-weight:normal;';
+    lTip.textContent = 'Reduce animations, graphics and other bandwidth heavy features.';
+    lWrap.appendChild(lTip);
+    lWrap.addEventListener('mouseenter', () => { lTip.style.display = 'block'; });
+    lWrap.addEventListener('mouseleave', () => { lTip.style.display = 'none'; });
+    diff.appendChild(lWrap);
 });
 // ── END EDUCATIONAL TOOLTIPS ──────────────────────────────────────────────────
 
@@ -4748,11 +4868,12 @@ window.__onGameWindowMutation(() => {
             '#inner_window_4 #opponent_selection_description_window { margin: 5px 0 0 0; padding: 6px 10px; }' +
             '#inner_window_4 #campaign_length_options { margin-top: 0; }' +
             /* Pull the campaign-length block (select + its description card)
-               a further 20px up toward the voting-method settings. Visual
-               shift only (position:relative) — the flow slot is unchanged, so
-               the checkboxes/buttons below don't move. */
+               up toward the voting-method settings — 20px, then a further
+               15px on request (Jul 2026). Visual shift only (position:
+               relative) — the flow slot is unchanged, so the checkboxes/
+               buttons below don't move. */
             '#inner_window_4 #campaign_length_options,' +
-            '#inner_window_4 #campaign_length_description_window { position: relative; top: -20px; }' +
+            '#inner_window_4 #campaign_length_description_window { position: relative; top: -35px; }' +
             /* Checkboxes (Expletives Deleted / Educational tooltips / Historicity)
                nudged down 20px; buttons down 15px. position:relative keeps the
                container height fixed and doesn't reflow siblings. */

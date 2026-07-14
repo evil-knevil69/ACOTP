@@ -19050,12 +19050,23 @@ document.addEventListener('keydown', (e) => {
     window.__onGameWindowMutation(_checkAndSimplify);
 })();
 
+// ── LOW DEMAND MODE (JS half; CSS half + the checkbox live in Code 1) ────────
+// "The rate of increase is decreasing" — body.low-fx-on is the single source
+// of truth, set by Code 1 before this file runs (Code 2 executes at game
+// start, after the options screen). Read LIVE at each creation site: no
+// cross-file variable to go stale.
+function _lowFx() {
+    return !!(document.body && document.body.classList.contains('low-fx-on'));
+}
+
 // ── Asset preloader ───────────────────────────────────────────────────────────
 // Warms the browser cache before the user opens any panel. Critical assets fire
 // immediately; everything else runs during idle time so it doesn't compete with
 // the initial game load. Capital photos (~130) are excluded — too many and
 // loaded on-demand via the world map hover; the browser caches them after first
 // visit. Audio is excluded — handled by the <audio> element itself.
+// LOW DEMAND MODE: the idle tier is skipped entirely — those assets load
+// on demand the first time their screen opens instead.
 ;(() => {
     // Tier 1 — needed within the first few seconds of gameplay
     const _CRITICAL = [
@@ -19145,7 +19156,7 @@ document.addEventListener('keydown', (e) => {
         _idleIdx += _IDLE_CHUNK;
         if (_idleIdx < _IDLE.length) _idle(_drip);
     };
-    _idle(_drip);
+    if (!_lowFx()) _idle(_drip);   // low demand: no speculative downloads
 })();
 
 // [JETS_CYOA_CAMPAIGN_DATA_END]
@@ -20015,10 +20026,14 @@ function openWorldMap() {
     grainFx.id = 'wm-grain-fx';
     const _grainURI = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E";
     grainFx.style.cssText = "position:absolute;inset:-12px;pointer-events:none;z-index:16;opacity:0.05;mix-blend-mode:overlay;background-image:url(\"" + _grainURI + "\");background-size:160px 160px;";
+    // LOW DEMAND MODE: no film grain (the whole-viewport overlay blend is the
+    // world map's biggest per-frame cost). The element still exists — the
+    // SVG-load re-attach expects it — it just never paints. Vignette stays.
+    if (_lowFx()) grainFx.style.display = 'none';
     viewport.appendChild(grainFx);
     // Drift the grain tile a few px so it shimmers like film rather than sitting static.
     try {
-        grainFx.animate(
+        if (!_lowFx()) grainFx.animate(
             [
                 { transform: 'translate(0,0)' }, { transform: 'translate(-7px,5px)' },
                 { transform: 'translate(5px,-6px)' }, { transform: 'translate(-4px,7px)' },
@@ -20084,6 +20099,10 @@ function openWorldMap() {
     let allegiance = _wmAllegiance;
     let nightOn = _wmNightOn;
     let sigintOn = _wmSigintOn;
+    // LOW DEMAND MODE: Night (interval-driven terminator) and SIGINT (full-map
+    // CRT filter) stay off — state cleared so a remembered "on" from a normal
+    // session doesn't wake them, and the buttons below are locked out.
+    if (_lowFx()) { nightOn = false; _wmNightOn = false; sigintOn = false; _wmSigintOn = false; }
     let svgEl = null;
     // Flags in their own overlay SVG 
     let flagSvgEl = null;
@@ -20122,6 +20141,11 @@ function openWorldMap() {
         if (ng) ng.style.display = nightOn ? '' : 'none';
         _onNightChange(); // re-light / un-light the capitals on the dark side
     });
+    if (_lowFx()) {
+        nightBtn.disabled = true;
+        nightBtn.style.opacity = '0.4';
+        nightBtn.title = 'Off — low demand mode';
+    }
     topBar.appendChild(nightBtn);
 
     // SIGINT — phosphor / war-room skin
@@ -20162,6 +20186,11 @@ function openWorldMap() {
         _applySigint(sigintOn);
         _defconUpdate();
     });
+    if (_lowFx()) {
+        sigintBtn.disabled = true;
+        sigintBtn.style.opacity = '0.4';
+        sigintBtn.title = 'Off — low demand mode';
+    }
     topBar.appendChild(sigintBtn);
     if (sigintOn) _applySigint(true);
     mapCleanup.push(() => { const st = document.getElementById('wm-sigint-css'); if (st) st.remove(); if (svgEl) svgEl.style.filter = ''; if (flagSvgEl) { flagSvgEl.remove(); flagSvgEl = null; } });
@@ -22013,6 +22042,9 @@ function openWorldMap() {
                         _animDebut = (_wmEventDebutPk[def.id] === _curPk);
                     }
                 } catch (_) {}
+                // LOW DEMAND MODE: the debut rings/smoke/flash are SMIL loops
+                // that run forever once appended — skip them (icons unaffected).
+                if (_lowFx()) _animDebut = false;
                 if (_animDebut && def.type === 'disaster') {
                     const ring = _mkEl('circle', { r: 4, fill: 'none', stroke: '#5AACF0', 'stroke-width': '1.2', opacity: '0' }, [
                         { tag: 'animate', attrs: { attributeName: 'r',       values: '3;13',    dur: '1.8s', repeatCount: 'indefinite' } },
@@ -22397,8 +22429,9 @@ function openWorldMap() {
                 briefBtn.style.background = '#c0392b';
                 briefBtn.style.color = '#fff';
                 briefBtn.textContent = 'Stop Brief';
-                // War-room skin on for the duration.
-                if (!sigintOn) {
+                // War-room skin on for the duration (skipped in low demand
+                // mode — the brief itself still runs, just unskinned).
+                if (!sigintOn && !_lowFx()) {
                     sigintOn = true; _wmSigintOn = true;
                     sigintBtn.style.outline = '2px solid #888';
                     sigintBtn.style.fontWeight = 'bold';

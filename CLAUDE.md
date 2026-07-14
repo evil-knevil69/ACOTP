@@ -474,6 +474,36 @@ final-map notes) and an inset overlay could re-anchor the portrait strip.
 Recovers cleanly if MentalState improves. Verified: msdim_check 7/7 (all
 band edges, recovery); qpage_check 11/11 unchanged.
 
+**30. Low demand mode — "The rate of increase is decreasing" (Jul 2026)**
+Pre-game checkbox (under Fog of War; OFF by default, opt-in persisted in
+`acop_low_fx`; hover: "Reduce animations, graphics and other bandwidth heavy
+features."). ONE signal: `body.low-fx-on` — Code 1 owns the state block (grep
+`LOW DEMAND MODE`, sits before the THEME SELECTOR) + checkbox + CSS; Code 2
+reads the class LIVE via `_lowFx()` (defined before the preloader; Code 2 runs
+at game start so the choice is final by then). Playability-neutral rule:
+SIGNALS stay (glows keep colour as STATIC halos), only motion + bandwidth go.
+What it turns off — CSS half (main stylesheet, grep `LOW DEMAND MODE (body`):
+tooltip backdrop-filter blurs (solid paper instead), rs/ta/rs-last pulse
+animations (static halos), election-night card flickers (selector out-specifics
+the per-screen !important rules), midterm `_mtFlicker`, org-chart `nw-exp-glow`
+pulse + gaussian filter (solid ember stroke stays), TV `lamp-glow` filters,
+the `#game_window` edge-feather mask, and (in `customStyling`) the TV noise
+gif → flat #111. JS half (Code 2 guards): idle-tier preloader skipped, world-map
+film grain hidden + drift not started (element kept — the SVG-load re-attach
+expects it; vignette stays), event-icon SMIL debut loops skipped, Night+SIGINT
+forced off with buttons disabled (remembered "on" cleared), morning-brief
+war-room skin skipped (brief still runs). Page background: `_syncLowFxBg()`
+(Code 1) overrides the animated gif with inline style — `_LOWFX_STATIC_BG`
+optional FILL ME IN for a static still, '' = flat #262019 — re-synced at load,
+on toggle, and at the end of `_applyTheme` (theme fns rewrite the attribute).
+ALSO: campaign-length block pulled up a further 15px (top: -20px → -35px).
+Verified: lowfx_check 23/23 (all Code 2 wiring greps, checkbox
+defaults/persistence/label/hover, bg swap + clear, and computed-style CSS
+overrides with the per-screen sheets layered in production precedence);
+theme_check 14/14 + themeswap 10/10 (harness slices widened to include the
+state block), fog 15/15, qpage 11/11, msdim 7/7, wmtip 9/9, enightsets 9/9,
+saveload 10/10.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
