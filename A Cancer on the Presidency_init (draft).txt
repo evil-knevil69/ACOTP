@@ -1390,6 +1390,33 @@ body.edu-tips-off .edu-tip > svg.edu-stroke { display: none; }
     cursor: pointer;
     user-select: none;
 }
+/* Pre-game options checkboxes as a 2×2 grid with the fifth centred beneath
+   (Expletives / Educational · Historicity / Fog of War · low-demand). The
+   `> label` rule outspecifies each wrap's own id/inline styling so the cells
+   stay uniform. */
+#acop-options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px 26px;
+    justify-items: start;
+    margin-top: 20px;
+    width: max-content;
+}
+#acop-options-grid > label {
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+    margin: 0 !important;
+    position: relative;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+#acop-options-grid > #low-fx-toggle-wrap {
+    grid-column: 1 / -1;
+    justify-self: center;
+}
 .game_answer_row span {
     text-decoration: underline;
     text-decoration-color: transparent;
@@ -2523,7 +2550,11 @@ function __mapVisitTick() {
                click-a-state placeholder, "returns not yet available") keep the
                engine markup and just get the card + broadcast text below. */
             #game_window.acop-final-tv #state_result_container {
-                transform: none !important;
+                /* translateY nudges the state-results window 40px down on the
+                   election-night + final maps (visual only — leaves the drag
+                   top/left inline positions untouched; also kills the base
+                   sticky-note rotate, as 'none' did). */
+                transform: translateY(40px) !important;
                 background: transparent !important;
                 background-color: transparent !important;
                 min-height: 0 !important;
@@ -4658,6 +4689,12 @@ if (document.body) document.body.classList.toggle('fog-of-war-on', _fogOfWarOn);
 window.__onGameWindowMutation(() => {
     const diff = document.getElementById('difficulty_level');
     if (!diff || document.getElementById('edu-tips-toggle')) return;
+    // The five option checkboxes go into a 2×2 grid (+ one centred beneath);
+    // see #acop-options-grid CSS. Attached to #difficulty_level up front, then
+    // filled — so one checkbox's setup can't strand the rest.
+    const optGrid = document.createElement('div');
+    optGrid.id = 'acop-options-grid';
+    diff.appendChild(optGrid);
     const wrap = document.createElement('label');
     wrap.id = 'edu-tips-toggle-wrap';
     const cb = document.createElement('input');
@@ -4716,9 +4753,9 @@ window.__onGameWindowMutation(() => {
     xWrap.appendChild(xTip);
     xWrap.addEventListener('mouseenter', () => { xTip.style.display = 'block'; });
     xWrap.addEventListener('mouseleave', () => { xTip.style.display = 'none'; });
-    diff.appendChild(xWrap);
+    optGrid.appendChild(xWrap);
 
-    diff.appendChild(wrap);
+    optGrid.appendChild(wrap);
 
     const hWrap = document.createElement('label');
     hWrap.id = 'historicity-toggle-wrap';
@@ -4752,7 +4789,7 @@ window.__onGameWindowMutation(() => {
     hWrap.appendChild(hTip);
     hWrap.addEventListener('mouseenter', () => { hTip.style.display = 'block'; });
     hWrap.addEventListener('mouseleave', () => { hTip.style.display = 'none'; });
-    diff.appendChild(hWrap);
+    optGrid.appendChild(hWrap);
 
     // "Fog of War" — ON by default (see _fogOfWarOn above). Blurs the live
     // team-loyalty numbers on the President's Men chart.
@@ -4781,7 +4818,7 @@ window.__onGameWindowMutation(() => {
     fWrap.appendChild(fTip);
     fWrap.addEventListener('mouseenter', () => { fTip.style.display = 'block'; });
     fWrap.addEventListener('mouseleave', () => { fTip.style.display = 'none'; });
-    diff.appendChild(fWrap);
+    optGrid.appendChild(fWrap);
 
     // "The rate of increase is decreasing" — low demand mode (see the state
     // block near the top of this file). OFF by default, opt-in persisted.
@@ -4811,7 +4848,7 @@ window.__onGameWindowMutation(() => {
     lWrap.appendChild(lTip);
     lWrap.addEventListener('mouseenter', () => { lTip.style.display = 'block'; });
     lWrap.addEventListener('mouseleave', () => { lTip.style.display = 'none'; });
-    diff.appendChild(lWrap);
+    optGrid.appendChild(lWrap);
 });
 // ── END EDUCATIONAL TOOLTIPS ──────────────────────────────────────────────────
 
@@ -4879,17 +4916,13 @@ window.__onGameWindowMutation(() => {
             '#inner_window_4 #campaign_length_options { margin-top: 0; }' +
             /* Pull the campaign-length block (select + its description card)
                up toward the voting-method settings — 20px, then a further
-               15px on request (Jul 2026). Visual shift only (position:
-               relative) — the flow slot is unchanged, so the checkboxes/
-               buttons below don't move. */
+               15px, then a further 10px on request (Jul 2026) = -45px total.
+               Visual shift only (position: relative) — the flow slot is
+               unchanged, so the options grid / buttons below don't move. */
             '#inner_window_4 #campaign_length_options,' +
-            '#inner_window_4 #campaign_length_description_window { position: relative; top: -35px; }' +
-            /* Checkboxes (Expletives Deleted / Educational tooltips / Historicity)
-               nudged down 20px; buttons down 15px. position:relative keeps the
-               container height fixed and doesn't reflow siblings. */
-            '#difficulty_level > #expletives-toggle-wrap,' +
-            '#difficulty_level > #edu-tips-toggle-wrap,' +
-            '#difficulty_level > #historicity-toggle-wrap { position: relative; top: 20px; }' +
+            '#inner_window_4 #campaign_length_description_window { position: relative; top: -45px; }' +
+            /* The option checkboxes now live in #acop-options-grid (its own
+               margin-top spaces it below the campaign block); buttons down 15px. */
             '#inner_window_4 #opponent_selection_id_button_p { margin: 8px 0 0; position: relative; top: 15px; }';
         document.head.appendChild(st);
     }
