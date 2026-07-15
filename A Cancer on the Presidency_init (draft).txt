@@ -1999,6 +1999,9 @@ window.playCreditsMusic = function() {
 // usmap SVG has rendered. Distinguishes it from the other final screens (which
 // carry the footer but no map) and from the in-game electoral map (resume btn).
 function __isFinalElectionMap() {
+    // DEFCON-1 nuclear war (Code 2 stamps body.acop-nuke): the terminal screen
+    // reverts to the stock engine map — no ACOP TV treatment.
+    if (document.body && document.body.classList.contains('acop-nuke')) return false;
     const btn = document.getElementById('final_election_map_button');
     return !!(btn && btn.disabled && document.querySelector('#map_container svg'));
 }
@@ -2006,6 +2009,8 @@ function __isFinalElectionMap() {
 // True on the ELECTION NIGHT screen (engine's electionNight(): the live
 // count-in with "Go to Final Results"). #final_result_button only exists there.
 function __isElectionNight() {
+    // DEFCON-1 nuclear war: stand the TV treatment down (see __isFinalElectionMap).
+    if (document.body && document.body.classList.contains('acop-nuke')) return false;
     if (document.getElementById('final_result_button')) return true;
     // "Processing Results, wait one moment…": clicking Go to Final Results
     // replaces the footer (killing the button) while the tally screen is still
@@ -4405,6 +4410,11 @@ customStyling.innerHTML = `#map_container {
 body.low-fx-on #map_container {
     background-image: none !important;
     background-color: #111 !important;
+}
+/* DEFCON-1 nuclear war: the terminal screen reverts to the stock engine map —
+   drop the TV noise gif (a nuke-themed screen gets built on this later). */
+body.acop-nuke #map_container {
+    background-image: none !important;
 }`;
 customStyling.id=`map_image`
 document.head.appendChild(customStyling);

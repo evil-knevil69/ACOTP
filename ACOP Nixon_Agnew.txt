@@ -20,6 +20,9 @@
 // ║                      per person, however many aliases                      ║
 // ║   MENTAL_FEEDBACK_IMGS … advisor-photo gifs per MentalState band           ║
 // ║                      (FILL ME IN — shoving Ziegler, freezing up)           ║
+// ║   _NUKE_Q_PK ………………… DEFCON-1 bunker question pk (FILL ME IN; inert        ║
+// ║                      until set). Branch: grep NUCLEAR WAR TUNNEL /         ║
+// ║                      NUCLEAR_WAR.md. _NUKE_CENSUS = casualty ballot.       ║
 // ║ AUDIO:                                                                     ║
 // ║   SOUNDTRACK ………………… section playlists/moods (FILL ME IN;                  ║
 // ║                      SOUNDTRACK_PLAN.md)                                   ║
@@ -12718,6 +12721,11 @@ cyoAdventure = function (a) {
     const ans = campaignTrail_temp.player_answers[campaignTrail_temp.player_answers.length - 1];
     campaignTrail_temp.noCounter = campaignTrail_temp.player_answers.length;
 
+    // DEFCON-1 nuclear war: if this answer was the bunker question's, rename
+    // candidate_json to the casualty census before election night builds (see
+    // the NUCLEAR WAR TUNNEL block). No-op until the branch is armed.
+    _nukeCensusOnAnswer(ans);
+
     // Tier 1: random image from nominee pool
     updateAdvisorImage();
 
@@ -16766,6 +16774,7 @@ window.__onGameWindowMutation(() => {
                     _president = 'nixon'; _vp = 'agnew'; _ticketStage = 1; _refreshTicket();
                     _actionCrimes.length = 0; _actionCrimesRevealed = false;
                     _enemiesReset();
+                    _nukeReset();   // unwind the nuclear-war branch + candidate rename
                     // Only unwind an EVENT-driven theme swap — a look the player
                     // picked themselves in the dropdown survives a New Game.
                     if (_gameTheme) {
@@ -16863,6 +16872,11 @@ window.__onGameWindowMutation(() => {
             for (let _i = 1; _i <= 3; _i++) {
                 document.body.classList.toggle('acop-ms-dim-' + _i, _msDimBand === _i);
             }
+
+            // DEFCON-1 nuclear war: body.acop-nuke tells Code 1's election-night
+            // detectors to stand the TV treatment down (stock engine map).
+            // Derived from _nukeWar — no extra save/load wiring.
+            document.body.classList.toggle('acop-nuke', _nukeWar > 0);
 
             // Mental-state advisor image (see MENTAL_FEEDBACK_IMGS): the memo's
             // photo degrades as Nixon does. The feedback variant of the visit
@@ -17437,7 +17451,7 @@ var _SL_SCALARS = [
     // run counters / flow
     '_questionCount', '_pressureOn', '_allendeSpeechPlayed', '_actionCrimesRevealed',
     '_campaignLength', '_lengthInstalled', '_endAchFired', '_projStingPlayed', '_enightStingPlayed',
-    '_enightIntroPlayed', '_enightSetIdx', '_gameTheme',
+    '_enightIntroPlayed', '_enightSetIdx', '_gameTheme', '_nukeWar',
     // ticket
     '_president', '_vp', '_ticketStage', 'Nominee',
     // top-line stats
@@ -17549,6 +17563,9 @@ function _slRestoreMod(m) {
     // above). '' = no event swap in that run — leave the current look alone,
     // it's the player's own picker preference.
     if (_gameTheme) { try { window._acopApplyTheme?.(_gameTheme); } catch (e) {} }
+    // Nuclear war: _nukeWar was just restored above — if the census had been
+    // applied, re-apply the candidate rename (candidate_json isn't snapshotted).
+    if (_nukeWar >= 2) { try { _nukeApplyCensus(); } catch (e) {} }
 }
 
 // questionSwapper permutes questions_json in place (same objects, new order),
@@ -19029,6 +19046,10 @@ document.addEventListener('keydown', (e) => {
     }
 
     function _checkAndSimplify() {
+        // DEFCON-1 nuclear war: the terminal screen reverts to the stock engine
+        // map — skip smoothing / lamp glow / labels, exactly as Code 1 skips its
+        // TV chrome under body.acop-nuke.
+        if (_nukeWar > 0) return;
         // Fire on BOTH the in-game electoral map and the election-night results
         // map (finalMapScreenHtml → the disabled "Election Map" nav button),
         // so the final map gets the same SVG smoothing, thick strokes, lamp
@@ -19674,6 +19695,113 @@ var defcon         = 5;      // 5=peace … 1=imminent war; drives the SIGINT re
 var _wmOceanMaskEl = null;   // cached SVG <mask>; built once, re-appended on each open
 var _wmPrevLoyal   = null;   // snapshot of COUNTRY_LOYAL from the previous map open; drives allegiance delta flashes
 var _wmEventDebutPk = {};    // event id -> question pk at which it first appeared; icon micro-animations play only on the debut turn
+
+// ── DEFCON-1: NUCLEAR WAR TUNNEL (pattern from 2024: Our Revolution) ───────────
+// When `defcon` reaches 1, the run is diverted: the NEXT question becomes a
+// single terminal "the missiles are flying" beat, the game ends after it, and
+// the election screen tallies the casualty census (Dead / Injured / Irradiated
+// / Short-term Survivors) instead of a vote. Deliberately, that final screen
+// reverts to the ENGINE'S STANDARD election map — none of the ACOP TV
+// treatment (Code 1's detectors + `_checkAndSimplify` below stand down while
+// `body.acop-nuke` is set) — leaving a clean slate to build a nuke-themed
+// screen on later.
+//
+// Mechanism (mirrors Our Revolution's NuclearWar branch):
+//   1. `_everyTurn` watches defcon; at ≤1 it arms ONCE (`_nukeArm`).
+//   2. Arm = tunnel the parked bunker question into the next slot + shrink
+//      question_count so the game ends after it (exactly the campaign-length
+//      trick, one slot).  INERT until `_NUKE_Q_PK` is authored + parked.
+//   3. Answering the bunker question runs the census (`_nukeApplyCensus`):
+//      candidate_json is renamed to the casualty categories, in place, before
+//      the engine builds election night — same timing as Our Revolution's
+//      answer hook.  (Called from `cyoAdventure`.)
+//   4. `body.acop-nuke` (stamped in the shared observer from `_nukeWar`) tells
+//      Code 1 to skip the TV election-night treatment → stock engine screen.
+// Save/load: `_nukeWar` in `_SL_SCALARS`; the candidate rename is re-applied on
+// restore and unwound on New Game (originals snapshotted at load).
+//
+// FILL ME IN: `_NUKE_Q_PK` (author the bunker question in questions_json, keep
+// it out of the normal run — parked like the campaign-length tail). Until then
+// the whole branch is inert: defcon 1 changes nothing.
+var _NUKE_Q_PK = null;   // pk of the parked bunker question; null = inert
+var _nukeWar   = 0;      // 0 none · 1 armed (bunker queued) · 2 census applied. In _SL_SCALARS.
+
+// The casualty census: candidate pk → new name/colour, applied on the way to
+// the election map. Defaults to the four categories; retune freely. A pk not
+// in candidate_json is skipped. (first: '' collapses to just the last label.)
+var _NUKE_CENSUS = [
+    { pk: 10701, first: 'The',   last: 'Dead',              color: '#4a4a4a' },
+    { pk: 50000, first: 'The',   last: 'Injured',           color: '#8a2f1e' },
+    { pk: 60000, first: 'The',   last: 'Irradiated',        color: '#5a7d2a' },
+    { pk: 70000, first: 'Short-term', last: 'Survivors',    color: '#9a7b34' },
+];
+
+// Original candidate names/colours, snapshotted at load so New Game can unwind
+// the destructive rename (a New Game without page reload keeps candidate_json).
+var _NUKE_CAND_ORIG = (campaignTrail_temp.candidate_json || []).map(c => ({
+    pk: c.pk, first: c.fields.first_name, last: c.fields.last_name, color: c.fields.color_hex
+}));
+
+// Fetch a question object by pk (Our Revolution's `tunnel`). Parked questions
+// live in questions_json but past the played range, so this always finds them.
+function _tunnel(pk) {
+    const arr = campaignTrail_temp.questions_json;
+    const i = arr.map(q => q.pk).indexOf(pk);
+    return i === -1 ? null : arr[i];
+}
+
+// Arm the tunnel: the next question becomes the bunker, the game ends after it.
+// Fails safe (does nothing, stays inert) if the bunker question isn't authored
+// or parked — so defcon 1 never breaks a run that hasn't got the content yet.
+function _nukeArm() {
+    if (_nukeWar !== 0 || _NUKE_Q_PK == null) return;
+    const bunker = _tunnel(_NUKE_Q_PK);
+    if (!bunker) return;
+    const gp = campaignTrail_temp.global_parameter_json[0].fields;
+    const qn = campaignTrail_temp.question_number;
+    campaignTrail_temp.questions_json[qn + 1] = bunker;   // next slot → bunker
+    gp.question_count = qn + 2;                            // …then the game ends
+    if (campaignTrail_temp.election_json[0]) campaignTrail_temp.election_json[0].fields.has_visits = 0;
+    _nukeWar = 1;
+}
+
+// Rename candidate_json to the casualty categories. Runs BEFORE election night
+// builds (from the answer hook), so the tally shows the census names/colours.
+function _nukeApplyCensus() {
+    const cj = campaignTrail_temp.candidate_json || [];
+    _NUKE_CENSUS.forEach(c => {
+        const cand = cj.find(x => x.pk === c.pk);
+        if (!cand) return;
+        if (c.first != null) cand.fields.first_name = c.first;
+        if (c.last  != null) cand.fields.last_name  = c.last;
+        if (c.color) cand.fields.color_hex = c.color;
+    });
+}
+// Undo the rename (New Game without reload).
+function _nukeRestoreCandidates() {
+    const cj = campaignTrail_temp.candidate_json || [];
+    _NUKE_CAND_ORIG.forEach(o => {
+        const cand = cj.find(x => x.pk === o.pk);
+        if (cand) { cand.fields.first_name = o.first; cand.fields.last_name = o.last; cand.fields.color_hex = o.color; }
+    });
+}
+// New Game hook: unwind the whole branch.
+function _nukeReset() {
+    if (_nukeWar > 0) _nukeRestoreCandidates();
+    _nukeWar = 0;
+    if (document.body) document.body.classList.remove('acop-nuke');
+}
+// Answer hook (called from cyoAdventure): the census fires only when the
+// answer just given belongs to the bunker question — so the normal question
+// that may precede the bunker (armed but not yet shown) doesn't trip it.
+function _nukeCensusOnAnswer(ans) {
+    if (_nukeWar !== 1 || _NUKE_Q_PK == null) return;
+    const a = (campaignTrail_temp.answers_json || []).find(x => x.pk === ans);
+    if (a && a.fields.question === _NUKE_Q_PK) { _nukeApplyCensus(); _nukeWar = 2; }
+}
+// Watch defcon every turn; arm at 1 (or below). Cause-agnostic — catches
+// defcon dropping via SIGINT, world events or an answer effect alike.
+_everyTurn(() => { if (defcon <= 1) _nukeArm(); });
 
 // ── DIPLOMACY ACTIONS (world map) ─────────────────────────────────────────────
 // Charge-based actions in the Diplomacy dropdown on the world-map toolbar —
