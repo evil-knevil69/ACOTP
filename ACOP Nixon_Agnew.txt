@@ -19077,7 +19077,7 @@ document.addEventListener('keydown', (e) => {
 })();
 
 // ── LOW DEMAND MODE (JS half; CSS half + the checkbox live in Code 1) ────────
-// "The rate of increase is decreasing" — body.low-fx-on is the single source
+// "No longer operative" — body.low-fx-on is the single source
 // of truth, set by Code 1 before this file runs (Code 2 executes at game
 // start, after the options screen). Read LIVE at each creation site: no
 // cross-file variable to go stale.

@@ -474,7 +474,8 @@ final-map notes) and an inset overlay could re-anchor the portrait strip.
 Recovers cleanly if MentalState improves. Verified: msdim_check 7/7 (all
 band edges, recovery); qpage_check 11/11 unchanged.
 
-**30. Low demand mode — "The rate of increase is decreasing" (Jul 2026)**
+**30. Low demand mode — "No longer operative" (Jul 2026; label was "The rate
+of increase is decreasing")**
 Pre-game checkbox (under Fog of War; OFF by default, opt-in persisted in
 `acop_low_fx`; hover: "Reduce animations, graphics and other bandwidth heavy
 features."). ONE signal: `body.low-fx-on` — Code 1 owns the state block (grep
@@ -492,14 +493,15 @@ gif → flat #111. JS half (Code 2 guards): idle-tier preloader skipped, world-m
 film grain hidden + drift not started (element kept — the SVG-load re-attach
 expects it; vignette stays), event-icon SMIL debut loops skipped, Night+SIGINT
 forced off with buttons disabled (remembered "on" cleared), morning-brief
-war-room skin skipped (brief still runs). Page background: `_syncLowFxBg()`
+war-room skin skipped (brief still runs), and the visit-map decorative jet +
+contrail fly-across skipped (gated at its build site in Code 1). Page background: `_syncLowFxBg()`
 (Code 1) overrides the animated gif with inline style — `_LOWFX_STATIC_BG`
 optional FILL ME IN for a static still, '' = flat #262019 — re-synced at load,
 on toggle, and at the end of `_applyTheme` (theme fns rewrite the attribute).
-ALSO: campaign-length block pulled up a further 15px (top: -20px → -35px).
-Verified: lowfx_check 23/23 (all Code 2 wiring greps, checkbox
-defaults/persistence/label/hover, bg swap + clear, and computed-style CSS
-overrides with the per-screen sheets layered in production precedence);
+Verified: lowfx_check 24/24 (all Code 2 wiring greps, checkbox
+defaults/persistence/label/hover, visit-plane gate, bg swap + clear, and
+computed-style CSS overrides with the per-screen sheets layered in production
+precedence);
 theme_check 14/14 + themeswap 10/10 (harness slices widened to include the
 state block), fog 15/15, qpage 11/11, msdim 7/7, wmtip 9/9, enightsets 9/9,
 saveload 10/10.

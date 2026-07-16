@@ -302,7 +302,7 @@ corrr = `
 </div>
 `;
 
-// ── LOW DEMAND MODE ("The rate of increase is decreasing") ────────────────────
+// ── LOW DEMAND MODE ("No longer operative") ───────────────────────────────────
 // Pre-game checkbox (OFF by default, opt-in persisted in acop_low_fx). ONE
 // signal: body.low-fx-on. The CSS side (grep LOW DEMAND MODE in the main
 // stylesheet) kills the backdrop-filter blurs, freezes every infinite pulse/
@@ -3080,7 +3080,10 @@ function __mapVisitTick() {
                 }
                 const mapImg = document.getElementById('map_image');
                 if (mapImg) mapImg.disabled = true;
-                if (!document.getElementById('visit-plane')) {
+                // "No longer operative" (low demand mode) skips the decorative
+                // jet + contrail fly-across on the visit map entirely.
+                if (!document.getElementById('visit-plane')
+                    && !(document.body && document.body.classList.contains('low-fx-on'))) {
                     const planePins = [
                         { x: 633, y: 191 },
                         { x: 630, y: 404 },
@@ -4820,8 +4823,8 @@ window.__onGameWindowMutation(() => {
     fWrap.addEventListener('mouseleave', () => { fTip.style.display = 'none'; });
     optGrid.appendChild(fWrap);
 
-    // "The rate of increase is decreasing" — low demand mode (see the state
-    // block near the top of this file). OFF by default, opt-in persisted.
+    // "No longer operative" — low demand mode (see the state block near the
+    // top of this file). OFF by default, opt-in persisted.
     const lWrap = document.createElement('label');
     lWrap.id = 'low-fx-toggle-wrap';
     lWrap.style.cssText = 'display:block;margin-top:4px;position:relative;';
@@ -4836,7 +4839,7 @@ window.__onGameWindowMutation(() => {
         _syncLowFxBg();
     });
     lWrap.appendChild(lCb);
-    lWrap.appendChild(document.createTextNode(' The rate of increase is decreasing'));
+    lWrap.appendChild(document.createTextNode(' No longer operative'));
     const lTip = document.createElement('span');
     lTip.id = 'low-fx-hovertip';
     lTip.style.cssText = 'display:none;position:absolute;bottom:calc(100% + 6px);left:10px;width:250px;'
