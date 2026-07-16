@@ -17563,8 +17563,14 @@ function _slRestoreMod(m) {
     // above). '' = no event swap in that run — leave the current look alone,
     // it's the player's own picker preference.
     if (_gameTheme) { try { window._acopApplyTheme?.(_gameTheme); } catch (e) {} }
-    // Nuclear war: _nukeWar was just restored above — if the census had been
+    // Nuclear war: _nukeWar was just restored above. An armed save needs
+    // has_visits re-zeroed (election_json isn't snapshotted — a fresh page
+    // load brings visits back, and the arm turned them off); question order +
+    // count came back via the save's own snapshots. If the census had been
     // applied, re-apply the candidate rename (candidate_json isn't snapshotted).
+    if (_nukeWar >= 1 && campaignTrail_temp.election_json[0]) {
+        try { campaignTrail_temp.election_json[0].fields.has_visits = 0; } catch (e) {}
+    }
     if (_nukeWar >= 2) { try { _nukeApplyCensus(); } catch (e) {} }
 }
 
@@ -19729,11 +19735,15 @@ var _nukeWar   = 0;      // 0 none · 1 armed (bunker queued) · 2 census applie
 // The casualty census: candidate pk → new name/colour, applied on the way to
 // the election map. Defaults to the four categories; retune freely. A pk not
 // in candidate_json is skipped. (first: '' collapses to just the last label.)
+// PKS MUST BE BALLOT PARTICIPANTS: the engine tallies candidate_id +
+// opponents_default_json (10701, 50000, 70000, 80000 — pk 92 is stock-data
+// residue with no candidate_json entry and never displays). 60000 (The Media)
+// is NOT on the ballot — a census row on it would simply never appear.
 var _NUKE_CENSUS = [
     { pk: 10701, first: 'The',   last: 'Dead',              color: '#4a4a4a' },
     { pk: 50000, first: 'The',   last: 'Injured',           color: '#8a2f1e' },
-    { pk: 60000, first: 'The',   last: 'Irradiated',        color: '#5a7d2a' },
-    { pk: 70000, first: 'Short-term', last: 'Survivors',    color: '#9a7b34' },
+    { pk: 70000, first: 'The',   last: 'Irradiated',        color: '#5a7d2a' },
+    { pk: 80000, first: 'Short-term', last: 'Survivors',    color: '#9a7b34' },
 ];
 
 // Original candidate names/colours, snapshotted at load so New Game can unwind
@@ -19741,26 +19751,31 @@ var _NUKE_CENSUS = [
 var _NUKE_CAND_ORIG = (campaignTrail_temp.candidate_json || []).map(c => ({
     pk: c.pk, first: c.fields.first_name, last: c.fields.last_name, color: c.fields.color_hex
 }));
-
-// Fetch a question object by pk (Our Revolution's `tunnel`). Parked questions
-// live in questions_json but past the played range, so this always finds them.
-function _tunnel(pk) {
-    const arr = campaignTrail_temp.questions_json;
-    const i = arr.map(q => q.pk).indexOf(pk);
-    return i === -1 ? null : arr[i];
-}
+// Pristine has_visits, snapshotted at load — arming zeroes it, reset restores
+// it (covers the loaded-armed-save New Game too, where no in-session undo exists).
+var _NUKE_VISITS_ORIG = campaignTrail_temp.election_json && campaignTrail_temp.election_json[0]
+    ? campaignTrail_temp.election_json[0].fields.has_visits : null;
 
 // Arm the tunnel: the next question becomes the bunker, the game ends after it.
-// Fails safe (does nothing, stays inert) if the bunker question isn't authored
-// or parked — so defcon 1 never breaks a run that hasn't got the content yet.
+// A SWAP, not an overwrite — the displaced question moves to the bunker's old
+// (parked) slot, so questions_json stays a pk-permutation (save/load's pk-order
+// snapshot and _installCampaignLength's byPk restore both depend on that; an
+// overwrite would duplicate the bunker pk and lose the displaced question for
+// good). Fails safe (does nothing, stays inert) if the bunker question isn't
+// authored or parked — so defcon 1 never breaks a run without the content.
 function _nukeArm() {
     if (_nukeWar !== 0 || _NUKE_Q_PK == null) return;
-    const bunker = _tunnel(_NUKE_Q_PK);
-    if (!bunker) return;
+    const arr = campaignTrail_temp.questions_json;
+    const bIdx = arr.map(q => q.pk).indexOf(_NUKE_Q_PK);
+    if (bIdx === -1) return;
+    const slot = campaignTrail_temp.question_number + 1;   // next question's slot
+    if (slot >= arr.length) return;
     const gp = campaignTrail_temp.global_parameter_json[0].fields;
-    const qn = campaignTrail_temp.question_number;
-    campaignTrail_temp.questions_json[qn + 1] = bunker;   // next slot → bunker
-    gp.question_count = qn + 2;                            // …then the game ends
+    const bunker = arr[bIdx];
+    arr[bIdx] = arr[slot];
+    arr[slot] = bunker;
+    _rebuildQuestionIdxMap();
+    gp.question_count = slot + 1;                          // …then the game ends
     if (campaignTrail_temp.election_json[0]) campaignTrail_temp.election_json[0].fields.has_visits = 0;
     _nukeWar = 1;
 }
@@ -19785,9 +19800,21 @@ function _nukeRestoreCandidates() {
         if (cand) { cand.fields.first_name = o.first; cand.fields.last_name = o.last; cand.fields.color_hex = o.color; }
     });
 }
-// New Game hook: unwind the whole branch.
+// New Game hook: unwind the whole branch. The arm reordered questions_json and
+// shrank question_count; the New Game branch's own _installCampaignLength call
+// runs BEFORE this one and early-returns when the length didn't change, so it
+// won't undo the damage — force a pristine reinstall here (idempotent; also
+// covers a New Game after LOADING an armed save on a fresh page, where the
+// corrupt order came in via the save's pk snapshot).
 function _nukeReset() {
-    if (_nukeWar > 0) _nukeRestoreCandidates();
+    if (_nukeWar > 0) {
+        _nukeRestoreCandidates();
+        _lengthInstalled = null;
+        _installCampaignLength();
+        if (campaignTrail_temp.election_json[0] && _NUKE_VISITS_ORIG != null) {
+            campaignTrail_temp.election_json[0].fields.has_visits = _NUKE_VISITS_ORIG;
+        }
+    }
     _nukeWar = 0;
     if (document.body) document.body.classList.remove('acop-nuke');
 }

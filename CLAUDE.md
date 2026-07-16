@@ -509,25 +509,40 @@ saveload 10/10.
 **31. DEFCON-1 nuclear war branch (Jul 2026, pattern from 2024: Our Revolution)**
 Full handoff/authoring doc: `NUCLEAR_WAR.md`. Ships INERT (`_NUKE_Q_PK = null`).
 Code 2, grep `NUCLEAR WAR TUNNEL`: `_everyTurn` watches `defcon`; at ≤1
-`_nukeArm()` tunnels the parked bunker question into `question_number+1` and
+`_nukeArm()` SWAPS the parked bunker question into slot `question_number+1`
+(the displaced question takes the bunker's parked slot — questions_json stays a
+pk-permutation, which `_slRestoreQuestionOrder` and the campaign-length byPk
+restore both require; an overwrite here corrupted New Game, see below) and
 shrinks `question_count` to `+2` (one last question → results), fails safe if
 the pk isn't parked. Answering it (`_nukeCensusOnAnswer` from `cyoAdventure`,
 gated on the answer belonging to `_NUKE_Q_PK`) renames `candidate_json` in place
 to the casualty census (`_NUKE_CENSUS`: Dead/Injured/Irradiated/Short-term
-Survivors, retunable) before election night builds. `_nukeWar` (0/1/2) in
-`_SL_SCALARS`; observer stamps `body.acop-nuke` from it (derived). The terminal
-screen reverts to the STOCK engine map: Code 1's `__isFinalElectionMap` /
-`__isElectionNight` return false under `body.acop-nuke` (TV chrome + scoreboard
-+ state cards off), `_checkAndSimplify` early-returns under `_nukeWar>0`
-(smoothing/lamp/labels off), and a `body.acop-nuke #map_container` rule drops
-the noise gif — clean slate for a nuke-themed screen later (hang it off the same
-class). Save/load: restore re-applies the census at ≥2; New Game `_nukeReset()`
-unwinds the rename (originals in `_NUKE_CAND_ORIG`) + clears flag/class.
-Verified: nuke_check 21/21 (inert-until-authored, arm slot+count+visits +
-idempotent, normal-answer-doesn't-trip-census, bunker census rename+recolour,
-class stamp, both detectors + smoothing stand down, New Game unwind); enight
-8/8, statecard 18/18, scoreboard 7/7, visitmap 15/15, tvcard 6/6, saveload
-10/10 unchanged (TV still fires without the class); both files parse, 163
+Survivors, retunable — pks MUST be ballot participants: the engine tallies
+candidate_id + opponents_default_json = 10701/50000/70000/80000; 60000 "The
+Media" is NOT on the ballot and a row on it never shows; pk 92 in the opponents
+list is stock residue with no candidate_json entry, never displays) before
+election night builds. `_nukeWar` (0/1/2) in `_SL_SCALARS`; observer stamps
+`body.acop-nuke` from it (derived). The terminal screen reverts to the STOCK
+engine map: Code 1's `__isFinalElectionMap` / `__isElectionNight` return false
+under `body.acop-nuke` (TV chrome + scoreboard + state cards off),
+`_checkAndSimplify` early-returns under `_nukeWar>0` (smoothing/lamp/labels
+off), and a `body.acop-nuke #map_container` rule drops the noise gif — clean
+slate for a nuke-themed screen later (hang it off the same class). Save/load:
+restore re-zeroes `has_visits` at ≥1 (a PART transition CAN fall between arming
+and the bunker; election_json isn't snapshotted) and re-applies the census at
+≥2. New Game `_nukeReset()` unwinds the rename (originals in `_NUKE_CAND_ORIG`),
+clears flag/class, restores `has_visits` (`_NUKE_VISITS_ORIG`), and forces a
+pristine question-order+count reinstall (`_lengthInstalled = null` +
+`_installCampaignLength()` — the New Game branch's own install call runs
+EARLIER and early-returns when the length didn't change, so it can't undo the
+arm). Verified: nuke_check 30/30 (inert-until-authored, swap-arm + permutation
+intact + count + visits + idempotent, normal-answer-doesn't-trip-census, bunker
+census renames the four ballot candidates with The Media untouched, class stamp,
+both detectors + smoothing stand down, New Game unwind of names/order/count/
+visits from census AND merely-armed states through the REAL
+_installCampaignLength, armed-save visits re-zero grep); enight 8/8, statecard
+18/18, scoreboard 7/7, visitmap 15/15, saveload 10/10, length 9/9, lowfx 24/24,
+trio 9/9 unchanged (TV still fires without the class); both files parse, 163
 scalars declared.
 
 ### A Cancer on the Presidency_init (draft).txt
