@@ -82,22 +82,45 @@ question.
   Game after a nuke run kept the shrunk `question_count` (game ended after a few
   questions), left the bunker sitting mid-run, and never turned visits back on.
 
-## Later: the nuke-themed screen
+## The nuke map skin (Jul 2026 — first pass)
 
-Everything above deliberately leaves the *stock* engine screen. When you build
-the themed version, hang it off `body.acop-nuke` (already present the whole
-branch) — e.g. a new `__mapVisitTick`-style treatment gated on that class, or a
-`themeSwap('Fallout')` fired from the bunker question's answer effect.
+The stock screen is now dressed as a war-room feed. Mechanism (all Code 1):
+the two screen detectors were split into raw checks (`__isFinalElectionMapRaw`
+/ `__isElectionNightRaw`) plus the nuke-guarded wrappers, and a new observer
+tick `__nukeTvTick` stamps **`acop-nuke-tv` on `#game_window`** when
+`body.acop-nuke` is up AND a raw detector fires — so ONLY Election Night and
+the final results map get the skin (the armed phase's in-game map and the
+other final screens stay stock). The look is pure CSS in `customStyling`
+(grep `acop-nuke-tv`):
+- **Background:** the same TV noise gif as the electoral map (the old
+  `body.acop-nuke` drop-the-gif rule is gone).
+- **Effects:** the world map's SIGINT package minus the green phosphor —
+  CRT scanline `::after` + tube-edge vignette `::before` overlays on
+  `#map_container` (same gradients/z-order as `wm-sigint-css`,
+  pointer-events:none so state clicks land) and the SIGINT colour wash on the
+  map svg without the `hue-rotate(80deg)`:
+  `sepia(0.3) saturate(1.4) brightness(0.85)`.
+- **Low demand mode:** the full-map filter is dropped (same reason SIGINT is
+  locked off on the world map); the static gradient overlays stay; the low-fx
+  flat-#111 background override still outranks the gif.
+Anything further (headline chyron, casualty read-out dressing, themeSwap from
+the bunker answer) hangs off the same two hooks: `body.acop-nuke` +
+`#game_window.acop-nuke-tv`.
 
 ## Verified
 
-`nuke_check.js` — 30/30: inert-until-authored, swap-arm (slot + displaced
+`nuke_check.js` — 44/44: inert-until-authored, swap-arm (slot + displaced
 question parked + pk-permutation intact + count + visits), arm idempotent,
 normal-answer-doesn't-trip-census, bunker-answer census (renames the four
 ballot candidates, The Media untouched, recolour), body-class stamp, both
 detectors stand down, New Game unwind (names + question order + count +
 visits, from census AND from merely-armed) + detectors live again, and the
 armed-save restore re-zeroes visits. The New-Game restore path drives the
-REAL `_installCampaignLength`/`_rebuildQuestionIdxMap`. Regressions green:
-enight 8, statecard 18, scoreboard 7, visitmap 15, saveload 10, length 9,
-lowfx 24, trio 9 (TV treatment still fires normally without the nuke class).
+REAL `_installCampaignLength`/`_rebuildQuestionIdxMap`. The skin section
+drives the REAL raw detectors + `__nukeTvTick` + `customStyling` CSS: class
+stamped on the terminal screen only, gif kept, scanlines + vignette computed
+live, filter = SIGINT minus hue-rotate, low-fx drops the filter but keeps the
+overlays, in-game map while armed NOT dressed, teardown when the class
+clears. Regressions green: enight 8, statecard 18, scoreboard 7 (+edge 5),
+visitmap 15, tvcard 6, saveload 10, length 9, lowfx 24, trio 9, sting 9,
+enightsets 9 (TV treatment still fires normally without the nuke class).

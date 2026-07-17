@@ -2025,19 +2025,21 @@ window.playCreditsMusic = function() {
 // "Election Map" nav button is present AND disabled (we're on it) and the
 // usmap SVG has rendered. Distinguishes it from the other final screens (which
 // carry the footer but no map) and from the in-game electoral map (resume btn).
-function __isFinalElectionMap() {
-    // DEFCON-1 nuclear war (Code 2 stamps body.acop-nuke): the terminal screen
-    // reverts to the stock engine map — no ACOP TV treatment.
-    if (document.body && document.body.classList.contains('acop-nuke')) return false;
+function __isFinalElectionMapRaw() {
     const btn = document.getElementById('final_election_map_button');
     return !!(btn && btn.disabled && document.querySelector('#map_container svg'));
+}
+function __isFinalElectionMap() {
+    // DEFCON-1 nuclear war (Code 2 stamps body.acop-nuke): the terminal screen
+    // reverts to the stock engine map — no ACOP TV treatment. The raw check
+    // stays available for __nukeTvTick, which dresses that stock screen.
+    if (document.body && document.body.classList.contains('acop-nuke')) return false;
+    return __isFinalElectionMapRaw();
 }
 
 // True on the ELECTION NIGHT screen (engine's electionNight(): the live
 // count-in with "Go to Final Results"). #final_result_button only exists there.
-function __isElectionNight() {
-    // DEFCON-1 nuclear war: stand the TV treatment down (see __isFinalElectionMap).
-    if (document.body && document.body.classList.contains('acop-nuke')) return false;
+function __isElectionNightRaw() {
     if (document.getElementById('final_result_button')) return true;
     // "Processing Results, wait one moment…": clicking Go to Final Results
     // replaces the footer (killing the button) while the tally screen is still
@@ -2055,6 +2057,26 @@ function __isElectionNight() {
         && !document.getElementById('resume_questions_button')
         && !document.getElementById('final_election_map_button'));
 }
+function __isElectionNight() {
+    // DEFCON-1 nuclear war: stand the TV treatment down (see __isFinalElectionMap).
+    if (document.body && document.body.classList.contains('acop-nuke')) return false;
+    return __isElectionNightRaw();
+}
+
+// DEFCON-1 nuclear war terminal screens: the ACOP TV package stands down (the
+// guarded detectors above return false under body.acop-nuke), and THIS tick
+// dresses the stock engine screen instead — `acop-nuke-tv` on #game_window,
+// on Election Night + the final results map ONLY (raw detectors, so the armed
+// phase's in-game map and the other final screens stay untouched). The look
+// itself is pure CSS in customStyling (grep acop-nuke-tv).
+function __nukeTvTick() {
+    const gw = document.getElementById('game_window');
+    if (!gw) return;
+    const on = document.body && document.body.classList.contains('acop-nuke')
+        && (__isFinalElectionMapRaw() || __isElectionNightRaw());
+    gw.classList.toggle('acop-nuke-tv', !!on);
+}
+window.__onGameWindowMutation(__nukeTvTick);
 
 function __mapVisitTick() {
     const inGameMap = !!document.getElementById('resume_questions_button');
@@ -4445,10 +4467,38 @@ body.low-fx-on #map_container {
     background-image: none !important;
     background-color: #111 !important;
 }
-/* DEFCON-1 nuclear war: the terminal screen reverts to the stock engine map —
-   drop the TV noise gif (a nuke-themed screen gets built on this later). */
-body.acop-nuke #map_container {
-    background-image: none !important;
+/* DEFCON-1 nuclear war terminal screens (acop-nuke-tv is stamped on
+   #game_window by __nukeTvTick — Election Night + final map only, while
+   body.acop-nuke is up): the stock engine map dressed as a war-room feed.
+   Background: the same TV noise gif as the electoral map (the base
+   #map_container rule above — deliberately NOT dropped). Effects: the world
+   map's SIGINT package minus the green phosphor — CRT scanlines + tube-edge
+   vignette overlays (same gradients/z-order as wm-sigint-css) and the SIGINT
+   colour wash on the map svg without the hue-rotate(80deg). Overlays are
+   pointer-events:none so state clicks still land. */
+#game_window.acop-nuke-tv #map_container {
+    position: relative;
+}
+#game_window.acop-nuke-tv #map_container::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 9000;
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px, transparent 3px,
+        rgba(0,0,0,0.18) 3px, rgba(0,0,0,0.18) 4px
+    );
+}
+#game_window.acop-nuke-tv #map_container::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 9001;
+    background: radial-gradient(ellipse at center,
+        transparent 55%, rgba(0,0,0,0.55) 100%);
+}
+#game_window.acop-nuke-tv #map_container svg {
+    filter: sepia(0.3) saturate(1.4) brightness(0.85);
+}
+/* LOW DEMAND MODE: the full-map filter is the expensive half (the same reason
+   SIGINT is locked off on the world map) — the static gradient overlays stay. */
+body.low-fx-on #game_window.acop-nuke-tv #map_container svg {
+    filter: none;
 }`;
 customStyling.id=`map_image`
 document.head.appendChild(customStyling);

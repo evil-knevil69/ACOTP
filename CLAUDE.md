@@ -545,6 +545,24 @@ _installCampaignLength, armed-save visits re-zero grep); enight 8/8, statecard
 trio 9/9 unchanged (TV still fires without the class); both files parse, 163
 scalars declared.
 
+**32. Nuke map skin — first pass (Jul 2026)**
+The DEFCON-1 terminal screens (Election Night + final results map, under
+`body.acop-nuke`) are dressed as a war-room feed. All Code 1: the two screen
+detectors split into RAW checks (`__isFinalElectionMapRaw`/`__isElectionNightRaw`)
++ the nuke-guarded wrappers; new observer tick `__nukeTvTick` stamps
+`acop-nuke-tv` on `#game_window` when nuked AND a raw detector fires — armed
+phase's in-game map and the other final screens stay stock. Look is pure CSS in
+`customStyling` (grep `acop-nuke-tv`): TV noise gif KEPT (the old
+`body.acop-nuke` drop rule is gone), world-map SIGINT package minus the green —
+scanline `::after` + vignette `::before` on `#map_container` (same gradients as
+`wm-sigint-css`, pointer-events none) and `sepia(0.3) saturate(1.4)
+brightness(0.85)` on the map svg (no hue-rotate). Low-fx: filter dropped
+(SIGINT precedent), static overlays stay, flat-#111 bg override still wins.
+Build further nuke dressing on `body.acop-nuke` + `#game_window.acop-nuke-tv`.
+NOTE: any harness injecting `__isFinalElectionMap`/`__isElectionNight` must now
+inject the raw fns too (all 8 in the scratchpad were patched). Verified:
+nuke_check 44/44; full regression suite green (see NUCLEAR_WAR.md).
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
