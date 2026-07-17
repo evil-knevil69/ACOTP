@@ -24,7 +24,14 @@ plus two one-line guards in `A Cancer on the Presidency_init (draft).txt`
 3. Answering the bunker question runs the **casualty census**: `candidate_json`
    is renamed in place — the ballot is now **The Dead / The Injured / The
    Irradiated / Short-term Survivors** — before the engine builds election
-   night, so the tally shows the census.
+   night, so the tally shows the census. At the same moment the **turnout
+   crank** fires: every state's `popular_votes` (the engine's per-state
+   turnout dial — total votes cast = `popular_votes × 0.95..1.05`) is set to
+   **×1.5** (`_NUKE_TURNOUT_MULT`, retunable). The census counts everyone,
+   not just voters. Shares are computed separately, so the casualty split is
+   untouched — only the raw counts swell (tally + state cards). Always
+   applied FROM the pristine `_NUKE_TURNOUT_ORIG` baseline (snapshotted at
+   load), never from the live value, so re-application can't compound.
 4. That final screen is the **stock engine election map** — all the ACOP TV
    treatment (frame, CRT, scoreboard pills, state cards, SVG smoothing, lamp
    glow, noise gif) stands down. Clean slate to build a nuke-themed screen on
@@ -69,12 +76,15 @@ question.
 
 - `_nukeWar` is in `_SL_SCALARS`. On restore: at ≥1 `has_visits` is re-zeroed
   (election_json isn't snapshotted, and a PART transition CAN fall between
-  arming and the bunker); at ≥2 the candidate rename is re-applied
-  (`candidate_json` isn't snapshotted either). Question order + count come back
-  via the save system's own snapshots — the swap keeps the array a
-  pk-permutation, which is what `_slRestoreQuestionOrder` requires.
-- New Game (`_nukeReset()`) unwinds the rename (originals snapshotted at load in
-  `_NUKE_CAND_ORIG`), clears `_nukeWar`, drops `body.acop-nuke`, restores
+  arming and the bunker); at ≥2 the census is re-applied — candidate rename +
+  turnout crank (`candidate_json`/`states_json` aren't snapshotted); below 2
+  the pristine names + turnout are restored instead, so loading a pre-census
+  save never keeps a lingering census from earlier in the session. Question
+  order + count come back via the save system's own snapshots — the swap keeps
+  the array a pk-permutation, which is what `_slRestoreQuestionOrder` requires.
+- New Game (`_nukeReset()`) unwinds the rename + turnout crank (originals
+  snapshotted at load in `_NUKE_CAND_ORIG`/`_NUKE_TURNOUT_ORIG`), clears
+  `_nukeWar`, drops `body.acop-nuke`, restores
   `has_visits` (from `_NUKE_VISITS_ORIG`), and — because the New Game branch's
   own `_installCampaignLength()` call runs earlier and early-returns when the
   length didn't change — forces a pristine question-order + count reinstall
@@ -109,10 +119,11 @@ the bunker answer) hangs off the same two hooks: `body.acop-nuke` +
 
 ## Verified
 
-`nuke_check.js` — 44/44: inert-until-authored, swap-arm (slot + displaced
+`nuke_check.js` — 49/49: inert-until-authored, swap-arm (slot + displaced
 question parked + pk-permutation intact + count + visits), arm idempotent,
 normal-answer-doesn't-trip-census, bunker-answer census (renames the four
-ballot candidates, The Media untouched, recolour), body-class stamp, both
+ballot candidates, The Media untouched, recolour, turnout ×1.5 with rounding,
+idempotent re-apply, pristine restore incl. New Game), body-class stamp, both
 detectors stand down, New Game unwind (names + question order + count +
 visits, from census AND from merely-armed) + detectors live again, and the
 armed-save restore re-zeroes visits. The New-Game restore path drives the

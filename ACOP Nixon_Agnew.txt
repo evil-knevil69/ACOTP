@@ -17566,12 +17566,16 @@ function _slRestoreMod(m) {
     // Nuclear war: _nukeWar was just restored above. An armed save needs
     // has_visits re-zeroed (election_json isn't snapshotted — a fresh page
     // load brings visits back, and the arm turned them off); question order +
-    // count came back via the save's own snapshots. If the census had been
-    // applied, re-apply the candidate rename (candidate_json isn't snapshotted).
+    // count came back via the save's own snapshots. At ≥2 re-apply the census
+    // (candidate rename + turnout crank — candidate_json/states_json aren't
+    // snapshotted); below 2, restore pristine names + turnout instead, so
+    // loading a pre-census save never keeps a lingering census from earlier
+    // in the session (no-op when nothing was ever applied).
     if (_nukeWar >= 1 && campaignTrail_temp.election_json[0]) {
         try { campaignTrail_temp.election_json[0].fields.has_visits = 0; } catch (e) {}
     }
     if (_nukeWar >= 2) { try { _nukeApplyCensus(); } catch (e) {} }
+    else { try { _nukeRestoreCandidates(); } catch (e) {} }
 }
 
 // questionSwapper permutes questions_json in place (same objects, new order),
@@ -19746,11 +19750,22 @@ var _NUKE_CENSUS = [
     { pk: 80000, first: 'Short-term', last: 'Survivors',    color: '#9a7b34' },
 ];
 
+// The census counts EVERYONE, not just voters: when it applies, every state's
+// turnout dial (states_json popular_votes — the engine casts popular_votes ×
+// (0.95..1.05) total votes per state) is cranked to ×_NUKE_TURNOUT_MULT.
+// Shares are computed separately, so the casualty SPLIT is untouched — only
+// the raw counts on the tally and the state cards swell. Retune freely.
+var _NUKE_TURNOUT_MULT = 1.5;
+
 // Original candidate names/colours, snapshotted at load so New Game can unwind
 // the destructive rename (a New Game without page reload keeps candidate_json).
 var _NUKE_CAND_ORIG = (campaignTrail_temp.candidate_json || []).map(c => ({
     pk: c.pk, first: c.fields.first_name, last: c.fields.last_name, color: c.fields.color_hex
 }));
+// Pristine per-state turnout, snapshotted at load (eager, same reason as
+// _NUKE_CAND_ORIG). The crank always computes FROM this baseline — never from
+// the live value — so re-applying (save-restore, double fire) can't compound.
+var _NUKE_TURNOUT_ORIG = new Map((campaignTrail_temp.states_json || []).map(s => [s.pk, s.fields.popular_votes]));
 // Pristine has_visits, snapshotted at load — arming zeroes it, reset restores
 // it (covers the loaded-armed-save New Game too, where no in-session undo exists).
 var _NUKE_VISITS_ORIG = campaignTrail_temp.election_json && campaignTrail_temp.election_json[0]
@@ -19780,8 +19795,11 @@ function _nukeArm() {
     _nukeWar = 1;
 }
 
-// Rename candidate_json to the casualty categories. Runs BEFORE election night
-// builds (from the answer hook), so the tally shows the census names/colours.
+// Rename candidate_json to the casualty categories + crank the turnout dial
+// (the census covers everyone, not just voters). Runs BEFORE election night
+// builds (from the answer hook), so the tally shows the census names/colours
+// and the swollen counts. Idempotent: turnout is set from the pristine
+// baseline, so the save-restore re-apply can't compound the multiplier.
 function _nukeApplyCensus() {
     const cj = campaignTrail_temp.candidate_json || [];
     _NUKE_CENSUS.forEach(c => {
@@ -19791,13 +19809,21 @@ function _nukeApplyCensus() {
         if (c.last  != null) cand.fields.last_name  = c.last;
         if (c.color) cand.fields.color_hex = c.color;
     });
+    (campaignTrail_temp.states_json || []).forEach(s => {
+        const base = _NUKE_TURNOUT_ORIG.get(s.pk);
+        if (base != null) s.fields.popular_votes = Math.round(base * _NUKE_TURNOUT_MULT);
+    });
 }
-// Undo the rename (New Game without reload).
+// Undo the rename + the turnout crank (New Game without reload).
 function _nukeRestoreCandidates() {
     const cj = campaignTrail_temp.candidate_json || [];
     _NUKE_CAND_ORIG.forEach(o => {
         const cand = cj.find(x => x.pk === o.pk);
         if (cand) { cand.fields.first_name = o.first; cand.fields.last_name = o.last; cand.fields.color_hex = o.color; }
+    });
+    (campaignTrail_temp.states_json || []).forEach(s => {
+        const base = _NUKE_TURNOUT_ORIG.get(s.pk);
+        if (base != null) s.fields.popular_votes = base;
     });
 }
 // New Game hook: unwind the whole branch. The arm reordered questions_json and

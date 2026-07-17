@@ -521,7 +521,12 @@ Survivors, retunable — pks MUST be ballot participants: the engine tallies
 candidate_id + opponents_default_json = 10701/50000/70000/80000; 60000 "The
 Media" is NOT on the ballot and a row on it never shows; pk 92 in the opponents
 list is stock residue with no candidate_json entry, never displays) before
-election night builds. `_nukeWar` (0/1/2) in `_SL_SCALARS`; observer stamps
+election night builds. The census also fires the TURNOUT CRANK: every state's
+`popular_votes` (the engine's turnout dial — votes cast = popular_votes ×
+0.95..1.05, shares separate) is set to ×`_NUKE_TURNOUT_MULT` (1.5 — "it covers
+everyone, not just voters") FROM the pristine `_NUKE_TURNOUT_ORIG` baseline
+(load-time snapshot; never compounds). Restore hook: ≥2 re-applies census+crank,
+<2 restores pristine names+turnout (lingering-census guard); New Game unwinds. `_nukeWar` (0/1/2) in `_SL_SCALARS`; observer stamps
 `body.acop-nuke` from it (derived). The terminal screen reverts to the STOCK
 engine map: Code 1's `__isFinalElectionMap` / `__isElectionNight` return false
 under `body.acop-nuke` (TV chrome + scoreboard + state cards off),
