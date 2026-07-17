@@ -523,10 +523,18 @@ Media" is NOT on the ballot and a row on it never shows; pk 92 in the opponents
 list is stock residue with no candidate_json entry, never displays) before
 election night builds. The census also fires the TURNOUT CRANK: every state's
 `popular_votes` (the engine's turnout dial — votes cast = popular_votes ×
-0.95..1.05, shares separate) is set to ×`_NUKE_TURNOUT_MULT` (1.5 — "it covers
-everyone, not just voters") FROM the pristine `_NUKE_TURNOUT_ORIG` baseline
-(load-time snapshot; never compounds). Restore hook: ≥2 re-applies census+crank,
-<2 restores pristine names+turnout (lingering-census guard); New Game unwinds. `_nukeWar` (0/1/2) in `_SL_SCALARS`; observer stamps
+0.95..1.05) is scaled so the national total = `_NUKE_TOTAL_POP` (210M, the 1972
+US population — "it covers everyone, not just voters"; multiplier derived at
+load ≈2.575) FROM the pristine `_NUKE_TURNOUT_ORIG` baseline (never compounds).
+The SPLIT is authored, not the run's politics: `_NUKE_CENSUS` targets (Dead 31M
+/ Injured 55M / Irradiated 40M / `target: null` = balance → Survivors ~84M);
+a wrapper over the engine global `A()` (LBM alt-voting pattern, grep `The
+census SPLIT`) fires at ≥2, re-deals each state's rows to target/210M shares
+±12% per-state jitter, zeroes non-census rows (pk 92), re-sorts, EVs go WTA to
+the new leader, re-runs getLatestRes for nn2/nn3. Answer-score nudges can't do
+this (they multiply run-dependent support). Restore hook: ≥2 re-applies
+census+crank, <2 restores pristine names+turnout (lingering-census guard); New
+Game unwinds. `_nukeWar` (0/1/2) in `_SL_SCALARS`; observer stamps
 `body.acop-nuke` from it (derived). The terminal screen reverts to the STOCK
 engine map: Code 1's `__isFinalElectionMap` / `__isElectionNight` return false
 under `body.acop-nuke` (TV chrome + scoreboard + state cards off),

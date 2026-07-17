@@ -26,13 +26,28 @@ plus two one-line guards in `A Cancer on the Presidency_init (draft).txt`
    Irradiated / Short-term Survivors** — before the engine builds election
    night, so the tally shows the census. At the same moment the **turnout
    crank** fires: every state's `popular_votes` (the engine's per-state
-   turnout dial — total votes cast = `popular_votes × 0.95..1.05`) is set to
-   **×1.5** (`_NUKE_TURNOUT_MULT`, retunable). The census counts everyone,
-   not just voters. Shares are computed separately, so the casualty split is
-   untouched — only the raw counts swell (tally + state cards). Always
-   applied FROM the pristine `_NUKE_TURNOUT_ORIG` baseline (snapshotted at
-   load), never from the live value, so re-application can't compound.
-4. That final screen is the **stock engine election map** — all the ACOP TV
+   turnout dial — total votes cast = `popular_votes × 0.95..1.05`) is scaled
+   so the NATIONAL total lands on `_NUKE_TOTAL_POP` = **210M**, the whole
+   1972 US resident population (baseline turnout ≈ 81.5M → multiplier ≈
+   2.575, derived at load). The census counts everyone, not just voters.
+   Always applied FROM the pristine `_NUKE_TURNOUT_ORIG` baseline
+   (snapshotted at load), never from the live value, so re-application can't
+   compound.
+4. **The split is AUTHORED, not the run's politics.** Each `_NUKE_CENSUS`
+   entry carries a `target` (national count of people): Dead 31M, Injured
+   55M, Irradiated 40M; `target: null` = that row takes the balance
+   (Survivors, ≈84M / 40%). A wrapper over the engine's global `A()` (LBM's
+   alt-voting pattern) fires at `_nukeWar ≥ 2` and re-deals every state's
+   rows to those shares (`target/_NUKE_TOTAL_POP`) with ±12% relative
+   per-state jitter (renormalized) so the map varies; votes re-split the
+   state's cranked turnout, non-census candidates (pk 92 residue) drop to 0,
+   rows re-sort, the state's EVs go winner-take-all to the new leader
+   (Survivors, barring jitter upsets), and `getLatestRes` is re-run so
+   nn2/nn3 agree. Answer-score nudges could NOT do this: they multiply
+   whatever support the run has, so authored absolute totals are
+   unreachable that way. Verified over the real 51-state data: ≈30.8M /
+   55.1M / 39.9M / 83.4M on ≈209M counted.
+5. That final screen is the **stock engine election map** — all the ACOP TV
    treatment (frame, CRT, scoreboard pills, state cards, SVG smoothing, lamp
    glow, noise gif) stands down. Clean slate to build a nuke-themed screen on
    later.
@@ -119,11 +134,13 @@ the bunker answer) hangs off the same two hooks: `body.acop-nuke` +
 
 ## Verified
 
-`nuke_check.js` — 49/49: inert-until-authored, swap-arm (slot + displaced
+`nuke_check.js` — 55/55: inert-until-authored, swap-arm (slot + displaced
 question parked + pk-permutation intact + count + visits), arm idempotent,
 normal-answer-doesn't-trip-census, bunker-answer census (renames the four
-ballot candidates, The Media untouched, recolour, turnout ×1.5 with rounding,
-idempotent re-apply, pristine restore incl. New Game), body-class stamp, both
+ballot candidates, The Media untouched, recolour, derived turnout multiplier
+lands 210M, idempotent re-apply, pristine restore incl. New Game; split
+shares from targets, A()-wrapper dormant pre-census then Survivors lead +
+take EVs, Dead within jitter band, pk-92 zeroed), body-class stamp, both
 detectors stand down, New Game unwind (names + question order + count +
 visits, from census AND from merely-armed) + detectors live again, and the
 armed-save restore re-zeroes visits. The New-Game restore path drives the

@@ -19743,19 +19743,24 @@ var _nukeWar   = 0;      // 0 none · 1 armed (bunker queued) · 2 census applie
 // opponents_default_json (10701, 50000, 70000, 80000 — pk 92 is stock-data
 // residue with no candidate_json entry and never displays). 60000 (The Media)
 // is NOT on the ballot — a census row on it would simply never appear.
+// `target` = the authored NATIONAL count for that category (people, not
+// voters). `target: null` = this row absorbs the balance (Survivors). The
+// shares are target/_NUKE_TOTAL_POP, so they hold regardless of the state
+// data; retune targets/labels/colours freely.
 var _NUKE_CENSUS = [
-    { pk: 10701, first: 'The',   last: 'Dead',              color: '#4a4a4a' },
-    { pk: 50000, first: 'The',   last: 'Injured',           color: '#8a2f1e' },
-    { pk: 70000, first: 'The',   last: 'Irradiated',        color: '#5a7d2a' },
-    { pk: 80000, first: 'Short-term', last: 'Survivors',    color: '#9a7b34' },
+    { pk: 10701, first: 'The',   last: 'Dead',              color: '#4a4a4a', target: 31000000 },
+    { pk: 50000, first: 'The',   last: 'Injured',           color: '#8a2f1e', target: 55000000 },
+    { pk: 70000, first: 'The',   last: 'Irradiated',        color: '#5a7d2a', target: 40000000 },
+    { pk: 80000, first: 'Short-term', last: 'Survivors',    color: '#9a7b34', target: null },
 ];
 
 // The census counts EVERYONE, not just voters: when it applies, every state's
 // turnout dial (states_json popular_votes — the engine casts popular_votes ×
-// (0.95..1.05) total votes per state) is cranked to ×_NUKE_TURNOUT_MULT.
-// Shares are computed separately, so the casualty SPLIT is untouched — only
-// the raw counts on the tally and the state cards swell. Retune freely.
-var _NUKE_TURNOUT_MULT = 1.5;
+// (0.95..1.05) total votes per state) is cranked so the NATIONAL total lands
+// on _NUKE_TOTAL_POP — the whole 1972 US resident population. Shares are
+// computed separately (and overridden by the split below), so this only sets
+// the size of the numbers on the tally and the state cards.
+var _NUKE_TOTAL_POP = 210000000;   // ~1972 US population. The denominator for the targets above.
 
 // Original candidate names/colours, snapshotted at load so New Game can unwind
 // the destructive rename (a New Game without page reload keeps candidate_json).
@@ -19766,6 +19771,12 @@ var _NUKE_CAND_ORIG = (campaignTrail_temp.candidate_json || []).map(c => ({
 // _NUKE_CAND_ORIG). The crank always computes FROM this baseline — never from
 // the live value — so re-applying (save-restore, double fire) can't compound.
 var _NUKE_TURNOUT_ORIG = new Map((campaignTrail_temp.states_json || []).map(s => [s.pk, s.fields.popular_votes]));
+// The multiplier that lands the national total on _NUKE_TOTAL_POP (baseline
+// 1972 turnout is ~81.5M, so this works out to ~2.575).
+var _NUKE_TURNOUT_MULT = (function () {
+    let sum = 0; _NUKE_TURNOUT_ORIG.forEach(v => { sum += (v || 0); });
+    return sum > 0 ? _NUKE_TOTAL_POP / sum : 1;
+})();
 // Pristine has_visits, snapshotted at load — arming zeroes it, reset restores
 // it (covers the loaded-armed-save New Game too, where no in-session undo exists).
 var _NUKE_VISITS_ORIG = campaignTrail_temp.election_json && campaignTrail_temp.election_json[0]
@@ -19855,6 +19866,74 @@ function _nukeCensusOnAnswer(ans) {
 // Watch defcon every turn; arm at 1 (or below). Cause-agnostic — catches
 // defcon dropping via SIGINT, world events or an answer effect alike.
 _everyTurn(() => { if (defcon <= 1) _nukeArm(); });
+
+// ── The census SPLIT: authored national shares, not the run's politics ───────
+// The engine computes vote shares from the campaign (multipliers, issues,
+// answer scores) — meaningless for a casualty census, and answer-score nudges
+// on the bunker answer couldn't hit authored totals anyway (they multiply
+// whatever support the run happens to have). So once the census is live,
+// A() — the engine's global polling/results builder (the same function LBM
+// wraps for its alt-voting modes) — gets its OUTPUT rewritten: every state's
+// rows are re-dealt to the _NUKE_CENSUS target shares (target/_NUKE_TOTAL_POP;
+// the null-target row takes the balance), with a per-state ±12% relative
+// jitter (renormalized) so the map varies state to state. Votes stay a
+// re-split of the state's cranked turnout; candidates not in the census
+// (pk 92 residue) drop to 0; rows re-sort and the state's EVs go to the new
+// leader (winner-take-all of whatever the engine had allocated). nn2/nn3 are
+// rebuilt via getLatestRes so every downstream screen agrees. Fires only at
+// _nukeWar >= 2 — until the bunker answer, A() is untouched.
+function _nukeSplitShares() {
+    const m = new Map();
+    let used = 0, balRows = [];
+    _NUKE_CENSUS.forEach(c => {
+        if (c.target == null) { balRows.push(c.pk); return; }
+        const sh = Math.max(0, c.target / _NUKE_TOTAL_POP);
+        m.set(c.pk, sh); used += sh;
+    });
+    const rem = Math.max(0.02, 1 - used);   // authored overshoot fails safe, never negative
+    balRows.forEach(pk => m.set(pk, rem / balRows.length));
+    let sum = 0; m.forEach(v => { sum += v; });
+    if (sum > 0) m.forEach((v, k) => m.set(k, v / sum));
+    return m;
+}
+var _nukeShares = null;   // computed once on first use (targets are constants)
+(function () {
+    const origA = typeof window.A === 'function' ? window.A : null;
+    if (!origA) return;
+    window.A = function (t) {
+        const out = origA.apply(this, arguments);
+        if (_nukeWar < 2 || !Array.isArray(out)) return out;
+        try {
+            if (!_nukeShares) _nukeShares = _nukeSplitShares();
+            out.forEach(st => {
+                if (!st || !Array.isArray(st.result) || !st.result.length) return;
+                const M = st.result.reduce((a, g) => a + (g.votes || 0), 0);
+                if (!M) return;
+                const evTotal = st.result.reduce((a, g) => a + (g.electoral_votes || 0), 0);
+                const jit = st.result.map(g => {
+                    const sh = _nukeShares.get(g.candidate);
+                    return sh == null ? 0 : sh * (1 + (Math.random() - 0.5) * 0.24);
+                });
+                const jitSum = jit.reduce((a, b) => a + b, 0) || 1;
+                st.result.forEach((g, i) => {
+                    g.percent = jit[i] / jitSum;
+                    g.votes = Math.floor(g.percent * M);
+                });
+                st.result.sort((a, b) => b.percent - a.percent);
+                st.result.forEach((g, i) => { g.electoral_votes = i === 0 ? evTotal : 0; });
+            });
+            try {
+                if (typeof getLatestRes === 'function') {
+                    const latest = getLatestRes(out);
+                    window.res = latest;
+                    [window.nn2] = latest;
+                    window.nn3 = window.nn2.map(c => c.evvs || 0);
+                }
+            } catch (e) {}
+        } catch (e) {}
+        return out;
+    };
+})();
 
 // ── DIPLOMACY ACTIONS (world map) ─────────────────────────────────────────────
 // Charge-based actions in the Diplomacy dropdown on the world-map toolbar —
