@@ -19771,6 +19771,15 @@ var _NUKE_CAND_ORIG = (campaignTrail_temp.candidate_json || []).map(c => ({
 // _NUKE_CAND_ORIG). The crank always computes FROM this baseline — never from
 // the live value — so re-applying (save-restore, double fire) can't compound.
 var _NUKE_TURNOUT_ORIG = new Map((campaignTrail_temp.states_json || []).map(s => [s.pk, s.fields.popular_votes]));
+// Pristine per-state elector counts. The census ZEROES every state's
+// electoral_votes (the Electoral College did not survive the exchange) — the
+// engine's own noElectoralVotes/someStatesHaveEVs guards then hide all the EV
+// chrome by themselves: the "N /" scoreboard prefix, "270 to win", the state
+// card's "Electoral Votes: N" line, and the EV columns on the results tables.
+// With no EVs the 270 outcome popup never fires and election night just runs
+// to 100% → "Go to Final Results" (the engine's loop ends on time/all-called,
+// verified) — and the ending resolves through the no_electoral_majority path.
+var _NUKE_EV_ORIG = new Map((campaignTrail_temp.states_json || []).map(s => [s.pk, s.fields.electoral_votes]));
 // The multiplier that lands the national total on _NUKE_TOTAL_POP (baseline
 // 1972 turnout is ~81.5M, so this works out to ~2.575).
 var _NUKE_TURNOUT_MULT = (function () {
@@ -19823,9 +19832,10 @@ function _nukeApplyCensus() {
     (campaignTrail_temp.states_json || []).forEach(s => {
         const base = _NUKE_TURNOUT_ORIG.get(s.pk);
         if (base != null) s.fields.popular_votes = Math.round(base * _NUKE_TURNOUT_MULT);
+        if (_NUKE_EV_ORIG.has(s.pk)) s.fields.electoral_votes = 0;
     });
 }
-// Undo the rename + the turnout crank (New Game without reload).
+// Undo the rename + the turnout crank + the EV zeroing (New Game without reload).
 function _nukeRestoreCandidates() {
     const cj = campaignTrail_temp.candidate_json || [];
     _NUKE_CAND_ORIG.forEach(o => {
@@ -19835,6 +19845,8 @@ function _nukeRestoreCandidates() {
     (campaignTrail_temp.states_json || []).forEach(s => {
         const base = _NUKE_TURNOUT_ORIG.get(s.pk);
         if (base != null) s.fields.popular_votes = base;
+        const ev = _NUKE_EV_ORIG.get(s.pk);
+        if (ev != null) s.fields.electoral_votes = ev;
     });
 }
 // New Game hook: unwind the whole branch. The arm reordered questions_json and
@@ -19879,8 +19891,10 @@ _everyTurn(() => { if (defcon <= 1) _nukeArm(); });
 // jitter (renormalized) so the map varies state to state. Votes stay a
 // re-split of the state's cranked turnout; candidates not in the census
 // (pk 92 residue) drop to 0; rows re-sort and the state's EVs go to the new
-// leader (winner-take-all of whatever the engine had allocated). nn2/nn3 are
-// rebuilt via getLatestRes so every downstream screen agrees. Fires only at
+// leader — winner-take-all of whatever the engine allocated, which since the
+// census zeroes states_json electoral_votes is 0 (kept generic so re-enabling
+// EVs by dropping the zeroing just works). nn2/nn3 are rebuilt via
+// getLatestRes so every downstream screen agrees. Fires only at
 // _nukeWar >= 2 — until the bunker answer, A() is untouched.
 function _nukeSplitShares() {
     const m = new Map();

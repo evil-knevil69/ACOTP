@@ -530,11 +530,17 @@ The SPLIT is authored, not the run's politics: `_NUKE_CENSUS` targets (Dead 31M
 / Injured 55M / Irradiated 40M / `target: null` = balance → Survivors ~84M);
 a wrapper over the engine global `A()` (LBM alt-voting pattern, grep `The
 census SPLIT`) fires at ≥2, re-deals each state's rows to target/210M shares
-±12% per-state jitter, zeroes non-census rows (pk 92), re-sorts, EVs go WTA to
-the new leader, re-runs getLatestRes for nn2/nn3. Answer-score nudges can't do
-this (they multiply run-dependent support). Restore hook: ≥2 re-applies
-census+crank, <2 restores pristine names+turnout (lingering-census guard); New
-Game unwinds. `_nukeWar` (0/1/2) in `_SL_SCALARS`; observer stamps
+±12% per-state jitter, zeroes non-census rows (pk 92), re-sorts, re-runs
+getLatestRes for nn2/nn3. Answer-score nudges can't do this (they multiply
+run-dependent support). EV CHROME: the census zeroes every state's
+electoral_votes (`_NUKE_EV_ORIG` pristine) — the engine's own
+noElectoralVotes/someStatesHaveEVs guards hide the "N /" prefix, "270 to win",
+the state card EV line and the tables' EV columns; the 270 popup never fires
+(loop ends on time/all-called); ending resolves via no_electoral_majority
+(author those fields on the census pks); Code 1's `__nukeTvTick` retitles the
+`ELECTORAL VOTES` h3 → CASUALTY CENSUS (idempotent, unwinds). Restore hook:
+≥2 re-applies census+crank+EV-zero, <2 restores pristine names+turnout+EVs
+(lingering-census guard); New Game unwinds. `_nukeWar` (0/1/2) in `_SL_SCALARS`; observer stamps
 `body.acop-nuke` from it (derived). The terminal screen reverts to the STOCK
 engine map: Code 1's `__isFinalElectionMap` / `__isElectionNight` return false
 under `body.acop-nuke` (TV chrome + scoreboard + state cards off),

@@ -41,13 +41,27 @@ plus two one-line guards in `A Cancer on the Presidency_init (draft).txt`
    rows to those shares (`target/_NUKE_TOTAL_POP`) with ±12% relative
    per-state jitter (renormalized) so the map varies; votes re-split the
    state's cranked turnout, non-census candidates (pk 92 residue) drop to 0,
-   rows re-sort, the state's EVs go winner-take-all to the new leader
-   (Survivors, barring jitter upsets), and `getLatestRes` is re-run so
-   nn2/nn3 agree. Answer-score nudges could NOT do this: they multiply
-   whatever support the run has, so authored absolute totals are
-   unreachable that way. Verified over the real 51-state data: ≈30.8M /
-   55.1M / 39.9M / 83.4M on ≈209M counted.
-5. That final screen is the **stock engine election map** — all the ACOP TV
+   rows re-sort, and `getLatestRes` is re-run so nn2/nn3 agree.
+   Answer-score nudges could NOT do this: they multiply whatever support
+   the run has, so authored absolute totals are unreachable that way.
+   Verified over the real 51-state data: ≈30.8M / 55.1M / 39.9M / 83.4M on
+   ≈209M counted.
+5. **The Electoral College did not survive the exchange.** The census also
+   zeroes every state's `electoral_votes` (pristine counts in
+   `_NUKE_EV_ORIG`, restored with everything else). The engine's own
+   `noElectoralVotes`/`someStatesHaveEVs` guards then hide ALL the EV
+   chrome by themselves: the "N /" prefix on the scoreboard rows, "270 to
+   win", the state card's "Electoral Votes: N" line, and the EV columns on
+   the results tables — leaving pure people-counts and percentages. With no
+   EVs the 270 outcome popup never fires (election night runs to 100% →
+   "Go to Final Results"; the loop's end condition is time/all-called, so
+   it terminates normally) and the ending resolves through the
+   no-electoral-majority path (`no_electoral_majority_message`/`_image` on
+   the census candidates — worth authoring). The one hardcoded label,
+   the panel's `ELECTORAL VOTES` `<h3>`, is retitled to **CASUALTY
+   CENSUS** by Code 1's `__nukeTvTick` on the two terminal screens
+   (idempotent, unwinds if the flag drops).
+6. That final screen is the **stock engine election map** — all the ACOP TV
    treatment (frame, CRT, scoreboard pills, state cards, SVG smoothing, lamp
    glow, noise gif) stands down. Clean slate to build a nuke-themed screen on
    later.
@@ -134,13 +148,15 @@ the bunker answer) hangs off the same two hooks: `body.acop-nuke` +
 
 ## Verified
 
-`nuke_check.js` — 55/55: inert-until-authored, swap-arm (slot + displaced
+`nuke_check.js` — 58/58: inert-until-authored, swap-arm (slot + displaced
 question parked + pk-permutation intact + count + visits), arm idempotent,
 normal-answer-doesn't-trip-census, bunker-answer census (renames the four
 ballot candidates, The Media untouched, recolour, derived turnout multiplier
 lands 210M, idempotent re-apply, pristine restore incl. New Game; split
-shares from targets, A()-wrapper dormant pre-census then Survivors lead +
-take EVs, Dead within jitter band, pk-92 zeroed), body-class stamp, both
+shares from targets, A()-wrapper dormant pre-census then Survivors lead,
+Dead within jitter band, pk-92 zeroed; state EVs zeroed by the census +
+restored on New Game/pre-census load, panel h3 retitled CASUALTY CENSUS and
+unwound), body-class stamp, both
 detectors stand down, New Game unwind (names + question order + count +
 visits, from census AND from merely-armed) + detectors live again, and the
 armed-save restore re-zeroes visits. The New-Game restore path drives the

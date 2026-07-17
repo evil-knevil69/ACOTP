@@ -2075,6 +2075,14 @@ function __nukeTvTick() {
     const on = document.body && document.body.classList.contains('acop-nuke')
         && (__isFinalElectionMapRaw() || __isElectionNightRaw());
     gw.classList.toggle('acop-nuke-tv', !!on);
+    // The census zeroed every electoral vote (Code 2), so the engine already
+    // hides the EV chrome — the panel's hardcoded <h3> is the one piece left
+    // to rename. Idempotent by text; unwound if the flag drops mid-screen.
+    const h3 = gw.querySelector('#overall_result h3');
+    if (h3) {
+        if (on && h3.textContent === 'ELECTORAL VOTES') h3.textContent = 'CASUALTY CENSUS';
+        else if (!on && h3.textContent === 'CASUALTY CENSUS') h3.textContent = 'ELECTORAL VOTES';
+    }
 }
 window.__onGameWindowMutation(__nukeTvTick);
 
