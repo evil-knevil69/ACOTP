@@ -19747,12 +19747,31 @@ var _nukeWar   = 0;      // 0 none · 1 armed (bunker queued) · 2 census applie
 // voters). `target: null` = this row absorbs the balance (Survivors). The
 // shares are target/_NUKE_TOTAL_POP, so they hold regardless of the state
 // data; retune targets/labels/colours freely.
+// `urban: true` = this category concentrates in the urbanised states (weights
+// in _NUKE_URBAN below) while its NATIONAL total stays on target.
 var _NUKE_CENSUS = [
-    { pk: 10701, first: 'The',   last: 'Dead',              color: '#4a4a4a', target: 31000000 },
+    { pk: 10701, first: 'The',   last: 'Dead',              color: '#4a4a4a', target: 31000000, urban: true },
     { pk: 50000, first: 'The',   last: 'Injured',           color: '#8a2f1e', target: 55000000 },
     { pk: 70000, first: 'The',   last: 'Irradiated',        color: '#5a7d2a', target: 40000000 },
     { pk: 80000, first: 'Short-term', last: 'Survivors',    color: '#9a7b34', target: null },
 ];
+
+// Urbanisation weights (default 1.0). An urban-flagged category's share in a
+// state is scaled by weight/mean, where the mean is TURNOUT-WEIGHTED across
+// all states — so the national death toll is conserved exactly; only its
+// geography moves. The other categories rescale per state to fill the
+// remainder. Tiers per the 1970 census: DC top, then the big-city states,
+// then moderately urban, then the rural/plains states. Retune freely.
+var _NUKE_URBAN = {
+    DC: 1.8,
+    NY: 1.6, CA: 1.6, NJ: 1.6, RI: 1.6, MA: 1.6, IL: 1.6, MD: 1.6, CT: 1.6,
+    PA: 1.6, OH: 1.6, TX: 1.6,
+    MI: 1.3, FL: 1.3, DE: 1.3, WA: 1.3, MO: 1.3, CO: 1.3, AZ: 1.3, NV: 1.3,
+    HI: 1.3, UT: 1.3,
+    NC: 0.7, SC: 0.7, KY: 0.7, AL: 0.7, IA: 0.8, NE: 0.8, KS: 0.8,
+    VT: 0.55, ME: 0.55, NH: 0.55, WV: 0.55, MS: 0.55, ND: 0.55, SD: 0.55,
+    MT: 0.55, WY: 0.55, ID: 0.55, AR: 0.55,
+};
 
 // The census counts EVERYONE, not just voters: when it applies, every state's
 // turnout dial (states_json popular_votes — the engine casts popular_votes ×
@@ -19911,6 +19930,36 @@ function _nukeSplitShares() {
     return m;
 }
 var _nukeShares = null;   // computed once on first use (targets are constants)
+// Turnout-weighted mean urbanisation (pristine baseline) — the denominator
+// that makes the urban skew conserve the national totals exactly.
+var _NUKE_URBAN_MEAN = (function () {
+    let wsum = 0, tsum = 0;
+    (campaignTrail_temp.states_json || []).forEach(s => {
+        const pv = s.fields.popular_votes || 0;
+        const u = _NUKE_URBAN[s.fields.abbr] != null ? _NUKE_URBAN[s.fields.abbr] : 1;
+        wsum += pv * u; tsum += pv;
+    });
+    return tsum > 0 ? wsum / tsum : 1;
+})();
+// Per-state shares: urban-flagged categories scaled by weight/mean (capped),
+// the rest rescaled to fill the remainder of that state.
+function _nukeStateShares(abbr) {
+    if (!_nukeShares) _nukeShares = _nukeSplitShares();
+    const u = (_NUKE_URBAN[abbr] != null ? _NUKE_URBAN[abbr] : 1) / _NUKE_URBAN_MEAN;
+    const m = new Map();
+    let urbSum = 0, urbBase = 0;
+    _NUKE_CENSUS.forEach(c => {
+        if (!c.urban) return;
+        const sh = _nukeShares.get(c.pk) || 0;
+        const s2 = Math.min(0.9, sh * u);
+        m.set(c.pk, s2); urbSum += s2; urbBase += sh;
+    });
+    const restScale = urbBase < 1 ? (1 - urbSum) / (1 - urbBase) : 1;
+    _NUKE_CENSUS.forEach(c => {
+        if (!c.urban) m.set(c.pk, (_nukeShares.get(c.pk) || 0) * restScale);
+    });
+    return m;
+}
 (function () {
     const origA = typeof window.A === 'function' ? window.A : null;
     if (!origA) return;
@@ -19918,14 +19967,14 @@ var _nukeShares = null;   // computed once on first use (targets are constants)
         const out = origA.apply(this, arguments);
         if (_nukeWar < 2 || !Array.isArray(out)) return out;
         try {
-            if (!_nukeShares) _nukeShares = _nukeSplitShares();
             out.forEach(st => {
                 if (!st || !Array.isArray(st.result) || !st.result.length) return;
                 const M = st.result.reduce((a, g) => a + (g.votes || 0), 0);
                 if (!M) return;
+                const stShares = _nukeStateShares(st.abbr);
                 const evTotal = st.result.reduce((a, g) => a + (g.electoral_votes || 0), 0);
                 const jit = st.result.map(g => {
-                    const sh = _nukeShares.get(g.candidate);
+                    const sh = stShares.get(g.candidate);
                     return sh == null ? 0 : sh * (1 + (Math.random() - 0.5) * 0.24);
                 });
                 const jitSum = jit.reduce((a, b) => a + b, 0) || 1;
@@ -19948,6 +19997,76 @@ var _nukeShares = null;   // computed once on first use (targets are constants)
         return out;
     };
 })();
+
+// ── The strike TIMETABLE: missiles decide when states report ─────────────────
+// The stock evening runs on 1972 poll-closing times (marginTime). Under the
+// census that's meaningless — states "declare" when they're HIT. electionNight
+// (engine global, LBM wraps it the same way) computes result_time at screen
+// build; the wrapper below re-deals every state's result_time from the wave
+// windows here (engine clock runs 0..480, one +10 tick per 2s ≈ 96s evening).
+// A state in several waves takes the first; unlisted states take the LAST
+// wave. Times are random within the window. Code 1's missile animation keys
+// off the map recolouring, so it follows this timetable automatically.
+var _NUKE_STRIKE_WAVES = [
+    // first strike — the missile fields and the command structure: Minot &
+    // Grand Forks (ND), Malmstrom (MT), Whiteman (MO), Washington itself,
+    // Norfolk/the Pentagon's spillover (VA), and Georgia's bases
+    { from: 15,  to: 60,  states: ['ND','DC','MT','MO','GA','VA'] },
+    // second wave — the most populous states
+    { from: 80,  to: 220, states: ['CA','NY','PA','TX','IL','OH','MI','NJ','FL','MA'] },
+    // then the rest: stragglers, re-strikes, fallout reports
+    { from: 240, to: 440, states: [] },
+];
+(function () {
+    const orig = typeof window.electionNight === 'function' ? window.electionNight : null;
+    if (!orig) return;
+    window.electionNight = function () {
+        const r = orig.apply(this, arguments);
+        try {
+            if (_nukeWar >= 2 && Array.isArray(campaignTrail_temp.final_state_results)) {
+                const waveOf = abbr => {
+                    for (const w of _NUKE_STRIKE_WAVES) {
+                        if (w.states && w.states.indexOf(abbr) !== -1) return w;
+                    }
+                    return _NUKE_STRIKE_WAVES[_NUKE_STRIKE_WAVES.length - 1];
+                };
+                campaignTrail_temp.final_state_results.forEach(f => {
+                    const w = waveOf(f.abbr);
+                    f.result_time = Math.round(w.from + Math.random() * (w.to - w.from));
+                });
+            }
+        } catch (e) {}
+        return r;
+    };
+})();
+
+// Code 1's missile animation needs to recognise a "state was just called"
+// recolour — the called fills are exactly the census colours.
+window.__nukeCensusColors = _NUKE_CENSUS.map(c => (c.color || '').toLowerCase()).filter(Boolean);
+
+// Console shortcuts (dev/preview — the full path needs the bunker question):
+//   ACOPNuke.demo()   — fire the census NOW and jump straight to the nuclear
+//                       Election Night (the engine's own skip_to_final jump:
+//                       final_state_results = A(1) → electionNight()). Works
+//                       from any in-game screen; missiles, timetable, census
+//                       tally all live. Continue through to the final screens.
+//   ACOPNuke.arm()    — just drop defcon to 1 (the turn watcher arms the
+//                       tunnel at the next question, if _NUKE_Q_PK is authored).
+//   ACOPNuke.census() — apply the census/crank without changing screens.
+//   ACOPNuke.reset()  — unwind everything (also runs on New Game). NOTE: it
+//                       reinstalls the pristine question order, so treat a
+//                       demo mid-run as end-of-session testing, not resumable.
+window.ACOPNuke = {
+    demo: function () {
+        _nukeApplyCensus(); _nukeWar = 2;
+        try { document.body.classList.add('acop-nuke'); } catch (e) {}
+        campaignTrail_temp.final_state_results = A(1);
+        electionNight();
+    },
+    arm:    function () { defcon = 1; },
+    census: function () { _nukeApplyCensus(); _nukeWar = 2; },
+    reset:  function () { _nukeReset(); },
+};
 
 // ── DIPLOMACY ACTIONS (world map) ─────────────────────────────────────────────
 // Charge-based actions in the Diplomacy dropdown on the world-map toolbar —

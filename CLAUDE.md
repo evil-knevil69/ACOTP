@@ -540,7 +540,25 @@ the state card EV line and the tables' EV columns; the 270 popup never fires
 (author those fields on the census pks); Code 1's `__nukeTvTick` retitles the
 `ELECTORAL VOTES` h3 → CASUALTY CENSUS (idempotent, unwinds). Restore hook:
 ≥2 re-applies census+crank+EV-zero, <2 restores pristine names+turnout+EVs
-(lingering-census guard); New Game unwinds. `_nukeWar` (0/1/2) in `_SL_SCALARS`; observer stamps
+(lingering-census guard); New Game unwinds. URBAN SKEW: census entries with
+`urban: true` (the Dead) scale per state by `_NUKE_URBAN[abbr]` / the
+turnout-weighted mean — national toll conserved exactly, others fill the
+remainder (NY/CA ~19% dead vs WY/ND ~6%; tiers per the 1970 census, retune in
+`_NUKE_URBAN`). STRIKE TIMETABLE: a wrapper over engine-global `electionNight`
+re-deals every state's `result_time` from `_NUKE_STRIKE_WAVES` at ≥2 — wave 1
+(t15–60) ND/DC/MT/MO/GA/VA, wave 2 (t80–220) the ten most populous, wave 3
+(t240–440) the rest (unlisted → last wave; pre-census marginTime untouched).
+MISSILES (Code 1, grep `incoming-missile animation`): a fill MutationObserver
+on the Election Night map svg turns each call-recolour (#c8a070 → census
+colour, recognised via `window.__nukeCensusColors`) into a strike: tracer +
+missile svg (`_NUKE_MISSILE_IMG` file.garden noun-nuclear-5884718,
+`_NUKE_MISSILE_UP` nose-angle) flies ~650ms → flash + ring + ANIMATED
+procedural mushroom cloud (`_NUKE_IMPACT_IMG` swaps in a custom gif/webp per
+impact; `_NUKE_IMPACT_MS` lifetime) → persistent scorch. Election Night only
+(observer detaches elsewhere); low-fx skips all of it; reduced-motion gets
+scorch-only. CONSOLE: `window.ACOPNuke` — `.demo()` fires the census and jumps
+straight to the nuclear Election Night (engine skip_to_final pattern; preview
+without authoring the bunker), `.arm()`, `.census()`, `.reset()`. `_nukeWar` (0/1/2) in `_SL_SCALARS`; observer stamps
 `body.acop-nuke` from it (derived). The terminal screen reverts to the STOCK
 engine map: Code 1's `__isFinalElectionMap` / `__isElectionNight` return false
 under `body.acop-nuke` (TV chrome + scoreboard + state cards off),

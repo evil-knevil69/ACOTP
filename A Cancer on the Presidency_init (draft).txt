@@ -2083,8 +2083,147 @@ function __nukeTvTick() {
         if (on && h3.textContent === 'ELECTORAL VOTES') h3.textContent = 'CASUALTY CENSUS';
         else if (!on && h3.textContent === 'CASUALTY CENSUS') h3.textContent = 'ELECTORAL VOTES';
     }
+    __nukeStrikeWatch(on);
 }
 window.__onGameWindowMutation(__nukeTvTick);
+
+// ── DEFCON-1: incoming-missile animation on Election Night ───────────────────
+// Each state's "declaration" is a strike. Driven by the map itself: the engine
+// paints an uncalled state default_map_color_hex and flips it to its census
+// colour when its result_time passes (Code 2's strike timetable) — a fill
+// MutationObserver turns exactly that transition into a missile streaking to
+// the state's centroid, a flash + shockwave + animated mushroom cloud, and a
+// scorch mark that stays for the rest of the night. Election Night only (the
+// final map repaints everything at once — no observer there). Low demand mode
+// skips it all; prefers-reduced-motion gets just the scorch appearing.
+var _NUKE_MISSILE_IMG = 'https://file.garden/aXPgNT-ZRCxxpy0g/noun-nuclear-5884718.svg';
+var _NUKE_MISSILE_UP  = 90;   // degrees to add so the icon's nose points along the flight path (90 = artwork points up; tune if it flies sideways)
+var _NUKE_IMPACT_IMG  = '';   // OPTIONAL animated mushroom-cloud asset (gif/webp/svg). '' = the built-in procedural cloud below.
+var _NUKE_IMPACT_MS   = 3600; // impact-cloud lifetime
+var __nukeStrikeObs = null;
+var __nukeCanonCache = {};
+function __nukeCanonColor(c) {
+    if (!c) return '';
+    if (__nukeCanonCache[c]) return __nukeCanonCache[c];
+    const d = document.createElement('div');
+    d.style.color = c;
+    document.body.appendChild(d);
+    const v = getComputedStyle(d).color;
+    d.remove();
+    __nukeCanonCache[c] = v;
+    return v;
+}
+function __nukeStrikeLayer(svg) {
+    let g = svg.querySelector('#nuke-strike-layer');
+    if (!g) {
+        g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.id = 'nuke-strike-layer';
+        g.style.pointerEvents = 'none';
+        svg.appendChild(g);   // last child: paints above the states
+    }
+    return g;
+}
+function __nukeStrikeAt(svg, path) {
+    if (document.body.classList.contains('low-fx-on')) return;
+    let bb;
+    try { bb = path.getBBox(); } catch (e) { return; }
+    if (!bb || (!bb.width && !bb.height)) return;
+    const tx = bb.x + bb.width / 2, ty = bb.y + bb.height / 2;
+    const g = __nukeStrikeLayer(svg);
+    const NS = 'http://www.w3.org/2000/svg';
+    const mk = (tag, attrs) => {
+        const el = document.createElementNS(NS, tag);
+        for (const k in attrs) el.setAttribute(k, attrs[k]);
+        return el;
+    };
+    // the scorch outlives everything (removed with the screen)
+    const scorch = mk('circle', { cx: tx, cy: ty, r: Math.max(4, Math.min(bb.width, bb.height) * 0.14), fill: '#140d08', opacity: '0' });
+    g.appendChild(scorch);
+    const noMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (noMotion || !scorch.animate) { scorch.setAttribute('opacity', '0.45'); return; }
+    const FLIGHT = 650;
+    scorch.animate([{ opacity: 0 }, { opacity: 0.45 }], { duration: 400, delay: FLIGHT, fill: 'forwards' });
+    // incoming: tracer line + the missile svg riding it
+    const sx = tx + (Math.random() * 320 - 160), sy = -30;
+    const len = Math.hypot(tx - sx, ty - sy);
+    const tracer = mk('line', { x1: sx, y1: sy, x2: tx, y2: ty, stroke: '#ffe2b0', 'stroke-width': '1.4', 'stroke-linecap': 'round', opacity: '0.85' });
+    tracer.setAttribute('stroke-dasharray', String(len));
+    tracer.setAttribute('stroke-dashoffset', String(len));
+    g.appendChild(tracer);
+    tracer.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: FLIGHT, easing: 'cubic-bezier(.55,0,1,.55)', fill: 'forwards' });
+    const deg = Math.atan2(ty - sy, tx - sx) * 180 / Math.PI + _NUKE_MISSILE_UP;
+    const mg = mk('g', {});
+    const rot = mk('g', { transform: 'rotate(' + deg.toFixed(1) + ')' });
+    const mimg = mk('image', { x: -8, y: -16, width: 16, height: 16 });
+    mimg.setAttribute('href', _NUKE_MISSILE_IMG);
+    rot.appendChild(mimg);
+    mg.appendChild(rot);
+    mg.style.transform = 'translate(' + sx + 'px,' + sy + 'px)';
+    g.appendChild(mg);
+    mg.animate([
+        { transform: 'translate(' + sx + 'px,' + sy + 'px)' },
+        { transform: 'translate(' + tx + 'px,' + ty + 'px)' },
+    ], { duration: FLIGHT, easing: 'cubic-bezier(.55,0,1,.55)', fill: 'forwards' });
+    // impact
+    setTimeout(() => {
+        mg.remove();
+        tracer.animate([{ opacity: 0.85 }, { opacity: 0 }], { duration: 240, fill: 'forwards' });
+        const flash = mk('circle', { cx: tx, cy: ty, r: 3, fill: '#fff7dd', opacity: '0.95' });
+        const ring = mk('circle', { cx: tx, cy: ty, r: 3, fill: 'none', stroke: '#ffcf8a', 'stroke-width': '2', opacity: '0.8' });
+        g.appendChild(flash); g.appendChild(ring);
+        flash.animate([{ r: '3px', opacity: 0.95 }, { r: '20px', opacity: 0 }], { duration: 480, easing: 'ease-out', fill: 'forwards' });
+        ring.animate([{ r: '3px', opacity: 0.8 }, { r: '30px', opacity: 0 }], { duration: 700, easing: 'ease-out', fill: 'forwards' });
+        let cloud;
+        if (_NUKE_IMPACT_IMG) {
+            cloud = mk('image', { x: tx - 18, y: ty - 34, width: 36, height: 36 });
+            cloud.setAttribute('href', _NUKE_IMPACT_IMG);
+        } else {
+            // procedural animated mushroom: stem + double cap, rises and thins
+            cloud = mk('g', {});
+            cloud.appendChild(mk('rect',    { x: tx - 1.8, y: ty - 11, width: 3.6, height: 11, rx: 1.8, fill: '#6b4a2f' }));
+            cloud.appendChild(mk('ellipse', { cx: tx, cy: ty - 11.5, rx: 7.5, ry: 4.6, fill: '#7a5638' }));
+            cloud.appendChild(mk('ellipse', { cx: tx, cy: ty - 13.5, rx: 4.8, ry: 3,   fill: '#96703f' }));
+            cloud.appendChild(mk('ellipse', { cx: tx, cy: ty - 14.5, rx: 2.6, ry: 1.7, fill: '#c49a55' }));
+        }
+        cloud.style.transformBox = 'fill-box';
+        cloud.style.transformOrigin = '50% 100%';
+        cloud.style.opacity = '0';
+        g.appendChild(cloud);
+        cloud.animate([
+            { opacity: 0,    transform: 'translateY(2px) scale(0.4)' },
+            { opacity: 0.95, transform: 'translateY(0px) scale(0.85)', offset: 0.18 },
+            { opacity: 0.85, transform: 'translateY(-2px) scale(1)',   offset: 0.55 },
+            { opacity: 0,    transform: 'translateY(-5px) scale(1.08)' },
+        ], { duration: _NUKE_IMPACT_MS, easing: 'ease-out', fill: 'forwards' });
+        setTimeout(() => { flash.remove(); ring.remove(); cloud.remove(); tracer.remove(); }, _NUKE_IMPACT_MS + 200);
+    }, FLIGHT);
+}
+function __nukeStrikeWatch(nukeOn) {
+    const night = nukeOn && __isElectionNightRaw();
+    const svg = night ? document.querySelector('#map_container svg') : null;
+    if (!night || !svg) {
+        if (__nukeStrikeObs) { try { __nukeStrikeObs.disconnect(); } catch (e) {} __nukeStrikeObs = null; }
+        return;
+    }
+    if (svg.__nukeStrikeWatched) return;
+    if (__nukeStrikeObs) { try { __nukeStrikeObs.disconnect(); } catch (e) {} }
+    svg.__nukeStrikeWatched = true;
+    const censusFills = (window.__nukeCensusColors || []).map(__nukeCanonColor);
+    __nukeStrikeObs = new MutationObserver(muts => {
+        for (const m of muts) {
+            if (m.type !== 'attributes' || m.attributeName !== 'fill') continue;
+            const p = m.target;
+            if (!p || String(p.tagName).toLowerCase() !== 'path') continue;
+            const oldV = __nukeCanonColor(m.oldValue || '');
+            const newV = __nukeCanonColor(p.getAttribute('fill') || '');
+            if (newV === oldV) continue;                          // hover re-sets etc.
+            if (censusFills.length && censusFills.indexOf(newV) === -1) continue;   // not a call
+            if (censusFills.indexOf(oldV) !== -1) continue;       // already called (shade tweak)
+            __nukeStrikeAt(svg, p);
+        }
+    });
+    __nukeStrikeObs.observe(svg, { attributes: true, subtree: true, attributeFilter: ['fill'], attributeOldValue: true });
+}
 
 function __mapVisitTick() {
     const inGameMap = !!document.getElementById('resume_questions_button');

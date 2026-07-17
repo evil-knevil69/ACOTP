@@ -44,9 +44,40 @@ plus two one-line guards in `A Cancer on the Presidency_init (draft).txt`
    rows re-sort, and `getLatestRes` is re-run so nn2/nn3 agree.
    Answer-score nudges could NOT do this: they multiply whatever support
    the run has, so authored absolute totals are unreachable that way.
-   Verified over the real 51-state data: ≈30.8M / 55.1M / 39.9M / 83.4M on
-   ≈209M counted.
-5. **The Electoral College did not survive the exchange.** The census also
+   **Urban skew:** a census entry with `urban: true` (the Dead) concentrates
+   in the urbanised states — its state share scales by
+   `_NUKE_URBAN[abbr]/mean`, where the mean is turnout-weighted across all
+   states, so the NATIONAL toll is conserved exactly; the other categories
+   rescale per state to fill the remainder. `_NUKE_URBAN` tiers (1970
+   census): DC 1.8; NY/CA/NJ/RI/MA/IL/MD/CT/PA/OH/TX 1.6; MI/FL/DE/WA/MO/
+   CO/AZ/NV/HI/UT 1.3; NC/SC/KY/AL 0.7, IA/NE/KS 0.8; the rural/plains
+   0.55; unlisted 1.0. Verified over the real 51-state data: ≈30.8M / 54.5M
+   / 40.7M / 82.8M on ≈209M counted, with ~19% dead in NY/CA vs ~6% in
+   WY/ND.
+5. **The strike timetable replaces poll closings.** A wrapper over the
+   engine global `electionNight` (LBM wraps it the same way) re-deals every
+   state's `result_time` from `_NUKE_STRIKE_WAVES` once the census is live
+   (engine clock 0..480, one +10 tick per 2s ≈ 96-second evening): wave 1
+   (t 15–60) ND/DC/MT/MO/GA/VA — the missile fields and the command
+   structure; wave 2 (t 80–220) the ten most populous states; wave 3
+   (t 240–440) everyone else (unlisted states take the last wave). Random
+   within the window; pre-census the stock marginTime schedule is untouched.
+6. **Missiles on the map (Code 1, grep `incoming-missile animation`).** On
+   Election Night under nuke, a fill MutationObserver on the map svg turns
+   each state's call-recolour (default `#c8a070` → its census colour,
+   recognised via `window.__nukeCensusColors` from Code 2) into a strike at
+   the state's centroid: a tracer + the missile SVG (`_NUKE_MISSILE_IMG`,
+   file.garden noun-nuclear-5884718; `_NUKE_MISSILE_UP` tunes the artwork's
+   nose angle) flies in ~650ms, then flash + shockwave ring + an ANIMATED
+   MUSHROOM CLOUD (procedural stem+caps that grow, rise and fade over
+   `_NUKE_IMPACT_MS`; set `_NUKE_IMPACT_IMG` to an animated gif/webp URL to
+   replace it with a custom cloud per impact), and a scorch mark that stays
+   for the rest of the night. Same-value repaints, hover styles and
+   non-census recolours don't fire; the final map repaints all-at-once so
+   the observer only attaches on Election Night and disconnects on leaving.
+   Low demand mode skips the animation entirely; prefers-reduced-motion
+   gets just the scorch appearing.
+7. **The Electoral College did not survive the exchange.** The census also
    zeroes every state's `electoral_votes` (pristine counts in
    `_NUKE_EV_ORIG`, restored with everything else). The engine's own
    `noElectoralVotes`/`someStatesHaveEVs` guards then hide ALL the EV
@@ -61,10 +92,21 @@ plus two one-line guards in `A Cancer on the Presidency_init (draft).txt`
    the panel's `ELECTORAL VOTES` `<h3>`, is retitled to **CASUALTY
    CENSUS** by Code 1's `__nukeTvTick` on the two terminal screens
    (idempotent, unwinds if the flag drops).
-6. That final screen is the **stock engine election map** — all the ACOP TV
+8. That final screen is the **stock engine election map** — all the ACOP TV
    treatment (frame, CRT, scoreboard pills, state cards, SVG smoothing, lamp
    glow, noise gif) stands down. Clean slate to build a nuke-themed screen on
    later.
+
+## Previewing it (no bunker question needed)
+
+From the browser console, any time in a run: **`ACOPNuke.demo()`** — fires
+the census (rename + turnout crank + EV zeroing) and jumps straight to the
+nuclear Election Night via the engine's own skip pattern
+(`final_state_results = A(1)` → `electionNight()`). Missiles, strike
+timetable, CASUALTY CENSUS scoreboard and the final screens all run live.
+Also: `ACOPNuke.arm()` (defcon → 1), `ACOPNuke.census()` (apply without
+changing screens), `ACOPNuke.reset()` (unwind — note it reinstalls the
+pristine question order, so treat a mid-run demo as end-of-session testing).
 
 ## The five moving parts (all in Code 2 unless noted)
 
@@ -148,15 +190,19 @@ the bunker answer) hangs off the same two hooks: `body.acop-nuke` +
 
 ## Verified
 
-`nuke_check.js` — 58/58: inert-until-authored, swap-arm (slot + displaced
+`nuke_check.js` — 68/68: inert-until-authored, swap-arm (slot + displaced
 question parked + pk-permutation intact + count + visits), arm idempotent,
 normal-answer-doesn't-trip-census, bunker-answer census (renames the four
 ballot candidates, The Media untouched, recolour, derived turnout multiplier
 lands 210M, idempotent re-apply, pristine restore incl. New Game; split
 shares from targets, A()-wrapper dormant pre-census then Survivors lead,
-Dead within jitter band, pk-92 zeroed; state EVs zeroed by the census +
+urban/rural dead shares exact + toll conserved + per-state sums 1, Dead/WY
+within jitter bands, pk-92 zeroed; strike timetable dormant pre-census then
+waves land ND/CA/unlisted correctly; state EVs zeroed by the census +
 restored on New Game/pre-census load, panel h3 retitled CASUALTY CENSUS and
-unwound), body-class stamp, both
+unwound; missile strikes: call-recolour → tracer+missile+scorch, same-value
+and non-census recolours inert, low-fx inert, procedural cloud spawns,
+observer detaches off Election Night), body-class stamp, both
 detectors stand down, New Game unwind (names + question order + count +
 visits, from census AND from merely-armed) + detectors live again, and the
 armed-save restore re-zeroes visits. The New-Game restore path drives the
