@@ -602,6 +602,31 @@ NOTE: any harness injecting `__isFinalElectionMap`/`__isElectionNight` must now
 inject the raw fns too (all 8 in the scratchpad were patched). Verified:
 nuke_check 44/44; full regression suite green (see NUCLEAR_WAR.md).
 
+**33. Nuke broadcast package (Jul 2026)**
+The nuclear Election Night is a DYING BROADCAST — full doc in
+`NUCLEAR_WAR.md` §"The broadcast package". Code 1 (all hanging off
+`__nukeTvTick` + the strike observer; each piece opts out under low-fx and/or
+reduced-motion): EBS takeover of the opener popup (retitled h3, SMPTE colour
+bars replace the advisor img, `.nuke-ebs`; tone `_NUKE_EBS_TONE_URL` FILL ME
+IN), civil-defense chyron crawl (`_NUKE_CHYRON_TEXT`, `#nuke-chyron`), wire
+feed ("10:41 PM — CONTACT LOST WITH MINOT"; `_NUKE_WIRE_LINES` templates +
+`_NUKE_CITY` targets; clock parsed from the "% complete" line, 8PM→2AM),
+broadcast degradation (`#nuke-degrade` static overlay thickens per hit, capped
+0.35; rare 380ms PLEASE STAND BY slate, throttled+capped), NORAD early warning
+("INBOUND TRACKS: NN" + amber `.nuke-blip` pulses on states due within ~8s,
+reading `window.__nukeSchedule`), MIRVs (salvo 3/2/1 by national-share
+≥5%/≥2.5%), air vs ground bursts (lead warhead always ground: cloud + scorch
+recorded in `window.__nukeScorches`; follow-ups may air-burst: wide ring, no
+residue), aftermath (final map rebuilds smoke+char per scorch,
+`#nuke-aftermath-layer`, self-healing; `#state_result` h3 → DAMAGE
+ASSESSMENT), impact rumble (`_NUKE_RUMBLE_URL` FILL ME IN, ≥2.5s apart).
+Code 2: `_NUKE_ELECTION_POPUP` swaps `campaignTrail_temp.ElectionPopup` at
+census (restored with the rest), `window.__nukeSchedule` published by the
+electionNight wrapper (nulled below census), and BOTH ACOP-News opener-set
+subscribers early-return at `_nukeWar >= 2`. NOTE: harnesses extracting Code 2
+observer blocks may now need a `var _nukeWar = 0;` stub (enightsets + msdim
+were patched). Verified: nuke_check 85/85; full regression suite green.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.

@@ -2083,9 +2083,138 @@ function __nukeTvTick() {
         if (on && h3.textContent === 'ELECTORAL VOTES') h3.textContent = 'CASUALTY CENSUS';
         else if (!on && h3.textContent === 'CASUALTY CENSUS') h3.textContent = 'ELECTORAL VOTES';
     }
+    const sr = gw.querySelector('#state_result h3');
+    if (sr) {
+        if (on && sr.textContent === 'STATE RESULTS') sr.textContent = 'DAMAGE ASSESSMENT';
+        else if (!on && sr.textContent === 'DAMAGE ASSESSMENT') sr.textContent = 'STATE RESULTS';
+    }
     __nukeStrikeWatch(on);
+    const nuke = document.body && document.body.classList.contains('acop-nuke');
+    const svg = document.querySelector('#map_container svg');
+    __nukeChyron(!!on);
+    __nukeEbsTick(nuke && __isElectionNightRaw());
+    __nukeNoradTick(nuke && __isElectionNightRaw(), svg);
+    __nukeAftermath(nuke && __isFinalElectionMapRaw(), svg);
+    if (!nuke && window.__nukeScorches && window.__nukeScorches.length) {
+        // New Game (or console reset): the war is over-over — drop the debris
+        window.__nukeScorches = [];
+        __nukeHits = 0; __nukeSlates = 0; __nukeEbsDone = false;
+    }
 }
 window.__onGameWindowMutation(__nukeTvTick);
+
+// Civil-defense chyron: a slow crawl along the bottom of the map on both
+// terminal screens. Low demand mode holds it static (CSS).
+function __nukeChyron(on) {
+    const mc = document.getElementById('map_container');
+    let c = document.getElementById('nuke-chyron');
+    if (!on || !mc) { if (c) c.remove(); return; }
+    if (c && c.parentElement === mc) return;
+    if (c) c.remove();
+    c = document.createElement('div');
+    c.id = 'nuke-chyron';
+    const s = document.createElement('span');
+    s.textContent = _NUKE_CHYRON_TEXT + ' · ' + _NUKE_CHYRON_TEXT + ' · ';
+    c.appendChild(s);
+    mc.appendChild(c);
+}
+
+// The Emergency Broadcast System takes the opener popup: header, colour bars
+// in place of the advisor photo (the warning text itself is swapped by Code 2
+// via campaignTrail_temp.ElectionPopup), and the attention tone — once.
+var __nukeEbsDone = false;
+function __nukeEbsTick(nightOn) {
+    if (!nightOn) return;
+    const win = document.getElementById('election_night_window');
+    if (!win || document.getElementById('overlay_result_button')) return;
+    if (win.dataset.nukeEbs) return;
+    win.dataset.nukeEbs = '1';
+    win.classList.add('nuke-ebs');
+    const h3 = win.querySelector('h3');
+    if (h3) h3.textContent = 'EMERGENCY BROADCAST SYSTEM';
+    const img = win.querySelector('img');
+    if (img) {
+        const bars = document.createElement('div');
+        bars.className = 'nuke-ebs-bars';
+        img.replaceWith(bars);
+    }
+    if (!__nukeEbsDone) {
+        __nukeEbsDone = true;
+        if (_NUKE_EBS_TONE_URL && !document.body.classList.contains('low-fx-on')) {
+            try { const a = new Audio(_NUKE_EBS_TONE_URL); a.volume = 0.5; a.play().catch(() => {}); } catch (e) {}
+        }
+    }
+}
+
+// NORAD early warning: Code 2 published the strike schedule
+// (window.__nukeSchedule) — show an INBOUND TRACKS counter and pulse a
+// warning blip on each state due within the next ~8 seconds. Blips are
+// skipped in low demand mode (the counter stays — it's the signal).
+var __nukeBlips = {};
+function __nukeNoradTick(nightOn, svg) {
+    const box = document.getElementById('nuke-norad');
+    if (!nightOn || !svg || !Array.isArray(window.__nukeSchedule)) {
+        if (box) box.remove();
+        for (const ab in __nukeBlips) { try { __nukeBlips[ab].remove(); } catch (e) {} }
+        __nukeBlips = {};
+        return;
+    }
+    const mc = document.getElementById('map_container');
+    if (!mc) return;
+    const t = __nukeNightTime();
+    const inbound = window.__nukeSchedule.filter(s => s.t > t && s.t <= t + 40);
+    let b = box;
+    if (!b) { b = document.createElement('div'); b.id = 'nuke-norad'; mc.appendChild(b); }
+    b.textContent = 'INBOUND TRACKS: ' + String(inbound.length).padStart(2, '0');
+    const want = new Set(inbound.map(s => s.abbr));
+    for (const ab in __nukeBlips) {
+        if (!want.has(ab)) { try { __nukeBlips[ab].remove(); } catch (e) {} delete __nukeBlips[ab]; }
+    }
+    if (document.body.classList.contains('low-fx-on')) return;
+    const layer = __nukeStrikeLayer(svg);
+    const byAbbr = __nukeMaps(svg).byAbbr;
+    inbound.forEach(s => {
+        if (__nukeBlips[s.abbr]) return;
+        const p = byAbbr.get(s.abbr);
+        if (!p) return;
+        let bbx; try { bbx = p.getBBox(); } catch (e) { return; }
+        const blip = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        blip.setAttribute('cx', bbx.x + bbx.width / 2);
+        blip.setAttribute('cy', bbx.y + bbx.height / 2);
+        blip.setAttribute('r', 4);
+        blip.setAttribute('class', 'nuke-blip');
+        layer.appendChild(blip);
+        __nukeBlips[s.abbr] = blip;
+    });
+}
+
+// Aftermath: the final election map inherits every ground-burst scorch from
+// the night (plus a smoke halo), so the damage assessment shows a pocked map.
+function __nukeAftermath(finalOn, svg) {
+    if (!finalOn || !svg) return;
+    const scorches = window.__nukeScorches || [];
+    if (!scorches.length) return;
+    const old = svg.querySelector('#nuke-aftermath-layer');
+    if (old && old.childElementCount === scorches.length * 2) return;   // current
+    if (old) old.remove();   // stale (recorded set changed) — rebuild
+    const NS = 'http://www.w3.org/2000/svg';
+    const g = document.createElementNS(NS, 'g');
+    g.id = 'nuke-aftermath-layer';
+    g.style.pointerEvents = 'none';
+    scorches.forEach(s => {
+        const smoke = document.createElementNS(NS, 'circle');
+        smoke.setAttribute('cx', s.x); smoke.setAttribute('cy', s.y);
+        smoke.setAttribute('r', s.r * 2.4); smoke.setAttribute('fill', '#25211c');
+        smoke.setAttribute('opacity', '0.18');
+        g.appendChild(smoke);
+        const char = document.createElementNS(NS, 'circle');
+        char.setAttribute('cx', s.x); char.setAttribute('cy', s.y);
+        char.setAttribute('r', s.r); char.setAttribute('fill', '#140d08');
+        char.setAttribute('opacity', '0.5');
+        g.appendChild(char);
+    });
+    svg.appendChild(g);
+}
 
 // ── DEFCON-1: incoming-missile animation on Election Night ───────────────────
 // Each state's "declaration" is a strike. Driven by the map itself: the engine
@@ -2101,6 +2230,25 @@ var _NUKE_MISSILE_UP  = 90;   // degrees to add so the icon's nose points along 
 var _NUKE_IMPACT_IMG  = '';   // OPTIONAL animated mushroom-cloud asset (gif/webp/svg). '' = the built-in procedural cloud below.
 var _NUKE_IMPACT_MS   = 3600; // impact-cloud lifetime
 var _NUKE_SLBM_SHARE  = 0.22; // fraction of strikes that come in from the RIGHT edge (Atlantic submarines); the rest drop from the TOP (over the pole)
+var _NUKE_EBS_TONE_URL = '';  // FILL ME IN — EBS two-tone attention signal; plays once as the warning popup appears ('' = silent)
+var _NUKE_RUMBLE_URL   = '';  // FILL ME IN — distant impact rumble; throttled to one per 2.5s ('' = silent)
+var _NUKE_CHYRON_TEXT  = 'THIS IS NOT A TEST · AN ATTACK WARNING IS IN EFFECT · TAKE SHELTER IMMEDIATELY · DO NOT USE THE TELEPHONE · STAY TUNED TO THIS STATION';
+var _NUKE_WIRE_LINES   = ['CONTACT LOST WITH {C}', '{C} OFF THE AIR', 'NO SIGNAL FROM {C}', '{C} — TRANSMISSION ENDS', 'AFFILIATE IN {C} NOT RESPONDING'];
+// The city named when a state goes dark on the wire feed (target city — the
+// biggest population centre or the base that drew the warhead). Retune freely.
+var _NUKE_CITY = {
+    AL:'BIRMINGHAM', AK:'ANCHORAGE', AZ:'PHOENIX', AR:'LITTLE ROCK', CA:'LOS ANGELES',
+    CO:'DENVER', CT:'HARTFORD', DE:'WILMINGTON', DC:'WASHINGTON', FL:'MIAMI',
+    GA:'ATLANTA', HI:'HONOLULU', ID:'BOISE', IL:'CHICAGO', IN:'INDIANAPOLIS',
+    IA:'DES MOINES', KS:'WICHITA', KY:'LOUISVILLE', LA:'NEW ORLEANS', ME:'LORING AFB',
+    MD:'BALTIMORE', MA:'BOSTON', MI:'DETROIT', MN:'MINNEAPOLIS', MS:'JACKSON',
+    MO:'ST. LOUIS', MT:'GREAT FALLS', NE:'OMAHA', NV:'LAS VEGAS', NH:'MANCHESTER',
+    NJ:'NEWARK', NM:'ALBUQUERQUE', NY:'NEW YORK', NC:'CHARLOTTE', ND:'MINOT',
+    OH:'CLEVELAND', OK:'OKLAHOMA CITY', OR:'PORTLAND', PA:'PHILADELPHIA', RI:'PROVIDENCE',
+    SC:'COLUMBIA', SD:'RAPID CITY', TN:'MEMPHIS', TX:'HOUSTON', UT:'SALT LAKE CITY',
+    VT:'BURLINGTON', VA:'NORFOLK', WA:'SEATTLE', WV:'CHARLESTON', WI:'MILWAUKEE',
+    WY:'CHEYENNE',
+};
 var __nukeStrikeObs = null;
 var __nukeStrikeSvg = null;   // the svg currently under watch (identity, not a flag — survives leave/re-enter)
 var __nukeCanonCache = {};
@@ -2125,26 +2273,145 @@ function __nukeStrikeLayer(svg) {
     }
     return g;
 }
+// abbr ↔ path maps, from the usmap plugin's shapes (jQuery is a host global).
+// data-abbr on a path wins — the test hook, and an override if ever needed.
+function __nukeMaps(svg) {
+    if (svg.__nukeMaps) return svg.__nukeMaps;
+    const byNode = new Map(), byAbbr = new Map();
+    try {
+        svg.querySelectorAll('path[data-abbr]').forEach(p => {
+            byNode.set(p, p.getAttribute('data-abbr'));
+            byAbbr.set(p.getAttribute('data-abbr'), p);
+        });
+        const plugin = window.$ && window.$('#map_container').data('plugin-usmap');
+        if (plugin && plugin.stateShapes) {
+            for (const ab in plugin.stateShapes) {
+                const nd = plugin.stateShapes[ab] && plugin.stateShapes[ab].node;
+                if (nd && !byNode.has(nd)) { byNode.set(nd, ab); byAbbr.set(ab, nd); }
+            }
+        }
+    } catch (e) {}
+    svg.__nukeMaps = { byNode, byAbbr };
+    return svg.__nukeMaps;
+}
+// Engine clock (0..480), parsed from the "N% complete" line the loop rewrites
+// every tick. 0 when unreadable.
+function __nukeNightTime() {
+    const p = document.querySelector('#overall_result > p');
+    const m = p && p.textContent.match(/(\d+)\s*% complete/);
+    return m ? Math.min(480, Math.round(parseInt(m[1], 10) * 4.8)) : 0;
+}
+// Broadcast clock: the night runs 8:00 PM → 2:00 AM EST across the 480 ticks.
+function __nukeClock(t) {
+    const mins = 20 * 60 + Math.round(t * 0.75);
+    const h24 = Math.floor(mins / 60) % 24, mm = mins % 60;
+    const h12 = ((h24 + 11) % 12) + 1;
+    return h12 + ':' + String(mm).padStart(2, '0') + ' ' + (h24 >= 12 ? 'PM' : 'AM');
+}
+// MIRVs: salvo size scales with the state's share of the national count —
+// the big states eat two or three warheads.
+function __nukeSalvoSize(abbr) {
+    try {
+        const sj = window.campaignTrail_temp.states_json || [];
+        let tot = 0, pv = 0;
+        for (const s of sj) {
+            tot += s.fields.popular_votes || 0;
+            if (s.fields.abbr === abbr) pv = s.fields.popular_votes || 0;
+        }
+        const share = tot > 0 ? pv / tot : 0;
+        return share >= 0.05 ? 3 : share >= 0.025 ? 2 : 1;
+    } catch (e) { return 1; }
+}
+// The wire feed: "10:41 PM — CONTACT LOST WITH MINOT" as each state dies.
+function __nukeWireLine(abbr) {
+    if (!abbr) return;
+    const mc = document.getElementById('map_container');
+    if (!mc) return;
+    let box = document.getElementById('nuke-wire');
+    if (!box) { box = document.createElement('div'); box.id = 'nuke-wire'; mc.appendChild(box); }
+    const tpl = _NUKE_WIRE_LINES[Math.floor(Math.random() * _NUKE_WIRE_LINES.length)];
+    const line = document.createElement('div');
+    line.className = 'nuke-wire-line';
+    line.textContent = __nukeClock(__nukeNightTime()) + ' — ' + tpl.replace('{C}', _NUKE_CITY[abbr] || abbr);
+    box.prepend(line);
+    while (box.childElementCount > 6) box.lastElementChild.remove();
+}
+// Broadcast degradation: every hit thickens the static; occasionally an
+// affiliate drops and a dark PLEASE STAND BY slate blinks up briefly.
+var __nukeHits = 0, __nukeSlates = 0, __nukeLastSlate = 0;
+function __nukeDegrade() {
+    __nukeHits++;
+    const mc = document.getElementById('map_container');
+    if (!mc) return;
+    let ov = document.getElementById('nuke-degrade');
+    if (!ov) {
+        ov = document.createElement('div');
+        ov.id = 'nuke-degrade';
+        try { ov.style.backgroundImage = getComputedStyle(mc).backgroundImage; } catch (e) {}
+        mc.appendChild(ov);
+    }
+    ov.style.opacity = Math.min(0.35, __nukeHits * 0.006).toFixed(3);
+    const noMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const now = Date.now();
+    if (!noMotion && __nukeSlates < 4 && now - __nukeLastSlate > 9000 && Math.random() < 0.22) {
+        __nukeLastSlate = now; __nukeSlates++;
+        const s = document.createElement('div');
+        s.className = 'nuke-standby';
+        s.textContent = 'PLEASE STAND BY';
+        mc.appendChild(s);
+        setTimeout(() => s.remove(), 380);
+    }
+}
+var __nukeLastRumble = 0;
+function __nukeRumble() {
+    if (!_NUKE_RUMBLE_URL) return;
+    const now = Date.now();
+    if (now - __nukeLastRumble < 2500) return;
+    __nukeLastRumble = now;
+    try { const a = new Audio(_NUKE_RUMBLE_URL); a.volume = 0.4; a.play().catch(() => {}); } catch (e) {}
+}
+// A state is called → its salvo. First warhead always ground-bursts on the
+// centroid area (the scorch every state keeps); follow-ups spread across the
+// state and may air-burst (flash + wide shockwave, no cloud, no scorch).
 function __nukeStrikeAt(svg, path) {
     if (document.body.classList.contains('low-fx-on')) return;
     let bb;
     try { bb = path.getBBox(); } catch (e) { return; }
     if (!bb || (!bb.width && !bb.height)) return;
-    const tx = bb.x + bb.width / 2, ty = bb.y + bb.height / 2;
     const g = __nukeStrikeLayer(svg);
+    const abbr = __nukeMaps(svg).byNode.get(path) || null;
+    const n = abbr ? __nukeSalvoSize(abbr) : 1;
+    for (let i = 0; i < n; i++) {
+        const tx = bb.x + bb.width * (i === 0 ? 0.5 : 0.25 + Math.random() * 0.5);
+        const ty = bb.y + bb.height * (i === 0 ? 0.5 : 0.25 + Math.random() * 0.5);
+        const ground = i === 0 || Math.random() > 0.45;
+        const delay = i === 0 ? 0 : 200 + Math.random() * 500;
+        setTimeout(() => { try { __nukeOneMissile(svg, g, tx, ty, bb, ground); } catch (e) {} }, delay);
+    }
+    __nukeWireLine(abbr);
+    __nukeDegrade();
+}
+function __nukeOneMissile(svg, g, tx, ty, bb, ground) {
     const NS = 'http://www.w3.org/2000/svg';
     const mk = (tag, attrs) => {
         const el = document.createElementNS(NS, tag);
         for (const k in attrs) el.setAttribute(k, attrs[k]);
         return el;
     };
-    // the scorch outlives everything (removed with the screen)
-    const scorch = mk('circle', { cx: tx, cy: ty, r: Math.max(4, Math.min(bb.width, bb.height) * 0.14), fill: '#140d08', opacity: '0' });
-    g.appendChild(scorch);
+    // ground bursts leave a scorch that outlives the night (recorded for the
+    // aftermath layer on the final map); air bursts leave nothing behind
+    const scorchR = Math.max(4, Math.min(bb.width, bb.height) * 0.14);
+    let scorch = null;
+    if (ground) {
+        scorch = mk('circle', { cx: tx, cy: ty, r: scorchR, fill: '#140d08', opacity: '0' });
+        g.appendChild(scorch);
+        window.__nukeScorches = window.__nukeScorches || [];
+        if (window.__nukeScorches.length < 400) window.__nukeScorches.push({ x: tx, y: ty, r: scorchR });
+    }
     const noMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (noMotion || !scorch.animate) { scorch.setAttribute('opacity', '0.45'); return; }
+    if (noMotion || !g.animate) { if (scorch) scorch.setAttribute('opacity', '0.45'); return; }
     const FLIGHT = 650;
-    scorch.animate([{ opacity: 0 }, { opacity: 0.45 }], { duration: 400, delay: FLIGHT, fill: 'forwards' });
+    if (scorch) scorch.animate([{ opacity: 0 }, { opacity: 0.45 }], { duration: 400, delay: FLIGHT, fill: 'forwards' });
     // incoming: tracer line + the missile svg riding it. Approach vectors:
     // most drop in from the TOP of the map (ICBMs over the Arctic from the
     // USSR); a share come in from the RIGHT edge (Atlantic submarines).
@@ -2181,15 +2448,20 @@ function __nukeStrikeAt(svg, path) {
         { transform: 'translate(' + sx + 'px,' + sy + 'px)' },
         { transform: 'translate(' + tx + 'px,' + ty + 'px)' },
     ], { duration: FLIGHT, easing: 'cubic-bezier(.55,0,1,.55)', fill: 'forwards' });
-    // impact
+    // impact — air bursts flash bigger and ring wider but leave no cloud
     setTimeout(() => {
         mg.remove();
+        __nukeRumble();
         tracer.animate([{ opacity: 0.85 }, { opacity: 0 }], { duration: 240, fill: 'forwards' });
         const flash = mk('circle', { cx: tx, cy: ty, r: 3, fill: '#fff7dd', opacity: '0.95' });
-        const ring = mk('circle', { cx: tx, cy: ty, r: 3, fill: 'none', stroke: '#ffcf8a', 'stroke-width': '2', opacity: '0.8' });
+        const ring = mk('circle', { cx: tx, cy: ty, r: 3, fill: 'none', stroke: '#ffcf8a', 'stroke-width': ground ? '2' : '2.5', opacity: '0.8' });
         g.appendChild(flash); g.appendChild(ring);
-        flash.animate([{ r: '3px', opacity: 0.95 }, { r: '20px', opacity: 0 }], { duration: 480, easing: 'ease-out', fill: 'forwards' });
-        ring.animate([{ r: '3px', opacity: 0.8 }, { r: '30px', opacity: 0 }], { duration: 700, easing: 'ease-out', fill: 'forwards' });
+        flash.animate([{ r: '3px', opacity: 0.95 }, { r: ground ? '20px' : '26px', opacity: 0 }], { duration: ground ? 480 : 560, easing: 'ease-out', fill: 'forwards' });
+        ring.animate([{ r: '3px', opacity: 0.8 }, { r: ground ? '30px' : '46px', opacity: 0 }], { duration: ground ? 700 : 950, easing: 'ease-out', fill: 'forwards' });
+        if (!ground) {
+            setTimeout(() => { flash.remove(); ring.remove(); tracer.remove(); }, 1200);
+            return;
+        }
         let cloud;
         if (_NUKE_IMPACT_IMG) {
             cloud = mk('image', { x: tx - 18, y: ty - 34, width: 36, height: 36 });
@@ -4660,6 +4932,74 @@ body.low-fx-on #map_container {
    SIGINT is locked off on the world map) — the static gradient overlays stay. */
 body.low-fx-on #game_window.acop-nuke-tv #map_container svg {
     filter: none;
+}
+/* ── nuke broadcast furniture (elements mounted by the __nuke* ticks) ── */
+#nuke-chyron {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 22px; overflow: hidden;
+    background: rgba(96, 14, 8, 0.92); border-top: 1px solid rgba(199, 170, 96, 0.6);
+    z-index: 9005; pointer-events: none;
+}
+#nuke-chyron span {
+    display: inline-block; white-space: nowrap; line-height: 22px;
+    font-family: 'Courier New', monospace; font-weight: bold; font-size: 12px;
+    letter-spacing: 2px; color: #f0e6c8;
+    animation: nukeChyronCrawl 36s linear infinite;
+}
+@keyframes nukeChyronCrawl {
+    from { transform: translateX(15%); }
+    to   { transform: translateX(-50%); }
+}
+body.low-fx-on #nuke-chyron span { animation: none; }
+@media (prefers-reduced-motion: reduce) { #nuke-chyron span { animation: none; } }
+#nuke-wire {
+    position: absolute; left: 8px; bottom: 30px; width: 250px; z-index: 9005;
+    pointer-events: none; font-family: 'Courier New', monospace; font-size: 10.5px;
+    font-weight: bold; letter-spacing: 0.5px; color: #ffcf8a;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+}
+#nuke-wire .nuke-wire-line { margin-top: 2px; }
+#nuke-wire .nuke-wire-line:nth-child(n+3) { opacity: 0.65; }
+#nuke-wire .nuke-wire-line:nth-child(n+5) { opacity: 0.35; }
+#nuke-norad {
+    position: absolute; right: 8px; top: 6px; z-index: 9005; pointer-events: none;
+    font-family: 'Courier New', monospace; font-weight: bold; font-size: 12px;
+    letter-spacing: 2px; color: #ff9a4d; text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+}
+#nuke-degrade {
+    position: absolute; inset: 0; z-index: 8990; pointer-events: none;
+    background-size: cover; opacity: 0; transition: opacity 1.2s linear;
+}
+body.low-fx-on #nuke-degrade { display: none; }
+.nuke-standby {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    z-index: 9006; pointer-events: none; padding: 14px 30px;
+    background: #0a0a0a; border: 3px double #cbb37a;
+    font-family: 'Courier New', monospace; font-weight: bold; font-size: 20px;
+    letter-spacing: 6px; color: #e8dcbc;
+}
+.nuke-blip {
+    fill: none; stroke: #ff9a4d; stroke-width: 1.6;
+    animation: nukeBlipPulse 1.1s ease-in-out infinite;
+}
+@keyframes nukeBlipPulse {
+    0%, 100% { opacity: 0.25; }
+    50%      { opacity: 0.95; }
+}
+@media (prefers-reduced-motion: reduce) { .nuke-blip { animation: none; opacity: 0.7; } }
+#election_night_window.nuke-ebs {
+    background: #101010 !important; border: 4px solid #7a2016 !important;
+}
+#election_night_window.nuke-ebs h3, #election_night_window.nuke-ebs p {
+    color: #f0e6c8 !important; font-family: 'Courier New', monospace;
+}
+#election_night_window.nuke-ebs h3 { letter-spacing: 3px; }
+.nuke-ebs-bars {
+    width: 208px; height: 128px; margin: 0 auto;
+    background: linear-gradient(90deg,
+        #b6b6b6 0 14.28%, #b6a600 14.28% 28.57%, #00a6a6 28.57% 42.85%,
+        #00a600 42.85% 57.14%, #a600a6 57.14% 71.42%, #a60000 71.42% 85.71%,
+        #0000a6 85.71% 100%);
+    border: 1px solid #333;
 }`;
 customStyling.id=`map_image`
 document.head.appendChild(customStyling);

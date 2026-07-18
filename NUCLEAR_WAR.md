@@ -100,6 +100,47 @@ plus two one-line guards in `A Cancer on the Presidency_init (draft).txt`
    glow, noise gif) stands down. Clean slate to build a nuke-themed screen on
    later.
 
+## The broadcast package (Jul 2026)
+
+The nuclear Election Night is a dying broadcast, not a graphics demo. All
+Code 1 unless noted, all hanging off the existing ticks; every piece has a
+low-fx and/or reduced-motion opt-out:
+
+- **EBS takeover** — the opener popup becomes the Emergency Broadcast
+  System: header retitled, SMPTE colour bars replace the advisor photo
+  (`.nuke-ebs` CSS), and the warning text itself is swapped in Code 2
+  (`_NUKE_ELECTION_POPUP` over `campaignTrail_temp.ElectionPopup`,
+  restored with the census). `_NUKE_EBS_TONE_URL` (FILL ME IN) plays the
+  two-tone attention signal once. The ACOP News opener sets (sting +
+  title card) are gated off under nuke in Code 2.
+- **Civil-defense chyron** — `_NUKE_CHYRON_TEXT` crawls along the bottom
+  of the map on both terminal screens (`#nuke-chyron`, 36s loop; static
+  under low-fx/reduced-motion).
+- **Wire feed** — each state's fall prints a timestamped line bottom-left
+  ("10:41 PM — CONTACT LOST WITH MINOT"): templates in `_NUKE_WIRE_LINES`,
+  target cities in `_NUKE_CITY` (retune freely), clock derived from the
+  engine's "% complete" line (8 PM → 2 AM EST).
+- **Broadcast degradation** — every hit thickens a static overlay
+  (`#nuke-degrade`, reuses the noise gif, capped at 0.35); occasionally a
+  dark "PLEASE STAND BY" slate blinks up 380ms (throttled ≥9s apart, max
+  4/night, skipped under reduced-motion).
+- **NORAD early warning** — Code 2 publishes the strike schedule
+  (`window.__nukeSchedule`); Code 1 shows "INBOUND TRACKS: NN" (top right)
+  and pulses an amber blip on each state due within ~8s (blips skipped
+  under low-fx; steady under reduced-motion).
+- **MIRVs** — salvo size scales with the state's share of the national
+  count (≥5% → 3 warheads, ≥2.5% → 2), spread across the state, staggered.
+- **Air bursts vs ground bursts** — the lead warhead always ground-bursts
+  (cloud + scorch, recorded); follow-ups may air-burst: bigger flash,
+  wider shockwave ring, nothing left behind.
+- **Aftermath** — the final map rebuilds every ground-burst as smoke +
+  char (`#nuke-aftermath-layer`) from `window.__nukeScorches` (cleared
+  when `body.acop-nuke` drops), and the state panel is retitled DAMAGE
+  ASSESSMENT on both terminal screens.
+- **Sound** (FILL ME IN ×2) — `_NUKE_EBS_TONE_URL` at the open,
+  `_NUKE_RUMBLE_URL` per impact (throttled to one per 2.5s). Silent until
+  the URLs are set.
+
 ## Previewing it (no bunker question needed)
 
 From the browser console, any time in a run: **`ACOPNuke.demo()`** — fires
@@ -193,7 +234,7 @@ the bunker answer) hangs off the same two hooks: `body.acop-nuke` +
 
 ## Verified
 
-`nuke_check.js` — 70/70: inert-until-authored, swap-arm (slot + displaced
+`nuke_check.js` — 85/85: inert-until-authored, swap-arm (slot + displaced
 question parked + pk-permutation intact + count + visits), arm idempotent,
 normal-answer-doesn't-trip-census, bunker-answer census (renames the four
 ballot candidates, The Media untouched, recolour, derived turnout multiplier
@@ -207,7 +248,12 @@ unwound; missile strikes: call-recolour → tracer+missile+scorch, same-value
 and non-census recolours inert, low-fx inert, procedural cloud spawns,
 observer detaches off Election Night AND re-attaches on return (svg-identity
 tracking, not a sticky flag), SLBM branch off the right edge + polar branch
-from the top under a stubbed Math.random), body-class stamp, both
+from the top under a stubbed Math.random; broadcast package: EBS popup text
+swap + restore, opener-set gates, schedule published/nulled, EBS dressing
+idempotent, chyron mount/teardown, NORAD counter + blip lifecycle over the
+% line, 3-missile MIRV, 1-scorch air-burst salvo, wire-feed line with clock,
+degradation overlay, aftermath layer (self-healing on stale counts), DAMAGE
+ASSESSMENT retitle + unwind, war-over cleanup), body-class stamp, both
 detectors stand down, New Game unwind (names + question order + count +
 visits, from census AND from merely-armed) + detectors live again, and the
 armed-save restore re-zeroes visits. The New-Game restore path drives the

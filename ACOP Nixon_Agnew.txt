@@ -18066,6 +18066,7 @@ function _enightSet() {
 }
 var _enightStingPlayed = false;
 window.__onGameWindowMutation(() => {
+    if (_nukeWar >= 2) return;   // DEFCON-1: the EBS has the airwaves, not ACOP News
     if (_enightStingPlayed) return;
     if (!document.getElementById('final_result_button')
         || !document.getElementById('election_night_window')
@@ -18088,6 +18089,7 @@ window.__onGameWindowMutation(() => {
 var _enightIntroPlayed = false;
 var _enightIntroArmed = false;   // transient — Election Night can't be saved into
 window.__onGameWindowMutation(() => {
+    if (_nukeWar >= 2) return;   // DEFCON-1: no coverage title card either
     if (_enightIntroPlayed) return;
     if (!document.getElementById('final_result_button')) { _enightIntroArmed = false; return; }
     if (document.getElementById('election_night_window')) {
@@ -19790,6 +19792,16 @@ var _NUKE_CAND_ORIG = (campaignTrail_temp.candidate_json || []).map(c => ({
 // _NUKE_CAND_ORIG). The crank always computes FROM this baseline — never from
 // the live value — so re-applying (save-restore, double fire) can't compound.
 var _NUKE_TURNOUT_ORIG = new Map((campaignTrail_temp.states_json || []).map(s => [s.pk, s.fields.popular_votes]));
+// The Emergency Broadcast System takes the opener: the engine's cheery
+// "Election night has arrived…" popup text (campaignTrail_temp.ElectionPopup)
+// is swapped for the attack warning at census time, restored with the rest.
+var _NUKE_ELECTION_POPUP = 'THIS IS NOT A TEST. This station has been directed '
+    + 'to interrupt election coverage for an Attack Warning. Missile launches '
+    + 'have been detected over the polar approaches. Take shelter immediately '
+    + 'and stay tuned to this frequency. The count will continue for as long '
+    + 'as we are able.';
+var _NUKE_POPUP_ORIG = campaignTrail_temp.ElectionPopup;
+
 // Pristine per-state elector counts. The census ZEROES every state's
 // electoral_votes (the Electoral College did not survive the exchange) — the
 // engine's own noElectoralVotes/someStatesHaveEVs guards then hide all the EV
@@ -19853,6 +19865,7 @@ function _nukeApplyCensus() {
         if (base != null) s.fields.popular_votes = Math.round(base * _NUKE_TURNOUT_MULT);
         if (_NUKE_EV_ORIG.has(s.pk)) s.fields.electoral_votes = 0;
     });
+    campaignTrail_temp.ElectionPopup = _NUKE_ELECTION_POPUP;
 }
 // Undo the rename + the turnout crank + the EV zeroing (New Game without reload).
 function _nukeRestoreCandidates() {
@@ -19867,6 +19880,7 @@ function _nukeRestoreCandidates() {
         const ev = _NUKE_EV_ORIG.get(s.pk);
         if (ev != null) s.fields.electoral_votes = ev;
     });
+    campaignTrail_temp.ElectionPopup = _NUKE_POPUP_ORIG;
 }
 // New Game hook: unwind the whole branch. The arm reordered questions_json and
 // shrank question_count; the New Game branch's own _installCampaignLength call
@@ -20034,6 +20048,12 @@ var _NUKE_STRIKE_WAVES = [
                     const w = waveOf(f.abbr);
                     f.result_time = Math.round(w.from + Math.random() * (w.to - w.from));
                 });
+                // Code 1's NORAD layer (inbound-track counter + warning blips)
+                // reads the full schedule to see strikes coming.
+                window.__nukeSchedule = campaignTrail_temp.final_state_results.map(
+                    f => ({ abbr: f.abbr, t: f.result_time }));
+            } else {
+                window.__nukeSchedule = null;
             }
         } catch (e) {}
         return r;
