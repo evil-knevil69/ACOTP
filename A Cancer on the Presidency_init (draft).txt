@@ -2308,6 +2308,28 @@ function __nukeClock(t) {
     const h12 = ((h24 + 11) % 12) + 1;
     return h12 + ':' + String(mm).padStart(2, '0') + ' ' + (h24 >= 12 ? 'PM' : 'AM');
 }
+// Gratuitous re-strikes: _NUKE_RESTRIKES extra warheads spread over the
+// biggest states (national share ≥ 2.5%), allocated proportional to size, and
+// landing at random through the rest of the night after each state declares.
+// Purely theatrical — no tally effect. 0 = off.
+var _NUKE_RESTRIKES = 20;
+var _NUKE_RESTRIKE_DELAY = [3000, 45000];   // ms after the state's first salvo
+var _NUKE_RESTRIKE_LINES = ['RE-STRIKE REPORTED OVER {C}', 'SECOND SUN OVER {C}', 'FURTHER DETONATIONS NEAR {C}'];
+function __nukeRestrikeQuota(abbr) {
+    try {
+        const sj = window.campaignTrail_temp.states_json || [];
+        let tot = 0, pv = 0, big = 0;
+        for (const s of sj) { tot += s.fields.popular_votes || 0; }
+        if (!tot) return 0;
+        for (const s of sj) {
+            const v = s.fields.popular_votes || 0;
+            if (v / tot >= 0.025) big += v;
+            if (s.fields.abbr === abbr) pv = v;
+        }
+        if (pv / tot < 0.025 || !big) return 0;
+        return Math.round(_NUKE_RESTRIKES * pv / big);
+    } catch (e) { return 0; }
+}
 // MIRVs: salvo size scales with the state's share of the national count —
 // the big states eat two or three warheads.
 function __nukeSalvoSize(abbr) {
@@ -2323,13 +2345,15 @@ function __nukeSalvoSize(abbr) {
     } catch (e) { return 1; }
 }
 // The wire feed: "10:41 PM — CONTACT LOST WITH MINOT" as each state dies.
-function __nukeWireLine(abbr) {
+// Pass a template set to vary the copy (re-strikes use _NUKE_RESTRIKE_LINES).
+function __nukeWireLine(abbr, tpls) {
     if (!abbr) return;
     const mc = document.getElementById('map_container');
     if (!mc) return;
     let box = document.getElementById('nuke-wire');
     if (!box) { box = document.createElement('div'); box.id = 'nuke-wire'; mc.appendChild(box); }
-    const tpl = _NUKE_WIRE_LINES[Math.floor(Math.random() * _NUKE_WIRE_LINES.length)];
+    const set = tpls || _NUKE_WIRE_LINES;
+    const tpl = set[Math.floor(Math.random() * set.length)];
     const line = document.createElement('div');
     line.className = 'nuke-wire-line';
     line.textContent = __nukeClock(__nukeNightTime()) + ' — ' + tpl.replace('{C}', _NUKE_CITY[abbr] || abbr);
@@ -2390,6 +2414,26 @@ function __nukeStrikeAt(svg, path) {
     }
     __nukeWireLine(abbr);
     __nukeDegrade();
+    // the gratuitous barrage: this state's share of the re-strikes, raining in
+    // at random for the rest of the night (guards: screen gone, war unwound,
+    // low demand toggled mid-night)
+    const extra = abbr ? __nukeRestrikeQuota(abbr) : 0;
+    for (let k = 0; k < extra; k++) {
+        const rDelay = _NUKE_RESTRIKE_DELAY[0]
+            + Math.random() * (_NUKE_RESTRIKE_DELAY[1] - _NUKE_RESTRIKE_DELAY[0]);
+        setTimeout(() => {
+            if (!svg.isConnected) return;
+            if (!document.body.classList.contains('acop-nuke')) return;
+            if (document.body.classList.contains('low-fx-on')) return;
+            let bb2;
+            try { bb2 = path.getBBox(); } catch (e) { return; }
+            const rx = bb2.x + bb2.width * (0.15 + Math.random() * 0.7);
+            const ry = bb2.y + bb2.height * (0.15 + Math.random() * 0.7);
+            try { __nukeOneMissile(svg, __nukeStrikeLayer(svg), rx, ry, bb2, Math.random() > 0.5); } catch (e) {}
+            __nukeDegrade();
+            if (Math.random() < 0.3) __nukeWireLine(abbr, _NUKE_RESTRIKE_LINES);
+        }, rDelay);
+    }
 }
 function __nukeOneMissile(svg, g, tx, ty, bb, ground) {
     const NS = 'http://www.w3.org/2000/svg';

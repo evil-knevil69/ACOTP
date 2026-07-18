@@ -617,7 +617,11 @@ broadcast degradation (`#nuke-degrade` static overlay thickens per hit, capped
 reading `window.__nukeSchedule`), MIRVs (salvo 3/2/1 by national-share
 ≥5%/≥2.5%), air vs ground bursts (lead warhead always ground: cloud + scorch
 recorded in `window.__nukeScorches`; follow-ups may air-burst: wide ring, no
-residue), aftermath (final map rebuilds smoke+char per scorch,
+residue), GRATUITOUS BARRAGE (`_NUKE_RESTRIKES` = 20 extra warheads over the
+≥2.5%-share states, size-proportional — real data: CA/NY 3 each — landing at
+random in `_NUKE_RESTRIKE_DELAY` 3–45s after each declaration; half air-burst,
+~30% print a `_NUKE_RESTRIKE_LINES` wire line; 0 = off), aftermath (final map
+rebuilds smoke+char per scorch,
 `#nuke-aftermath-layer`, self-healing; `#state_result` h3 → DAMAGE
 ASSESSMENT), impact rumble (`_NUKE_RUMBLE_URL` FILL ME IN, ≥2.5s apart).
 Code 2: `_NUKE_ELECTION_POPUP` swaps `campaignTrail_temp.ElectionPopup` at
@@ -625,7 +629,7 @@ census (restored with the rest), `window.__nukeSchedule` published by the
 electionNight wrapper (nulled below census), and BOTH ACOP-News opener-set
 subscribers early-return at `_nukeWar >= 2`. NOTE: harnesses extracting Code 2
 observer blocks may now need a `var _nukeWar = 0;` stub (enightsets + msdim
-were patched). Verified: nuke_check 85/85; full regression suite green.
+were patched). Verified: nuke_check 87/87; full regression suite green.
 
 ### A Cancer on the Presidency_init (draft).txt
 

@@ -130,6 +130,14 @@ low-fx and/or reduced-motion opt-out:
   under low-fx; steady under reduced-motion).
 - **MIRVs** — salvo size scales with the state's share of the national
   count (≥5% → 3 warheads, ≥2.5% → 2), spread across the state, staggered.
+- **The gratuitous barrage** — `_NUKE_RESTRIKES` (20) extra warheads keep
+  raining on the biggest states (share ≥ 2.5%) all night, allocated
+  proportional to size (real data: CA/NY 3 each, the industrial belt 2
+  each) and landing at random inside `_NUKE_RESTRIKE_DELAY` (3–45s) after
+  each state's declaration. Half air-burst; ~30% print a re-strike wire
+  line (`_NUKE_RESTRIKE_LINES`: "SECOND SUN OVER {C}"…). Purely
+  theatrical, no tally effect; guards bail if the screen is gone, the war
+  unwound, or low demand mode toggled mid-night. 0 = off.
 - **Air bursts vs ground bursts** — the lead warhead always ground-bursts
   (cloud + scorch, recorded); follow-ups may air-burst: bigger flash,
   wider shockwave ring, nothing left behind.
@@ -234,7 +242,7 @@ the bunker answer) hangs off the same two hooks: `body.acop-nuke` +
 
 ## Verified
 
-`nuke_check.js` — 85/85: inert-until-authored, swap-arm (slot + displaced
+`nuke_check.js` — 87/87: inert-until-authored, swap-arm (slot + displaced
 question parked + pk-permutation intact + count + visits), arm idempotent,
 normal-answer-doesn't-trip-census, bunker-answer census (renames the four
 ballot candidates, The Media untouched, recolour, derived turnout multiplier
@@ -252,7 +260,8 @@ from the top under a stubbed Math.random; broadcast package: EBS popup text
 swap + restore, opener-set gates, schedule published/nulled, EBS dressing
 idempotent, chyron mount/teardown, NORAD counter + blip lifecycle over the
 % line, 3-missile MIRV, 1-scorch air-burst salvo, wire-feed line with clock,
-degradation overlay, aftermath layer (self-healing on stale counts), DAMAGE
+degradation overlay, re-strike quotas 12/8/0 + an 11-tracer barrage on a
+short-delay clock, aftermath layer (self-healing on stale counts), DAMAGE
 ASSESSMENT retitle + unwind, war-over cleanup), body-class stamp, both
 detectors stand down, New Game unwind (names + question order + count +
 visits, from census AND from merely-armed) + detectors live again, and the
