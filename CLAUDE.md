@@ -663,9 +663,12 @@ were patched). Verified: nuke_check 87/87; full regression suite green.
 Verified: nuke_check 90/90 (+3 static CSS assertions), both files EXECUTE CLEAN
 via `mod_exec_check.js`, full regression suite green.
 
-**35. Nuke strike tuning (Jul 2026)** — Survivors census colour → dark brown
-`#3a2413` (Code 2 `_NUKE_CENSUS`) so a Survivor state reads clearly vs the tan
-map / red-Injured / green-Irradiated. Code 1 missile config: `_NUKE_MISSILE_SIZE`
+**35. Nuke strike tuning (Jul 2026)** — Survivors census colour → slate
+`#41505c` (Code 2 `_NUKE_CENSUS`): the only COOL tone on the map, so a Survivor
+state reads clearly against the warm tan base / red-Injured / green-Irradiated
+and doesn't collide with the Dead's grey under the sepia map filter (dark brown
+`#3a2413` was tried first but sat too close to the Dead and read as the grimmest
+colour despite being the least-bad outcome). Code 1 missile config: `_NUKE_MISSILE_SIZE`
 (16→32, ~2x), `_NUKE_FLIGHT_MS` (650→1400, slower), `_NUKE_SCORCH` (new, ships
 FALSE — the LIVE persistent scorch circle is opt-in; the state colour is the
 lasting live mark. Ground bursts are still RECORDED always, so the final-map
