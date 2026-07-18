@@ -2234,9 +2234,20 @@ function __nukeAftermath(finalOn, svg) {
 // skips it all; prefers-reduced-motion gets just the scorch appearing.
 var _NUKE_MISSILE_IMG = 'https://file.garden/aXPgNT-ZRCxxpy0g/noun-nuclear-5884718.svg';
 var _NUKE_MISSILE_UP  = 90;   // degrees to add so the icon's nose points along the flight path (90 = artwork points up; tune if it flies sideways)
+var _NUKE_MISSILE_SIZE = 32;  // missile icon size in svg units (was 16 — now ~2x)
+var _NUKE_FLIGHT_MS   = 1400; // time for a missile to fly in (was 650 — now slower)
+var _NUKE_SCORCH      = false;// leave a persistent scorch mark + smoke where a ground burst lands (also feeds the final-map aftermath). OFF: the state's colour change is the only lasting mark.
 var _NUKE_IMPACT_IMG  = '';   // OPTIONAL animated mushroom-cloud asset (gif/webp/svg). '' = the built-in procedural cloud below.
 var _NUKE_IMPACT_MS   = 3600; // impact-cloud lifetime
 var _NUKE_SLBM_SHARE  = 0.22; // fraction of strikes that come in from the RIGHT edge (Atlantic submarines); the rest drop from the TOP (over the pole)
+// Per-state hit re-centring. Warheads aim at the state path's bounding-box
+// centre, which sits off the visible landmass for a few odd shapes (long
+// panhandles, islands, split states). Add an { x, y } nudge in svg units to
+// move ALL of that state's hits (main salvo + barrage) together — e.g.
+//   FL: { x: 4, y: -12 },   MI: { x: -6, y: 8 },   (positive x = right, y = down)
+// Easiest way to dial one in: run ACOPNuke.demo(), watch where the state's
+// hits land, and nudge until they sit on the landmass. Empty = bbox centre.
+var _NUKE_HIT_OFFSET = {};
 var _NUKE_EBS_TONE_URL = '';  // FILL ME IN — EBS two-tone attention signal; plays once as the warning popup appears ('' = silent)
 var _NUKE_RUMBLE_URL   = '';  // FILL ME IN — distant impact rumble; throttled to one per 2.5s ('' = silent)
 var _NUKE_CHYRON_TEXT  = 'THIS IS NOT A TEST · AN ATTACK WARNING IS IN EFFECT · TAKE SHELTER IMMEDIATELY · DO NOT USE THE TELEPHONE · STAY TUNED TO THIS STATION';
@@ -2411,10 +2422,11 @@ function __nukeStrikeAt(svg, path) {
     if (!bb || (!bb.width && !bb.height)) return;
     const g = __nukeStrikeLayer(svg);
     const abbr = __nukeMaps(svg).byNode.get(path) || null;
+    const off = (abbr && _NUKE_HIT_OFFSET[abbr]) || { x: 0, y: 0 };
     const n = abbr ? __nukeSalvoSize(abbr) : 1;
     for (let i = 0; i < n; i++) {
-        const tx = bb.x + bb.width * (i === 0 ? 0.5 : 0.25 + Math.random() * 0.5);
-        const ty = bb.y + bb.height * (i === 0 ? 0.5 : 0.25 + Math.random() * 0.5);
+        const tx = bb.x + bb.width * (i === 0 ? 0.5 : 0.25 + Math.random() * 0.5) + off.x;
+        const ty = bb.y + bb.height * (i === 0 ? 0.5 : 0.25 + Math.random() * 0.5) + off.y;
         const ground = i === 0 || Math.random() > 0.45;
         const delay = i === 0 ? 0 : 200 + Math.random() * 500;
         setTimeout(() => { try { __nukeOneMissile(svg, g, tx, ty, bb, ground); } catch (e) {} }, delay);
@@ -2434,8 +2446,8 @@ function __nukeStrikeAt(svg, path) {
             if (document.body.classList.contains('low-fx-on')) return;
             let bb2;
             try { bb2 = path.getBBox(); } catch (e) { return; }
-            const rx = bb2.x + bb2.width * (0.15 + Math.random() * 0.7);
-            const ry = bb2.y + bb2.height * (0.15 + Math.random() * 0.7);
+            const rx = bb2.x + bb2.width * (0.15 + Math.random() * 0.7) + off.x;
+            const ry = bb2.y + bb2.height * (0.15 + Math.random() * 0.7) + off.y;
             try { __nukeOneMissile(svg, __nukeStrikeLayer(svg), rx, ry, bb2, Math.random() > 0.5); } catch (e) {}
             __nukeDegrade();
             if (Math.random() < 0.3) __nukeWireLine(abbr, _NUKE_RESTRIKE_LINES);
@@ -2449,11 +2461,12 @@ function __nukeOneMissile(svg, g, tx, ty, bb, ground) {
         for (const k in attrs) el.setAttribute(k, attrs[k]);
         return el;
     };
-    // ground bursts leave a scorch that outlives the night (recorded for the
-    // aftermath layer on the final map); air bursts leave nothing behind
+    // ground bursts CAN leave a scorch that outlives the night (recorded for
+    // the aftermath layer on the final map) — off by default (_NUKE_SCORCH);
+    // the state's own colour change is the lasting mark. Air bursts never scorch.
     const scorchR = Math.max(4, Math.min(bb.width, bb.height) * 0.14);
     let scorch = null;
-    if (ground) {
+    if (ground && _NUKE_SCORCH) {
         scorch = mk('circle', { cx: tx, cy: ty, r: scorchR, fill: '#140d08', opacity: '0' });
         g.appendChild(scorch);
         window.__nukeScorches = window.__nukeScorches || [];
@@ -2461,7 +2474,7 @@ function __nukeOneMissile(svg, g, tx, ty, bb, ground) {
     }
     const noMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (noMotion || !g.animate) { if (scorch) scorch.setAttribute('opacity', '0.45'); return; }
-    const FLIGHT = 650;
+    const FLIGHT = _NUKE_FLIGHT_MS;
     if (scorch) scorch.animate([{ opacity: 0 }, { opacity: 0.45 }], { duration: 400, delay: FLIGHT, fill: 'forwards' });
     // incoming: tracer line + the missile svg riding it. Approach vectors:
     // most drop in from the TOP of the map (ICBMs over the Arctic from the
@@ -2489,7 +2502,8 @@ function __nukeOneMissile(svg, g, tx, ty, bb, ground) {
     const deg = Math.atan2(ty - sy, tx - sx) * 180 / Math.PI + _NUKE_MISSILE_UP;
     const mg = mk('g', {});
     const rot = mk('g', { transform: 'rotate(' + deg.toFixed(1) + ')' });
-    const mimg = mk('image', { x: -8, y: -16, width: 16, height: 16 });
+    const _ms = _NUKE_MISSILE_SIZE;
+    const mimg = mk('image', { x: -_ms / 2, y: -_ms, width: _ms, height: _ms });
     mimg.setAttribute('href', _NUKE_MISSILE_IMG);
     rot.appendChild(mimg);
     mg.appendChild(rot);

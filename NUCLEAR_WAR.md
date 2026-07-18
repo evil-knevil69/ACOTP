@@ -67,19 +67,28 @@ plus two one-line guards in `A Cancer on the Presidency_init (draft).txt`
    each state's call-recolour (default `#c8a070` → its census colour,
    recognised via `window.__nukeCensusColors` from Code 2) into a strike at
    the state's centroid: a tracer + the missile SVG (`_NUKE_MISSILE_IMG`,
-   file.garden noun-nuclear-5884718; `_NUKE_MISSILE_UP` tunes the artwork's
-   nose angle) flies in ~650ms — most drop near-vertically from the TOP of
+   file.garden noun-nuclear-5884718; `_NUKE_MISSILE_SIZE` sizes it (32),
+   `_NUKE_MISSILE_UP` tunes the artwork's nose angle) flies in over
+   `_NUKE_FLIGHT_MS` (1400ms) — most drop near-vertically from the TOP of
    the map (ICBMs over the Arctic from the USSR), and `_NUKE_SLBM_SHARE`
    (~22%) come in shallow from the RIGHT edge (Atlantic submarines) — then
    flash + shockwave ring + an ANIMATED
    MUSHROOM CLOUD (procedural stem+caps that grow, rise and fade over
    `_NUKE_IMPACT_MS`; set `_NUKE_IMPACT_IMG` to an animated gif/webp URL to
-   replace it with a custom cloud per impact), and a scorch mark that stays
-   for the rest of the night. Same-value repaints, hover styles and
+   replace it with a custom cloud per impact). A persistent scorch mark
+   (which also feeds the final-map aftermath layer) is OPTIONAL and ships
+   OFF (`_NUKE_SCORCH = false`) — the state's own colour change is the
+   lasting mark; flip it true to bring back the scorched earth + aftermath.
+   Same-value repaints, hover styles and
    non-census recolours don't fire; the final map repaints all-at-once so
    the observer only attaches on Election Night and disconnects on leaving.
    Low demand mode skips the animation entirely; prefers-reduced-motion
-   gets just the scorch appearing.
+   gets just the scorch (if enabled).
+   **Re-centring hits:** warheads aim at the state path's bounding-box
+   centre; for odd shapes (panhandles, islands) add an `{x,y}` svg-unit
+   nudge per abbreviation to `_NUKE_HIT_OFFSET` (e.g. `FL:{x:4,y:-12}`) to
+   move that state's whole barrage together. Dial it in against
+   `ACOPNuke.demo()`.
 7. **The Electoral College did not survive the exchange.** The census also
    zeroes every state's `electoral_votes` (pristine counts in
    `_NUKE_EV_ORIG`, restored with everything else). The engine's own

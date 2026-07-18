@@ -19755,7 +19755,7 @@ var _NUKE_CENSUS = [
     { pk: 10701, first: 'The',   last: 'Dead',              color: '#4a4a4a', target: 31000000, urban: true },
     { pk: 50000, first: 'The',   last: 'Injured',           color: '#8a2f1e', target: 55000000 },
     { pk: 70000, first: 'The',   last: 'Irradiated',        color: '#5a7d2a', target: 40000000 },
-    { pk: 80000, first: 'Short-term', last: 'Survivors',    color: '#9a7b34', target: null },
+    { pk: 80000, first: 'Short-term', last: 'Survivors',    color: '#3a2413', target: null },
 ];
 
 // Urbanisation weights (default 1.0). An urban-flagged category's share in a
