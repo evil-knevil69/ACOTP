@@ -33,6 +33,17 @@ Always push here. Never push to main/master.
 `ACOP Nixon_Agnew.txt` is the single mod file loaded by Campaign Trail. It runs inside `new Function()`, so:
 - Use `var` for module-level declarations (not `const`/`let` at the top scope)
 - Never declare the same `const`/`let` name twice in the same block scope — it causes a parse-time `SyntaxError` that prevents the mod from loading
+- **NEVER put a backtick inside CSS/HTML comments or text within a template
+  literal** — it silently terminates the literal. Worst case it still PARSES
+  (the tail reads as an expression like `` (css) > label `` ) and only throws
+  at RUNTIME, killing everything after that line (this broke the whole
+  pre-game screen in Jul 2026 via a `> label` comment in the grid CSS).
+- Parse checks are NOT enough. After editing either file, RUN it the way the
+  host does: `node mod_exec_check.js "<file>"` (in the repo; needs global
+  playwright) executes it via
+  `new Function('campaignTrail_temp','window','document','$','jQuery', code)`
+  against a stub host page and reports the first runtime throw with its file
+  line. Both files must report EXECUTED CLEAN.
 
 ---
 

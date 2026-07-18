@@ -1392,8 +1392,8 @@ body.edu-tips-off .edu-tip > svg.edu-stroke { display: none; }
 }
 /* Pre-game options checkboxes as a 2×2 grid with the fifth centred beneath
    (Expletives / Educational · Historicity / Fog of War · low-demand). The
-   `> label` rule outspecifies each wrap's own id/inline styling so the cells
-   stay uniform. */
+   '> label' rule outspecifies each wrap's own id/inline styling so the cells
+   stay uniform. NO BACKTICKS IN THESE COMMENTS — this is a template literal. */
 #acop-options-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
