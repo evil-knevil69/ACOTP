@@ -1399,7 +1399,7 @@ body.edu-tips-off .edu-tip > svg.edu-stroke { display: none; }
     grid-template-columns: 1fr 1fr;
     gap: 7px 26px;
     justify-items: start;
-    margin-top: 20px;
+    margin: 20px auto 0;   /* centre the whole grid under the difficulty selector */
     width: max-content;
 }
 #acop-options-grid > label {
@@ -1412,6 +1412,13 @@ body.edu-tips-off .edu-tip > svg.edu-stroke { display: none; }
     cursor: pointer;
     user-select: none;
     white-space: nowrap;
+}
+/* The hover cards are absolutely-positioned span children of the labels; the
+   label's white-space:nowrap INHERITS into them and forces the tip text onto
+   one line that overflows the screen. Force it back to normal wrapping so the
+   tip stays inside its fixed width. */
+#acop-options-grid > label > span {
+    white-space: normal;
 }
 #acop-options-grid > #low-fx-toggle-wrap {
     grid-column: 1 / -1;
@@ -4977,6 +4984,32 @@ body.low-fx-on #map_container {
 body.low-fx-on #game_window.acop-nuke-tv #map_container svg {
     filter: none;
 }
+/* Results panels on the nuke screen. The stock engine parks the two sticky-note
+   containers at left:925px inside #menu_container (a 0-width flex cell that sits
+   past the map), and #main_content_area{overflow:hidden} then clips everything
+   off the right edge — so on the nuke screen (which does NOT get the .acop-final-tv
+   re-lay) the overall/state panels vanished entirely. Re-anchor them to
+   #game_window instead (menu_container made static so game_window is the offset
+   parent) and stop the clip, letting them sit over the right of the map and
+   overflow the frame rather than get cut off. Also lifts the edge-feather mask
+   (like low-fx) so nothing near the border fades. */
+#game_window.acop-nuke-tv {
+    position: relative !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+    overflow: visible !important;
+}
+#game_window.acop-nuke-tv #main_content_area { overflow: visible !important; }
+#game_window.acop-nuke-tv #menu_container { position: static !important; }
+#game_window.acop-nuke-tv #overall_result_container {
+    left: 792px !important; top: 96px !important; z-index: 8996 !important;
+}
+#game_window.acop-nuke-tv #state_result_container {
+    left: 792px !important; top: 270px !important; z-index: 8996 !important;
+}
+/* The EBS opener window slides to the top-left of the map (151px left of its
+   centred default — margin, so the base centring transform is untouched). */
+#election_night_window.nuke-ebs { margin-left: -151px !important; }
 /* ── nuke broadcast furniture (elements mounted by the __nuke* ticks) ── */
 #nuke-chyron {
     position: absolute; left: 0; right: 0; bottom: 0; height: 22px; overflow: hidden;

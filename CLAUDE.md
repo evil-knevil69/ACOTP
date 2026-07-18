@@ -642,6 +642,27 @@ subscribers early-return at `_nukeWar >= 2`. NOTE: harnesses extracting Code 2
 observer blocks may now need a `var _nukeWar = 0;` stub (enightsets + msdim
 were patched). Verified: nuke_check 87/87; full regression suite green.
 
+**34. UI polish batch (Jul 2026)** — all Code 1 CSS.
+- **Options grid centred** under the difficulty selector (`#acop-options-grid`
+  `margin: 20px auto 0` + `width:max-content`, was left-aligned).
+- **Checkbox hover cards wrap** again: the grid's `label { white-space:nowrap }`
+  INHERITED into the absolutely-positioned tip `<span>` children, forcing the
+  tip text onto one line that ran off-screen. Fixed with
+  `#acop-options-grid > label > span { white-space: normal; }`.
+- **Nuke results panels no longer clipped**: on the nuke screen (no
+  `.acop-final-tv` re-lay) the stock `#overall/#state_result_container` parked at
+  `left:925px` inside a 0-width `#menu_container` and got clipped by
+  `#main_content_area{overflow:hidden}` — they vanished entirely. Re-anchored to
+  `#game_window` (`#menu_container` made `position:static`, panels given explicit
+  `left:792px`), `#main_content_area` set `overflow:visible`, and the
+  `#game_window` edge-feather mask lifted — so they sit over the map's right and
+  overflow the frame instead of being cut off.
+- **EBS opener slid 151px left** to the map's top-left
+  (`#election_night_window.nuke-ebs { margin-left:-151px }` — margin, so the base
+  centring transform is untouched).
+Verified: nuke_check 90/90 (+3 static CSS assertions), both files EXECUTE CLEAN
+via `mod_exec_check.js`, full regression suite green.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
