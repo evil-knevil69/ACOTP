@@ -667,13 +667,15 @@ via `mod_exec_check.js`, full regression suite green.
 `#3a2413` (Code 2 `_NUKE_CENSUS`) so a Survivor state reads clearly vs the tan
 map / red-Injured / green-Irradiated. Code 1 missile config: `_NUKE_MISSILE_SIZE`
 (16→32, ~2x), `_NUKE_FLIGHT_MS` (650→1400, slower), `_NUKE_SCORCH` (new, ships
-FALSE — persistent scorch + final-map aftermath now opt-in; the state colour is
-the lasting mark), and `_NUKE_HIT_OFFSET` (new per-abbr `{x,y}` svg-unit table,
+FALSE — the LIVE persistent scorch circle is opt-in; the state colour is the
+lasting live mark. Ground bursts are still RECORDED always, so the final-map
+aftermath damage layer survives), and `_NUKE_HIT_OFFSET` (new per-abbr `{x,y}` svg-unit table,
 empty default) applied to both the main salvo and the barrage so odd-shaped
 states can be re-centred; dial against `ACOPNuke.demo()`. Verified: nuke_check
-96/96 (+6 config assertions; strike sub-tests set `_NUKE_SCORCH=true` +
-`_NUKE_FLIGHT_MS=300` and isolate the strike layer per sub-test — flakiness fix),
-stable ×3, full regression suite green, both files EXECUTE CLEAN.
+97/97 (config assertions + a scorch-OFF-still-records-aftermath runtime check;
+strike sub-tests set `_NUKE_SCORCH=true` + `_NUKE_FLIGHT_MS=300` and isolate the
+strike layer per sub-test — flakiness fix), stable ×3, full regression suite
+green, both files EXECUTE CLEAN.
 
 ### A Cancer on the Presidency_init (draft).txt
 

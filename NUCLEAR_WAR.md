@@ -75,10 +75,12 @@ plus two one-line guards in `A Cancer on the Presidency_init (draft).txt`
    flash + shockwave ring + an ANIMATED
    MUSHROOM CLOUD (procedural stem+caps that grow, rise and fade over
    `_NUKE_IMPACT_MS`; set `_NUKE_IMPACT_IMG` to an animated gif/webp URL to
-   replace it with a custom cloud per impact). A persistent scorch mark
-   (which also feeds the final-map aftermath layer) is OPTIONAL and ships
-   OFF (`_NUKE_SCORCH = false`) — the state's own colour change is the
-   lasting mark; flip it true to bring back the scorched earth + aftermath.
+   replace it with a custom cloud per impact). Every ground burst is
+   RECORDED for the final-map aftermath layer regardless. The LIVE
+   persistent scorch circle on the Election Night map is separate and
+   OPTIONAL — it ships OFF (`_NUKE_SCORCH = false`), so the state's colour
+   change is the only live mark; flip it true to bring back the scorched
+   earth during the count (the aftermath damage map is kept either way).
    Same-value repaints, hover styles and
    non-census recolours don't fire; the final map repaints all-at-once so
    the observer only attaches on Election Night and disconnects on leaving.

@@ -2236,7 +2236,7 @@ var _NUKE_MISSILE_IMG = 'https://file.garden/aXPgNT-ZRCxxpy0g/noun-nuclear-58847
 var _NUKE_MISSILE_UP  = 90;   // degrees to add so the icon's nose points along the flight path (90 = artwork points up; tune if it flies sideways)
 var _NUKE_MISSILE_SIZE = 32;  // missile icon size in svg units (was 16 — now ~2x)
 var _NUKE_FLIGHT_MS   = 1400; // time for a missile to fly in (was 650 — now slower)
-var _NUKE_SCORCH      = false;// leave a persistent scorch mark + smoke where a ground burst lands (also feeds the final-map aftermath). OFF: the state's colour change is the only lasting mark.
+var _NUKE_SCORCH      = false;// draw a persistent scorch circle on the LIVE Election Night map where a ground burst lands. OFF: the state's colour change is the only live mark. (The final-map aftermath damage layer is recorded regardless.)
 var _NUKE_IMPACT_IMG  = '';   // OPTIONAL animated mushroom-cloud asset (gif/webp/svg). '' = the built-in procedural cloud below.
 var _NUKE_IMPACT_MS   = 3600; // impact-cloud lifetime
 var _NUKE_SLBM_SHARE  = 0.22; // fraction of strikes that come in from the RIGHT edge (Atlantic submarines); the rest drop from the TOP (over the pole)
@@ -2461,16 +2461,20 @@ function __nukeOneMissile(svg, g, tx, ty, bb, ground) {
         for (const k in attrs) el.setAttribute(k, attrs[k]);
         return el;
     };
-    // ground bursts CAN leave a scorch that outlives the night (recorded for
-    // the aftermath layer on the final map) — off by default (_NUKE_SCORCH);
-    // the state's own colour change is the lasting mark. Air bursts never scorch.
+    // Every ground burst is RECORDED for the final-map aftermath layer (always
+    // — the damage-assessment map survives even with the live scorch off). The
+    // LIVE persistent scorch circle on the Election Night map is separate and
+    // optional (_NUKE_SCORCH, ships off): the state's own colour change is the
+    // lasting mark there. Air bursts never scorch or record.
     const scorchR = Math.max(4, Math.min(bb.width, bb.height) * 0.14);
     let scorch = null;
-    if (ground && _NUKE_SCORCH) {
-        scorch = mk('circle', { cx: tx, cy: ty, r: scorchR, fill: '#140d08', opacity: '0' });
-        g.appendChild(scorch);
+    if (ground) {
         window.__nukeScorches = window.__nukeScorches || [];
         if (window.__nukeScorches.length < 400) window.__nukeScorches.push({ x: tx, y: ty, r: scorchR });
+        if (_NUKE_SCORCH) {
+            scorch = mk('circle', { cx: tx, cy: ty, r: scorchR, fill: '#140d08', opacity: '0' });
+            g.appendChild(scorch);
+        }
     }
     const noMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (noMotion || !g.animate) { if (scorch) scorch.setAttribute('opacity', '0.45'); return; }
