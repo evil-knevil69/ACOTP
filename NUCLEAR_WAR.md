@@ -68,7 +68,10 @@ plus two one-line guards in `A Cancer on the Presidency_init (draft).txt`
    recognised via `window.__nukeCensusColors` from Code 2) into a strike at
    the state's centroid: a tracer + the missile SVG (`_NUKE_MISSILE_IMG`,
    file.garden noun-nuclear-5884718; `_NUKE_MISSILE_UP` tunes the artwork's
-   nose angle) flies in ~650ms, then flash + shockwave ring + an ANIMATED
+   nose angle) flies in ~650ms — most drop near-vertically from the TOP of
+   the map (ICBMs over the Arctic from the USSR), and `_NUKE_SLBM_SHARE`
+   (~22%) come in shallow from the RIGHT edge (Atlantic submarines) — then
+   flash + shockwave ring + an ANIMATED
    MUSHROOM CLOUD (procedural stem+caps that grow, rise and fade over
    `_NUKE_IMPACT_MS`; set `_NUKE_IMPACT_IMG` to an animated gif/webp URL to
    replace it with a custom cloud per impact), and a scorch mark that stays
@@ -190,7 +193,7 @@ the bunker answer) hangs off the same two hooks: `body.acop-nuke` +
 
 ## Verified
 
-`nuke_check.js` — 68/68: inert-until-authored, swap-arm (slot + displaced
+`nuke_check.js` — 70/70: inert-until-authored, swap-arm (slot + displaced
 question parked + pk-permutation intact + count + visits), arm idempotent,
 normal-answer-doesn't-trip-census, bunker-answer census (renames the four
 ballot candidates, The Media untouched, recolour, derived turnout multiplier
@@ -202,7 +205,9 @@ waves land ND/CA/unlisted correctly; state EVs zeroed by the census +
 restored on New Game/pre-census load, panel h3 retitled CASUALTY CENSUS and
 unwound; missile strikes: call-recolour → tracer+missile+scorch, same-value
 and non-census recolours inert, low-fx inert, procedural cloud spawns,
-observer detaches off Election Night), body-class stamp, both
+observer detaches off Election Night AND re-attaches on return (svg-identity
+tracking, not a sticky flag), SLBM branch off the right edge + polar branch
+from the top under a stubbed Math.random), body-class stamp, both
 detectors stand down, New Game unwind (names + question order + count +
 visits, from census AND from merely-armed) + detectors live again, and the
 armed-save restore re-zeroes visits. The New-Game restore path drives the

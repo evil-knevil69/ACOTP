@@ -2100,7 +2100,9 @@ var _NUKE_MISSILE_IMG = 'https://file.garden/aXPgNT-ZRCxxpy0g/noun-nuclear-58847
 var _NUKE_MISSILE_UP  = 90;   // degrees to add so the icon's nose points along the flight path (90 = artwork points up; tune if it flies sideways)
 var _NUKE_IMPACT_IMG  = '';   // OPTIONAL animated mushroom-cloud asset (gif/webp/svg). '' = the built-in procedural cloud below.
 var _NUKE_IMPACT_MS   = 3600; // impact-cloud lifetime
+var _NUKE_SLBM_SHARE  = 0.22; // fraction of strikes that come in from the RIGHT edge (Atlantic submarines); the rest drop from the TOP (over the pole)
 var __nukeStrikeObs = null;
+var __nukeStrikeSvg = null;   // the svg currently under watch (identity, not a flag — survives leave/re-enter)
 var __nukeCanonCache = {};
 function __nukeCanonColor(c) {
     if (!c) return '';
@@ -2143,8 +2145,23 @@ function __nukeStrikeAt(svg, path) {
     if (noMotion || !scorch.animate) { scorch.setAttribute('opacity', '0.45'); return; }
     const FLIGHT = 650;
     scorch.animate([{ opacity: 0 }, { opacity: 0.45 }], { duration: 400, delay: FLIGHT, fill: 'forwards' });
-    // incoming: tracer line + the missile svg riding it
-    const sx = tx + (Math.random() * 320 - 160), sy = -30;
+    // incoming: tracer line + the missile svg riding it. Approach vectors:
+    // most drop in from the TOP of the map (ICBMs over the Arctic from the
+    // USSR); a share come in from the RIGHT edge (Atlantic submarines).
+    let edgeX = 960;
+    try {
+        const vb = svg.viewBox && svg.viewBox.baseVal;
+        if (vb && vb.width) edgeX = vb.x + vb.width;
+        else if (svg.width && svg.width.baseVal && svg.width.baseVal.value) edgeX = svg.width.baseVal.value;
+    } catch (e) {}
+    let sx, sy;
+    if (Math.random() < _NUKE_SLBM_SHARE) {
+        sx = edgeX + 40;
+        sy = Math.max(-20, ty - (Math.random() * 120 + 40));   // shallow dive from off the right edge
+    } else {
+        sx = tx + (Math.random() * 240 - 120);                 // near-vertical, slight drift
+        sy = -30;
+    }
     const len = Math.hypot(tx - sx, ty - sy);
     const tracer = mk('line', { x1: sx, y1: sy, x2: tx, y2: ty, stroke: '#ffe2b0', 'stroke-width': '1.4', 'stroke-linecap': 'round', opacity: '0.85' });
     tracer.setAttribute('stroke-dasharray', String(len));
@@ -2201,13 +2218,10 @@ function __nukeStrikeAt(svg, path) {
 function __nukeStrikeWatch(nukeOn) {
     const night = nukeOn && __isElectionNightRaw();
     const svg = night ? document.querySelector('#map_container svg') : null;
-    if (!night || !svg) {
-        if (__nukeStrikeObs) { try { __nukeStrikeObs.disconnect(); } catch (e) {} __nukeStrikeObs = null; }
-        return;
-    }
-    if (svg.__nukeStrikeWatched) return;
-    if (__nukeStrikeObs) { try { __nukeStrikeObs.disconnect(); } catch (e) {} }
-    svg.__nukeStrikeWatched = true;
+    if (svg === __nukeStrikeSvg) return;   // already watching exactly this svg (or already off)
+    if (__nukeStrikeObs) { try { __nukeStrikeObs.disconnect(); } catch (e) {} __nukeStrikeObs = null; }
+    __nukeStrikeSvg = svg;
+    if (!svg) return;
     const censusFills = (window.__nukeCensusColors || []).map(__nukeCanonColor);
     __nukeStrikeObs = new MutationObserver(muts => {
         for (const m of muts) {

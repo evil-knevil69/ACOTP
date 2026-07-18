@@ -552,7 +552,9 @@ MISSILES (Code 1, grep `incoming-missile animation`): a fill MutationObserver
 on the Election Night map svg turns each call-recolour (#c8a070 → census
 colour, recognised via `window.__nukeCensusColors`) into a strike: tracer +
 missile svg (`_NUKE_MISSILE_IMG` file.garden noun-nuclear-5884718,
-`_NUKE_MISSILE_UP` nose-angle) flies ~650ms → flash + ring + ANIMATED
+`_NUKE_MISSILE_UP` nose-angle) flies ~650ms — mostly near-vertical from the
+TOP (over-the-pole ICBMs), `_NUKE_SLBM_SHARE` (~22%) shallow from the RIGHT
+edge (Atlantic subs) — → flash + ring + ANIMATED
 procedural mushroom cloud (`_NUKE_IMPACT_IMG` swaps in a custom gif/webp per
 impact; `_NUKE_IMPACT_MS` lifetime) → persistent scorch. Election Night only
 (observer detaches elsewhere); low-fx skips all of it; reduced-motion gets
