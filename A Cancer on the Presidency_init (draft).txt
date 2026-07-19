@@ -2100,6 +2100,7 @@ function __nukeTvTick() {
     const svg = document.querySelector('#map_container svg');
     __nukeChyron(!!on);
     __nukeEbsTick(nuke && __isElectionNightRaw());
+    __nukeEbsIntroTick(nuke && __isElectionNightRaw());
     __nukeNoradTick(nuke && __isElectionNightRaw(), svg);
     __nukeAftermath(nuke && __isFinalElectionMapRaw(), svg);
     if (!nuke && window.__nukeScorches && window.__nukeScorches.length) {
@@ -2172,6 +2173,46 @@ function __nukeEbsTick(nightOn) {
         if (_NUKE_EBS_TONE_URL && !document.body.classList.contains('low-fx-on')) {
             try { const a = new Audio(_NUKE_EBS_TONE_URL); a.volume = 0.5; a.play().catch(() => {}); } catch (e) {}
         }
+    }
+}
+
+// After OK dismisses the EBS popup, an image pops up over the map and fades
+// away over 3s. Same arm/fire state machine as the ACOP-News opener title card
+// (ARM while the popup is up, FIRE the tick after it's gone but the tally
+// screen remains) but nuke-specific. Sized to cover #map_container and mounted
+// INSIDE it, so it inherits the CRT chrome (scanlines/vignette/edge-feather)
+// and the sepia wash. Once per night; the schedule resets with the strike
+// watch on a fresh svg (see __nukeStrikeWatch). '' = disabled.
+var _NUKE_EBS_INTRO_IMG = 'https://file.garden/aXPgNT-ZRCxxpy0g/ebs.jpg';
+var __nukeEbsIntroArmed = false;
+var __nukeEbsIntroPlayed = false;
+function __nukeEbsIntroTick(nightOn) {
+    if (!nightOn) { __nukeEbsIntroArmed = false; return; }
+    if (__nukeEbsIntroPlayed || !_NUKE_EBS_INTRO_IMG) return;
+    // ARM while the EBS opener popup is up (not the 270 outcome popup)
+    if (document.getElementById('election_night_window')) {
+        if (!document.getElementById('overlay_result_button')) __nukeEbsIntroArmed = true;
+        return;
+    }
+    if (!__nukeEbsIntroArmed) return;
+    const mc = document.getElementById('map_container');
+    if (!mc) return;
+    __nukeEbsIntroArmed = false;
+    __nukeEbsIntroPlayed = true;
+    const img = document.createElement('img');
+    img.id = 'nuke-ebs-intro';
+    img.src = _NUKE_EBS_INTRO_IMG;
+    mc.appendChild(img);
+    if (img.animate) {
+        img.animate([
+            { opacity: 0 },
+            { opacity: 1, offset: 0.06 },
+            { opacity: 1, offset: 0.35 },
+            { opacity: 0 },
+        ], { duration: 3000, easing: 'ease-out', fill: 'forwards' });
+        setTimeout(() => img.remove(), 3200);
+    } else {
+        setTimeout(() => img.remove(), 3000);
     }
 }
 
@@ -2648,6 +2689,7 @@ function __nukeStrikeWatch(nukeOn) {
     __nukeStrikeSvg = svg;
     if (!svg) return;
     __nukeRollJudder();   // fresh night → fresh judder schedule
+    __nukeEbsIntroPlayed = false; __nukeEbsIntroArmed = false;   // …and re-arm the EBS intro
     const censusFills = (window.__nukeCensusColors || []).map(__nukeCanonColor);
     __nukeStrikeObs = new MutationObserver(muts => {
         for (const m of muts) {
@@ -5271,6 +5313,16 @@ body.low-fx-on #nuke-degrade { display: none; }
     mix-blend-mode: screen; filter: brightness(1.9) contrast(1.5);
 }
 body.low-fx-on #nuke-flare { display: none; }
+/* EBS intro image — pops up over the map after OK, fades over 3s (opacity
+   animated in JS). Covers #map_container exactly and sits UNDER the scanlines/
+   vignette (z9000/9001) so it inherits the CRT chrome, plus the same sepia wash
+   as the map svg (dropped, like the map filter, under low demand mode). */
+#game_window.acop-nuke-tv #nuke-ebs-intro {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; z-index: 2; pointer-events: none; opacity: 0;
+    filter: sepia(0.3) saturate(1.4) brightness(0.85);
+}
+body.low-fx-on #game_window.acop-nuke-tv #nuke-ebs-intro { filter: none; }
 .nuke-standby {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
     z-index: 9006; pointer-events: none; padding: 14px 30px;

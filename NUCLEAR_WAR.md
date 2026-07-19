@@ -121,9 +121,18 @@ low-fx and/or reduced-motion opt-out:
   System: header retitled, SMPTE colour bars replace the advisor photo
   (`.nuke-ebs` CSS), and the warning text itself is swapped in Code 2
   (`_NUKE_ELECTION_POPUP` over `campaignTrail_temp.ElectionPopup`,
-  restored with the census). `_NUKE_EBS_TONE_URL` (FILL ME IN) plays the
-  two-tone attention signal once. The ACOP News opener sets (sting +
+  restored with the census). `_NUKE_EBS_TONE_URL` (the file.garden EBS ogg)
+  plays the two-tone attention signal once. The ACOP News opener sets (sting +
   title card) are gated off under nuke in Code 2.
+- **EBS intro still** — when OK dismisses the opener, a full-map image
+  (`_NUKE_EBS_INTRO_IMG`, the file.garden `ebs.jpg`) fades in and out over
+  3s inside `#map_container` (`#nuke-ebs-intro`, WAAPI opacity, self-removing).
+  `__nukeEbsIntroTick` ARMS while the opener is up (no `#overlay_result_button`)
+  and FIRES once the popup is gone — once per night (`__nukeEbsIntroPlayed`,
+  re-armed by `__nukeStrikeWatch` on a fresh svg). Sized to cover the map
+  (`inset:0; object-fit:cover`), z-index 2 so it sits UNDER the CRT
+  scanlines/vignette/flare and carries the map's `sepia/saturate/brightness`
+  filter (dropped under low-fx). `'' = no still.
 - **Civil-defense chyron** — `_NUKE_CHYRON_TEXT` crawls along the bottom
   of the map on both terminal screens (`#nuke-chyron`, 36s loop; static
   under low-fx/reduced-motion).

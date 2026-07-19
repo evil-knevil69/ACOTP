@@ -750,6 +750,25 @@ headers, swatch→square, scanlines+flicker gating), statecard 18 / scoreboard
 7+5 / enight 8 / tvcard 6 unchanged (reskin is nuke-only), render confirms the
 terminal look + census squares, both files EXECUTE CLEAN.
 
+**40. Nuke EBS intro still (Jul 2026)** — Code 1. When OK dismisses the EBS
+opener popup on the nuclear Election Night, a full-map still
+(`_NUKE_EBS_INTRO_IMG`, the file.garden `ebs.jpg`) fades in and out over 3s
+inside `#map_container`. `__nukeEbsIntroTick` (called from `__nukeTvTick` next
+to `__nukeEbsTick`) ARMS while the opener is up (`#election_night_window` present,
+no `#overlay_result_button`) and FIRES once the popup is gone — once per night
+(`__nukeEbsIntroPlayed` + `__nukeEbsIntroArmed`, re-armed by `__nukeStrikeWatch`
+on a fresh svg, same place the EBS tone re-arms). The `#nuke-ebs-intro` `<img>`
+is `inset:0`/`object-fit:cover`/`pointer-events:none` at z-index 2 — UNDER the
+CRT scanlines (9000) / vignette (9001) / flare (9003) so the tube chrome overlays
+it — and carries the map svg's `sepia(0.3) saturate(1.4) brightness(0.85)` filter
+(dropped under low-fx). WAAPI opacity keyframes (fill:forwards), self-removes at
+3200ms; CSS-`else` path removes at 3000ms. `_NUKE_EBS_INTRO_IMG = '' `= no still.
+Verified: nuke_check 117/117 (+2: arm-while-opener-up/no-image, OK-fires-once-per-
+night into map_container), full regression suite green (lowfx 24, statecard 18,
+scoreboard 7, enightsets 9, saveload 10, msdim 7, wmtip 9, trio 9, theme 14,
+themeswap 10, fog 15, qpage 11, visitmap 15, enight 8, tvcard 6, reshuffle 13),
+both files EXECUTE CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
