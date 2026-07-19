@@ -761,13 +761,34 @@ on a fresh svg, same place the EBS tone re-arms). The `#nuke-ebs-intro` `<img>`
 is `inset:0`/`object-fit:cover`/`pointer-events:none` at z-index 2 — UNDER the
 CRT scanlines (9000) / vignette (9001) / flare (9003) so the tube chrome overlays
 it — and carries the map svg's `sepia(0.3) saturate(1.4) brightness(0.85)` filter
-(dropped under low-fx). WAAPI opacity keyframes (fill:forwards), self-removes at
-3200ms; CSS-`else` path removes at 3000ms. `_NUKE_EBS_INTRO_IMG = '' `= no still.
+(dropped under low-fx). WAAPI opacity keyframes (fill:forwards): quick fade-in
+(~300ms) + brief hold, then a slow **5s fade-out** (total 6000ms; self-removes at
+6200ms, CSS-`else` path at 6000ms). `_NUKE_EBS_INTRO_IMG = '' `= no still.
 Verified: nuke_check 117/117 (+2: arm-while-opener-up/no-image, OK-fires-once-per-
 night into map_container), full regression suite green (lowfx 24, statecard 18,
 scoreboard 7, enightsets 9, saveload 10, msdim 7, wmtip 9, trio 9, theme 14,
 themeswap 10, fog 15, qpage 11, visitmap 15, enight 8, tvcard 6, reshuffle 13),
 both files EXECUTE CLEAN.
+
+**41. Nuke fixes: visible static flare + host banner hidden + 5s EBS fade (Jul 2026)**
+— all Code 1. (1) **Static flare now actually reads.** `#nuke-flare` used
+`mix-blend-mode: screen`, but `#map_container` carries a CSS `mask` (the edge
+feather) which isolates it into its own compositing group — a screen-blend of the
+flare's noise over the map's OWN noise came out invisible. Dropped the blend
+mode; the gif is now scaled 220% (grain offset) + pushed hard to bright static
+(`filter: brightness(2.6) contrast(1.8)`) and NORMAL-composited at high opacity
+(peak 0.9 / 1.0 big) so the burst unmistakably flashes over the map (render
+confirmed). (2) **Host site banner (`#header`, OUTSIDE `#game_window`) hidden on
+the nuke terminal screen** — `__nukeTvTick` now also toggles
+`body.acop-nuke-screen`, and `body.acop-nuke-screen #header { display: none }`
+drops the default-background bar that sat above the war-room feed (the in-window
+`.game_header` was already transparent). (3) **EBS intro still fade-out → 5s** —
+`__nukeEbsIntroTick`'s WAAPI keyframes retimed to a quick fade-in + brief hold +
+5s fade-out (total 6000ms). Verified: nuke_check 118/118 (+1 header-hide; flare
+assertion flipped to normal-composited/no-screen/brightness(2.6)), full
+regression suite green (lowfx 24, statecard 18, scoreboard 7, enightsets 9,
+saveload 10, msdim 7, wmtip 9, trio 9, theme 14, themeswap 10, fog 15, qpage 11,
+visitmap 15, enight 8, tvcard 6, reshuffle 13), Code 1 EXECUTES CLEAN.
 
 ### A Cancer on the Presidency_init (draft).txt
 

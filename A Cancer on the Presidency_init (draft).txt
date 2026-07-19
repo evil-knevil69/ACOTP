@@ -2082,6 +2082,9 @@ function __nukeTvTick() {
     const on = document.body && document.body.classList.contains('acop-nuke')
         && (__isFinalElectionMapRaw() || __isElectionNightRaw());
     gw.classList.toggle('acop-nuke-tv', !!on);
+    // Body-level signal for chrome OUTSIDE #game_window (the host site banner):
+    // the terminal screen hides it entirely (CSS below).
+    document.body.classList.toggle('acop-nuke-screen', !!on);
     // The census zeroed every electoral vote (Code 2), so the engine already
     // hides the EV chrome — the panel's hardcoded <h3> is the one piece left
     // to rename. Idempotent by text; unwound if the flag drops mid-screen.
@@ -2204,15 +2207,16 @@ function __nukeEbsIntroTick(nightOn) {
     img.src = _NUKE_EBS_INTRO_IMG;
     mc.appendChild(img);
     if (img.animate) {
+        // Quick fade-in (~300ms) + brief hold, then a slow 5s fade-out.
         img.animate([
             { opacity: 0 },
-            { opacity: 1, offset: 0.06 },
-            { opacity: 1, offset: 0.35 },
+            { opacity: 1, offset: 0.05 },
+            { opacity: 1, offset: 0.167 },
             { opacity: 0 },
-        ], { duration: 3000, easing: 'ease-out', fill: 'forwards' });
-        setTimeout(() => img.remove(), 3200);
+        ], { duration: 6000, easing: 'linear', fill: 'forwards' });
+        setTimeout(() => img.remove(), 6200);
     } else {
-        setTimeout(() => img.remove(), 3000);
+        setTimeout(() => img.remove(), 6000);
     }
 }
 
@@ -2375,7 +2379,7 @@ function __nukeStaticFlare(big) {
     }
     // (re)grab the noise gif each time in case the map bg changed
     try { const bg = getComputedStyle(mc).backgroundImage; if (bg && bg !== 'none') fl.style.backgroundImage = bg; } catch (e) {}
-    const peak = big ? 0.95 : 0.8;
+    const peak = big ? 1.0 : 0.9;
     fl.animate([
         { opacity: 0 },
         { opacity: peak, offset: 0.1 },
@@ -5168,6 +5172,12 @@ body.low-fx-on #game_window.acop-nuke-tv #map_container svg {
     background: transparent !important;
     opacity: 0 !important;
 }
+/* Host site banner OUTSIDE #game_window (#header) — hidden entirely on the nuke
+   terminal screen (body.acop-nuke-screen, stamped by __nukeTvTick), so its
+   default background bar doesn't sit above the war-room feed. */
+body.acop-nuke-screen #header {
+    display: none !important;
+}
 #game_window.acop-nuke-tv #menu_container { position: static !important; }
 /* Results panels (nuke only — the normal .acop-final-tv screen keeps its
    tilted sticky-notes): flat (no rotate tilt), shifted 25px right of the
@@ -5302,15 +5312,17 @@ body.low-fx-on #nuke-chyron span { animation: none; }
     background-size: cover; opacity: 0; transition: opacity 1.2s linear;
 }
 body.low-fx-on #nuke-degrade { display: none; }
-/* Static flare — a bright screen-blended burst of the noise gif, driven by
-   __nukeStaticFlare (fires with the judder). Above the map + scanlines,
-   below the wire/NORAD/chyron furniture. Scaled up (220%) so its grain is
-   OFFSET from the map's own noise — otherwise the same gif over itself just
-   blends in invisibly — and brightened so the spike clearly reads. */
+/* Static flare — a bright burst of the noise gif, driven by __nukeStaticFlare
+   (fires with the judder). Above the map + scanlines, below the wire/NORAD/
+   chyron furniture. NORMAL compositing (NOT mix-blend-mode: screen — the
+   #map_container mask isolates the group, and a screen-blend of the noise over
+   the map's own noise reads as almost nothing). Instead the gif is scaled up
+   (220%, grain offset from the map's) and pushed hard to bright, high-contrast
+   static, then composited at high opacity so the spike unmistakably flashes. */
 #nuke-flare {
     position: absolute; inset: 0; z-index: 9003; pointer-events: none;
     background-size: 220%; background-position: center; opacity: 0;
-    mix-blend-mode: screen; filter: brightness(1.9) contrast(1.5);
+    filter: brightness(2.6) contrast(1.8);
 }
 body.low-fx-on #nuke-flare { display: none; }
 /* EBS intro image — pops up over the map after OK, fades over 3s (opacity
