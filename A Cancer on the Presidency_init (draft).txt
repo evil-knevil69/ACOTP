@@ -5002,6 +5002,22 @@ body.low-fx-on #map_container {
    pointer-events:none so state clicks still land. */
 #game_window.acop-nuke-tv #map_container {
     position: relative;
+    /* Feather all four edges of the MAP to transparency (tube-glass bleed into
+       the black content area). Scoped to #map_container, NOT #main_content_area,
+       so the result panels — which are siblings under #menu_container, not
+       children of the map — stay crisp. */
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%),
+                        linear-gradient(to bottom, transparent 0%, black 6%, black 94%, transparent 100%);
+    -webkit-mask-composite: destination-in;
+    mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%),
+                linear-gradient(to bottom, transparent 0%, black 6%, black 94%, transparent 100%);
+    mask-composite: intersect;
+}
+/* LOW DEMAND MODE: the feather is an extra composited layer (same reason the
+   game-window edge mask is dropped in low mode) — lose it. */
+body.low-fx-on #game_window.acop-nuke-tv #map_container {
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
 }
 #game_window.acop-nuke-tv #map_container::after {
     content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 9000;

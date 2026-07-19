@@ -700,6 +700,17 @@ Verified: nuke_check 100/100 (+5 assertions), opts_gap harness (gap 65→0,
 content bottom −66), nuke_layout (EBS box == map box, panels flat +25),
 regression suite green, both files EXECUTE CLEAN.
 
+**37. Nuke map edge feather (Jul 2026)** — `#game_window.acop-nuke-tv
+#map_container` gets a two-axis linear-gradient mask (6% feather each edge,
+`mask-composite: intersect`) so the map bleeds to transparency into the black
+`#main_content_area`. Deliberately on `#map_container`, NOT `#main_content_area`
+— the result panels are siblings under `#menu_container`, so they stay crisp
+(a mask on main_content_area would feather them too, since they're in its
+subtree). Dropped under low demand mode. NOTE: the broadcast furniture
+(chyron / wire feed / NORAD counter) is appended inside `#map_container`, so it
+also feathers at the very edges. Verified: nuke_check 102/102 (+2 assertions;
+mask on map not content-area, low-fx drop), render confirms panels crisp.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
