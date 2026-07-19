@@ -2303,24 +2303,25 @@ function __nukeRollJudder() {
     __nukeImpactCount = 0;
     __nukeNextJudderAt = _NUKE_JUDDER_MIN + Math.floor(Math.random() * (_NUKE_JUDDER_MAX - _NUKE_JUDDER_MIN + 1));
 }
-function __nukeJudder() {
+// Shake the whole game window. `big` (Washington DC — decapitation strike) is
+// a much heavier jolt. Amplitudes are deliberately visible.
+function __nukeJudder(big) {
     if (document.body.classList.contains('low-fx-on')) return;
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const gw = document.getElementById('game_window');
     if (!gw || !gw.animate) return;
+    const a = big ? 18 : 8;                     // px amplitude (was ~3)
+    const s = (x, y) => ({ transform: 'translate(' + x.toFixed(1) + 'px, ' + y.toFixed(1) + 'px)' });
     gw.animate([
-        { transform: 'translate(0px, 0px)' },
-        { transform: 'translate(-3px, 2px)' },
-        { transform: 'translate(3px, -2px)' },
-        { transform: 'translate(-2px, 2px)' },
-        { transform: 'translate(2px, -1px)' },
-        { transform: 'translate(0px, 0px)' },
-    ], { duration: 340, easing: 'ease-in-out' });
+        s(0, 0), s(-a, a * 0.55), s(a * 0.9, -a * 0.6), s(-a * 0.7, a * 0.5),
+        s(a * 0.6, -a * 0.35), s(-a * 0.35, a * 0.2), s(0, 0),
+    ], { duration: big ? 620 : 420, easing: 'ease-in-out' });
 }
-// A burst of TV static flares over the map, screen-blended so it reads as a
-// bright interference spike (fires WITH the judder — the big-blast beat — not
-// on every impact, to avoid a full-screen strobe). Reuses the noise gif.
-function __nukeStaticFlare() {
+// A burst of TV static flares over the map — screen-blended, brightened, and
+// scaled DIFFERENTLY from the map's own noise so it clearly reads as a spike
+// (reusing the gif at the same scale just blended invisibly into the existing
+// static). Fires WITH the judder (the big-blast beat), not every impact.
+function __nukeStaticFlare(big) {
     if (document.body.classList.contains('low-fx-on')) return;
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const mc = document.getElementById('map_container');
@@ -2329,15 +2330,17 @@ function __nukeStaticFlare() {
     if (!fl) {
         fl = document.createElement('div');
         fl.id = 'nuke-flare';
-        try { fl.style.backgroundImage = getComputedStyle(mc).backgroundImage; } catch (e) {}
         mc.appendChild(fl);
     }
+    // (re)grab the noise gif each time in case the map bg changed
+    try { const bg = getComputedStyle(mc).backgroundImage; if (bg && bg !== 'none') fl.style.backgroundImage = bg; } catch (e) {}
+    const peak = big ? 0.95 : 0.8;
     fl.animate([
         { opacity: 0 },
-        { opacity: 0.55, offset: 0.12 },
-        { opacity: 0.3, offset: 0.4 },
+        { opacity: peak, offset: 0.1 },
+        { opacity: peak * 0.55, offset: 0.45 },
         { opacity: 0 },
-    ], { duration: 300, easing: 'ease-out' });
+    ], { duration: big ? 620 : 450, easing: 'ease-out' });
 }
 // Called at every impact (ground + air). Advances the counter and fires the
 // judder + a static flare when the random threshold is reached, then re-rolls.
@@ -2507,6 +2510,12 @@ function __nukeStrikeAt(svg, path) {
     }
     __nukeWireLine(abbr);
     __nukeDegrade();
+    // Washington DC — the decapitation strike: a BIG jolt + heavy static flare
+    // when its lead warhead lands (re-rolls the ordinary judder schedule so a
+    // normal one doesn't stack right after).
+    if (abbr === 'DC') {
+        setTimeout(() => { __nukeRollJudder(); __nukeJudder(true); __nukeStaticFlare(true); }, _NUKE_FLIGHT_MS);
+    }
     // the gratuitous barrage: this state's share of the re-strikes, raining in
     // at random for the rest of the night (guards: screen gone, war unwound,
     // low demand toggled mid-night)
@@ -5060,11 +5069,11 @@ body.low-fx-on #map_container {
        the black content area). Scoped to #map_container, NOT #main_content_area,
        so the result panels — which are siblings under #menu_container, not
        children of the map — stay crisp. */
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%),
-                        linear-gradient(to bottom, transparent 0%, black 6%, black 94%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%),
+                        linear-gradient(to bottom, transparent 0%, black 3%, black 97%, transparent 100%);
     -webkit-mask-composite: destination-in;
-    mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%),
-                linear-gradient(to bottom, transparent 0%, black 6%, black 94%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%),
+                linear-gradient(to bottom, transparent 0%, black 3%, black 97%, transparent 100%);
     mask-composite: intersect;
 }
 /* LOW DEMAND MODE: the feather is an extra composited layer (same reason the
@@ -5110,6 +5119,13 @@ body.low-fx-on #game_window.acop-nuke-tv #map_container svg {
     overflow: visible !important;
 }
 #game_window.acop-nuke-tv #main_content_area { overflow: visible !important; background: #000 !important; }
+/* Game header fully transparent on the nuke screen (no ACOP banner/logo bleeding
+   into the war-room look). */
+#game_window.acop-nuke-tv .game_header,
+#game_window.acop-nuke-tv .game_header h2 {
+    background: transparent !important;
+    opacity: 0 !important;
+}
 #game_window.acop-nuke-tv #menu_container { position: static !important; }
 /* Results panels (nuke only — the normal .acop-final-tv screen keeps its
    tilted sticky-notes): flat (no rotate tilt), shifted 25px right of the
@@ -5164,10 +5180,13 @@ body.low-fx-on #nuke-chyron span { animation: none; }
 body.low-fx-on #nuke-degrade { display: none; }
 /* Static flare — a bright screen-blended burst of the noise gif, driven by
    __nukeStaticFlare (fires with the judder). Above the map + scanlines,
-   below the wire/NORAD/chyron furniture. */
+   below the wire/NORAD/chyron furniture. Scaled up (220%) so its grain is
+   OFFSET from the map's own noise — otherwise the same gif over itself just
+   blends in invisibly — and brightened so the spike clearly reads. */
 #nuke-flare {
     position: absolute; inset: 0; z-index: 9003; pointer-events: none;
-    background-size: cover; opacity: 0; mix-blend-mode: screen;
+    background-size: 220%; background-position: center; opacity: 0;
+    mix-blend-mode: screen; filter: brightness(1.9) contrast(1.5);
 }
 body.low-fx-on #nuke-flare { display: none; }
 .nuke-standby {

@@ -720,9 +720,21 @@ uniform in `[_NUKE_JUDDER_MIN,_NUKE_JUDDER_MAX]` = [5,15] → mean 10 (≈ 1-in-
 with a hard floor of 5 (≈ 1-in-5, never chains); ~9 events over the ~90-impact
 sequence (≥5 guaranteed). Both skipped under low-fx + reduced-motion; schedule
 re-rolls per Election Night (`__nukeRollJudder` in `__nukeStrikeWatch`). The
-`_NUKE_EBS_TONE_URL` is also now wired (file.garden EBS ogg). Verified:
-nuke_check 107/107 (judder distribution over 2000 impacts: floor/max/mean;
-game-window shake; flare over map screen-blended; both low-fx-gated), stable ×3.
+`_NUKE_EBS_TONE_URL` is also now wired (file.garden EBS ogg).
+TUNING PASS: judder amplitude bumped to 8px (from 3) with a `big` variant
+(18px); **Washington DC** (decapitation strike) fires a BIG judder + heavy
+flare when its lead warhead lands (`abbr==='DC'` in `__nukeStrikeAt`,
+re-rolls the ordinary schedule). The static flare was invisible (same gif
+over itself blends to nothing) — fixed by scaling `#nuke-flare` to 220% (grain
+offset from the map noise) + `brightness(1.9) contrast(1.5)` + higher opacity;
+render confirms a clear spike. Map edge feather narrowed 6%→3%. Game header
+made fully transparent on the nuke screen (`opacity:0` on
+`#game_window.acop-nuke-tv .game_header` — hides the corrr logo `<img>`
+(logo8.png) + h2 too; the site's `#header` banner outside game_window is
+untouched). Verified: nuke_check 111/111 (judder distribution, shake, flare
+over-map + low-fx gate + DC big + amplitude + header transparency), stable ×3,
+render confirms flare visible + 3% feather + transparent header, regression
+suite green, both files EXECUTE CLEAN.
 
 ### A Cancer on the Presidency_init (draft).txt
 
