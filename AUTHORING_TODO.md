@@ -31,9 +31,9 @@ console `ACOPNuke.demo()`.
       `no_electoral_majority_image` (currently the stock image). The
       `description` fields on 50000/70000/80000 are still
       "Put description here" — they surface on candidate screens.
-- [ ] **1.3 EBS attention tone.** `_NUKE_EBS_TONE_URL` (Code 1, grep it) —
-      the two-tone Emergency Broadcast System signal, plays once as the
-      warning popup appears. Host on jukehost/file.garden, paste URL.
+- [x] **1.3 EBS attention tone** — DONE. `_NUKE_EBS_TONE_URL` set to the
+      file.garden `Emergency_broadcast_system.ogg`; plays once as the warning
+      popup appears (skipped under low demand mode).
 - [ ] **1.4 Impact rumble.** `_NUKE_RUMBLE_URL` (Code 1) — distant boom,
       throttled to one per 2.5s no matter how many warheads land. Short
       clip (~1–2s) works best.

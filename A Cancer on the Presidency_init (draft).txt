@@ -2270,7 +2270,7 @@ var _NUKE_SLBM_SHARE  = 0.22; // fraction of strikes that come in from the RIGHT
 // Easiest way to dial one in: run ACOPNuke.demo(), watch where the state's
 // hits land, and nudge until they sit on the landmass. Empty = bbox centre.
 var _NUKE_HIT_OFFSET = {};
-var _NUKE_EBS_TONE_URL = '';  // FILL ME IN — EBS two-tone attention signal; plays once as the warning popup appears ('' = silent)
+var _NUKE_EBS_TONE_URL = 'https://file.garden/aXPgNT-ZRCxxpy0g/Emergency_broadcast_system.ogg';  // EBS two-tone attention signal; plays once as the warning popup appears ('' = silent)
 var _NUKE_RUMBLE_URL   = '';  // FILL ME IN — distant impact rumble; throttled to one per 2.5s ('' = silent)
 var _NUKE_CHYRON_TEXT  = 'THIS IS NOT A TEST · AN ATTACK WARNING IS IN EFFECT · TAKE SHELTER IMMEDIATELY · DO NOT USE THE TELEPHONE · STAY TUNED TO THIS STATION';
 var _NUKE_WIRE_LINES   = ['CONTACT LOST WITH {C}', '{C} OFF THE AIR', 'NO SIGNAL FROM {C}', '{C} — TRANSMISSION ENDS', 'AFFILIATE IN {C} NOT RESPONDING'];
