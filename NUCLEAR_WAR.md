@@ -156,9 +156,17 @@ low-fx and/or reduced-motion opt-out:
   char (`#nuke-aftermath-layer`) from `window.__nukeScorches` (cleared
   when `body.acop-nuke` drops), and the state panel is retitled DAMAGE
   ASSESSMENT on both terminal screens.
-- **Sound** (FILL ME IN ×2) — `_NUKE_EBS_TONE_URL` at the open,
-  `_NUKE_RUMBLE_URL` per impact (throttled to one per 2.5s). Silent until
-  the URLs are set.
+- **Sound** — `_NUKE_EBS_TONE_URL` at the open (wired to the file.garden
+  EBS ogg), `_NUKE_RUMBLE_URL` per impact (FILL ME IN; throttled to one per
+  2.5s, silent until set).
+- **Screen judder + static flare** — the whole game window shakes slightly
+  after a random run of impacts (gap uniform in
+  `[_NUKE_JUDDER_MIN, _NUKE_JUDDER_MAX]` = [5,15]: mean 10 ≈ 1-in-10, hard
+  floor 5 ≈ 1-in-5 so it never chains; ~9 shakes over the ~90-impact
+  sequence), and a TV-static flare (`#nuke-flare`, screen-blended noise gif)
+  bursts over the map at the SAME moment (the big-blast beat — not every
+  impact). Both `__nukeImpactTick`-driven, both skipped under low demand mode
+  and reduced-motion; the judder schedule re-rolls per Election Night.
 
 ## Previewing it (no bunker question needed)
 

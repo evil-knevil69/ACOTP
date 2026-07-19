@@ -2292,6 +2292,58 @@ var _NUKE_CITY = {
 var __nukeStrikeObs = null;
 var __nukeStrikeSvg = null;   // the svg currently under watch (identity, not a flag — survives leave/re-enter)
 var __nukeCanonCache = {};
+// Screen judder: the whole game window shakes slightly after a random run of
+// impacts. Gap is uniform in [_NUKE_JUDDER_MIN, _NUKE_JUDDER_MAX] impacts →
+// mean 10 (≈ 1 in 10) with a hard floor of 5 (≈ 1 in 5, so it never chains).
+// Over the full sequence (~90 impacts) that's ~9 shakes — well over the 5 min.
+var _NUKE_JUDDER_MIN = 5, _NUKE_JUDDER_MAX = 15;
+var __nukeImpactCount = 0;
+var __nukeNextJudderAt = _NUKE_JUDDER_MIN + Math.floor(Math.random() * (_NUKE_JUDDER_MAX - _NUKE_JUDDER_MIN + 1));
+function __nukeRollJudder() {
+    __nukeImpactCount = 0;
+    __nukeNextJudderAt = _NUKE_JUDDER_MIN + Math.floor(Math.random() * (_NUKE_JUDDER_MAX - _NUKE_JUDDER_MIN + 1));
+}
+function __nukeJudder() {
+    if (document.body.classList.contains('low-fx-on')) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const gw = document.getElementById('game_window');
+    if (!gw || !gw.animate) return;
+    gw.animate([
+        { transform: 'translate(0px, 0px)' },
+        { transform: 'translate(-3px, 2px)' },
+        { transform: 'translate(3px, -2px)' },
+        { transform: 'translate(-2px, 2px)' },
+        { transform: 'translate(2px, -1px)' },
+        { transform: 'translate(0px, 0px)' },
+    ], { duration: 340, easing: 'ease-in-out' });
+}
+// A burst of TV static flares over the map, screen-blended so it reads as a
+// bright interference spike (fires WITH the judder — the big-blast beat — not
+// on every impact, to avoid a full-screen strobe). Reuses the noise gif.
+function __nukeStaticFlare() {
+    if (document.body.classList.contains('low-fx-on')) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const mc = document.getElementById('map_container');
+    if (!mc || !mc.animate) return;
+    let fl = document.getElementById('nuke-flare');
+    if (!fl) {
+        fl = document.createElement('div');
+        fl.id = 'nuke-flare';
+        try { fl.style.backgroundImage = getComputedStyle(mc).backgroundImage; } catch (e) {}
+        mc.appendChild(fl);
+    }
+    fl.animate([
+        { opacity: 0 },
+        { opacity: 0.55, offset: 0.12 },
+        { opacity: 0.3, offset: 0.4 },
+        { opacity: 0 },
+    ], { duration: 300, easing: 'ease-out' });
+}
+// Called at every impact (ground + air). Advances the counter and fires the
+// judder + a static flare when the random threshold is reached, then re-rolls.
+function __nukeImpactTick() {
+    if (++__nukeImpactCount >= __nukeNextJudderAt) { __nukeRollJudder(); __nukeJudder(); __nukeStaticFlare(); }
+}
 function __nukeCanonColor(c) {
     if (!c) return '';
     if (__nukeCanonCache[c]) return __nukeCanonCache[c];
@@ -2543,6 +2595,7 @@ function __nukeOneMissile(svg, g, tx, ty, bb, ground) {
     setTimeout(() => {
         mg.remove();
         __nukeRumble();
+        __nukeImpactTick();   // every impact advances the judder counter
         tracer.animate([{ opacity: 0.85 }, { opacity: 0 }], { duration: 240, fill: 'forwards' });
         const flash = mk('circle', { cx: tx, cy: ty, r: 3, fill: '#fff7dd', opacity: '0.95' });
         const ring = mk('circle', { cx: tx, cy: ty, r: 3, fill: 'none', stroke: '#ffcf8a', 'stroke-width': ground ? '2' : '2.5', opacity: '0.8' });
@@ -2585,6 +2638,7 @@ function __nukeStrikeWatch(nukeOn) {
     if (__nukeStrikeObs) { try { __nukeStrikeObs.disconnect(); } catch (e) {} __nukeStrikeObs = null; }
     __nukeStrikeSvg = svg;
     if (!svg) return;
+    __nukeRollJudder();   // fresh night → fresh judder schedule
     const censusFills = (window.__nukeCensusColors || []).map(__nukeCanonColor);
     __nukeStrikeObs = new MutationObserver(muts => {
         for (const m of muts) {
@@ -5108,6 +5162,14 @@ body.low-fx-on #nuke-chyron span { animation: none; }
     background-size: cover; opacity: 0; transition: opacity 1.2s linear;
 }
 body.low-fx-on #nuke-degrade { display: none; }
+/* Static flare — a bright screen-blended burst of the noise gif, driven by
+   __nukeStaticFlare (fires with the judder). Above the map + scanlines,
+   below the wire/NORAD/chyron furniture. */
+#nuke-flare {
+    position: absolute; inset: 0; z-index: 9003; pointer-events: none;
+    background-size: cover; opacity: 0; mix-blend-mode: screen;
+}
+body.low-fx-on #nuke-flare { display: none; }
 .nuke-standby {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
     z-index: 9006; pointer-events: none; padding: 14px 30px;

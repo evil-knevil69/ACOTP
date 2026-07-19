@@ -711,6 +711,19 @@ subtree). Dropped under low demand mode. NOTE: the broadcast furniture
 also feathers at the very edges. Verified: nuke_check 102/102 (+2 assertions;
 mask on map not content-area, low-fx drop), render confirms panels crisp.
 
+**38. Nuke screen judder + static flare (Jul 2026)** — Code 1, in the strike
+block. `__nukeImpactTick` (called at every impact, ground + air) counts impacts
+and, when a random threshold is hit, shakes the whole `#game_window`
+(`__nukeJudder`, ±3px transform) AND bursts a screen-blended static flare over
+the map (`__nukeStaticFlare`, `#nuke-flare`, reuses the noise gif). Gap is
+uniform in `[_NUKE_JUDDER_MIN,_NUKE_JUDDER_MAX]` = [5,15] → mean 10 (≈ 1-in-10)
+with a hard floor of 5 (≈ 1-in-5, never chains); ~9 events over the ~90-impact
+sequence (≥5 guaranteed). Both skipped under low-fx + reduced-motion; schedule
+re-rolls per Election Night (`__nukeRollJudder` in `__nukeStrikeWatch`). The
+`_NUKE_EBS_TONE_URL` is also now wired (file.garden EBS ogg). Verified:
+nuke_check 107/107 (judder distribution over 2000 impacts: floor/max/mean;
+game-window shake; flare over map screen-blended; both low-fx-gated), stable ×3.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
