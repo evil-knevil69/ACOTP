@@ -736,6 +736,20 @@ over-map + low-fx gate + DC big + amplitude + header transparency), stable ×3,
 render confirms flare visible + 3% feather + transparent header, regression
 suite green, both files EXECUTE CLEAN.
 
+**39. Nuke results panels → war-room terminal reskin (Jul 2026)** — Code 1 CSS,
+scoped to `#game_window.acop-nuke-tv` (the normal `.acop-final-tv` sticky-notes
+are untouched). Pure CSS over the stock engine markup: the yellow note becomes a
+dark charcoal terminal (`rgba(8,10,12,0.9)`, amber border + glow, Courier
+phosphor text with a faint amber text-glow), the `h3` (CASUALTY CENSUS / DAMAGE
+ASSESSMENT) an inverted oxblood chyron bar matching the crawl, and the engine's
+inline-coloured `--` row swatch a clean 10px census-colour SQUARE (grey/red/
+green/slate) so each panel reads like a legend for the map. CRT scanlines
+(`::after`) + a gentle `nukePanelFlicker` (reduced-motion gated, low-fx off). No
+watermark (per request). Verified: nuke_check 115/115 (+4: dark reskin, chyron
+headers, swatch→square, scanlines+flicker gating), statecard 18 / scoreboard
+7+5 / enight 8 / tvcard 6 unchanged (reskin is nuke-only), render confirms the
+terminal look + census squares, both files EXECUTE CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.

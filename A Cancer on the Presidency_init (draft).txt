@@ -5138,6 +5138,88 @@ body.low-fx-on #game_window.acop-nuke-tv #map_container svg {
     left: 817px !important; top: 270px !important; z-index: 8996 !important;
     transform: none !important;
 }
+/* ── Results panels: war-room / CRT terminal reskin (nuke screen only — the
+   normal .acop-final-tv sticky-notes are untouched). Pure CSS over the stock
+   engine markup: the yellow note becomes a dark phosphor terminal, the h3 a
+   chyron bar, and the engine's per-row colour swatch a clean census square. ── */
+#game_window.acop-nuke-tv #overall_result_container,
+#game_window.acop-nuke-tv #state_result_container {
+    background-color: rgba(8, 10, 12, 0.9) !important;
+    border: 1px solid rgba(199, 140, 60, 0.55);
+    box-shadow: 0 0 16px rgba(0, 0, 0, 0.6), inset 0 0 24px rgba(255, 150, 60, 0.05);
+    font-family: 'Courier New', monospace !important;
+    color: #ffcf8a;
+    overflow: hidden;
+}
+#game_window.acop-nuke-tv #overall_result,
+#game_window.acop-nuke-tv #state_result {
+    background: transparent !important;
+    color: #ffcf8a !important;
+    position: relative;
+    padding-bottom: 7px;
+}
+/* CRT scanlines over the panel body */
+#game_window.acop-nuke-tv #overall_result_container::after,
+#game_window.acop-nuke-tv #state_result_container::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+    background: repeating-linear-gradient(to bottom,
+        transparent 0px, transparent 2px, rgba(0, 0, 0, 0.22) 2px, rgba(0, 0, 0, 0.22) 3px);
+}
+/* header → inverted chyron bar */
+#game_window.acop-nuke-tv #overall_result h3,
+#game_window.acop-nuke-tv #state_result h3 {
+    background: #600e08 !important;
+    color: #f0e6c8 !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 13px !important; font-weight: bold !important;
+    letter-spacing: 2px !important; text-align: center;
+    margin: 0 0 6px !important; padding: 5px 6px !important;
+    border-bottom: 1px solid rgba(199, 170, 96, 0.6);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+/* rows: monospace phosphor with a faint glow */
+#game_window.acop-nuke-tv #overall_result ul,
+#game_window.acop-nuke-tv #state_result ul {
+    list-style: none !important; margin: 0 !important; padding: 3px 8px !important;
+}
+#game_window.acop-nuke-tv #overall_result li,
+#game_window.acop-nuke-tv #state_result li {
+    font-family: 'Courier New', monospace !important;
+    font-size: 12px !important; color: #ffcf8a !important;
+    letter-spacing: 0.3px; line-height: 1.55;
+    text-shadow: 0 0 4px rgba(255, 160, 60, 0.35);
+    display: flex; align-items: center; gap: 6px;
+    background: transparent !important;
+}
+/* the engine's inline-coloured "--" swatch → a clean census-colour square */
+#game_window.acop-nuke-tv #overall_result li span,
+#game_window.acop-nuke-tv #state_result li span {
+    display: inline-block !important; width: 10px !important; height: 10px !important;
+    overflow: hidden !important; text-indent: -999px; flex: 0 0 auto;
+    border: 1px solid rgba(0, 0, 0, 0.55); border-radius: 1px;
+}
+/* footer lines ("40% complete", "Click on a state…") */
+#game_window.acop-nuke-tv #overall_result p,
+#game_window.acop-nuke-tv #state_result p {
+    font-family: 'Courier New', monospace !important;
+    font-size: 11px !important; color: #d8b070 !important;
+    letter-spacing: 1px; margin: 6px 8px 0 !important; background: transparent !important;
+    text-shadow: 0 0 4px rgba(255, 160, 60, 0.3);
+}
+/* gentle CRT flicker — opt out under low-fx / reduced-motion */
+@media (prefers-reduced-motion: no-preference) {
+    #game_window.acop-nuke-tv #overall_result,
+    #game_window.acop-nuke-tv #state_result {
+        animation: nukePanelFlicker 3.7s steps(1) infinite;
+    }
+    body.low-fx-on #game_window.acop-nuke-tv #overall_result,
+    body.low-fx-on #game_window.acop-nuke-tv #state_result { animation: none; }
+}
+@keyframes nukePanelFlicker {
+    0%, 96%, 100% { opacity: 1; }
+    97% { opacity: 0.9; }
+    98.5% { opacity: 0.97; }
+}
 /* The EBS opener window is positioned in JS (__nukeEbsTick) to exactly cover
    #map_container and sit above the result panels; z-index set here. */
 #election_night_window.nuke-ebs { z-index: 9100 !important; }
