@@ -2137,6 +2137,28 @@ function __nukeEbsTick(nightOn) {
     if (win.dataset.nukeEbs) return;
     win.dataset.nukeEbs = '1';
     win.classList.add('nuke-ebs');
+    // Cover #map_container exactly (same size + position), sitting above the
+    // result panels (z-index in the .nuke-ebs CSS). Measured off the live
+    // boxes so it tracks whatever the map screen laid out.
+    const gw = document.getElementById('game_window');
+    const mc = document.getElementById('map_container');
+    if (gw && mc) {
+        const gr = gw.getBoundingClientRect(), mr = mc.getBoundingClientRect();
+        // !important: the base `.overlay_window` rule sets width/height/overflow
+        // !important, so plain inline styles would lose to it.
+        const set = (k, v) => win.style.setProperty(k, v, 'important');
+        set('position', 'absolute');
+        set('margin', '0');
+        set('transform', 'none');
+        set('max-width', 'none');
+        set('max-height', 'none');
+        set('box-sizing', 'border-box');
+        set('overflow', 'hidden');
+        set('left', (mr.left - gr.left) + 'px');
+        set('top', (mr.top - gr.top) + 'px');
+        set('width', mr.width + 'px');
+        set('height', mr.height + 'px');
+    }
     const h3 = win.querySelector('h3');
     if (h3) h3.textContent = 'EMERGENCY BROADCAST SYSTEM';
     const img = win.querySelector('img');
@@ -5017,17 +5039,22 @@ body.low-fx-on #game_window.acop-nuke-tv #map_container svg {
     mask-image: none !important;
     overflow: visible !important;
 }
-#game_window.acop-nuke-tv #main_content_area { overflow: visible !important; }
+#game_window.acop-nuke-tv #main_content_area { overflow: visible !important; background: #000 !important; }
 #game_window.acop-nuke-tv #menu_container { position: static !important; }
+/* Results panels (nuke only — the normal .acop-final-tv screen keeps its
+   tilted sticky-notes): flat (no rotate tilt), shifted 25px right of the
+   earlier 792px. */
 #game_window.acop-nuke-tv #overall_result_container {
-    left: 792px !important; top: 96px !important; z-index: 8996 !important;
+    left: 817px !important; top: 96px !important; z-index: 8996 !important;
+    transform: none !important;
 }
 #game_window.acop-nuke-tv #state_result_container {
-    left: 792px !important; top: 270px !important; z-index: 8996 !important;
+    left: 817px !important; top: 270px !important; z-index: 8996 !important;
+    transform: none !important;
 }
-/* The EBS opener window slides to the top-left of the map (151px left of its
-   centred default — margin, so the base centring transform is untouched). */
-#election_night_window.nuke-ebs { margin-left: -151px !important; }
+/* The EBS opener window is positioned in JS (__nukeEbsTick) to exactly cover
+   #map_container and sit above the result panels; z-index set here. */
+#election_night_window.nuke-ebs { z-index: 9100 !important; }
 /* ── nuke broadcast furniture (elements mounted by the __nuke* ticks) ── */
 #nuke-chyron {
     position: absolute; left: 0; right: 0; bottom: 0; height: 22px; overflow: hidden;
@@ -5571,8 +5598,13 @@ window.__onGameWindowMutation(() => {
             '#inner_window_4 #campaign_length_options,' +
             '#inner_window_4 #campaign_length_description_window { position: relative; top: -45px; }' +
             /* The option checkboxes now live in #acop-options-grid (its own
-               margin-top spaces it below the campaign block); buttons down 15px. */
-            '#inner_window_4 #opponent_selection_id_button_p { margin: 8px 0 0; position: relative; top: 15px; }';
+               margin-top spaces it below the campaign block). Buttons pulled
+               up tight under the grid: the old gap was the global
+               margin-top:50 !important + a relative top:15 = 65px; zero both
+               (higher-specificity !important beats the global) so the gap is
+               65px smaller and the content — and thus the auto-height game
+               window — shrinks by the removed flow margin. */
+            '#inner_window_4 #opponent_selection_id_button_p { margin: 0 !important; position: static; top: auto; }';
         document.head.appendChild(st);
     }
 

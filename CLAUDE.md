@@ -680,6 +680,26 @@ strike sub-tests set `_NUKE_SCORCH=true` + `_NUKE_FLIGHT_MS=300` and isolate the
 strike layer per sub-test — flakiness fix), stable ×3, full regression suite
 green, both files EXECUTE CLEAN.
 
+**36. Nuke screen layout pass 2 + options-gap (Jul 2026)** — all Code 1, the
+nuke ones scoped to `#game_window.acop-nuke-tv` / `.nuke-ebs` so the normal
+election-night / final-map screens are untouched.
+- **EBS opener covers `#map_container` exactly** (same size + position) and
+  sits above the result panels. Positioned in `__nukeEbsTick` by measuring the
+  live game-window/map rects (`setProperty(...,'important')` because the base
+  `.overlay_window` sets width/height `!important`); `z-index:9100` in the
+  `.nuke-ebs` CSS. Replaces the old `margin-left:-151px` nudge.
+- **Result panels**: no tilt (`transform:none`), shifted +25px right
+  (`left:792→817`), still re-anchored to `#game_window`.
+- **`#main_content_area` solid black** under nuke (`background:#000`).
+- **Options screen gap** (NON-nuke, `#inner_window_4`): Back/Continue pulled
+  tight under the checkbox grid — the old 65px gap (global `margin-top:50
+  !important` + relative `top:15`) zeroed via a higher-specificity
+  `margin: 0 !important`, so the gap is 65px smaller and the auto-height game
+  window shrinks by the removed flow margin.
+Verified: nuke_check 100/100 (+5 assertions), opts_gap harness (gap 65→0,
+content bottom −66), nuke_layout (EBS box == map box, panels flat +25),
+regression suite green, both files EXECUTE CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
