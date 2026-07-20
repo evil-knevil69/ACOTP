@@ -5214,6 +5214,14 @@ body.low-fx-on #map_container {
    pointer-events:none so state clicks still land. */
 #game_window.acop-nuke-tv #map_container {
     position: relative;
+    /* Uniformly bigger container on the nuke screen (the map SVG keeps its fixed
+       721×400 and stays flex-centred, so it gains black margin all round). The
+       margins shrink by half the growth so the map itself doesn't move. Capped so
+       the right edge stays clear of the result panels at x:817. */
+    width: 791px !important;
+    height: 570px !important;
+    margin-left: 55px !important;
+    margin-top: 25px !important;
     /* Feather the LEFT/RIGHT and TOP edges of the MAP to transparency (tube-glass
        bleed into the black content area), but leave the BOTTOM edge solid — the
        feathered bottom blur was unwanted. Scoped to #map_container, NOT

@@ -906,10 +906,16 @@ top of them) but UNDER the fallout plumes, so it mutes the census tints (esp. th
 red Injured states, which the map's own `saturate(1.4)` was pushing) toward grey
 while the plumes drawn after it keep their colour and read clearly. Plume colours
 bumped a touch more vivid (`_NUKE_FALLOUT_CORE` rgba(226,52,100,0.30)). Rect sized
-to the svg viewBox. Idempotence count updated (`scorches × per + 1`). Verified:
-nuke_check 133/133 (+3: bottom-solid feather, wash-under-plumes first-child,
-wash config; aftermath count → ×4 + 1), full regression suite green + render
-preview (plumes pop against the washed states), Code 1 EXECUTES CLEAN.
+to the svg viewBox. Idempotence count updated (`scorches × per + 1`). (3)
+`#map_container` made **uniformly bigger** on the nuke screen (791×570, was
+721×500) with `margin-left/top` shrunk by half the growth so the map SVG — which
+keeps its fixed 721×400 and stays flex-centred — doesn't move; it just gains black
+margin all round. Capped so the right edge (~846) stays clear of the result panels
+(x:817): the mask's right-edge feather fades the container margin before it reaches
+them, so the panels stay crisp. Verified: nuke_check 134/134 (+4: bottom-solid
+feather, wash-under-plumes first-child, wash config, container-bigger-svg-untouched;
+aftermath count → ×4 + 1), full regression suite green + render previews (plumes
+pop against the washed states; bigger container, panels crisp), Code 1 EXECUTES CLEAN.
 
 ### A Cancer on the Presidency_init (draft).txt
 
