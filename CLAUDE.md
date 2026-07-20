@@ -790,6 +790,26 @@ regression suite green (lowfx 24, statecard 18, scoreboard 7, enightsets 9,
 saveload 10, msdim 7, wmtip 9, trio 9, theme 14, themeswap 10, fog 15, qpage 11,
 visitmap 15, enight 8, tvcard 6, reshuffle 13), Code 1 EXECUTES CLEAN.
 
+**42. Nuke: state recolour coincides with the impact (Jul 2026)** — Code 1.
+The strike observer used to let the engine's call-recolour stand and THEN launch
+the missile, so the state turned red ~1.4s before the warhead landed. Now the
+observer captures the census colour, reverts the state to its pre-call fill
+(`m.oldValue`), and hands the colour to `__nukeStrikeAt(svg, path, censusColor)`,
+which passes it as an `onImpact` callback to the LEAD warhead (`__nukeOneMissile(...,
+onImpact)`) — the state turns its census colour AT the impact flash. A new
+`path.__nukeStruck` guard stops the at-impact repaint (tan→census) from being read
+as a fresh call. Fail-safe immediate paint wherever no warhead flies: low demand
+mode + no-bbox early returns call `applyColor()`, reduced motion paints up front
+(onImpact suppressed), and the no-WAAPI branch in `__nukeOneMissile` fires
+`onImpact` too — so a state can never stick on its pre-call colour. Only deferred
+when the observer can actually revert (`m.oldValue != null`); otherwise the old
+immediate recolour stands. Verified: nuke_check 119/119 (+1: state holds pre-call
+colour through the flight, turns census at impact; low-demand-still-recolours and
+all strike/air-burst/MIRV/barrage tests unchanged), full regression suite green
+(lowfx 24, statecard 18, scoreboard 7, enightsets 9, saveload 10, msdim 7, wmtip 9,
+trio 9, theme 14, themeswap 10, fog 15, qpage 11, visitmap 15, enight 8, tvcard 6,
+reshuffle 13), both files EXECUTE CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.

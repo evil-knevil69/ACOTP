@@ -2537,11 +2537,16 @@ function __nukeRumble() {
 // A state is called → its salvo. First warhead always ground-bursts on the
 // centroid area (the scorch every state keeps); follow-ups spread across the
 // state and may air-burst (flash + wide shockwave, no cloud, no scorch).
-function __nukeStrikeAt(svg, path) {
-    if (document.body.classList.contains('low-fx-on')) return;
+function __nukeStrikeAt(svg, path, censusColor) {
+    // Paint the deferred census colour on the state (see the strike observer).
+    const applyColor = () => { if (censusColor != null) { try { path.setAttribute('fill', censusColor); } catch (e) {} } };
+    if (document.body.classList.contains('low-fx-on')) { applyColor(); return; }
     let bb;
-    try { bb = path.getBBox(); } catch (e) { return; }
-    if (!bb || (!bb.width && !bb.height)) return;
+    try { bb = path.getBBox(); } catch (e) { applyColor(); return; }
+    if (!bb || (!bb.width && !bb.height)) { applyColor(); return; }
+    // No missile flight under reduced motion → paint the state immediately.
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) applyColor();
     const g = __nukeStrikeLayer(svg);
     const abbr = __nukeMaps(svg).byNode.get(path) || null;
     const off = (abbr && _NUKE_HIT_OFFSET[abbr]) || { x: 0, y: 0 };
@@ -2551,7 +2556,10 @@ function __nukeStrikeAt(svg, path) {
         const ty = bb.y + bb.height * (i === 0 ? 0.5 : 0.25 + Math.random() * 0.5) + off.y;
         const ground = i === 0 || Math.random() > 0.45;
         const delay = i === 0 ? 0 : 200 + Math.random() * 500;
-        setTimeout(() => { try { __nukeOneMissile(svg, g, tx, ty, bb, ground); } catch (e) {} }, delay);
+        // The lead warhead carries the recolour: the state turns its census
+        // colour exactly as this warhead lands.
+        const onImpact = (i === 0 && !reduce) ? applyColor : null;
+        setTimeout(() => { try { __nukeOneMissile(svg, g, tx, ty, bb, ground, onImpact); } catch (e) {} }, delay);
     }
     __nukeWireLine(abbr);
     __nukeDegrade();
@@ -2582,7 +2590,7 @@ function __nukeStrikeAt(svg, path) {
         }, rDelay);
     }
 }
-function __nukeOneMissile(svg, g, tx, ty, bb, ground) {
+function __nukeOneMissile(svg, g, tx, ty, bb, ground, onImpact) {
     const NS = 'http://www.w3.org/2000/svg';
     const mk = (tag, attrs) => {
         const el = document.createElementNS(NS, tag);
@@ -2605,7 +2613,7 @@ function __nukeOneMissile(svg, g, tx, ty, bb, ground) {
         }
     }
     const noMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (noMotion || !g.animate) { if (scorch) scorch.setAttribute('opacity', '0.45'); return; }
+    if (noMotion || !g.animate) { if (scorch) scorch.setAttribute('opacity', '0.45'); if (onImpact) onImpact(); return; }
     const FLIGHT = _NUKE_FLIGHT_MS;
     if (scorch) scorch.animate([{ opacity: 0 }, { opacity: 0.45 }], { duration: 400, delay: FLIGHT, fill: 'forwards' });
     // incoming: tracer line + the missile svg riding it. Approach vectors:
@@ -2648,6 +2656,7 @@ function __nukeOneMissile(svg, g, tx, ty, bb, ground) {
     // impact — air bursts flash bigger and ring wider but leave no cloud
     setTimeout(() => {
         mg.remove();
+        if (onImpact) onImpact();   // the state turns its census colour AS the warhead lands
         __nukeRumble();
         __nukeImpactTick();   // every impact advances the judder counter
         tracer.animate([{ opacity: 0.85 }, { opacity: 0 }], { duration: 240, fill: 'forwards' });
@@ -2705,7 +2714,19 @@ function __nukeStrikeWatch(nukeOn) {
             if (newV === oldV) continue;                          // hover re-sets etc.
             if (censusFills.length && censusFills.indexOf(newV) === -1) continue;   // not a call
             if (censusFills.indexOf(oldV) !== -1) continue;       // already called (shade tweak)
-            __nukeStrikeAt(svg, p);
+            if (p.__nukeStruck) continue;                         // our own at-impact repaint
+            p.__nukeStruck = true;
+            // Defer the state's colour to the missile's impact: revert it to the
+            // pre-call fill now and hand the census colour to __nukeStrikeAt to
+            // paint when the warhead lands (so the map goes red as it's hit, not
+            // ~1.4s before). Only when we can actually revert — otherwise fall
+            // back to the old immediate recolour.
+            let censusColor = null;
+            if (m.oldValue != null) {
+                censusColor = p.getAttribute('fill');
+                try { p.setAttribute('fill', m.oldValue); } catch (e) { censusColor = null; }
+            }
+            __nukeStrikeAt(svg, p, censusColor);
         }
     });
     __nukeStrikeObs.observe(svg, { attributes: true, subtree: true, attributeFilter: ['fill'], attributeOldValue: true });

@@ -81,6 +81,14 @@ plus two one-line guards in `A Cancer on the Presidency_init (draft).txt`
    OPTIONAL — it ships OFF (`_NUKE_SCORCH = false`), so the state's colour
    change is the only live mark; flip it true to bring back the scorched
    earth during the count (the aftermath damage map is kept either way).
+   **The colour change is DEFERRED to the warhead's impact**: when the
+   observer sees the engine call a state, it captures the census colour,
+   reverts the state to its pre-call fill, and hands the colour to the LEAD
+   warhead's `onImpact` — so the map goes red *as the missile lands*, not
+   ~1.4s before. A `path.__nukeStruck` flag stops the at-impact repaint from
+   launching a second strike. Fallbacks paint the colour immediately where no
+   warhead flies (low demand mode, reduced motion, no-WAAPI, a state with no
+   bbox), so a state can never get stuck on its pre-call colour.
    Same-value repaints, hover styles and
    non-census recolours don't fire; the final map repaints all-at-once so
    the observer only attaches on Election Night and disconnects on leaving.
