@@ -197,6 +197,15 @@ low-fx and/or reduced-motion opt-out:
   char (`#nuke-aftermath-layer`) from `window.__nukeScorches` (cleared
   when `body.acop-nuke` drops), and the state panel is retitled DAMAGE
   ASSESSMENT on both terminal screens.
+- **Fallout plumes** — on the final damage map each ground burst also gets a
+  downwind fallout plume: a teardrop streaming EAST (west-to-east prevailing
+  winds), rounded at the source and tapering to a point downwind, in
+  semi-transparent powder red so overlapping plumes build into the denser
+  regions (as on a real dose map). Two bands per burst — a wide low-dose halo
+  (`_NUKE_FALLOUT_HALO`) + a narrower high-dose core (`_NUKE_FALLOUT_CORE`) —
+  length `scorch-radius × _NUKE_FALLOUT_LEN`, with a slight per-plume wind
+  drift. `__nukePlumePath` builds the teardrop; `_NUKE_FALLOUT_ON` gates it.
+  Drawn under the crater so the burst point anchors its plume.
 - **Sound** — `_NUKE_EBS_TONE_URL` at the open (wired to the file.garden
   EBS ogg), `_NUKE_RUMBLE_URL` per impact (FILL ME IN; throttled to one per
   2.5s, silent until set).

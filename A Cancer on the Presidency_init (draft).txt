@@ -2264,18 +2264,55 @@ function __nukeNoradTick(nightOn, svg) {
 
 // Aftermath: the final election map inherits every ground-burst scorch from
 // the night (plus a smoke halo), so the damage assessment shows a pocked map.
+// Downwind fallout plumes on the final damage map — a teardrop of radioactive
+// fallout streaming EAST from each ground burst (west-to-east prevailing winds),
+// rounded at the source and tapering to a point downwind, in semi-transparent
+// powder red so overlapping plumes build into the denser regions (as on a real
+// fallout dose map). Two bands per burst: a wide low-dose halo + a narrower
+// high-dose core.
+var _NUKE_FALLOUT_ON   = true;   // draw fallout plumes on the final damage-assessment map
+var _NUKE_FALLOUT_LEN  = 16;     // plume length = scorch radius × this (bigger bursts reach further)
+var _NUKE_FALLOUT_HALO = 'rgba(228, 100, 124, 0.11)'; // outer low-dose plume (semi-transparent powder red)
+var _NUKE_FALLOUT_CORE = 'rgba(214, 44, 84, 0.24)';   // inner high-dose core
+// A teardrop path: rounded head at the burst (x,y), tapering to a point `len`
+// to the EAST; `drift` nudges the tail up/down for a fanned, wind-blown look.
+function __nukePlumePath(x, y, len, halfW, drift) {
+    const tx = x + len, ty = y + (drift || 0);
+    return 'M ' + x + ' ' + (y - halfW) +
+        ' C ' + (x + len * 0.45) + ' ' + (y - halfW) +
+        ', ' + (x + len * 0.85) + ' ' + (ty - halfW * 0.16) +
+        ', ' + tx + ' ' + ty +
+        ' C ' + (x + len * 0.85) + ' ' + (ty + halfW * 0.16) +
+        ', ' + (x + len * 0.45) + ' ' + (y + halfW) +
+        ', ' + x + ' ' + (y + halfW) +
+        ' A ' + halfW + ' ' + halfW + ' 0 0 0 ' + x + ' ' + (y - halfW) + ' Z';
+}
 function __nukeAftermath(finalOn, svg) {
     if (!finalOn || !svg) return;
     const scorches = window.__nukeScorches || [];
     if (!scorches.length) return;
+    const per = _NUKE_FALLOUT_ON ? 4 : 2;   // children drawn per burst
     const old = svg.querySelector('#nuke-aftermath-layer');
-    if (old && old.childElementCount === scorches.length * 2) return;   // current
+    if (old && old.childElementCount === scorches.length * per) return;   // current
     if (old) old.remove();   // stale (recorded set changed) — rebuild
     const NS = 'http://www.w3.org/2000/svg';
     const g = document.createElementNS(NS, 'g');
     g.id = 'nuke-aftermath-layer';
     g.style.pointerEvents = 'none';
     scorches.forEach(s => {
+        // fallout plume first, so the crater sits on top of its source
+        if (_NUKE_FALLOUT_ON) {
+            const drift = (Math.random() - 0.5) * s.r * 2.2;   // slight per-plume wind variation
+            const haloLen = s.r * _NUKE_FALLOUT_LEN, haloW = s.r * 1.5;
+            const halo = document.createElementNS(NS, 'path');
+            halo.setAttribute('d', __nukePlumePath(s.x, s.y, haloLen, haloW, drift));
+            halo.setAttribute('fill', _NUKE_FALLOUT_HALO);
+            g.appendChild(halo);
+            const core = document.createElementNS(NS, 'path');
+            core.setAttribute('d', __nukePlumePath(s.x, s.y, haloLen * 0.62, s.r * 0.85, drift * 0.6));
+            core.setAttribute('fill', _NUKE_FALLOUT_CORE);
+            g.appendChild(core);
+        }
         const smoke = document.createElementNS(NS, 'circle');
         smoke.setAttribute('cx', s.x); smoke.setAttribute('cy', s.y);
         smoke.setAttribute('r', s.r * 2.4); smoke.setAttribute('fill', '#25211c');

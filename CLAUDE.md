@@ -858,6 +858,23 @@ Irradiated the 9 biggest, Dead none, national totals in tolerance; nuke_check 12
 (+1 safe-state wiring; the CA/WY A() test unaffected — neither is a safe state), full
 regression suite green, both files EXECUTE CLEAN.
 
+**46. Nuke: downwind fallout plumes on the final damage map (Jul 2026)** — Code 1,
+in `__nukeAftermath`. Each recorded ground burst (`window.__nukeScorches`) now also
+gets a fallout plume: a teardrop streaming EAST (west→east prevailing winds), rounded
+at the source and tapering to a point downwind, in semi-transparent powder red so
+overlapping plumes build into the denser regions (like a real dose map — modelled on
+the reference the user supplied). Two `<path>` bands per burst — wide low-dose halo
+(`_NUKE_FALLOUT_HALO`) + narrower high-dose core (`_NUKE_FALLOUT_CORE`), length
+`scorch-radius × _NUKE_FALLOUT_LEN` (16), with a small per-plume wind drift; the
+`__nukePlumePath` helper builds the teardrop, `_NUKE_FALLOUT_ON` gates it. Drawn
+UNDER the existing smoke/char crater (4 children/burst now, aftermath idempotence
+count updated). Final damage map only (already gated on `__isFinalElectionMapRaw`).
+NOTE: the census A() lead test was made deterministic (`runAFixed` neutralizes the
+±12% jitter) — after the census retune the WY Injured-vs-Survivors margin is narrow
+enough to flip under jitter. Verified: nuke_check 125/125 (+2: plume count = bursts×2,
+tapers east; aftermath count → ×4), stable ×3, full regression suite green + render
+preview, both files EXECUTE CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
