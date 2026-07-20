@@ -2306,6 +2306,7 @@ var _NUKE_FLIGHT_MS   = 1400; // time for a missile to fly in (was 650 — now s
 var _NUKE_SCORCH      = false;// draw a persistent scorch circle on the LIVE Election Night map where a ground burst lands. OFF: the state's colour change is the only live mark. (The final-map aftermath damage layer is recorded regardless.)
 var _NUKE_IMPACT_IMG  = '';   // OPTIONAL animated mushroom-cloud asset (gif/webp/svg). '' = the built-in procedural cloud below.
 var _NUKE_IMPACT_MS   = 3600; // impact-cloud lifetime
+var _NUKE_CLOUD_SCALE = 1.5;  // mushroom-cloud size multiplier (1.5 = ~50% bigger); scales both the procedural cloud and a custom _NUKE_IMPACT_IMG
 var _NUKE_SLBM_SHARE  = 0.22; // fraction of strikes that come in from the RIGHT edge (Atlantic submarines); the rest drop from the TOP (over the pole)
 // Per-state hit re-centring. Warheads aim at the state path's bounding-box
 // centre, which sits off the visible landmass for a few odd shapes (long
@@ -2689,14 +2690,16 @@ function __nukeOneMissile(svg, g, tx, ty, bb, ground, onImpact) {
             cloud.appendChild(mk('ellipse', { cx: tx, cy: ty - 14.5, rx: 2.6, ry: 1.7, fill: '#c49a55' }));
         }
         cloud.style.transformBox = 'fill-box';
-        cloud.style.transformOrigin = '50% 100%';
+        cloud.style.transformOrigin = '50% 100%';   // grows up from the impact point
         cloud.style.opacity = '0';
         g.appendChild(cloud);
+        // _NUKE_CLOUD_SCALE sizes the whole cloud (procedural or custom image).
+        const _cs = _NUKE_CLOUD_SCALE;
         cloud.animate([
-            { opacity: 0,    transform: 'translateY(2px) scale(0.4)' },
-            { opacity: 0.95, transform: 'translateY(0px) scale(0.85)', offset: 0.18 },
-            { opacity: 0.85, transform: 'translateY(-2px) scale(1)',   offset: 0.55 },
-            { opacity: 0,    transform: 'translateY(-5px) scale(1.08)' },
+            { opacity: 0,    transform: 'translateY(2px) scale(' + (0.4 * _cs) + ')' },
+            { opacity: 0.95, transform: 'translateY(0px) scale(' + (0.85 * _cs) + ')', offset: 0.18 },
+            { opacity: 0.85, transform: 'translateY(-2px) scale(' + (1 * _cs) + ')',   offset: 0.55 },
+            { opacity: 0,    transform: 'translateY(-5px) scale(' + (1.08 * _cs) + ')' },
         ], { duration: _NUKE_IMPACT_MS, easing: 'ease-out', fill: 'forwards' });
         setTimeout(() => { flash.remove(); ring.remove(); cloud.remove(); tracer.remove(); }, _NUKE_IMPACT_MS + 200);
     }, FLIGHT);

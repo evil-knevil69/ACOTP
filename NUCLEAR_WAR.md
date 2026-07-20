@@ -35,25 +35,36 @@ plus two one-line guards in `A Cancer on the Presidency_init (draft).txt`
    compound.
 4. **The split is AUTHORED, not the run's politics.** Each `_NUKE_CENSUS`
    entry carries a `target` (national count of people): Dead 31M, Injured
-   55M, Irradiated 40M; `target: null` = that row takes the balance
-   (Survivors, ≈84M / 40%). A wrapper over the engine's global `A()` (LBM's
-   alt-voting pattern) fires at `_nukeWar ≥ 2` and re-deals every state's
-   rows to those shares (`target/_NUKE_TOTAL_POP`) with ±12% relative
-   per-state jitter (renormalized) so the map varies; votes re-split the
-   state's cranked turnout, non-census candidates (pk 92 residue) drop to 0,
-   rows re-sort, and `getLatestRes` is re-run so nn2/nn3 agree.
-   Answer-score nudges could NOT do this: they multiply whatever support
-   the run has, so authored absolute totals are unreachable that way.
-   **Urban skew:** a census entry with `urban: true` (the Dead) concentrates
-   in the urbanised states — its state share scales by
-   `_NUKE_URBAN[abbr]/mean`, where the mean is turnout-weighted across all
-   states, so the NATIONAL toll is conserved exactly; the other categories
-   rescale per state to fill the remainder. `_NUKE_URBAN` tiers (1970
-   census): DC 1.8; NY/CA/NJ/RI/MA/IL/MD/CT/PA/OH/TX 1.6; MI/FL/DE/WA/MO/
-   CO/AZ/NV/HI/UT 1.3; NC/SC/KY/AL 0.7, IA/NE/KS 0.8; the rural/plains
-   0.55; unlisted 1.0. Verified over the real 51-state data: ≈30.8M / 54.5M
-   / 40.7M / 82.8M on ≈209M counted, with ~19% dead in NY/CA vs ~6% in
-   WY/ND.
+   62M, Irradiated 60M; `target: null` = that row takes the balance
+   (Survivors, ≈57M). The targets are authored so the TOP row VARIES by
+   state: Injured leads nationally (so it tops most states), but in the
+   heavily-struck states the fallout-concentrated Irradiated overtakes it;
+   Survivors sit just below both (deliberately reduced from the old ≈84M so
+   the map isn't a wall of one colour), and the Dead never top. A wrapper
+   over the engine's global `A()` (LBM's alt-voting pattern) fires at
+   `_nukeWar ≥ 2` and re-deals every state's rows to those shares
+   (`target/_NUKE_TOTAL_POP`) with ±12% relative per-state jitter
+   (renormalized) so the map varies; votes re-split the state's cranked
+   turnout, non-census candidates (pk 92 residue) drop to 0, rows re-sort,
+   and `getLatestRes` is re-run so nn2/nn3 agree. Answer-score nudges could
+   NOT do this: they multiply whatever support the run has, so authored
+   absolute totals are unreachable that way.
+   **Concentration (urban + fallout):** a census entry can concentrate in a
+   subset of states while its NATIONAL total is conserved — its state share
+   scales by a per-state weight whose turnout-weighted mean is 1, and the
+   non-concentrating categories rescale per state to fill the remainder (a
+   clamp keeps two concentrating rows from ever crowding the rest out).
+   `urban: true` (the Dead) uses `_NUKE_URBAN[abbr]` — 1970-census tiers: DC
+   1.8; NY/CA/NJ/RI/MA/IL/MD/CT/PA/OH/TX 1.6; MI/FL/DE/WA/MO/CO/AZ/NV/HI/UT
+   1.3; NC/SC/KY/AL 0.7, IA/NE/KS 0.8; the rural/plains 0.55; unlisted 1.0.
+   `fallout: true` (the Irradiated) uses `_NUKE_POP_W[abbr]`, AUTO-derived
+   from each state's turnout (a tempered `^0.6` pop ratio) — radiation is
+   worst where the most warheads ground-burst, i.e. the biggest, most-
+   targeted states (the same turnout signal that drives salvo size + the
+   barrage). Verified over the real 51-state data: national totals land on
+   31M / 62M / 60M / 57M, Injured tops the 42 smaller states, Irradiated
+   tops the 9 biggest (CA/NY/IL/PA/OH…), Survivors and Dead never top; ~19%
+   dead in NY/CA vs ~6% in WY/ND.
 5. **The strike timetable replaces poll closings.** A wrapper over the
    engine global `electionNight` (LBM wraps it the same way) re-deals every
    state's `result_time` from `_NUKE_STRIKE_WAVES` once the census is live
@@ -74,8 +85,9 @@ plus two one-line guards in `A Cancer on the Presidency_init (draft).txt`
    (~22%) come in shallow from the RIGHT edge (Atlantic submarines) — then
    flash + shockwave ring + an ANIMATED
    MUSHROOM CLOUD (procedural stem+caps that grow, rise and fade over
-   `_NUKE_IMPACT_MS`; set `_NUKE_IMPACT_IMG` to an animated gif/webp URL to
-   replace it with a custom cloud per impact). Every ground burst is
+   `_NUKE_IMPACT_MS`; `_NUKE_CLOUD_SCALE` sizes the whole cloud — 1.5 ≈ 50%
+   bigger — and scales both the procedural cloud and a custom
+   `_NUKE_IMPACT_IMG` animated gif/webp per impact). Every ground burst is
    RECORDED for the final-map aftermath layer regardless. The LIVE
    persistent scorch circle on the Election Night map is separate and
    OPTIONAL — it ships OFF (`_NUKE_SCORCH = false`), so the state's colour

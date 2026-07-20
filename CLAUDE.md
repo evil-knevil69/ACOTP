@@ -821,6 +821,29 @@ their own independent wire lines. Verified: nuke_check 120/120 (+1: wire obituar
 absent mid-flight, present after impact; the existing MIRV/air-burst/wire-feed/
 degradation tests unchanged), full regression suite green, both files EXECUTE CLEAN.
 
+**44. Nuke census retune + bigger clouds (Jul 2026)** — (a) Code 2 `_NUKE_CENSUS`
+targets: Irradiated 40M→60M at the expense of Survivors (the null-balance row,
+≈84M→≈57M); Injured 55M→62M so it's a genuine top contender. The split is now
+authored so the TOP row VARIES by state — Injured leads nationally (tops most
+states), but the fallout-concentrated Irradiated overtakes it in the heavily-struck
+states; Survivors/Dead never top. New `fallout: true` flag (on Irradiated) mirrors
+the `urban` skew but weights by `_NUKE_POP_W[abbr]` — auto-derived from each state's
+turnout (tempered `^0.6` pop ratio, turnout-weighted-mean-normalized so the national
+total is conserved), so radiation concentrates where the most warheads ground-burst
+(the biggest/most-targeted states). `_nukeStateShares` generalized: `_nukeConcWeight`
+returns the per-category weight (urban→`_NUKE_URBAN`, fallout→`_NUKE_POP_W`), a clamp
+keeps two concentrating rows from crowding out the rest, non-concentrating rows
+rescale to fill the remainder (urban-only path byte-equivalent to before). Verified
+via a real-51-state Node sim (`census_split_check`): national totals land on
+31/62/60/57M, Injured tops 42 states, Irradiated tops the 9 biggest (CA/NY/IL/PA/OH…),
+Survivors+Dead top none. (b) Code 1 `_NUKE_CLOUD_SCALE = 1.5` (~50% bigger) multiplies
+the mushroom-cloud animation keyframes — scales both the procedural cloud and a custom
+`_NUKE_IMPACT_IMG`. Verified: nuke_check 123/123 (split-share + A()-lead tests retuned
+to the new pattern, +3 config/wiring assertions), full regression suite green
+(lowfx 24, statecard 18, scoreboard 7, enightsets 9, saveload 10, msdim 7, wmtip 9,
+trio 9, theme 14, themeswap 10, fog 15, qpage 11, visitmap 15, enight 8, tvcard 6,
+reshuffle 13) + census_split_check, both files EXECUTE CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.

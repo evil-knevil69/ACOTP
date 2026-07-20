@@ -19751,10 +19751,17 @@ var _nukeWar   = 0;      // 0 none · 1 armed (bunker queued) · 2 census applie
 // data; retune targets/labels/colours freely.
 // `urban: true` = this category concentrates in the urbanised states (weights
 // in _NUKE_URBAN below) while its NATIONAL total stays on target.
+// `fallout: true` = this category concentrates in the states that take the most
+// warheads (≈ the biggest/most-targeted states, where the most ground bursts
+// happen), weighted by _NUKE_POP_W below — again with the national total held.
+// The split is authored so the TOP row varies by state: Injured leads nationally,
+// but in the heavily-struck states the fallout-concentrated Irradiated overtakes
+// it (Survivors sit below both — deliberately reduced from the old balance so the
+// map isn't a wall of one colour). Dead never top; they concentrate in the cities.
 var _NUKE_CENSUS = [
     { pk: 10701, first: 'The',   last: 'Dead',              color: '#4a4a4a', target: 31000000, urban: true },
-    { pk: 50000, first: 'The',   last: 'Injured',           color: '#8a2f1e', target: 55000000 },
-    { pk: 70000, first: 'The',   last: 'Irradiated',        color: '#5a7d2a', target: 40000000 },
+    { pk: 50000, first: 'The',   last: 'Injured',           color: '#8a2f1e', target: 62000000 },
+    { pk: 70000, first: 'The',   last: 'Irradiated',        color: '#5a7d2a', target: 60000000, fallout: true },
     { pk: 80000, first: 'Short-term', last: 'Survivors',    color: '#41505c', target: null },
 ];
 
@@ -19774,6 +19781,30 @@ var _NUKE_URBAN = {
     VT: 0.55, ME: 0.55, NH: 0.55, WV: 0.55, MS: 0.55, ND: 0.55, SD: 0.55,
     MT: 0.55, WY: 0.55, ID: 0.55, AR: 0.55,
 };
+
+// Fallout weights (default 1.0), for `fallout`-flagged categories (Irradiated).
+// Radiation is worst where the most warheads ground-burst = the biggest, most-
+// targeted states (the same turnout signal that drives salvo size + the barrage
+// in Code 1). Auto-derived from each state's turnout: a tempered pop ratio
+// (^0.6 so the spread isn't extreme), normalized so the TURNOUT-WEIGHTED mean is
+// 1.0 — so the national Irradiated total is conserved (like the urban skew) and
+// only its geography moves. No manual table to keep in sync.
+var _NUKE_POP_W = (function () {
+    const sj = campaignTrail_temp.states_json || [];
+    let tot = 0; sj.forEach(s => { tot += s.fields.popular_votes || 0; });
+    const meanPop = sj.length ? tot / sj.length : 1;
+    const raw = new Map();
+    sj.forEach(s => {
+        const pv = s.fields.popular_votes || 0;
+        raw.set(s.fields.abbr, Math.pow((pv || meanPop) / (meanPop || 1), 0.6));
+    });
+    let wsum = 0, tsum = 0;
+    sj.forEach(s => { const pv = s.fields.popular_votes || 0; wsum += pv * (raw.get(s.fields.abbr) || 1); tsum += pv; });
+    const twMean = tsum > 0 ? wsum / tsum : 1;
+    const out = {};
+    raw.forEach((v, k) => { out[k] = v / (twMean || 1); });
+    return out;
+})();
 
 // The census counts EVERYONE, not just voters: when it applies, every state's
 // turnout dial (states_json popular_votes — the engine casts popular_votes ×
@@ -19955,22 +19986,37 @@ var _NUKE_URBAN_MEAN = (function () {
     });
     return tsum > 0 ? wsum / tsum : 1;
 })();
-// Per-state shares: urban-flagged categories scaled by weight/mean (capped),
-// the rest rescaled to fill the remainder of that state.
+// A concentrating category's per-state weight (mean-normalized so the national
+// total is conserved): urban → _NUKE_URBAN, fallout → _NUKE_POP_W. null = the
+// category doesn't concentrate and just fills the remainder.
+function _nukeConcWeight(c, abbr) {
+    if (c.urban)   return (_NUKE_URBAN[abbr] != null ? _NUKE_URBAN[abbr] : 1) / _NUKE_URBAN_MEAN;
+    if (c.fallout) return (_NUKE_POP_W[abbr] != null ? _NUKE_POP_W[abbr] : 1);
+    return null;
+}
+// Per-state shares: concentrating categories (urban Dead, fallout Irradiated)
+// scaled by their weight (capped, and clamped so together they never crowd out
+// the rest); the remaining categories rescaled to fill what's left of the state.
 function _nukeStateShares(abbr) {
     if (!_nukeShares) _nukeShares = _nukeSplitShares();
-    const u = (_NUKE_URBAN[abbr] != null ? _NUKE_URBAN[abbr] : 1) / _NUKE_URBAN_MEAN;
     const m = new Map();
-    let urbSum = 0, urbBase = 0;
+    let concSum = 0, concBase = 0;
     _NUKE_CENSUS.forEach(c => {
-        if (!c.urban) return;
+        const w = _nukeConcWeight(c, abbr);
+        if (w == null) return;
         const sh = _nukeShares.get(c.pk) || 0;
-        const s2 = Math.min(0.9, sh * u);
-        m.set(c.pk, s2); urbSum += s2; urbBase += sh;
+        const s2 = Math.min(0.9, sh * w);
+        m.set(c.pk, s2); concSum += s2; concBase += sh;
     });
-    const restScale = urbBase < 1 ? (1 - urbSum) / (1 - urbBase) : 1;
+    // Two concentrating cats in a big state could sum past 1 — leave the rest room.
+    if (concSum > 0.85) {
+        const k = 0.85 / concSum;
+        m.forEach((v, pk) => m.set(pk, v * k));   // only concentrating cats are in m yet
+        concSum = 0.85;
+    }
+    const restScale = concBase < 1 ? (1 - concSum) / (1 - concBase) : 1;
     _NUKE_CENSUS.forEach(c => {
-        if (!c.urban) m.set(c.pk, (_nukeShares.get(c.pk) || 0) * restScale);
+        if (_nukeConcWeight(c, abbr) == null) m.set(c.pk, (_nukeShares.get(c.pk) || 0) * restScale);
     });
     return m;
 }
