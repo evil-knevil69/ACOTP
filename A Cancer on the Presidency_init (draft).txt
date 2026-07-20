@@ -2278,8 +2278,14 @@ function __nukeNoradTick(nightOn, svg) {
 // high-dose core.
 var _NUKE_FALLOUT_ON   = true;   // draw fallout plumes on the final damage-assessment map
 var _NUKE_FALLOUT_LEN  = 16;     // plume length = scorch radius × this (bigger bursts reach further)
-var _NUKE_FALLOUT_HALO = 'rgba(228, 100, 124, 0.11)'; // outer low-dose plume (semi-transparent powder red)
-var _NUKE_FALLOUT_CORE = 'rgba(214, 44, 84, 0.24)';   // inner high-dose core
+var _NUKE_FALLOUT_HALO = 'rgba(232, 104, 130, 0.13)'; // outer low-dose plume (semi-transparent powder red)
+var _NUKE_FALLOUT_CORE = 'rgba(226, 52, 100, 0.30)';  // inner high-dose core
+// Grey wash over the state colours on the final damage map, so the (red) fallout
+// plumes read clearly against the census tints (esp. the red Injured states).
+// A semi-transparent grey rect laid over the map UNDER the plumes — mutes the
+// states + background toward grey; the plumes, drawn on top, keep their colour.
+var _NUKE_STATE_WASH_ON = true;
+var _NUKE_STATE_WASH    = 'rgba(122, 124, 128, 0.62)';  // higher alpha = greyer states (the map's own saturate(1.4) fights it, so it runs fairly strong)
 // A teardrop path: rounded head at the burst (x,y), tapering to a point `len`
 // to the EAST; `drift` nudges the tail up/down for a fanned, wind-blown look.
 function __nukePlumePath(x, y, len, halfW, drift) {
@@ -2298,13 +2304,27 @@ function __nukeAftermath(finalOn, svg) {
     const scorches = window.__nukeScorches || [];
     if (!scorches.length) return;
     const per = _NUKE_FALLOUT_ON ? 4 : 2;   // children drawn per burst
+    const want = scorches.length * per + (_NUKE_STATE_WASH_ON ? 1 : 0);   // + the wash rect
     const old = svg.querySelector('#nuke-aftermath-layer');
-    if (old && old.childElementCount === scorches.length * per) return;   // current
+    if (old && old.childElementCount === want) return;   // current
     if (old) old.remove();   // stale (recorded set changed) — rebuild
     const NS = 'http://www.w3.org/2000/svg';
     const g = document.createElementNS(NS, 'g');
     g.id = 'nuke-aftermath-layer';
     g.style.pointerEvents = 'none';
+    // Grey wash FIRST (bottom of the aftermath group, which itself sits over the
+    // state paths) so the plumes drawn after it stay vivid on top.
+    if (_NUKE_STATE_WASH_ON) {
+        const wash = document.createElementNS(NS, 'rect');
+        let vx = -1000, vy = -1000, vw = 4000, vh = 4000;   // generous cover if no viewBox
+        const vb = svg.viewBox && svg.viewBox.baseVal;
+        if (vb && vb.width) { vx = vb.x; vy = vb.y; vw = vb.width; vh = vb.height; }
+        wash.setAttribute('x', vx); wash.setAttribute('y', vy);
+        wash.setAttribute('width', vw); wash.setAttribute('height', vh);
+        wash.setAttribute('fill', _NUKE_STATE_WASH);
+        wash.setAttribute('pointer-events', 'none');
+        g.appendChild(wash);
+    }
     scorches.forEach(s => {
         // fallout plume first, so the crater sits on top of its source
         if (_NUKE_FALLOUT_ON) {
@@ -5194,15 +5214,16 @@ body.low-fx-on #map_container {
    pointer-events:none so state clicks still land. */
 #game_window.acop-nuke-tv #map_container {
     position: relative;
-    /* Feather all four edges of the MAP to transparency (tube-glass bleed into
-       the black content area). Scoped to #map_container, NOT #main_content_area,
-       so the result panels — which are siblings under #menu_container, not
-       children of the map — stay crisp. */
+    /* Feather the LEFT/RIGHT and TOP edges of the MAP to transparency (tube-glass
+       bleed into the black content area), but leave the BOTTOM edge solid — the
+       feathered bottom blur was unwanted. Scoped to #map_container, NOT
+       #main_content_area, so the result panels — siblings under #menu_container,
+       not children of the map — stay crisp. */
     -webkit-mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%),
-                        linear-gradient(to bottom, transparent 0%, black 3%, black 97%, transparent 100%);
+                        linear-gradient(to bottom, transparent 0%, black 3%, black 100%);
     -webkit-mask-composite: destination-in;
     mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%),
-                linear-gradient(to bottom, transparent 0%, black 3%, black 97%, transparent 100%);
+                linear-gradient(to bottom, transparent 0%, black 3%, black 100%);
     mask-composite: intersect;
 }
 /* LOW DEMAND MODE: the feather is an extra composited layer (same reason the

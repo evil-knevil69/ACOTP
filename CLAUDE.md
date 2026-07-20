@@ -895,6 +895,22 @@ included) is black. (4) **World Map button removed during the attack** — Code 
 world-map-remove wiring), full regression suite green + render preview
 (button.left == state panel == 817), both files EXECUTE CLEAN.
 
+**48. Nuke final map: solid bottom edge + grey state-wash (Jul 2026)** — Code 1.
+(1) The `#map_container` edge-feather mask's `to bottom` gradient changed
+`…black 97%, transparent 100%` → `…black 100%` so the BOTTOM edge no longer blurs
+to transparency (sides + top still feather). (2) On the final damage map,
+`__nukeAftermath` now lays a semi-transparent grey rect (`_NUKE_STATE_WASH`,
+rgba grey ~0.62; `_NUKE_STATE_WASH_ON`) as the FIRST child of
+`#nuke-aftermath-layer` — over the state paths (the whole aftermath group sits on
+top of them) but UNDER the fallout plumes, so it mutes the census tints (esp. the
+red Injured states, which the map's own `saturate(1.4)` was pushing) toward grey
+while the plumes drawn after it keep their colour and read clearly. Plume colours
+bumped a touch more vivid (`_NUKE_FALLOUT_CORE` rgba(226,52,100,0.30)). Rect sized
+to the svg viewBox. Idempotence count updated (`scorches × per + 1`). Verified:
+nuke_check 133/133 (+3: bottom-solid feather, wash-under-plumes first-child,
+wash config; aftermath count → ×4 + 1), full regression suite green + render
+preview (plumes pop against the washed states), Code 1 EXECUTES CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
