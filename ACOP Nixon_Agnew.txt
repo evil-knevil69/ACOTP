@@ -19678,12 +19678,14 @@ const MILBAL_COUNTRIES = new Set([
 
 // ── Inject "World Map" button into #map_footer ──────────────────────────────
 function _addWorldMapBtn() {
-    // Disabled once the nuclear attack is under way (census live, _nukeWar >= 2)
-    // — you can't go tour the world while the missiles land. Re-checked every
-    // call so an already-injected button flips state too.
+    // Removed entirely once the nuclear attack is under way (census live,
+    // _nukeWar >= 2) — you can't go tour the world while the missiles land.
+    // Re-checked every call: an already-injected button is torn down, and none
+    // is created while the attack is live.
     const nukeAttack = (_nukeWar >= 2);
     const existing = document.getElementById('world_map_button');
-    if (existing) { existing.disabled = nukeAttack; return; }
+    if (nukeAttack) { if (existing) existing.remove(); return; }
+    if (existing) return;
     const footer = document.getElementById('map_footer');
     if (!footer) return;
     const gw = document.getElementById('game_window');
@@ -19696,7 +19698,6 @@ function _addWorldMapBtn() {
     btn.id = 'world_map_button';
     btn.textContent = 'World Map';
     btn.style.cssText = 'position:absolute;z-index:10;left:' + (naturalLeft - 915) + 'px;top:' + (naturalTop + 6) + 'px;';
-    btn.disabled = nukeAttack;   // injected mid-attack → starts disabled
     btn.addEventListener('click', openWorldMap);
     gw.appendChild(btn);
 }

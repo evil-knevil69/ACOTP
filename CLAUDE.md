@@ -888,11 +888,11 @@ left: 817px }` (matches `#state_result_container`), keeping the footer's own
 image** — the `.game_header` was already `opacity:0`, but that revealed
 `#game_window`'s OWN `background.png` as a strip; `#game_window.acop-nuke-tv` now
 gets `background:#000 / background-image:none` so the whole window (header strip
-included) is black. (4) **World Map button disabled during the attack** — Code 2
-`_addWorldMapBtn` sets `btn.disabled = (_nukeWar >= 2)` on both the create and the
-already-injected paths (re-checked every observer tick). Verified: nuke_check
+included) is black. (4) **World Map button removed during the attack** — Code 2
+`_addWorldMapBtn` tears down the button and creates none while `_nukeWar >= 2`
+(re-checked every observer tick). Verified: nuke_check
 130/130 (+5: black-out, content-area anchor, wire top-left, footer-left-817,
-world-map-disable wiring), full regression suite green + render preview
+world-map-remove wiring), full regression suite green + render preview
 (button.left == state panel == 817), both files EXECUTE CLEAN.
 
 ### A Cancer on the Presidency_init (draft).txt
