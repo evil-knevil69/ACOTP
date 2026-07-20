@@ -2302,7 +2302,12 @@ function __nukeAftermath(finalOn, svg) {
     scorches.forEach(s => {
         // fallout plume first, so the crater sits on top of its source
         if (_NUKE_FALLOUT_ON) {
-            const drift = (Math.random() - 0.5) * s.r * 2.2;   // slight per-plume wind variation
+            // Deterministic per-burst wind variation (hash of the coordinates,
+            // NOT Math.random): the svg — and this layer with it — is rebuilt
+            // on every visit to the final map, and a re-rolled drift made the
+            // damage map's plume pattern change between viewings of the same war.
+            const h = Math.sin(s.x * 12.9898 + s.y * 78.233) * 43758.5453;
+            const drift = ((h - Math.floor(h)) - 0.5) * s.r * 2.2;
             const haloLen = s.r * _NUKE_FALLOUT_LEN, haloW = s.r * 1.5;
             const halo = document.createElementNS(NS, 'path');
             halo.setAttribute('d', __nukePlumePath(s.x, s.y, haloLen, haloW, drift));
