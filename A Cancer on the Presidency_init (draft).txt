@@ -2105,6 +2105,12 @@ function __nukeTvTick() {
     __nukeEbsTick(nuke && __isElectionNightRaw());
     __nukeEbsIntroTick(nuke && __isElectionNightRaw());
     __nukeNoradTick(nuke && __isElectionNightRaw(), svg);
+    // The wire-feed briefings now live under #main_content_area (which outlives
+    // the map svg), so tear them down explicitly once the night is over.
+    if (!(nuke && __isElectionNightRaw())) {
+        const w = document.getElementById('nuke-wire');
+        if (w) w.remove();
+    }
     __nukeAftermath(nuke && __isFinalElectionMapRaw(), svg);
     if (!nuke && window.__nukeScorches && window.__nukeScorches.length) {
         // New Game (or console reset): the war is over-over — drop the debris
@@ -2531,10 +2537,14 @@ function __nukeSalvoSize(abbr) {
 // Pass a template set to vary the copy (re-strikes use _NUKE_RESTRIKE_LINES).
 function __nukeWireLine(abbr, tpls) {
     if (!abbr) return;
-    const mc = document.getElementById('map_container');
-    if (!mc) return;
+    // Pinned to the top-left of #main_content_area (NOT the map — the map's
+    // edge-feather mask would fade the corner, and the content area's top-left
+    // sits out past the map in the black margin). Removed when the night ends
+    // (see __nukeTvTick).
+    const host = document.getElementById('main_content_area') || document.getElementById('map_container');
+    if (!host) return;
     let box = document.getElementById('nuke-wire');
-    if (!box) { box = document.createElement('div'); box.id = 'nuke-wire'; mc.appendChild(box); }
+    if (!box) { box = document.createElement('div'); box.id = 'nuke-wire'; host.appendChild(box); }
     const set = tpls || _NUKE_WIRE_LINES;
     const tpl = set[Math.floor(Math.random() * set.length)];
     const line = document.createElement('div');
@@ -5236,15 +5246,30 @@ body.low-fx-on #game_window.acop-nuke-tv #map_container svg {
     -webkit-mask-image: none !important;
     mask-image: none !important;
     overflow: visible !important;
+    /* Black out the whole window: the .game_header below is opacity:0, so it
+       revealed #game_window's OWN background image (background.png, from the
+       global #game_window rule) as a strip across the top. Blacking the window
+       makes that strip — and everything behind the war-room map — solid black. */
+    background-color: #000 !important;
+    background-image: none !important;
 }
-#game_window.acop-nuke-tv #main_content_area { overflow: visible !important; background: #000 !important; }
+#game_window.acop-nuke-tv #main_content_area {
+    overflow: visible !important;
+    background: #000 !important;
+    position: relative !important;   /* offset parent for the wire-feed briefings (top-left) */
+}
 /* Game header fully transparent on the nuke screen (no ACOP banner/logo bleeding
-   into the war-room look). */
+   into the war-room look — the black window behind it shows through). */
 #game_window.acop-nuke-tv .game_header,
 #game_window.acop-nuke-tv .game_header h2 {
     background: transparent !important;
     opacity: 0 !important;
 }
+/* "Final Results" button (nuke Election Night) left-aligned with the state
+   results panel (both at left:817), keeping its own vertical (map_footer's
+   top:580). The footer shrink-wraps the single button, so its left edge lands
+   on 817. */
+#game_window.acop-nuke-tv #map_footer { left: 817px !important; }
 /* Host site banner OUTSIDE #game_window (#header) — hidden entirely on the nuke
    terminal screen (body.acop-nuke-screen, stamped by __nukeTvTick), so its
    default background bar doesn't sit above the war-room feed. */
@@ -5367,7 +5392,7 @@ body.acop-nuke-screen #header {
 body.low-fx-on #nuke-chyron span { animation: none; }
 @media (prefers-reduced-motion: reduce) { #nuke-chyron span { animation: none; } }
 #nuke-wire {
-    position: absolute; left: 8px; bottom: 30px; width: 250px; z-index: 9005;
+    position: absolute; left: 10px; top: 8px; width: 250px; z-index: 9005;
     pointer-events: none; font-family: 'Courier New', monospace; font-size: 10.5px;
     font-weight: bold; letter-spacing: 0.5px; color: #ffcf8a;
     text-shadow: 0 1px 2px rgba(0,0,0,0.9);

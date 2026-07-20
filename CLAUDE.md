@@ -875,6 +875,26 @@ enough to flip under jitter. Verified: nuke_check 125/125 (+2: plume count = bur
 tapers east; aftermath count → ×4), stable ×3, full regression suite green + render
 preview, both files EXECUTE CLEAN.
 
+**47. Nuke terminal-screen layout fixes (Jul 2026)** — four tweaks to the nuke
+Election Night / final map. (1) **Wire-feed briefings → top-left of
+`#main_content_area`.** `__nukeWireLine` now appends `#nuke-wire` to
+`#main_content_area` (was `#map_container` — whose edge-feather mask faded the
+corner) and the CSS pins it `top:8; left:10`; `#main_content_area` gets
+`position:relative` as the anchor and `__nukeTvTick` removes the box when the
+night ends (it now outlives the map svg). (2) **"Final Results" button
+left-aligned with the state panel** — `#game_window.acop-nuke-tv #map_footer {
+left: 817px }` (matches `#state_result_container`), keeping the footer's own
+`top:580` so the vertical is unchanged. (3) **Header no longer shows the bg
+image** — the `.game_header` was already `opacity:0`, but that revealed
+`#game_window`'s OWN `background.png` as a strip; `#game_window.acop-nuke-tv` now
+gets `background:#000 / background-image:none` so the whole window (header strip
+included) is black. (4) **World Map button disabled during the attack** — Code 2
+`_addWorldMapBtn` sets `btn.disabled = (_nukeWar >= 2)` on both the create and the
+already-injected paths (re-checked every observer tick). Verified: nuke_check
+130/130 (+5: black-out, content-area anchor, wire top-left, footer-left-817,
+world-map-disable wiring), full regression suite green + render preview
+(button.left == state panel == 817), both files EXECUTE CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
