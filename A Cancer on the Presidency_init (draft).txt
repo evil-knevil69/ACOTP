@@ -2123,20 +2123,23 @@ function __nukeTvTick() {
 }
 window.__onGameWindowMutation(__nukeTvTick);
 
-// Civil-defense chyron: a slow crawl along the bottom of the map on both
-// terminal screens. Low demand mode holds it static (CSS).
+// Civil-defense chyron: a slow crawl across the HEADER strip (where the ACOP
+// title/logo would be) on both terminal screens — active Election Night AND the
+// finished damage map. Mounted on #game_window (NOT .game_header, which is
+// opacity:0 on the nuke screen and would hide it). Low demand mode holds it
+// static (CSS).
 function __nukeChyron(on) {
-    const mc = document.getElementById('map_container');
+    const host = document.getElementById('game_window');
     let c = document.getElementById('nuke-chyron');
-    if (!on || !mc) { if (c) c.remove(); return; }
-    if (c && c.parentElement === mc) return;
+    if (!on || !host) { if (c) c.remove(); return; }
+    if (c && c.parentElement === host) return;
     if (c) c.remove();
     c = document.createElement('div');
     c.id = 'nuke-chyron';
     const s = document.createElement('span');
     s.textContent = _NUKE_CHYRON_TEXT + ' · ' + _NUKE_CHYRON_TEXT + ' · ';
     c.appendChild(s);
-    mc.appendChild(c);
+    host.appendChild(c);
 }
 
 // The Emergency Broadcast System takes the opener popup: header, colour bars
@@ -5469,13 +5472,19 @@ body.acop-nuke-screen #header {
    #map_container and sit above the result panels; z-index set here. */
 #election_night_window.nuke-ebs { z-index: 9100 !important; }
 /* ── nuke broadcast furniture (elements mounted by the __nuke* ticks) ── */
+/* Chyron: a broadcast banner across the HEADER strip (where the ACOP title/logo
+   would be — the .game_header is opacity:0 on the nuke screen, so the strip is
+   empty). Mounted on #game_window (position:relative under .acop-nuke-tv), the
+   band is centred in the ~85px header. Both terminal screens. */
 #nuke-chyron {
-    position: absolute; left: 0; right: 0; bottom: 0; height: 22px; overflow: hidden;
-    background: rgba(96, 14, 8, 0.92); border-top: 1px solid rgba(199, 170, 96, 0.6);
+    position: absolute; left: 0; right: 0; top: 30px; height: 26px; overflow: hidden;
+    background: rgba(96, 14, 8, 0.92);
+    border-top: 1px solid rgba(199, 170, 96, 0.6);
+    border-bottom: 1px solid rgba(199, 170, 96, 0.6);
     z-index: 9005; pointer-events: none;
 }
 #nuke-chyron span {
-    display: inline-block; white-space: nowrap; line-height: 22px;
+    display: inline-block; white-space: nowrap; line-height: 26px;
     font-family: 'Courier New', monospace; font-weight: bold; font-size: 12px;
     letter-spacing: 2px; color: #f0e6c8;
     animation: nukeChyronCrawl 36s linear infinite;

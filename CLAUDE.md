@@ -946,6 +946,17 @@ Verified: nuke_check 139/139 (+3, incl. a controlled census-states-vs-ocean svg
 confirming only the 3 states wash + no full rect; billow still plumes-only), full
 regression suite green + render (states muted, ocean untouched), Code 1 EXECUTES CLEAN.
 
+**51. Nuke chyron → header strip (Jul 2026)** — Code 1. The civil-defense chyron
+crawl moved from the bottom of the map to the HEADER strip (where the ACOP
+title/logo would be — `.game_header` is opacity:0 on the nuke screen, so the strip
+sat empty). `__nukeChyron` mounts it on `#game_window` (NOT `.game_header`, which
+would inherit opacity:0) — position:relative under `.acop-nuke-tv` — and
+`#nuke-chyron` is repositioned `top:30px` (centred in the ~85px header), a
+gold-ruled oxblood banner with top+bottom borders. Both terminal screens (Election
+Night + final map), same as before. Verified: nuke_check 140/140 (+1 header-position
+CSS; the mount test now asserts parent==#game_window), full regression suite green +
+render (banner reads across the header), Code 1 EXECUTES CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
