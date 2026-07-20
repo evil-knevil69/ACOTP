@@ -2286,6 +2286,11 @@ var _NUKE_FALLOUT_CORE = 'rgba(226, 52, 100, 0.30)';  // inner high-dose core
 // states + background toward grey; the plumes, drawn on top, keep their colour.
 var _NUKE_STATE_WASH_ON = true;
 var _NUKE_STATE_WASH    = 'rgba(122, 124, 128, 0.62)';  // higher alpha = greyer states (the map's own saturate(1.4) fights it, so it runs fairly strong)
+// Billow: the plumes gently swell + undulate (transform oscillation around the
+// source end), each on its own slow, phase-offset loop so the fallout looks like
+// living, drifting cloud rather than a static dose map. Off under low demand mode
+// + reduced motion (the static teardrops remain).
+var _NUKE_FALLOUT_BILLOW = true;
 // A teardrop path: rounded head at the burst (x,y), tapering to a point `len`
 // to the EAST; `drift` nudges the tail up/down for a fanned, wind-blown look.
 function __nukePlumePath(x, y, len, halfW, drift) {
@@ -2312,6 +2317,9 @@ function __nukeAftermath(finalOn, svg) {
     const g = document.createElementNS(NS, 'g');
     g.id = 'nuke-aftermath-layer';
     g.style.pointerEvents = 'none';
+    const billow = _NUKE_FALLOUT_BILLOW
+        && !document.body.classList.contains('low-fx-on')
+        && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     // Grey wash FIRST (bottom of the aftermath group, which itself sits over the
     // state paths) so the plumes drawn after it stay vivid on top.
     if (_NUKE_STATE_WASH_ON) {
@@ -2343,6 +2351,26 @@ function __nukeAftermath(finalOn, svg) {
             core.setAttribute('d', __nukePlumePath(s.x, s.y, haloLen * 0.62, s.r * 0.85, drift * 0.6));
             core.setAttribute('fill', _NUKE_FALLOUT_CORE);
             g.appendChild(core);
+            // Billow: slow swell/undulation, anchored at the source end so the
+            // plume rolls out downwind rather than pulsing in place. Per-plume
+            // duration + phase (second coordinate hash) so they never move in
+            // unison. halo + core share the params to stay coherent.
+            if (billow && halo.animate) {
+                const s2 = Math.sin(s.x * 39.3468 + s.y * 11.135) * 24634.6345;
+                const r2 = s2 - Math.floor(s2);
+                const dur = 4200 + r2 * 2800;   // 4.2–7.0s
+                const kf = [
+                    { transform: 'scale(1, 1)' },
+                    { transform: 'scale(1.03, 1.14)' },
+                    { transform: 'scale(0.99, 0.92)' },
+                    { transform: 'scale(1, 1)' },
+                ];
+                [halo, core].forEach(el => {
+                    el.style.transformBox = 'fill-box';
+                    el.style.transformOrigin = '0% 50%';   // the source (west) end
+                    el.animate(kf, { duration: dur, iterations: Infinity, easing: 'ease-in-out', delay: -r2 * dur });
+                });
+            }
         }
         const smoke = document.createElementNS(NS, 'circle');
         smoke.setAttribute('cx', s.x); smoke.setAttribute('cy', s.y);

@@ -917,6 +917,18 @@ feather, wash-under-plumes first-child, wash config, container-bigger-svg-untouc
 aftermath count → ×4 + 1), full regression suite green + render previews (plumes
 pop against the washed states; bigger container, panels crisp), Code 1 EXECUTES CLEAN.
 
+**49. Nuke fallout billows (Jul 2026)** — Code 1, `__nukeAftermath`. Each plume
+band (halo + core) now carries a slow, infinite transform oscillation
+(`scale` swell/undulation, `transform-box: fill-box; transform-origin: 0% 50%` so
+it rolls out from the SOURCE end rather than pulsing in place). Per-plume duration
+(4.2–7.0s) + negative-delay phase are derived from a second coordinate hash, so no
+two plumes move in unison — the aggregate of ~180 out-of-phase semi-transparent
+plumes reads as living, drifting fallout. `_NUKE_FALLOUT_BILLOW` gates it; off
+under low demand mode + reduced motion (the static teardrops remain). Verified:
+nuke_check 136/136 (+2: every plume path carries a running animation; config +
+low-fx/reduced-motion gating) + a two-timepoint bbox check (plume swells over
+time), full regression suite green, Code 1 EXECUTES CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
