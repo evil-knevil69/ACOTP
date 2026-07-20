@@ -5396,10 +5396,10 @@ body.low-fx-on #game_window.acop-nuke-tv #map_container svg {
     opacity: 0 !important;
 }
 /* "Final Results" button (nuke Election Night) left-aligned with the state
-   results panel (both at left:817), keeping its own vertical (map_footer's
+   results panel (both at left:777), keeping its own vertical (map_footer's
    top:580). The footer shrink-wraps the single button, so its left edge lands
-   on 817. */
-#game_window.acop-nuke-tv #map_footer { left: 817px !important; }
+   on 777. */
+#game_window.acop-nuke-tv #map_footer { left: 777px !important; }
 /* Host site banner OUTSIDE #game_window (#header) — hidden entirely on the nuke
    terminal screen (body.acop-nuke-screen, stamped by __nukeTvTick), so its
    default background bar doesn't sit above the war-room feed. */
@@ -5408,14 +5408,14 @@ body.acop-nuke-screen #header {
 }
 #game_window.acop-nuke-tv #menu_container { position: static !important; }
 /* Results panels (nuke only — the normal .acop-final-tv screen keeps its
-   tilted sticky-notes): flat (no rotate tilt), shifted 25px right of the
-   earlier 792px. */
+   tilted sticky-notes): flat (no rotate tilt). At left:777 (was 817 — nudged
+   40px left with the Final Results button). */
 #game_window.acop-nuke-tv #overall_result_container {
-    left: 817px !important; top: 96px !important; z-index: 8996 !important;
+    left: 777px !important; top: 96px !important; z-index: 8996 !important;
     transform: none !important;
 }
 #game_window.acop-nuke-tv #state_result_container {
-    left: 817px !important; top: 270px !important; z-index: 8996 !important;
+    left: 777px !important; top: 270px !important; z-index: 8996 !important;
     transform: none !important;
 }
 /* ── Results panels: war-room / CRT terminal reskin (nuke screen only — the

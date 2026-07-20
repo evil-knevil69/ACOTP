@@ -972,6 +972,14 @@ Map, no `.final_menu_button`) is unaffected. Verified: nuke_check 141/141 (+1 CS
 assertion), full regression suite green, render (6 buttons in one centred row 40px
 off the bottom, footer centred in the window), Code 1 EXECUTES CLEAN.
 
+**53. Nuke panels + Final Results button nudged 40px left (Jul 2026)** — Code 1.
+`#overall_result_container`, `#state_result_container` and `#map_footer` on the
+nuke screen moved from `left:817` → `left:777` (both the active Election Night and
+the final damage map, via the shared `.acop-nuke-tv` scope). They now sit at the
+map's right edge rather than out in the black margin. Verified: nuke_check 141/141
+(the two 817 assertions retuned to 777), render confirms all three shifted, Code 1
+EXECUTES CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
