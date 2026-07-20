@@ -1295,6 +1295,38 @@ div.center img#header {
     width: auto !important;
     height: auto !important;
 }
+/* ── Final-results nav buttons in a centred ROW at the bottom of the window ──
+   Every final-results screen (the results narrative with the winner's picture +
+   text, the electoral map, the popular-vote map, …) carries the 6
+   .final_menu_button nav buttons in #map_footer. The engine parks that footer at
+   top:580/left:600, where the buttons squash into a corner. Lay them out as a
+   centred, wrapping row along the bottom instead — on ANY screen whose footer
+   holds those buttons (matched with :has(), which the mod already relies on).
+   The nuke war-room map has its own footer placement, so exclude .acop-nuke-tv. */
+#game_window:not(.acop-nuke-tv):has(#map_footer .final_menu_button) { position: relative !important; }
+#game_window:not(.acop-nuke-tv) #map_footer:has(.final_menu_button) {
+    position: absolute !important;
+    top: auto !important;
+    bottom: 40px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 5px 6px !important;
+    width: 760px !important;
+    max-width: 760px !important;
+    z-index: 20 !important;
+    pointer-events: auto !important;
+}
+#game_window:not(.acop-nuke-tv) #map_footer:has(.final_menu_button) .final_menu_button {
+    font-size: 11px !important;
+    line-height: 1.1 !important;
+    padding: 4px 8px !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+}
 .control-knob {
     position: relative !important;
     z-index: 10 !important;

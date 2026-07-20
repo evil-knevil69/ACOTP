@@ -957,6 +957,21 @@ Night + final map), same as before. Verified: nuke_check 140/140 (+1 header-posi
 CSS; the mount test now asserts parent==#game_window), full regression suite green +
 render (banner reads across the header), Code 1 EXECUTES CLEAN.
 
+**52. Final-results nav buttons → centred bottom row (Jul 2026)** — Code 1 CSS,
+NOT nuke-specific. The engine parks `#map_footer` (which carries the 6
+`.final_menu_button` nav buttons) at top:580/left:600 on every final-results
+screen, where the buttons squash into a corner. The `.acop-final-tv` block only
+re-laid the final MAP's footer; the results narrative (winner picture + text) and
+the other final maps kept the squashed default. New general rule keyed on
+`#map_footer:has(.final_menu_button)` (the mod already uses `:has()`) lays them as
+a centred, wrapping row along the bottom (`bottom:40; left:50%;
+translateX(-50%); flex; width:760`) on ANY such screen, with `#game_window` made
+position:relative as the anchor. Scoped `:not(.acop-nuke-tv)` so the nuke war-room
+footer (its own placement) is untouched; the in-game map footer (resume + World
+Map, no `.final_menu_button`) is unaffected. Verified: nuke_check 141/141 (+1 CSS
+assertion), full regression suite green, render (6 buttons in one centred row 40px
+off the bottom, footer centred in the window), Code 1 EXECUTES CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
