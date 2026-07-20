@@ -929,6 +929,23 @@ nuke_check 136/136 (+2: every plume path carries a running animation; config +
 low-fx/reduced-motion gating) + a two-timepoint bbox check (plume swells over
 time), full regression suite green, Code 1 EXECUTES CLEAN.
 
+**50. Nuke fallout screen: state-only wash + noise gif off + wire left-justified
+(Jul 2026)** — Code 1. (1) The grey state-wash now overlays a grey COPY of each
+census-coloured STATE path (identified by matching its fill against
+`window.__nukeCensusColors` via `__nukeCanonColor` — plugin-independent, works on
+the final-map svg) instead of a full-viewBox rect, so ONLY the states mute; the
+ocean/background is untouched. Fallback to the full rect only if no states can be
+identified. Idempotence count is now `scorches × per + washCount`. (2) The FALLOUT
+(final damage) map drops the TV noise gif — `__nukeTvTick` stamps
+`acop-nuke-final` on `#game_window` when `__isFinalElectionMapRaw()`, and
+`#game_window.acop-nuke-final #map_container { background-image:none;
+background-color:#0a0a0a }` gives a flat tube-black behind the plumes (Election
+Night, only `.acop-nuke-tv`, keeps the live noise). (3) `#nuke-wire`
+`text-align:left !important` (the engine centres content in `#main_content_area`).
+Verified: nuke_check 139/139 (+3, incl. a controlled census-states-vs-ocean svg
+confirming only the 3 states wash + no full rect; billow still plumes-only), full
+regression suite green + render (states muted, ocean untouched), Code 1 EXECUTES CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.

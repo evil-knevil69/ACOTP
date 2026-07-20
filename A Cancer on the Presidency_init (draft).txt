@@ -2082,6 +2082,9 @@ function __nukeTvTick() {
     const on = document.body && document.body.classList.contains('acop-nuke')
         && (__isFinalElectionMapRaw() || __isElectionNightRaw());
     gw.classList.toggle('acop-nuke-tv', !!on);
+    // Distinguish the FALLOUT (final damage) map from Election Night — the final
+    // map drops the TV noise gif (CSS below); Election Night keeps it live.
+    gw.classList.toggle('acop-nuke-final', !!(on && __isFinalElectionMapRaw()));
     // Body-level signal for chrome OUTSIDE #game_window (the host site banner):
     // the terminal screen hides it entirely (CSS below).
     document.body.classList.toggle('acop-nuke-screen', !!on);
@@ -2309,7 +2312,23 @@ function __nukeAftermath(finalOn, svg) {
     const scorches = window.__nukeScorches || [];
     if (!scorches.length) return;
     const per = _NUKE_FALLOUT_ON ? 4 : 2;   // children drawn per burst
-    const want = scorches.length * per + (_NUKE_STATE_WASH_ON ? 1 : 0);   // + the wash rect
+    // State-only grey wash: grey overlays over just the census-coloured STATE
+    // paths (identified by their census-colour fill — plugin-independent, so it
+    // works on the final-map svg), leaving the ocean/background untouched.
+    // Fallback: a single full-map rect if no states can be identified.
+    let washNodes = [];
+    if (_NUKE_STATE_WASH_ON) {
+        const censusFills = (window.__nukeCensusColors || []).map(__nukeCanonColor);
+        if (censusFills.length) {
+            svg.querySelectorAll('path').forEach(pn => {
+                if (pn.closest && pn.closest('#nuke-aftermath-layer')) return;   // skip our own plumes/overlays
+                const f = __nukeCanonColor(pn.getAttribute('fill') || '');
+                if (f && censusFills.indexOf(f) !== -1) washNodes.push(pn);
+            });
+        }
+    }
+    const washCount = _NUKE_STATE_WASH_ON ? (washNodes.length || 1) : 0;   // 1 = fallback rect
+    const want = scorches.length * per + washCount;
     const old = svg.querySelector('#nuke-aftermath-layer');
     if (old && old.childElementCount === want) return;   // current
     if (old) old.remove();   // stale (recorded set changed) — rebuild
@@ -2320,18 +2339,30 @@ function __nukeAftermath(finalOn, svg) {
     const billow = _NUKE_FALLOUT_BILLOW
         && !document.body.classList.contains('low-fx-on')
         && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-    // Grey wash FIRST (bottom of the aftermath group, which itself sits over the
-    // state paths) so the plumes drawn after it stay vivid on top.
+    // Grey wash FIRST (under the plumes): a grey copy of each census-coloured
+    // state path mutes only the states; the plumes drawn after stay vivid.
     if (_NUKE_STATE_WASH_ON) {
-        const wash = document.createElementNS(NS, 'rect');
-        let vx = -1000, vy = -1000, vw = 4000, vh = 4000;   // generous cover if no viewBox
-        const vb = svg.viewBox && svg.viewBox.baseVal;
-        if (vb && vb.width) { vx = vb.x; vy = vb.y; vw = vb.width; vh = vb.height; }
-        wash.setAttribute('x', vx); wash.setAttribute('y', vy);
-        wash.setAttribute('width', vw); wash.setAttribute('height', vh);
-        wash.setAttribute('fill', _NUKE_STATE_WASH);
-        wash.setAttribute('pointer-events', 'none');
-        g.appendChild(wash);
+        if (washNodes.length) {
+            washNodes.forEach(pn => {
+                const wp = pn.cloneNode(false);
+                wp.removeAttribute('id'); wp.removeAttribute('data-abbr');
+                wp.removeAttribute('class'); wp.removeAttribute('style');
+                wp.setAttribute('fill', _NUKE_STATE_WASH);
+                wp.setAttribute('stroke', 'none');
+                wp.setAttribute('pointer-events', 'none');
+                g.appendChild(wp);
+            });
+        } else {
+            const wash = document.createElementNS(NS, 'rect');
+            let vx = -1000, vy = -1000, vw = 4000, vh = 4000;   // generous cover if no viewBox
+            const vb = svg.viewBox && svg.viewBox.baseVal;
+            if (vb && vb.width) { vx = vb.x; vy = vb.y; vw = vb.width; vh = vb.height; }
+            wash.setAttribute('x', vx); wash.setAttribute('y', vy);
+            wash.setAttribute('width', vw); wash.setAttribute('height', vh);
+            wash.setAttribute('fill', _NUKE_STATE_WASH);
+            wash.setAttribute('pointer-events', 'none');
+            g.appendChild(wash);
+        }
     }
     scorches.forEach(s => {
         // fallout plume first, so the crater sits on top of its source
@@ -5231,6 +5262,13 @@ body.low-fx-on #map_container {
     background-image: none !important;
     background-color: #111 !important;
 }
+/* FALLOUT (final damage) map: drop the TV noise gif — the fallout plumes are the
+   subject here, and the static muddied them. Flat tube-black instead. Election
+   Night keeps the live noise (only .acop-nuke-final, not .acop-nuke-tv). */
+#game_window.acop-nuke-final #map_container {
+    background-image: none !important;
+    background-color: #0a0a0a !important;
+}
 /* DEFCON-1 nuclear war terminal screens (acop-nuke-tv is stamped on
    #game_window by __nukeTvTick — Election Night + final map only, while
    body.acop-nuke is up): the stock engine map dressed as a war-room feed.
@@ -5453,8 +5491,9 @@ body.low-fx-on #nuke-chyron span { animation: none; }
     pointer-events: none; font-family: 'Courier New', monospace; font-size: 10.5px;
     font-weight: bold; letter-spacing: 0.5px; color: #ffcf8a;
     text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+    text-align: left !important;   /* the engine centres content in #main_content_area — force left */
 }
-#nuke-wire .nuke-wire-line { margin-top: 2px; }
+#nuke-wire .nuke-wire-line { margin-top: 2px; text-align: left !important; }
 #nuke-wire .nuke-wire-line:nth-child(n+3) { opacity: 0.65; }
 #nuke-wire .nuke-wire-line:nth-child(n+5) { opacity: 0.35; }
 #nuke-norad {
