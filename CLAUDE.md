@@ -844,6 +844,20 @@ to the new pattern, +3 config/wiring assertions), full regression suite green
 trio 9, theme 14, themeswap 10, fog 15, qpage 11, visitmap 15, enight 8, tvcard 6,
 reshuffle 13) + census_split_check, both files EXECUTE CLEAN.
 
+**45. Nuke census: safe rural states → Survivors plurality (Jul 2026)** — Code 2.
+The most rural states with no military targets take far fewer warheads, so the
+SURVIVORS lead there. New `_NUKE_SAFE_STATES` (default VT/WV/ID/IA/WI/OR) +
+`_NUKE_SAFE_CASUALTY` (0.5): at the end of `_nukeStateShares`, a listed state's
+casualty rows (Dead/Injured/Irradiated — anything with a target) are scaled to the
+factor and the freed share is poured into the balance row (Survivors), which lifts
+Survivors clear of every casualty category regardless of the state's size (proof:
+Survivors_new = S + (1−f)·C ≥ f·maxCat for any f<1 since C ≥ maxCat). Small national
+side-effect (Survivors tick a few M above their 57M base). Verified: census_split_check
+now asserts Survivors top EXACTLY the safe list (6), Injured the ~36 mid states,
+Irradiated the 9 biggest, Dead none, national totals in tolerance; nuke_check 124/124
+(+1 safe-state wiring; the CA/WY A() test unaffected — neither is a safe state), full
+regression suite green, both files EXECUTE CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.

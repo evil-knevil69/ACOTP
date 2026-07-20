@@ -61,10 +61,19 @@ plus two one-line guards in `A Cancer on the Presidency_init (draft).txt`
    from each state's turnout (a tempered `^0.6` pop ratio) — radiation is
    worst where the most warheads ground-burst, i.e. the biggest, most-
    targeted states (the same turnout signal that drives salvo size + the
-   barrage). Verified over the real 51-state data: national totals land on
-   31M / 62M / 60M / 57M, Injured tops the 42 smaller states, Irradiated
-   tops the 9 biggest (CA/NY/IL/PA/OH…), Survivors and Dead never top; ~19%
-   dead in NY/CA vs ~6% in WY/ND.
+   barrage).
+   **Safe states:** the most rural states with no military targets take far
+   fewer warheads, so the SURVIVORS hold the plurality there. Abbrs in
+   `_NUKE_SAFE_STATES` (default VT/WV/ID/IA/WI/OR) get every casualty row
+   scaled to `_NUKE_SAFE_CASUALTY` (0.5) with the freed share poured into
+   Survivors — which lifts them clear of the casualty categories regardless
+   of the state's size. Edit the roster freely. Verified over the real
+   51-state data: national totals ≈ 31M / 59M / 59M / 62M, Injured tops the
+   ~36 mid states, Irradiated the 9 biggest (CA/NY/IL/PA/OH…), Survivors
+   exactly the 6 safe states, the Dead never top; ~19% dead in NY/CA vs ~6%
+   in WY/ND. (The safe boost lifts the national Survivor total a few M above
+   its 57M base — tune the list / factor if you want Injured to stay #1 on
+   the national tally.)
 5. **The strike timetable replaces poll closings.** A wrapper over the
    engine global `electionNight` (LBM wraps it the same way) re-deals every
    state's `result_time` from `_NUKE_STRIKE_WAVES` once the census is live

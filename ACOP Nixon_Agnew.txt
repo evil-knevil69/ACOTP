@@ -19765,6 +19765,15 @@ var _NUKE_CENSUS = [
     { pk: 80000, first: 'Short-term', last: 'Survivors',    color: '#41505c', target: null },
 ];
 
+// The most rural states with no major military targets take FAR fewer warheads,
+// so the SURVIVORS are the plurality there. In a listed state every casualty row
+// (Dead / Injured / Irradiated — anything with a target) is scaled down to
+// _NUKE_SAFE_CASUALTY and the freed share is handed to the balance row
+// (Survivors), lifting it clear of the casualty categories. Edit the roster
+// freely — these are the sheltered states away from missile fields / SAC bases.
+var _NUKE_SAFE_STATES   = ['VT', 'WV', 'ID', 'IA', 'WI', 'OR'];
+var _NUKE_SAFE_CASUALTY = 0.5;   // casualty rows scaled to this in safe states (lower = more survivors)
+
 // Urbanisation weights (default 1.0). An urban-flagged category's share in a
 // state is scaled by weight/mean, where the mean is TURNOUT-WEIGHTED across
 // all states — so the national death toll is conserved exactly; only its
@@ -20018,6 +20027,23 @@ function _nukeStateShares(abbr) {
     _NUKE_CENSUS.forEach(c => {
         if (_nukeConcWeight(c, abbr) == null) m.set(c.pk, (_nukeShares.get(c.pk) || 0) * restScale);
     });
+    // Sheltered rural states (no military targets): few warheads → scale the
+    // casualty rows down and pour what's freed into the Survivors (balance),
+    // so they hold the plurality there.
+    if (_NUKE_SAFE_STATES.indexOf(abbr) !== -1) {
+        const balPks = _NUKE_CENSUS.filter(c => c.target == null).map(c => c.pk);
+        if (balPks.length) {
+            let freed = 0;
+            _NUKE_CENSUS.forEach(c => {
+                if (c.target == null) return;   // casualty rows only
+                const v = m.get(c.pk) || 0;
+                const nv = v * _NUKE_SAFE_CASUALTY;
+                freed += v - nv;
+                m.set(c.pk, nv);
+            });
+            balPks.forEach(pk => m.set(pk, (m.get(pk) || 0) + freed / balPks.length));
+        }
+    }
     return m;
 }
 (function () {
