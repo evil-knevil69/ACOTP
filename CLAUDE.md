@@ -980,6 +980,23 @@ map's right edge rather than out in the black margin. Verified: nuke_check 141/1
 (the two 817 assertions retuned to 777), render confirms all three shifted, Code 1
 EXECUTES CLEAN.
 
+**54. Nuke wash stronger + fallout-map buttons to the bottom row + bigger buttons
+(Jul 2026)** — Code 1. (1) `_NUKE_STATE_WASH` alpha 0.62 → 0.78 (greyer states,
+plumes pop harder). (2) The nuke FALLOUT (final damage) map's 6 `.final_menu_button`
+nav buttons were squashed under the state-results panel (they fell under the nuke
+`left:777` footer rule). The centred-bottom-row rule now also targets
+`#game_window.acop-nuke-final #map_footer:has(.final_menu_button)` — its (2,2,0)
+specificity out-ranks the `.acop-nuke-tv` `left:777` (2,1,0), so the fallout map
+gets the row while the nuke ELECTION NIGHT (single "Go to Final Results" button,
+no `.acop-nuke-final`) keeps 777. (3) Row buttons made bigger for ALL final screens:
+font 11 → 13.5px, padding 4/8 → 7/13, gap 5/6 → 7/9, row width 760 → 820.
+CAUTION LEARNED (again): a stray backtick in a CSS comment ('left:777' was first
+written with backticks) terminated the main-stylesheet template literal — caught
+by mod_exec_check, fixed to apostrophes. Verified: nuke_check 142/142 (+1 bigger-
+buttons; row + wash asserts retuned to the comma-selector / new grey), full
+regression suite green + renders (stronger wash, nuke fallout buttons in a centred
+row clear of the panels), both files EXECUTE CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.

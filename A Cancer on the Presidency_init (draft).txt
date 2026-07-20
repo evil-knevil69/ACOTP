@@ -1303,8 +1303,16 @@ div.center img#header {
    centred, wrapping row along the bottom instead — on ANY screen whose footer
    holds those buttons (matched with :has(), which the mod already relies on).
    The nuke war-room map has its own footer placement, so exclude .acop-nuke-tv. */
-#game_window:not(.acop-nuke-tv):has(#map_footer .final_menu_button) { position: relative !important; }
-#game_window:not(.acop-nuke-tv) #map_footer:has(.final_menu_button) {
+/* Applies to every NON-nuke final screen AND the nuke FALLOUT (final damage) map
+   (.acop-nuke-final) — where the 6 nav buttons were squashed under the state-
+   results panel. The .acop-nuke-final selector (2 ids + 2 classes) out-specifies
+   the nuke 'left:777' footer rule, so the final map gets the row while the nuke
+   ELECTION NIGHT (single "Go to Final Results" button, no .acop-nuke-final) keeps
+   its 777 placement. */
+#game_window:not(.acop-nuke-tv):has(#map_footer .final_menu_button),
+#game_window.acop-nuke-final:has(#map_footer .final_menu_button) { position: relative !important; }
+#game_window:not(.acop-nuke-tv) #map_footer:has(.final_menu_button),
+#game_window.acop-nuke-final #map_footer:has(.final_menu_button) {
     position: absolute !important;
     top: auto !important;
     bottom: 40px !important;
@@ -1314,16 +1322,17 @@ div.center img#header {
     flex-wrap: wrap !important;
     justify-content: center !important;
     align-items: center !important;
-    gap: 5px 6px !important;
-    width: 760px !important;
-    max-width: 760px !important;
+    gap: 7px 9px !important;
+    width: 820px !important;
+    max-width: 820px !important;
     z-index: 20 !important;
     pointer-events: auto !important;
 }
-#game_window:not(.acop-nuke-tv) #map_footer:has(.final_menu_button) .final_menu_button {
-    font-size: 11px !important;
-    line-height: 1.1 !important;
-    padding: 4px 8px !important;
+#game_window:not(.acop-nuke-tv) #map_footer:has(.final_menu_button) .final_menu_button,
+#game_window.acop-nuke-final #map_footer:has(.final_menu_button) .final_menu_button {
+    font-size: 13.5px !important;
+    line-height: 1.15 !important;
+    padding: 7px 13px !important;
     margin: 0 !important;
     white-space: nowrap !important;
 }
@@ -2323,7 +2332,7 @@ var _NUKE_FALLOUT_CORE = 'rgba(226, 52, 100, 0.30)';  // inner high-dose core
 // A semi-transparent grey rect laid over the map UNDER the plumes — mutes the
 // states + background toward grey; the plumes, drawn on top, keep their colour.
 var _NUKE_STATE_WASH_ON = true;
-var _NUKE_STATE_WASH    = 'rgba(122, 124, 128, 0.62)';  // higher alpha = greyer states (the map's own saturate(1.4) fights it, so it runs fairly strong)
+var _NUKE_STATE_WASH    = 'rgba(124, 126, 130, 0.78)';  // higher alpha = greyer states (the map's own saturate(1.4) fights it, so it runs fairly strong)
 // Billow: the plumes gently swell + undulate (transform oscillation around the
 // source end), each on its own slow, phase-offset loop so the fallout looks like
 // living, drifting cloud rather than a static dose map. Off under low demand mode
