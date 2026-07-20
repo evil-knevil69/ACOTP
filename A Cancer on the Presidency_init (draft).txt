@@ -2544,25 +2544,32 @@ function __nukeStrikeAt(svg, path, censusColor) {
     let bb;
     try { bb = path.getBBox(); } catch (e) { applyColor(); return; }
     if (!bb || (!bb.width && !bb.height)) { applyColor(); return; }
-    // No missile flight under reduced motion → paint the state immediately.
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) applyColor();
     const g = __nukeStrikeLayer(svg);
     const abbr = __nukeMaps(svg).byNode.get(path) || null;
     const off = (abbr && _NUKE_HIT_OFFSET[abbr]) || { x: 0, y: 0 };
     const n = abbr ? __nukeSalvoSize(abbr) : 1;
+    // Everything that should land WITH the lead warhead: the state's census
+    // colour, its wire-feed obituary, and the broadcast-degradation tick — so
+    // the whole "state falls" beat coincides with the impact, not the launch.
+    let leadFired = false;
+    const onLeadImpact = () => {
+        if (leadFired) return;
+        leadFired = true;
+        applyColor();
+        __nukeWireLine(abbr);
+        __nukeDegrade();
+    };
+    // No missile flight under reduced motion → fire the beat immediately.
+    if (reduce) onLeadImpact();
     for (let i = 0; i < n; i++) {
         const tx = bb.x + bb.width * (i === 0 ? 0.5 : 0.25 + Math.random() * 0.5) + off.x;
         const ty = bb.y + bb.height * (i === 0 ? 0.5 : 0.25 + Math.random() * 0.5) + off.y;
         const ground = i === 0 || Math.random() > 0.45;
         const delay = i === 0 ? 0 : 200 + Math.random() * 500;
-        // The lead warhead carries the recolour: the state turns its census
-        // colour exactly as this warhead lands.
-        const onImpact = (i === 0 && !reduce) ? applyColor : null;
+        const onImpact = (i === 0 && !reduce) ? onLeadImpact : null;
         setTimeout(() => { try { __nukeOneMissile(svg, g, tx, ty, bb, ground, onImpact); } catch (e) {} }, delay);
     }
-    __nukeWireLine(abbr);
-    __nukeDegrade();
     // Washington DC — the decapitation strike: a BIG jolt + heavy static flare
     // when its lead warhead lands (re-rolls the ordinary judder schedule so a
     // normal one doesn't stack right after).

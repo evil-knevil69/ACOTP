@@ -810,6 +810,17 @@ all strike/air-burst/MIRV/barrage tests unchanged), full regression suite green
 trio 9, theme 14, themeswap 10, fog 15, qpage 11, visitmap 15, enight 8, tvcard 6,
 reshuffle 13), both files EXECUTE CLEAN.
 
+**43. Nuke: the whole "state falls" beat lands with the impact (Jul 2026)** —
+Code 1. Following item 42 (colour deferred to impact), the state's WIRE-FEED
+obituary (`__nukeWireLine`) and the BROADCAST-DEGRADATION tick (`__nukeDegrade`)
+were still firing at launch-detection (~1.4s early). Both are now bundled with the
+recolour into one `onLeadImpact` handler carried by the lead warhead — colour +
+wire + degrade fire together AS the warhead lands. Reduced motion (no flight) fires
+the beat up front; a `leadFired` guard keeps it idempotent. Barrage re-strikes keep
+their own independent wire lines. Verified: nuke_check 120/120 (+1: wire obituary
+absent mid-flight, present after impact; the existing MIRV/air-burst/wire-feed/
+degradation tests unchanged), full regression suite green, both files EXECUTE CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.

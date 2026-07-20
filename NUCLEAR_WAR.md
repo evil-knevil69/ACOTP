@@ -88,7 +88,10 @@ plus two one-line guards in `A Cancer on the Presidency_init (draft).txt`
    ~1.4s before. A `path.__nukeStruck` flag stops the at-impact repaint from
    launching a second strike. Fallbacks paint the colour immediately where no
    warhead flies (low demand mode, reduced motion, no-WAAPI, a state with no
-   bbox), so a state can never get stuck on its pre-call colour.
+   bbox), so a state can never get stuck on its pre-call colour. The state's
+   **wire-feed obituary and the broadcast-degradation tick ride the same lead
+   warhead** (`onLeadImpact` bundles colour + wire + degrade), so the whole
+   "state falls" beat coincides with the impact rather than the launch.
    Same-value repaints, hover styles and
    non-census recolours don't fire; the final map repaints all-at-once so
    the observer only attaches on Election Night and disconnects on leaving.
