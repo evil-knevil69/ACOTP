@@ -59,6 +59,10 @@ console `ACOPNuke.demo()`.
 
 ## 2 · Election Night, non-nuke (ACOP News package)
 
+Preview WITHOUT playing a full run: console `ACOPNight.demo()` — jumps
+straight to the normal Election Night (re-rolls the opening set each call, so
+call it repeatedly to see both sets). Nuke twin: `ACOPNuke.demo()`.
+
 - [~] **2.1 Opening-of-coverage SETS.** `_ENIGHT_SETS` (Code 2, grep it) —
       TWO sets, each a sting (audio URL) + title animation (gif URL +
       `durationMs`). One set is rolled at random per run; sting plays under

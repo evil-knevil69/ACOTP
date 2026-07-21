@@ -20174,6 +20174,28 @@ window.ACOPNuke = {
     reset:  function () { _nukeReset(); },
 };
 
+// Console shortcut (dev/preview), the NORMAL Election Night twin of
+// ACOPNuke.demo():
+//   ACOPNight.demo() — jump straight to the regular Election Night from any
+//                      in-game screen (same engine jump: final_state_results =
+//                      A(1) → electionNight(); no census). Re-arms AND re-rolls
+//                      the opening set (sting + title gif), so repeated calls
+//                      preview both sets. If the nuke census is live, run
+//                      ACOPNuke.reset() first — this warns and refuses rather
+//                      than render a half-nuked night.
+window.ACOPNight = {
+    demo: function () {
+        if (_nukeWar >= 2) { console.warn('ACOPNight.demo: nuke census is live — run ACOPNuke.reset() first.'); return; }
+        _enightStingPlayed = false;
+        _enightIntroPlayed = false;
+        _enightIntroArmed = false;
+        _enightSetIdx = -1;   // fresh roll each demo
+        try { const old = document.getElementById('enight-intro-anim'); if (old) old.remove(); } catch (e) {}
+        campaignTrail_temp.final_state_results = A(1);
+        electionNight();
+    },
+};
+
 // ── DIPLOMACY ACTIONS (world map) ─────────────────────────────────────────────
 // Charge-based actions in the Diplomacy dropdown on the world-map toolbar —
 // same logic as the President's Men team actions. Answers grant charges: bump

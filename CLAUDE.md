@@ -997,6 +997,17 @@ buttons; row + wash asserts retuned to the comma-selector / new grey), full
 regression suite green + renders (stronger wash, nuke fallout buttons in a centred
 row clear of the panels), both files EXECUTE CLEAN.
 
+**55. ACOPNight.demo() — normal Election Night shortcut (Jul 2026)** — Code 2,
+right after the `window.ACOPNuke` block. The non-nuke twin of `ACOPNuke.demo()`:
+same engine jump (`final_state_results = A(1)` → `electionNight()`), no census.
+Each call RE-ARMS the opening sting/intro flags, clears any stale
+`#enight-intro-anim` overlay, and RE-ROLLS `_enightSetIdx = -1` — so repeated
+calls preview the opening sets (CBS etc.) without replaying a run. Refuses (warn +
+return) while `_nukeWar >= 2` — run `ACOPNuke.reset()` first, otherwise the night
+would render half-nuked. Preview line added to AUTHORING_TODO §2. Verified:
+enightsets_check 15/15 (+3 wiring: jump-no-census, re-arm/re-roll/clear-overlay,
+nuke-guard), saveload 10/10 + nuke_check 142/142 unchanged, Code 2 EXECUTES CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
