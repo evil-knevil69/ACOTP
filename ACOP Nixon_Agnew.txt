@@ -18054,7 +18054,7 @@ window.__onGameWindowMutation(() => {
 var _ENIGHT_SETS = [
     // Set A — CBS 1976 election coverage
     { sting: 'https://file.garden/aXPgNT-ZRCxxpy0g/cbs.mp3',
-      intro: { url: 'https://file.garden/aXPgNT-ZRCxxpy0g/YTDown.com_YouTube_1976-US-Presidential-Election-CBS-Electi_Media_P90VXYN9dhU_001_360p%20(online-video-cutter.com).gif', durationMs: 8000 } },
+      intro: { url: 'https://file.garden/aXPgNT-ZRCxxpy0g/YTDown.com_YouTube_1976-US-Presidential-Election-CBS-Electi_Media_P90VXYN9dhU_001_360p%20(online-video-cutter.com).gif', durationMs: 20000 } },
     { sting: '',   // FILL ME IN — set B: alternate network opening theme
       intro: { url: '', durationMs: 4000 } },   // FILL ME IN — set B title gif
 ];
