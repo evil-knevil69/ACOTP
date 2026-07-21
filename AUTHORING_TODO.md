@@ -59,11 +59,15 @@ console `ACOPNuke.demo()`.
 
 ## 2 · Election Night, non-nuke (ACOP News package)
 
-- [ ] **2.1 Opening-of-coverage SETS.** `_ENIGHT_SETS` (Code 2, grep it) —
+- [~] **2.1 Opening-of-coverage SETS.** `_ENIGHT_SETS` (Code 2, grep it) —
       TWO sets, each a sting (audio URL) + title animation (gif URL +
       `durationMs`). One set is rolled at random per run; sting plays under
       the opener popup, the gif fires centre-map when OK dismisses it.
       Either half of a set may stay '' (that half is skipped).
+      SET A = CBS (cbs.mp3 + the CBS 1976 title gif) — DONE; `durationMs`
+      guessed at 8000, adjust if the gif is cut off / lingers. SET B (a second
+      network) still '' — until it's filled, ~half the runs roll the empty set
+      (silent open). Drop set B, or add the second network, to change that.
 - [ ] **2.2 Projection sting.** `_PROJ_STING_URL` (Code 2) — plays once
       when the 270 popup fires ("ACOP News projects…"). '' = silent.
 

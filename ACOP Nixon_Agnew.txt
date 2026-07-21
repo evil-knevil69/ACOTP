@@ -18052,9 +18052,10 @@ window.__onGameWindowMutation(() => {
 // Once per run (_enightStingPlayed/_enightIntroPlayed, New-Game reset);
 // audio tape ducked/restored via _playEggAudio. FILL ME IN: both sets.
 var _ENIGHT_SETS = [
-    { sting: '',   // FILL ME IN — set A: opening-of-coverage theme
-      intro: { url: '', durationMs: 4000 } },   // FILL ME IN — set A title gif
-    { sting: '',   // FILL ME IN — set B: alternate opening theme
+    // Set A — CBS 1976 election coverage
+    { sting: 'https://file.garden/aXPgNT-ZRCxxpy0g/cbs.mp3',
+      intro: { url: 'https://file.garden/aXPgNT-ZRCxxpy0g/YTDown.com_YouTube_1976-US-Presidential-Election-CBS-Electi_Media_P90VXYN9dhU_001_360p%20(online-video-cutter.com).gif', durationMs: 8000 } },
+    { sting: '',   // FILL ME IN — set B: alternate network opening theme
       intro: { url: '', durationMs: 4000 } },   // FILL ME IN — set B title gif
 ];
 var _enightSetIdx = -1;   // -1 = not rolled yet this run (in _SL_SCALARS)
