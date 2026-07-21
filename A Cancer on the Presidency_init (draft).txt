@@ -1300,15 +1300,13 @@ div.center img#header {
    text, the electoral map, the popular-vote map, …) carries the 6
    .final_menu_button nav buttons in #map_footer. The engine parks that footer at
    top:580/left:600, where the buttons squash into a corner. Lay them out as a
-   centred, wrapping row along the bottom instead — on ANY screen whose footer
-   holds those buttons (matched with :has(), which the mod already relies on).
-   The nuke war-room map has its own footer placement, so exclude .acop-nuke-tv. */
-/* Applies to every NON-nuke final screen AND the nuke FALLOUT (final damage) map
-   (.acop-nuke-final) — where the 6 nav buttons were squashed under the state-
-   results panel. The .acop-nuke-final selector (2 ids + 2 classes) out-specifies
-   the nuke 'left:777' footer rule, so the final map gets the row while the nuke
-   ELECTION NIGHT (single "Go to Final Results" button, no .acop-nuke-final) keeps
-   its 777 placement. */
+   centred, wrapping row along the bottom instead — on every NON-nuke screen whose
+   footer holds those buttons (matched with :has(), which the mod already relies
+   on) AND the nuke FALLOUT (final damage) map, where they squashed under the
+   state-results panel. The .acop-nuke-final selector (2 ids + 2 classes)
+   out-specifies the nuke 'left:777' footer rule, so the fallout map gets the row
+   while the nuke ELECTION NIGHT (single "Go to Final Results" button, no
+   .acop-nuke-final) keeps its 777 placement. */
 #game_window:not(.acop-nuke-tv):has(#map_footer .final_menu_button),
 #game_window.acop-nuke-final:has(#map_footer .final_menu_button) { position: relative !important; }
 #game_window:not(.acop-nuke-tv) #map_footer:has(.final_menu_button),
@@ -5326,8 +5324,10 @@ body.low-fx-on #map_container {
     position: relative;
     /* Uniformly bigger container on the nuke screen (the map SVG keeps its fixed
        721×400 and stays flex-centred, so it gains black margin all round). The
-       margins shrink by half the growth so the map itself doesn't move. Capped so
-       the right edge stays clear of the result panels at x:817. */
+       margins shrink by half the growth so the map itself doesn't move. The right
+       edge (846) runs behind the result panels (left:777) — harmless: the panels
+       are near-opaque and paint above (their z:8996 vs the container's stacking
+       context at z:0), and the right-edge feather fades the overlap anyway. */
     width: 791px !important;
     height: 570px !important;
     margin-left: 55px !important;
