@@ -2550,12 +2550,16 @@ function __nukeStaticFlare(big) {
     // (re)grab the noise gif each time in case the map bg changed
     try { const bg = getComputedStyle(mc).backgroundImage; if (bg && bg !== 'none') fl.style.backgroundImage = bg; } catch (e) {}
     const peak = big ? 1.0 : 0.9;
+    // Snap up to peak, HOLD there for the middle of the burst, then decay — so the
+    // static reads as a sustained flash, not a quick blink. ~500ms longer than the
+    // original (450/620 → 950/1120) at the user's request.
     fl.animate([
         { opacity: 0 },
-        { opacity: peak, offset: 0.1 },
-        { opacity: peak * 0.55, offset: 0.45 },
+        { opacity: peak, offset: 0.06 },
+        { opacity: peak, offset: 0.5 },          // hold at peak
+        { opacity: peak * 0.5, offset: 0.72 },
         { opacity: 0 },
-    ], { duration: big ? 620 : 450, easing: 'ease-out' });
+    ], { duration: big ? 1120 : 950, easing: 'ease-out' });
 }
 // Called at every impact (ground + air). Advances the counter and fires the
 // judder + a static flare when the random threshold is reached, then re-rolls.
