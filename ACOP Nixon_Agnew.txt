@@ -18086,9 +18086,10 @@ window.__onGameWindowMutation(() => {
 // removes itself after the set's durationMs. Sized + positioned like the nuke
 // EBS intro — covers #map_container exactly (inset:0, object-fit:cover) — but
 // with NO fade (it just appears and is removed). Sits inside #map_container at
-// z-index 1 — above the map, under the CRT scanlines (z2) and the TV frame —
-// with pointer-events off so the tally and state clicks are never blocked.
-// Once per run, New-Game reset.
+// z-index 1 — above the map, under the CRT scanlines (z2) and the TV frame.
+// CLICK TO SKIP: the overlay takes pointer events so a map click dismisses it
+// early; the result panels sit OUTSIDE #map_container so they stay live. Once
+// per run, New-Game reset.
 var _enightIntroPlayed = false;
 var _enightIntroArmed = false;   // transient — Election Night can't be saved into
 window.__onGameWindowMutation(() => {
@@ -18110,10 +18111,17 @@ window.__onGameWindowMutation(() => {
     img.id = 'enight-intro-anim';
     img.src = intro.url;
     // Cover #map_container exactly, like the EBS intro — no fade, just appears.
+    // Click to SKIP: the overlay takes pointer events so a click anywhere on the
+    // map dismisses it early (the result panels live OUTSIDE #map_container, so
+    // they stay clickable during the intro either way). Otherwise it self-removes
+    // after the set's durationMs.
     img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;'
-        + 'z-index:1;pointer-events:none;';
+        + 'z-index:1;pointer-events:auto;cursor:pointer;';
     map.appendChild(img);
-    setTimeout(() => img.remove(), Math.max(500, intro.durationMs || 4000));
+    let killTimer = null;
+    const kill = () => { if (killTimer) { clearTimeout(killTimer); killTimer = null; } img.remove(); };
+    img.addEventListener('click', kill, { once: true });
+    killTimer = setTimeout(kill, Math.max(500, intro.durationMs || 4000));
 });
 
 let nixonClickCount = 0;
