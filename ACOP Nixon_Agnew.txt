@@ -14366,6 +14366,94 @@ const OFFICIALS_VARS = {
     document.head.appendChild(_ocStyle);
 })();
 
+// ── RESHUFFLE: filing-card animations ─────────────────────────────────────────
+// The replacement candidates are a DECK of index cards: they flick out of a
+// stack when the picker opens, and appointing one files it into the org chart —
+// the chosen card flies to the role's slot while the outgoing holder drops out
+// and the cards not chosen slide back into the deck. Pure WAAPI over the
+// existing markup (no layout changes), so nothing here can shift the chart.
+// Gated: low demand mode and prefers-reduced-motion take the instant path, as
+// does a browser with no element.animate.
+function _rsAnimOk() {
+    if (_lowFx()) return false;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+    return typeof document.createElement('div').animate === 'function';
+}
+// Deal the candidate cards out of a deck stacked at the first card's position.
+function _rsDealDeck(cands) {
+    const cells = Array.prototype.slice.call(cands.children);
+    if (!cells.length) return;
+    const x0 = cells[0].offsetLeft;
+    cells.forEach((cell, i) => {
+        if (!cell.animate) return;
+        const dx = x0 - cell.offsetLeft;   // 0 for the top card, negative for the rest
+        cell.animate([
+            { transform: 'translate(' + dx + 'px, -6px) rotate(-7deg) scale(0.94)', opacity: 0.15 },
+            { transform: 'translate(' + (dx * 0.22) + 'px, 2px) rotate(2deg) scale(1.01)', opacity: 1, offset: 0.72 },
+            { transform: 'none', opacity: 1 },
+        ], { duration: 420, delay: i * 95, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+    });
+}
+// File the chosen card into the chart: unpicked cards go back in the deck, the
+// outgoing holder drops out of its slot, and a fixed-position clone of the
+// chosen card flies from the picker to that slot. `done` commits the
+// appointment + re-render once the card lands (always called, even if the
+// target card can't be found).
+function _rsFileSwap(cell, cands, target, done) {
+    let fired = false;
+    const finish = () => { if (fired) return; fired = true; done(); };
+    Array.prototype.slice.call(cands.children).forEach((c, i) => {
+        if (c === cell || !c.animate) return;
+        c.animate([
+            { transform: 'none', opacity: 1 },
+            { transform: 'translateY(8px) rotate(-5deg) scale(0.9)', opacity: 0 },
+        ], { duration: 260, delay: i * 40, easing: 'ease-in', fill: 'forwards' });
+    });
+    const src = cell.querySelector('.oc-flip') || cell;
+    if (!target || !src.animate) { setTimeout(finish, 260); return; }
+    const s = src.getBoundingClientRect(), t = target.getBoundingClientRect();
+    if (!s.width || !t.width) { setTimeout(finish, 260); return; }
+    // the outgoing holder is filed away
+    if (target.animate) {
+        target.animate([
+            { transform: 'none', opacity: 1 },
+            { transform: 'translateY(26px) rotate(6deg) scale(0.92)', opacity: 0 },
+        ], { duration: 320, easing: 'ease-in', fill: 'forwards' });
+    }
+    // fixed clone so scrolling/offset parents can't skew the flight path
+    const fly = src.cloneNode(true);
+    fly.id = 'rs-fly';
+    // Set properties individually — NOT style.cssText, which would wipe any
+    // inline styling the source card carries (e.g. a photo background).
+    const fs = { position: 'fixed', left: s.left + 'px', top: s.top + 'px',
+        width: s.width + 'px', height: s.height + 'px', margin: '0',
+        zIndex: '9999', pointerEvents: 'none' };
+    Object.keys(fs).forEach(k => { fly.style[k] = fs[k]; });
+    document.body.appendChild(fly);
+    src.style.visibility = 'hidden';
+    const dx = t.left - s.left, dy = t.top - s.top, sc = t.width / s.width;
+    const a = fly.animate([
+        { transform: 'none' },
+        { transform: 'translate(' + (dx * 0.5) + 'px,' + (dy * 0.5 - 26) + 'px) rotate(-4deg) scale('
+            + ((1 + sc) / 2).toFixed(3) + ')', offset: 0.55 },
+        { transform: 'translate(' + dx + 'px,' + dy + 'px) rotate(0deg) scale(' + sc.toFixed(3) + ')' },
+    ], { duration: 560, easing: 'cubic-bezier(.3,.7,.2,1)', fill: 'forwards' });
+    const land = () => { fly.remove(); finish(); };
+    if (a && a.finished && a.finished.then) a.finished.then(land, land);
+    else setTimeout(land, 580);
+}
+// The newly seated card settles into the slot after the re-render.
+function _rsSettle(varName) {
+    if (!_rsAnimOk()) return;
+    const f = document.querySelector('#officials_panel .oc-flip[data-var-name="' + varName + '"]');
+    if (!f || !f.animate) return;
+    f.animate([
+        { transform: 'translateY(-14px) rotate(-3deg) scale(1.04)', opacity: 0.25 },
+        { transform: 'translateY(2px) rotate(1deg) scale(0.995)', opacity: 1, offset: 0.7 },
+        { transform: 'none', opacity: 1 },
+    ], { duration: 420, easing: 'cubic-bezier(.22,1,.36,1)' });
+}
+
 function openOfficialsPanel(questions) {
     document.getElementById('officials_panel')?.remove();
 
@@ -14550,9 +14638,17 @@ function openOfficialsPanel(questions) {
             const b = document.createElement('button');
             b.textContent = 'Appoint ' + person;
             b.addEventListener('click', () => {
-                _RESHUFFLE.choose(varName, person);
-                panel.remove();
-                openOfficialsPanel(questions); // re-render: new holder / pending badge, glows cleared
+                if (b.disabled) return;
+                const commit = () => {
+                    _RESHUFFLE.choose(varName, person);
+                    panel.remove();
+                    openOfficialsPanel(questions); // re-render: new holder / pending badge, glows cleared
+                    _rsSettle(varName);            // …and the new card settles into the slot
+                };
+                if (!_rsAnimOk()) { commit(); return; }
+                // lock the picker while the card is in flight (one appointment only)
+                pick.querySelectorAll('button').forEach(x => { x.disabled = true; });
+                _rsFileSwap(cell, cands, grid.querySelector('.oc-flip[data-var-name="' + varName + '"]'), commit);
             });
             cell.appendChild(b);
             cands.appendChild(cell);
@@ -14573,6 +14669,15 @@ function openOfficialsPanel(questions) {
         pick.appendChild(closeB);
 
         panel.appendChild(pick);
+
+        // The index drawer slides open, then the deck deals itself out.
+        if (_rsAnimOk()) {
+            if (pick.animate) {
+                pick.animate([{ transform: 'translateY(14px)', opacity: 0 }, { transform: 'none', opacity: 1 }],
+                    { duration: 240, easing: 'ease-out' });
+            }
+            _rsDealDeck(cands);
+        }
     }
 
     // Flip on click — but a glowing (swappable) role opens the picker instead.

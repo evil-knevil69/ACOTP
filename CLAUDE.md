@@ -1008,6 +1008,35 @@ would render half-nuked. Preview line added to AUTHORING_TODO §2. Verified:
 enightsets_check 15/15 (+3 wiring: jump-no-census, re-arm/re-roll/clear-overlay,
 nuke-guard), saveload 10/10 + nuke_check 142/142 unchanged, Code 2 EXECUTES CLEAN.
 
+**56. Reshuffle: filing-card animations on the Officials screen (Jul 2026)** —
+Code 2, four module-level helpers right before `openOfficialsPanel` (module level
+so the harness can extract them). The replacement candidates now behave like a
+DECK of index cards. `_rsDealDeck(cands)`: on picker open the cards start stacked
+at the first card's position (per-card `dx = firstLeft − cellLeft`, so no layout
+measurement beyond offsetLeft) and flick out staggered 95ms with a slight
+rotation — `fill: 'backwards'` so a card sits in the deck during its delay
+instead of flashing in place first; the picker itself slides up like an index
+drawer. `_rsFileSwap(cell, cands, target, done)`: unpicked cards slide back into
+the deck, the outgoing holder tilts + drops out of its slot, and a
+POSITION-FIXED clone of the chosen card (`#rs-fly`, fixed so scroll/offset
+parents can't skew the path) flies from the picker to the role card's rect,
+scaling to it; `done` (choose + re-render) fires only on landing, then
+`_rsSettle(varName)` drops the newly seated card in. Clone styling is set
+property-by-property, NOT via `style.cssText` — clobbering cssText would wipe any
+inline styling a card carries (a photo background would vanish mid-flight; the
+cards have none today, so this was pre-emptive). Fail-safes: `done` is called
+exactly once (`fired` latch) and still fires when the target card is missing or
+zero-size; the picker's buttons are disabled during the flight so one appointment
+can't be double-committed. Gate `_rsAnimOk()` = not `_lowFx()`, not
+prefers-reduced-motion, and `element.animate` exists → otherwise the ORIGINAL
+instant path runs untouched. Pure WAAPI over the existing markup, no layout
+changes, so the chart can't shift. Verified: rsanim_check 15/15 (gate ×3, deal
+stagger/deck-origin/fill, flight clone + fixed positioning + source hidden,
+outgoing filed + others returned, commit-once-on-landing + clone cleanup,
+missing-target fail-safe, settle + low-fx skip) + renders of the mid-deal and
+mid-flight frames; reshuffle_grace 13/13, saveload 10/10, nuke 143/143, lowfx
+24/24, enightsets 15/15, orgglow 9/9, orgtip 10/10 unchanged; Code 2 EXECUTES CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
