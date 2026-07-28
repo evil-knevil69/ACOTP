@@ -5438,16 +5438,25 @@ body.acop-nuke-screen #header {
 #game_window.acop-nuke-tv #overall_result_container,
 #game_window.acop-nuke-tv #state_result_container {
     background-color: rgba(8, 10, 12, 0.9) !important;
-    border: 1px solid rgba(199, 140, 60, 0.55);
-    box-shadow: 0 0 16px rgba(0, 0, 0, 0.6), inset 0 0 24px rgba(255, 150, 60, 0.05);
+    /* CRT tube bezel. A radial gradient 9-sliced at 45.5%: the corner slices catch
+       the disc's quadrants (rounded tube corners + the moulding highlight ring),
+       the edge slices fall in the transparent zone, and 'fill' paints the disc's
+       dark centre across the screen as the tube wash. border-image-width does NOT
+       affect layout, so the panel's contents never move — the bezel paints
+       entirely outside the 210px box. 42px is the largest that still clears the
+       game window at the panels' left:777 (right edge 1045 of 1050). */
+    border: 1px solid transparent;
+    border-image: radial-gradient(#333, #000 10%, #666 10.5% 12%, #0000 12.5%)
+        45.5% fill / 42px / 42px;
+    box-shadow: #8a8a8a 0 0 0 16px, #b0b0b0 -1px -1px 0 16px, #000 0 8px 22px 16px;
     font-family: 'Courier New', monospace !important;
-    color: #ffcf8a;
+    color: #8f8;
     overflow: hidden;
 }
 #game_window.acop-nuke-tv #overall_result,
 #game_window.acop-nuke-tv #state_result {
     background: transparent !important;
-    color: #ffcf8a !important;
+    color: #8f8 !important;
     position: relative;
     padding-bottom: 7px;
 }
@@ -5462,7 +5471,7 @@ body.acop-nuke-screen #header {
 #game_window.acop-nuke-tv #overall_result h3,
 #game_window.acop-nuke-tv #state_result h3 {
     background: #600e08 !important;
-    color: #f0e6c8 !important;
+    color: #8f8 !important;
     font-family: 'Courier New', monospace !important;
     font-size: 13px !important; font-weight: bold !important;
     letter-spacing: 2px !important; text-align: center;
@@ -5478,9 +5487,9 @@ body.acop-nuke-screen #header {
 #game_window.acop-nuke-tv #overall_result li,
 #game_window.acop-nuke-tv #state_result li {
     font-family: 'Courier New', monospace !important;
-    font-size: 12px !important; color: #ffcf8a !important;
+    font-size: 12px !important; color: #8f8 !important;
     letter-spacing: 0.3px; line-height: 1.55;
-    text-shadow: 0 0 4px rgba(255, 160, 60, 0.35);
+    text-shadow: 0 0 5px rgba(120, 255, 120, 0.45);
     display: flex; align-items: center; gap: 6px;
     background: transparent !important;
 }
@@ -5495,9 +5504,9 @@ body.acop-nuke-screen #header {
 #game_window.acop-nuke-tv #overall_result p,
 #game_window.acop-nuke-tv #state_result p {
     font-family: 'Courier New', monospace !important;
-    font-size: 11px !important; color: #d8b070 !important;
+    font-size: 11px !important; color: #7d7 !important;
     letter-spacing: 1px; margin: 6px 8px 0 !important; background: transparent !important;
-    text-shadow: 0 0 4px rgba(255, 160, 60, 0.3);
+    text-shadow: 0 0 4px rgba(120, 255, 120, 0.35);
 }
 /* gentle CRT flicker — opt out under low-fx / reduced-motion */
 @media (prefers-reduced-motion: no-preference) {
@@ -5531,7 +5540,8 @@ body.acop-nuke-screen #header {
 #nuke-chyron span {
     display: inline-block; white-space: nowrap; line-height: 26px;
     font-family: 'Courier New', monospace; font-weight: bold; font-size: 12px;
-    letter-spacing: 2px; color: #f0e6c8;
+    letter-spacing: 2px; color: #8f8;
+    text-shadow: 0 0 6px rgba(120, 255, 120, 0.5);
     animation: nukeChyronCrawl 36s linear infinite;
 }
 @keyframes nukeChyronCrawl {
@@ -5543,8 +5553,8 @@ body.low-fx-on #nuke-chyron span { animation: none; }
 #nuke-wire {
     position: absolute; left: 10px; top: 8px; width: 250px; z-index: 9005;
     pointer-events: none; font-family: 'Courier New', monospace; font-size: 10.5px;
-    font-weight: bold; letter-spacing: 0.5px; color: #ffcf8a;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+    font-weight: bold; letter-spacing: 0.5px; color: #8f8;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.9), 0 0 5px rgba(120, 255, 120, 0.4);
     text-align: left !important;   /* the engine centres content in #main_content_area — force left */
 }
 #nuke-wire .nuke-wire-line { margin-top: 2px; text-align: left !important; }

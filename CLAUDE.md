@@ -1037,6 +1037,26 @@ missing-target fail-safe, settle + low-fx skip) + renders of the mid-deal and
 mid-flight frames; reshuffle_grace 13/13, saveload 10/10, nuke 143/143, lowfx
 24/24, enightsets 15/15, orgglow 9/9, orgtip 10/10 unchanged; Code 2 EXECUTES CLEAN.
 
+**57. Nuke panels: CRT tube bezel + phosphor-green readouts (Jul 2026)** — Code 1
+CSS, nuke-scoped. (1) `#overall_result_container` / `#state_result_container` gain a
+**border-image bezel**: a radial gradient 9-sliced at 45.5% — the corner slices catch
+the disc's quadrants (rounded tube corners + moulding highlight), the edge slices fall
+in its transparent zone, and `fill` paints the dark centre across the screen as the
+tube wash — plus a grey housing via `box-shadow` spread and a real drop shadow.
+KEY PROPERTY: `border-image-width` does NOT participate in layout, so the bezel paints
+entirely outside the 210px box and the panel contents never move (measured identical
+212x162 layout boxes with and without). 42px is the largest that clears the game
+window at the panels' `left:777` (right edge 1045 of 1050; 58px overflows). Static
+paint, no animation — no low-fx gate needed. The panels carry no mask, so unlike
+`#map_container` there is no conflict with an edge feather. (2) Readouts switch from
+amber to **phosphor green** `#8f8` (rows, footers `#7d7`, glows retinted green), and
+the same green is applied to the panel h3 bars, the `#nuke-chyron` crawl and the
+`#nuke-wire` news ticker — so every broadcast readout on the screen matches. The
+oxblood bands and gold rules are unchanged. Verified: nuke_check 146/146 (+3: bezel
+geometry, green readouts incl. a no-amber-left check over the reskin block, chyron +
+ticker green; the reskin regex window widened for the inserted bezel), full regression
+suite green + render, Code 1 EXECUTES CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
