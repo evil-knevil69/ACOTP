@@ -16246,8 +16246,19 @@ var _MIDTERM = {
       cardTitle:    "The new balance of power",
       callPrefix:   "Called: ",
       // {SW}=swing% {HR}=House R {HD}=House D {SD}=Senate D {SR}=Senate R {HG}/{SG}=R deltas
-      verdictWave:  "A bloodbath, Mr. President. The Democrats take a {HD}-seat House and a {SD}-seat Senate. The Watergate wave has crested over us. (D+{SW}% nationally.)",
-      verdictHold:  "We are bruised but standing — down {HG} in the House, {SG} in the Senate. It could have been a rout. (D+{SW}% nationally.)",
+      // The deltas are SIGNED (dlt() gives "+4" / "-47" / "NC"), so never pair one with
+      // a direction word — the sign goes both ways and the old wording produced
+      // "down +4 in the House". Let the number carry the direction.
+      // Four tiers keyed off the R House delta (see HELD_RLOSS / WAVE_RLOSS), so a
+      // good night for the President reads as one instead of as a softer defeat.
+      verdictGain:    "Against every expectation, Mr. President — we gained ground tonight. House {HG}, Senate {SG}. They keep both chambers, but this was no rout. (D+{SW}% nationally.)",
+      verdictHeld:    "We held the line, Mr. President. House {HG}, Senate {SG}. In a midterm, that is as close to a win as this office gets. (D+{SW}% nationally.)",
+      verdictBruised: "Bruised but standing — House {HG}, Senate {SG}. It could have been a rout. (D+{SW}% nationally.)",
+      verdictWave:    "A bloodbath, Mr. President. The Democrats take a {HD}-seat House and a {SD}-seat Senate. The Watergate wave has crested over us. (D+{SW}% nationally.)",
+      // Appended to the verdict when the new Congress crosses a two-thirds line.
+      // These matter more to THIS presidency than the raw seat count does.
+      superHouse:     "Two thirds of the House: your veto no longer stops them.",
+      superSenate:    "And two thirds of the Senate — the sixty-seven votes needed to convict on impeachment.",
       cardSub:      "Result at a D+{SW}% national swing — House Δ{HG}, Senate Δ{SG} against the 93rd Congress."
     },
 
@@ -16255,10 +16266,20 @@ var _MIDTERM = {
     SWING: { MID:0.030, APPROVAL_REF:60, AC:0.174, WC:0.110 },
 
     // ---- baselines (93rd Congress, going into Nov 1974) ----
-    HBASE: { dem:242, rep:192 },
+    // The House model carries no independent/vacant slot — house() always returns
+    // 435 seats — so this baseline is the two-party split of ALL 435. It formerly
+    // read 242/192 = 434, which made every reported R delta one seat too generous.
+    HBASE: { dem:242, rep:193 },
     SBASE: { dem:56,  rep:42  },
     SEED:  { D:37, R:27, I:2 },   // the 66 Senate seats NOT up in 1974
-    WAVE_RLOSS: 30,               // House R seat losses ≥ this read as a "wave" (verdictWave); fewer → verdictHold. Dems always control the House here, so the verdict must key off loss magnitude, not control.
+    // Verdict ladder, on the R House seat delta. Dems hold both chambers at every
+    // reachable swing, so the verdict keys off the MAGNITUDE of the President's
+    // loss (or gain), never off control.
+    HELD_RLOSS: 10,               // losses ≤ this → "held the line"; an outright R GAIN → verdictGain
+    WAVE_RLOSS: 30,               // losses ≥ this → "bloodbath" (verdictWave); between the two → verdictBruised
+    // Two-thirds lines in the NEW Congress: a veto-proof House (290 of 435) and a
+    // Senate that could convict on impeachment (67 of 100).
+    SUPER: { HOUSE: 290, SENATE: 67 },
 
     // ---- House leans: 2012 Obama/Romney two-party D margin (seat-sensitivity calib) ----
     SLH:{AL:-0.46,AK:-0.28,AZ:-0.10,AR:-0.25,CA:0.24,CO:0.055,CT:0.18,DE:0.20,FL:0.009,GA:-0.08,HI:0.43,ID:-0.33,IL:0.18,IN:-0.11,IA:0.06,KS:-0.22,KY:-0.24,LA:-0.18,ME:0.16,MD:0.27,MA:0.24,MI:0.095,MN:0.078,MS:-0.12,MO:-0.097,MT:-0.14,NE:-0.22,NV:0.069,NH:0.058,NJ:0.18,NM:0.10,NY:0.29,NC:-0.02,ND:-0.20,OH:0.03,OK:-0.34,OR:0.13,PA:0.054,RI:0.28,SC:-0.11,SD:-0.18,TN:-0.21,TX:-0.16,UT:-0.49,VT:0.36,VA:0.039,WA:0.15,WV:-0.27,WI:0.069,WY:-0.42},
@@ -16414,6 +16435,11 @@ var _MIDTERM = {
       'border-top:2px solid #edbc62;border-bottom:2px solid #6b440e;'+
       'padding:11px 13px;font-size:.85rem;line-height:1.5;color:#fdf3e8;min-height:1.2em;'+
       'text-shadow:0 1px 1px rgba(0,0,0,0.7);}'+
+      /* two-thirds warning under the verdict — hidden entirely when no line is crossed */
+      '#_mt_ov .mtsup{max-width:780px;margin:-6px auto 14px;padding:2px 13px 0;font-size:.8rem;'+
+      'line-height:1.45;letter-spacing:.5px;color:#ffc19a;'+
+      'text-shadow:0 1px 1px rgba(0,0,0,0.7),0 0 10px rgba(255,110,50,0.5);}'+
+      '#_mt_ov .mtsup:empty{display:none;}'+
       '#_mt_ov .mtfoot{max-width:780px;margin:0 auto;display:flex;gap:12px;justify-content:center;}'+
       /* gold-rimmed studio buttons */
       '#_mt_ov button,#_mt_card button{background:#7a0c00;color:#fdf3e8;border:0;border-radius:999px;'+
@@ -16477,6 +16503,7 @@ var _MIDTERM = {
       '<div class="mtcall" id="_mt_call"></div>'+
       '<div class="mtboard">'+tiles+'</div>'+
       '<div class="mtadv" id="_mt_adv"></div>'+
+      '<div class="mtsup" id="_mt_sup"></div>'+
       '<div class="mtfoot">'+
       '<button class="alt" id="_mt_score" disabled>'+T.scoreboardBtn+'</button>'+
       '<button id="_mt_cont" disabled>'+T.continueBtn+'</button></div>';
@@ -16488,11 +16515,11 @@ var _MIDTERM = {
       '<div class="ch"><div class="chh"><span class="t">House</span><span class="w">218 to control</span></div>'+
       '<div class="nums"><span class="mtd"><span id="_mt_chD"></span><span class="sup" id="_mt_chDg"></span></span>'+
       '<span class="mtr"><span id="_mt_chR"></span><span class="sup" id="_mt_chRg"></span></span></div>'+
-      '<div class="bar"><div class="bd" id="_mt_chBar"></div><div class="mk"></div><div class="br"></div></div></div>'+
+      '<div class="bar"><div class="bd" id="_mt_chBar"></div><div class="mk" id="_mt_chMk"></div><div class="br"></div></div></div>'+
       '<div class="ch"><div class="chh"><span class="t">Senate</span><span class="w">51 to control</span></div>'+
       '<div class="nums"><span class="mtd"><span id="_mt_csD"></span><span class="sup" id="_mt_csDg"></span></span>'+
       '<span class="mtr"><span id="_mt_csR"></span><span class="sup" id="_mt_csRg"></span></span></div>'+
-      '<div class="bar"><div class="bd" id="_mt_csBar"></div><div class="mk"></div><div class="br"></div></div></div>'+
+      '<div class="bar"><div class="bd" id="_mt_csBar"></div><div class="mk" id="_mt_csMk"></div><div class="br"></div></div></div>'+
       '<div style="text-align:right;"><button class="alt" id="_mt_close">Close</button></div></div>';
     document.body.appendChild(card);
 
@@ -16519,14 +16546,25 @@ var _MIDTERM = {
     };
     var finish=function(){
       if(!ov.isConnected) return;
-      // hg is the R House seat delta (negative = losses). A big enough rout reads
-      // as a "wave"; a modest loss as "bruised but standing". (Dems always control
-      // the House at these baselines, so control can't be the trigger.)
-      var wave=(-hg)>=self.CFG.WAVE_RLOSS;
-      var msg=(wave?T.verdictWave:T.verdictHold)
+      // hg is the R House seat delta (negative = losses). Four tiers, so a night
+      // the President actually won reads as a win: gain → held → bruised → wave.
+      // (Dems control both chambers at every reachable swing, so control can't be
+      // the trigger; the magnitude of the swing against him is.)
+      var C=self.CFG, loss=-hg;
+      var key = hg>0                 ? 'verdictGain'
+              : loss<=C.HELD_RLOSS   ? 'verdictHeld'
+              : loss< C.WAVE_RLOSS   ? 'verdictBruised'
+              :                        'verdictWave';
+      var msg=T[key]
         .replaceAll('{SW}',(R.swing*100).toFixed(1)).replaceAll('{HR}',R.house.rep).replaceAll('{HD}',R.house.dem)
         .replaceAll('{SD}',R.senate.dem).replaceAll('{SR}',R.senate.rep).replaceAll('{HG}',dlt(hg)).replaceAll('{SG}',dlt(sg));
       ov.querySelector('#_mt_adv').textContent=msg;
+      // Two-thirds lines: a veto-proof House and/or a Senate that could convict.
+      // Empty string when neither is crossed — the element hides itself (:empty).
+      var sup=[];
+      if(R.house.dem  >= C.SUPER.HOUSE)  sup.push(T.superHouse);
+      if(R.senate.dem >= C.SUPER.SENATE) sup.push(T.superSenate);
+      ov.querySelector('#_mt_sup').textContent=sup.join(' ');
       ov.querySelector('#_mt_call').textContent='All seats called.';
       ov.querySelector('#_mt_score').disabled=false;
       ov.querySelector('#_mt_cont').disabled=false;
@@ -16547,6 +16585,10 @@ var _MIDTERM = {
       document.getElementById('_mt_csRg').textContent=dlt(R.senate.rep-self.CFG.SBASE.rep);
       document.getElementById('_mt_chBar').style.width=(R.house.dem/435*100)+'%';
       document.getElementById('_mt_csBar').style.width=R.senate.dem+'%';
+      // Put each marker on the control line the header promises (218 of 435, 51 of
+      // 100) rather than at the bar's midpoint.
+      document.getElementById('_mt_chMk').style.left=(218/435*100)+'%';
+      document.getElementById('_mt_csMk').style.left='51%';
       document.getElementById('_mt_card').classList.add('show');
     };
     document.getElementById('_mt_close').onclick=function(){ document.getElementById('_mt_card').classList.remove('show'); };

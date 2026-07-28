@@ -1066,6 +1066,32 @@ Legibility was never the issue: every candidate ground cleared AAA. Verified:
 nuke_check 147/147 (the oxblood assertion split into an inside/outside pair, each
 asserting the OTHER ground is gone).
 
+**58. Midterms: verdict ladder, two-thirds warnings, baseline fix (Jul 2026)** —
+Code 2 `_MIDTERM`. A review of what the screen actually tells the player turned up
+three faults. (1) BUG: `verdictHold` hardcoded the word "down" but `{HG}`/`{SG}` are
+SIGNED deltas from `dlt()`, so a Republican gain rendered as "down +4 in the House".
+Not an edge case — the Senate delta is +2 in every non-wave scenario, including at
+game-start settings. All verdict copy now lets the number carry the direction
+("House {HG}, Senate {SG}"), and a harness assertion forbids gluing a direction word
+to a delta token. (2) NO WIN STATE: the swing is always pro-Democrat (`SWING.MID`
+0.030 is unconditional, so the floor is D+3.0% even at 100 approval / zero
+Watergate) and the Democrats hold both chambers at every reachable swing — so the
+old binary could only ever say "bloodbath" or "bruised but standing", even when the
+player GAINED seats. Replaced with a four-tier ladder on the R House delta:
+`verdictGain` (net gain) / `verdictHeld` (losses ≤ `HELD_RLOSS` 10) / `verdictBruised`
+(< `WAVE_RLOSS` 30) / `verdictWave`. All four verified reachable over an
+approval×watergate sweep (126/106/149/427 of 808 combos). (3) BASELINE: `HBASE` read
+242+192 = 434 while `house()` always returns 435, so every R delta was one seat too
+generous; rep → 193. Plus a new `#_mt_sup` line under the verdict for the two-thirds
+lines the model already crosses (`SUPER` = House 290 veto-proof, Senate 67 = the
+votes to convict on impeachment) — at historic-1974 settings the Democrats land on
+exactly 290, and in the bad cases 67–70 Senate seats, which matters far more to this
+presidency than the seat count. Hidden via `:empty` when neither is crossed. Also the
+control markers now sit on the line the labels promise (218/435, 51%) instead of the
+bar midpoint. Verified: midterm_check 19/19 (+6: bloodbath tier, veto warning, all
+four tiers keyed, gain-reads-as-win, the no-direction-word rule, Senate-67 warning
+only where earned), saveload 10/10 + nuke 147/147 unchanged, Code 2 EXECUTES CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
