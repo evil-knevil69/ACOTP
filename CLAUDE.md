@@ -1056,6 +1056,15 @@ oxblood bands and gold rules are unchanged. Verified: nuke_check 146/146 (+3: be
 geometry, green readouts incl. a no-amber-left check over the reskin block, chyron +
 ticker green; the reskin regex window widened for the inserted bezel), full regression
 suite green + render, Code 1 EXECUTES CLEAN.
+(3) GROUND SPLIT, by what each band actually is: bright oxblood was chosen for CREAM
+text and muddies green's glow to olive, so the panel h3 bars — which sit INSIDE the
+tube — move to a dark phosphor ground `#0d1a0d` with a green glow (they now read as
+emitted by the screen, separated from the rows by the existing gold rule), while the
+`#nuke-chyron` crawl — OUTSIDE the tube, a broadcast banner — stays red but drops to
+deep maroon `rgba(42,10,8,0.94)`, dark enough for clean green (contrast 10.7 → 14.6:1).
+Legibility was never the issue: every candidate ground cleared AAA. Verified:
+nuke_check 147/147 (the oxblood assertion split into an inside/outside pair, each
+asserting the OTHER ground is gone).
 
 ### A Cancer on the Presidency_init (draft).txt
 
