@@ -16262,6 +16262,19 @@ var _MIDTERM = {
       cardSub:      "Result at a D+{SW}% national swing — House Δ{HG}, Senate Δ{SG} against the 93rd Congress."
     },
 
+    // ---- opening titles: sting + animation, same idea as _ENIGHT_SETS on the
+    // main Election Night. The sting plays as the studio comes up; the animation
+    // covers the overlay and the seat-by-seat reveal WAITS for it, so the titles
+    // are never talked over. Click the animation to skip (it also self-clears
+    // after durationMs — gifs don't report an end). Either half may stay '':
+    // sting only = titles are silent, url only = no audio, both '' = the roll
+    // starts straight away exactly as before. FILL ME IN.
+    INTRO: {
+      sting:     '',      // FILL ME IN — midterm coverage theme (audio URL)
+      url:       '',      // FILL ME IN — title animation (gif/webp URL)
+      durationMs: 8000,   // how long the animation holds before the reveal begins
+    },
+
     // ---- swing dials (Ford anchor: approval 47, watergate 0.75 → D+16.9%) ----
     SWING: { MID:0.030, APPROVAL_REF:60, AC:0.174, WC:0.110 },
 
@@ -16435,6 +16448,10 @@ var _MIDTERM = {
       'border-top:2px solid #edbc62;border-bottom:2px solid #6b440e;'+
       'padding:11px 13px;font-size:.85rem;line-height:1.5;color:#fdf3e8;min-height:1.2em;'+
       'text-shadow:0 1px 1px rgba(0,0,0,0.7);}'+
+      /* opening titles: covers the studio, UNDER the CRT scanlines (z-index 5) so
+         the tube chrome washes over it. Click to skip. */
+      '#_mt_ov #_mt_intro{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;'+
+      'z-index:4;cursor:pointer;background:#000;}'+
       /* two-thirds warning under the verdict — hidden entirely when no line is crossed */
       '#_mt_ov .mtsup{max-width:780px;margin:-6px auto 14px;padding:2px 13px 0;font-size:.8rem;'+
       'line-height:1.45;letter-spacing:.5px;color:#ffc19a;'+
@@ -16569,7 +16586,27 @@ var _MIDTERM = {
       ov.querySelector('#_mt_score').disabled=false;
       ov.querySelector('#_mt_cont').disabled=false;
     };
-    setTimeout(step,600);
+
+    // ----- opening titles, then the reveal roll -----
+    // The roll is held until the titles are done (or skipped) so the seats are
+    // never called over the animation. beginRoll is latched: the click handler
+    // and the duration timer can both fire without starting it twice.
+    var rollStarted=false;
+    var beginRoll=function(){ if(rollStarted) return; rollStarted=true; setTimeout(step,600); };
+    var I=this.CFG.INTRO||{};
+    if(I.sting){ try{ _playEggAudio(I.sting); }catch(err){} }
+    if(I.url){
+      var im=document.createElement('img');
+      im.id='_mt_intro';
+      im.src=I.url;
+      im.title='Click to skip';
+      ov.appendChild(im);
+      var endTitles=function(){ if(im.parentNode) im.remove(); beginRoll(); };
+      im.addEventListener('click',endTitles,{once:true});
+      setTimeout(endTitles, Math.max(500, I.durationMs||8000));
+    } else {
+      beginRoll();
+    }
 
     // ----- wire buttons -----
     document.getElementById('_mt_score').onclick=function(){

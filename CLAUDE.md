@@ -1092,6 +1092,22 @@ bar midpoint. Verified: midterm_check 19/19 (+6: bloodbath tier, veto warning, a
 four tiers keyed, gain-reads-as-win, the no-direction-word rule, Senate-67 warning
 only where earned), saveload 10/10 + nuke 147/147 unchanged, Code 2 EXECUTES CLEAN.
 
+**59. Midterms: opening titles before the reveal (Jul 2026)** — Code 2
+`_MIDTERM`. A sting + title animation now run before the seat-by-seat reveal, the
+same authoring shape as the main Election Night's `_ENIGHT_SETS`: new
+`CFG.INTRO = { sting, url, durationMs }` (both halves FILL ME IN). The sting goes
+through `_playEggAudio` (so the music tape ducks and restores itself); the
+animation is an `<img id="_mt_intro">` covering the fixed overlay at z-index 4 —
+UNDER the studio's CRT scanlines (z 5), so the tube chrome washes over it, matching
+the nuke EBS intro. CRUCIALLY the reveal roll is HELD until the titles finish:
+`beginRoll()` is latched and called either by the click handler or the durationMs
+timer, so seats are never called over the animation and the two can't both start it.
+Click-to-skip (`title="Click to skip"`, cursor:pointer). Fails safe per half —
+sting only = silent titles skipped and the roll starts at once, url only = no audio,
+both '' = today's behaviour exactly. Verified: midterm_check 25/25 (+6: shipped-inert,
+sting + cover geometry, z-order + cursor, reveal-waits, self-clear then roll,
+click-skips-early). Authoring entry: AUTHORING_TODO §2.3.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.

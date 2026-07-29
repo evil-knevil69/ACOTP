@@ -72,6 +72,12 @@ call it repeatedly to see both sets). Nuke twin: `ACOPNuke.demo()`.
       SET B (a second
       network) still '' — until it's filled, ~half the runs roll the empty set
       (silent open). Drop set B, or add the second network, to change that.
+- [ ] **2.3 Midterm opening titles.** `_MIDTERM.CFG.INTRO` (Code 2, grep
+      `INTRO:`) — a sting (audio URL) + title animation (gif URL +
+      `durationMs`) shown before the 1974 midterm seat reveal, same idea as
+      2.1. The reveal WAITS for the animation, and a click skips it. Either
+      half may stay '' (that half is skipped); both '' = inert, the reveal
+      starts immediately as it does today. Preview: `_midtermTest()`.
 - [ ] **2.2 Projection sting.** `_PROJ_STING_URL` (Code 2) — plays once
       when the 270 popup fires ("ACOP News projects…"). '' = silent.
 
