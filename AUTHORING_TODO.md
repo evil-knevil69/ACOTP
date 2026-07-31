@@ -63,15 +63,16 @@ Preview WITHOUT playing a full run: console `ACOPNight.demo()` — jumps
 straight to the normal Election Night (re-rolls the opening set each call, so
 call it repeatedly to see both sets). Nuke twin: `ACOPNuke.demo()`.
 
-- [~] **2.1 Opening-of-coverage SETS.** `_ENIGHT_SETS` (Code 2, grep it) —
-      TWO sets, each a sting (audio URL) + title animation (gif URL +
-      `durationMs`). One set is rolled at random per run; sting plays under
-      the opener popup, the gif fires centre-map when OK dismisses it.
-      Either half of a set may stay '' (that half is skipped).
-      SET A = CBS (cbs.mp3 + the CBS 1976 title gif, `durationMs` 20000) — DONE.
-      SET B (a second
-      network) still '' — until it's filled, ~half the runs roll the empty set
-      (silent open). Drop set B, or add the second network, to change that.
+- [x] **2.1 Opening-of-coverage SETS** — DONE, both sets filled.
+      `_ENIGHT_SETS` (Code 2, grep it): SET A = CBS (cbs.mp3 + the CBS 1976
+      title gif), SET B = Political Spirit '76 (Election Night 1976 Part 1v2
+      + political_spirit_76_custom.gif). One is rolled at random per run —
+      the sting plays under the opener popup, the gif covers the map when OK
+      dismisses it (click to skip). CHECK THE HOLDS: both `durationMs` are
+      20000 and set B's is a guess (the sandbox can't reach file.garden to
+      measure the gif, and gifs don't report their length) — run
+      `ACOPNight.demo()` a few times and set each to its clip's real
+      duration.
 - [ ] **2.3 Midterm opening titles.** `_MIDTERM.CFG.INTRO` (Code 2, grep
       `INTRO:`) — a sting (audio URL) + title animation (gif URL +
       `durationMs`) shown before the 1974 midterm seat reveal, same idea as

@@ -18239,8 +18239,12 @@ var _ENIGHT_SETS = [
     // Set A — CBS 1976 election coverage
     { sting: 'https://file.garden/aXPgNT-ZRCxxpy0g/cbs.mp3',
       intro: { url: 'https://file.garden/aXPgNT-ZRCxxpy0g/YTDown.com_YouTube_1976-US-Presidential-Election-CBS-Electi_Media_P90VXYN9dhU_001_360p%20(online-video-cutter.com).gif', durationMs: 20000 } },
-    { sting: '',   // FILL ME IN — set B: alternate network opening theme
-      intro: { url: '', durationMs: 4000 } },   // FILL ME IN — set B title gif
+    // Set B — Political Spirit '76
+    // durationMs is a GUESS matched to set A: the sandbox can't reach file.garden
+    // to measure the gif, and gifs don't report their own length. Check it once
+    // in-engine (ACOPNight.demo()) and set it to the clip's real duration.
+    { sting: 'https://file.garden/aXPgNT-ZRCxxpy0g/Election%20Night%201976%20Part%201v2.mp3',
+      intro: { url: 'https://file.garden/aXPgNT-ZRCxxpy0g/political_spirit_76_custom%20(1).gif', durationMs: 20000 } },
 ];
 var _enightSetIdx = -1;   // -1 = not rolled yet this run (in _SL_SCALARS)
 function _enightSet() {
