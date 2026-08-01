@@ -1108,6 +1108,25 @@ both '' = today's behaviour exactly. Verified: midterm_check 25/25 (+6: shipped-
 sting + cover geometry, z-order + cursor, reveal-waits, self-clear then roll,
 click-skips-early). Authoring entry: AUTHORING_TODO §2.3.
 
+**60. Election Night: hold the count while the titles run (Jul 2026)** — Code 2.
+The engine gives every state a `result_time` on its own clock (0..480, +10 per 2s =
+FIVE units per second) and calls each as the clock passes it — so the evening was
+running on underneath the opening title card and the player missed the first calls.
+New optional per-set `intro.mapDelayMs` + `_enightHold`: on the tick the titles
+fire, every state that has NOT yet reported is pushed that many ticks further down
+the clock (states already called are left alone, so nothing is dragged backwards).
+Clicking the titles away calls `_enightHold.release()`, which hands back only the
+UNUSED part of the hold — a skip therefore starts the count instead of leaving the
+player on a frozen map for the rest of the delay. Applied before the `intro.url`
+check, so a set can hold the map with or without an animation; omitted/0 = the old
+behaviour exactly (set B has no hold). Set A (CBS) = 10000. NOTE the mismatch to
+watch: CBS's `durationMs` is 20000, so with a 10s hold the count resumes ~10s before
+the card clears — match the two numbers if the intent is strictly "count starts when
+the animation ends". Verified: enightsets_check 20/20 (+5: the CBS-only config, the
+50-tick shift at 5/sec, already-reported states untouched, skip-returns-unused,
+no-hold-leaves-the-clock-alone), saveload 10/10 + nuke 147/147 + midterm 25/25
+unchanged, Code 2 EXECUTES CLEAN.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.

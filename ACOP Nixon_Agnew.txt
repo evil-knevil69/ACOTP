@@ -18235,10 +18235,15 @@ window.__onGameWindowMutation(() => {
 // silent, intro.url '' = no animation; both '' = the old inert behaviour.
 // Once per run (_enightStingPlayed/_enightIntroPlayed, New-Game reset);
 // audio tape ducked/restored via _playEggAudio. FILL ME IN: both sets.
+// `mapDelayMs` (optional, per set) HOLDS the count while the titles run: every
+// state that hasn't reported yet is pushed that much further down the engine
+// clock, so the first states aren't called behind the animation. Clicking the
+// titles away gives back whatever hold is left, so a skip really does skip.
+// Omit or 0 = the count runs as normal under the titles.
 var _ENIGHT_SETS = [
     // Set A — CBS 1976 election coverage
     { sting: 'https://file.garden/aXPgNT-ZRCxxpy0g/cbs.mp3',
-      intro: { url: 'https://file.garden/aXPgNT-ZRCxxpy0g/YTDown.com_YouTube_1976-US-Presidential-Election-CBS-Electi_Media_P90VXYN9dhU_001_360p%20(online-video-cutter.com).gif', durationMs: 20000 } },
+      intro: { url: 'https://file.garden/aXPgNT-ZRCxxpy0g/YTDown.com_YouTube_1976-US-Presidential-Election-CBS-Electi_Media_P90VXYN9dhU_001_360p%20(online-video-cutter.com).gif', durationMs: 20000, mapDelayMs: 10000 } },
     // Set B — Political Spirit '76
     // durationMs is a GUESS matched to set A: the sandbox can't reach file.garden
     // to measure the gif, and gifs don't report their own length. Check it once
@@ -18278,6 +18283,43 @@ window.__onGameWindowMutation(() => {
 // CLICK TO SKIP: the overlay takes pointer events so a map click dismisses it
 // early; the result panels sit OUTSIDE #map_container so they stay live. Once
 // per run, New-Game reset.
+// ── Holding the count while the titles run ───────────────────────────────────
+// The engine gives every state a result_time on its own clock (0..480, +10 per
+// 2s, so FIVE units per second) and calls each as the clock passes it. Left
+// alone the evening runs on underneath the title card and the player misses the
+// first calls. `_enightHold` pushes every state that hasn't reported yet further
+// down that clock, and gives back whatever is unused if the titles are skipped —
+// so a skip really does start the count, rather than leaving a frozen map.
+var _ENIGHT_TICKS_PER_SEC = 5;
+var _enightHold = {
+    ticks: 0, at: 0,
+    _clock: function () {
+        const p = document.querySelector('#overall_result > p');
+        const m = p && p.textContent.match(/(\d+)\s*% complete/);
+        return m ? Math.min(480, Math.round(parseInt(m[1], 10) * 4.8)) : 0;
+    },
+    _shift: function (by) {
+        const fsr = campaignTrail_temp.final_state_results;
+        if (!Array.isArray(fsr) || !by) return false;
+        const now = this._clock();
+        fsr.forEach(f => { if (f.result_time > now) f.result_time += by; });
+        return true;
+    },
+    apply: function (ms) {
+        if (!ms || ms <= 0) return;
+        const t = Math.round(ms / 1000 * _ENIGHT_TICKS_PER_SEC);
+        if (this._shift(t)) { this.ticks = t; this.at = Date.now(); }
+    },
+    release: function () {
+        if (!this.ticks) return;
+        // hand back only the part of the hold that hasn't elapsed
+        const used = Math.round((Date.now() - this.at) / 1000 * _ENIGHT_TICKS_PER_SEC);
+        const back = Math.max(0, this.ticks - used);
+        if (back) this._shift(-back);
+        this.ticks = 0;
+    },
+    reset: function () { this.ticks = 0; this.at = 0; },
+};
 var _enightIntroPlayed = false;
 var _enightIntroArmed = false;   // transient — Election Night can't be saved into
 window.__onGameWindowMutation(() => {
@@ -18294,6 +18336,9 @@ window.__onGameWindowMutation(() => {
     _enightIntroPlayed = true;
     _enightIntroArmed = false;
     const intro = _enightSet().intro || {};   // same set the sting rolled
+    // Hold the count for this set's titles (see _enightHold). Applied before the
+    // url check so a set can hold the map with or without an animation.
+    _enightHold.apply(intro.mapDelayMs);
     if (!intro.url) return;
     const img = document.createElement('img');
     img.id = 'enight-intro-anim';
@@ -18307,7 +18352,13 @@ window.__onGameWindowMutation(() => {
         + 'z-index:1;pointer-events:auto;cursor:pointer;';
     map.appendChild(img);
     let killTimer = null;
-    const kill = () => { if (killTimer) { clearTimeout(killTimer); killTimer = null; } img.remove(); };
+    // Clicking away also releases the hold, so a skip starts the count instead of
+    // leaving the player on a frozen map for the rest of the delay.
+    const kill = () => {
+        if (killTimer) { clearTimeout(killTimer); killTimer = null; }
+        img.remove();
+        _enightHold.release();
+    };
     img.addEventListener('click', kill, { once: true });
     killTimer = setTimeout(kill, Math.max(500, intro.durationMs || 4000));
 });
