@@ -3413,11 +3413,13 @@ function __mapVisitTick() {
                click-a-state placeholder, "returns not yet available") keep the
                engine markup and just get the card + broadcast text below. */
             #game_window.acop-final-tv #state_result_container {
-                /* translateY nudges the state-results window 40px down on the
+                /* translateY nudges the state-results window down on the
                    election-night + final maps (visual only — leaves the drag
                    top/left inline positions untouched; also kills the base
-                   sticky-note rotate, as 'none' did). */
-                transform: translateY(40px) !important;
+                   sticky-note rotate, as 'none' did). Was 40px; +175 puts the
+                   card clear of the tally above it. The drag top stays 220px,
+                   so this lands it at ~435px. */
+                transform: translateY(215px) !important;
                 background: transparent !important;
                 background-color: transparent !important;
                 min-height: 0 !important;
