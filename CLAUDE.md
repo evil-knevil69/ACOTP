@@ -1137,15 +1137,18 @@ once-per-run guard (it is in `_SL_SCALARS` + the New Game reset) and `_enightSet
 still rolls lazily, so the roll simply happens at the intro instead. Verified:
 tests/enightsets_check 23/23.
 
-**TESTS NOW LIVE IN THE REPO (`tests/`).** The scratchpad was wiped when the
-container recycled and every harness built this session went with it — they were
-never committed. `tests/enightsets_check.js` is the rebuilt first one; put any
-new harness there, not in the scratchpad. Run: `node tests/enightsets_check.js`.
-The suites lost (and worth rebuilding when their areas are next touched):
-nuke_check (147), midterm_check (25), rsanim_check (15), lowfx (24), statecard
-(18), saveload (10), scoreboard (7), fog (15), qpage (11), visitmap (15), theme
-(14), themeswap (10), reshuffle_grace (13), trio (9), msdim (7), wmtip (9),
-enight (8), tvcard (6), orgglow (9), orgtip (10), taglow (7), census_split.
+**TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
+scratchpad was wiped when the container recycled and every harness built that
+session went with it (they were never committed). Rebuilt and COMMITTED, 160
+assertions over the areas that carry the most machinery:
+`nuke_check` (59), `midterm_check` (32), `enightsets_check` (23),
+`saveload_check` (20), `rsanim_check` (16), `census_split_check` (10).
+`run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
+conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.
+Still unrebuilt (older ground, rebuild when next touched): lowfx (24), statecard
+(18), fog (15), visitmap (15), theme (14), reshuffle_grace (13), qpage (11),
+themeswap (10), orgtip (10), trio (9), orgglow (9), wmtip (9), enight (8),
+scoreboard (7), taglow (7), msdim (7), tvcard (6).
 
 ### A Cancer on the Presidency_init (draft).txt
 
