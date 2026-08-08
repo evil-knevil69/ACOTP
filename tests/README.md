@@ -24,6 +24,7 @@ and gets committed.
 | `midterm_check.js` | the 1974 midterms: model maths, the four-tier verdict ladder, two-thirds warnings, the broadcast skin, the opening titles |
 | `enightsets_check.js` | Election Night opening sets: the roll, sting/gif pairing and timing, the map hold, click-to-skip |
 | `rsanim_check.js` | the cabinet-reshuffle filing-card animations (deck deal, the changeover flight, settle) and their gates |
+| `chrome_check.js` | the injected Manual + World Map buttons across screen changes (pulled for Election Night, back on the final results screens) |
 | `saveload_check.js` | `_SL_SCALARS` integrity and the capture/restore round-trips |
 
 ## Writing a new one

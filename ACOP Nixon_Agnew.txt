@@ -18648,6 +18648,15 @@ function openGameManual() {
     document.body.appendChild(panel);
 }
 
+// Election Night owns the screen: the Manual and World Map buttons are pulled
+// for the duration of the count and come back on the final results screens.
+// #final_result_button ("Go to Final Results") exists ONLY during Election
+// Night — the final screens carry #final_election_map_button and the rest of
+// the nav row instead — so its presence is the whole test.
+function _enightInProgress() {
+    return !!document.getElementById('final_result_button');
+}
+
 // Create the button once (on document.body) and pin it just below the game
 // window's bottom-right corner; recomputed from #game_window's live rect so it
 // tracks any resize. No-op until #game_window exists.
@@ -18674,6 +18683,10 @@ function _placeManualButton() {
         _manRO = new ResizeObserver(() => _placeManualButton());
         _manRO.observe(gw);
     }
+    // Hidden for the count — and skip the placement maths while it is, since a
+    // display:none button measures 0 wide and would poison the cached width.
+    if (_enightInProgress()) { btn.style.display = 'none'; return true; }
+    btn.style.display = '';
     const r = gw.getBoundingClientRect();
     if (!_manBtnW) _manBtnW = btn.offsetWidth;
     const top  = (r.bottom + window.scrollY + 6) + 'px';
@@ -19925,12 +19938,13 @@ const MILBAL_COUNTRIES = new Set([
 // ── Inject "World Map" button into #map_footer ──────────────────────────────
 function _addWorldMapBtn() {
     // Removed entirely once the nuclear attack is under way (census live,
-    // _nukeWar >= 2) — you can't go tour the world while the missiles land.
-    // Re-checked every call: an already-injected button is torn down, and none
-    // is created while the attack is live.
-    const nukeAttack = (_nukeWar >= 2);
+    // _nukeWar >= 2) — you can't go tour the world while the missiles land —
+    // and for the duration of Election Night, which owns the screen. Both come
+    // back on the final results screens. Re-checked every call: an
+    // already-injected button is torn down, and none is created while hidden.
+    const hide = (_nukeWar >= 2) || _enightInProgress();
     const existing = document.getElementById('world_map_button');
-    if (nukeAttack) { if (existing) existing.remove(); return; }
+    if (hide) { if (existing) existing.remove(); return; }
     if (existing) return;
     const footer = document.getElementById('map_footer');
     if (!footer) return;

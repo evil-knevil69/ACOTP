@@ -72,8 +72,8 @@ ck('static flare holds at peak then decays (950/1120ms, no screen blend)',
    && !/#nuke-flare \{[^}]*mix-blend-mode/.test(noiseCss));
 ck('gratuitous barrage: 20 warheads over the big states', /_NUKE_RESTRIKES = 20/.test(c1));
 ck('world map button REMOVED (not disabled) while the attack runs',
-   /const nukeAttack = \(_nukeWar >= 2\);/.test(c2)
-   && /if \(nukeAttack\) \{ if \(existing\) existing\.remove\(\); return; \}/.test(c2)
+   /const hide = \(_nukeWar >= 2\) \|\| _enightInProgress\(\);/.test(c2)
+   && /if \(hide\) \{ if \(existing\) existing\.remove\(\); return; \}/.test(c2)
    && !/btn\.disabled = nukeAttack/.test(c2));
 ck('_nukeWar is saved and the New Game reset unwinds the branch',
    /'_nukeWar'/.test(c2.match(/var _SL_SCALARS = \[[\s\S]*?\];/)[0]) && /function _nukeReset\(/.test(c2));
