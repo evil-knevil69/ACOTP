@@ -18227,14 +18227,15 @@ window.__onGameWindowMutation(() => {
 // popup carries it.
 //
 // ── OPENING SETS: sting + title animation, one rolled per run ────────────────
-// Each set PAIRS an opening sting with the title animation that follows it, so
-// audio and visuals always match. When the opening popup appears the run rolls
-// ONE set at random: its sting plays under the popup, and its animation fires
-// over the map once OK dismisses it. Add more sets freely — the roll is
-// uniform over the array. Per-piece fail-safe: sting '' = that set opens
+// Each set PAIRS an opening sting with its title animation, so audio and visuals
+// always match. The run rolls ONE set at random, and BOTH halves fire on the same
+// tick — when OK dismisses the opening popup, the animation goes up over the map
+// and its theme starts with it. (The sting used to open earlier, under the popup;
+// it was moved so picture and audio are in step.) Add more sets freely — the roll
+// is uniform over the array. Per-piece fail-safe: sting '' = that set opens
 // silent, intro.url '' = no animation; both '' = the old inert behaviour.
 // Once per run (_enightStingPlayed/_enightIntroPlayed, New-Game reset);
-// audio tape ducked/restored via _playEggAudio. FILL ME IN: both sets.
+// audio tape ducked/restored via _playEggAudio.
 // `mapDelayMs` (optional, per set) HOLDS the count while the titles run: every
 // state that hasn't reported yet is pushed that much further down the engine
 // clock, so the first states aren't called behind the animation. Clicking the
@@ -18258,22 +18259,17 @@ function _enightSet() {
     }
     return _ENIGHT_SETS[_enightSetIdx] || { sting: '', intro: { url: '', durationMs: 0 } };
 }
+// The sting no longer fires here (on the opener popup). It plays WITH the title
+// animation instead — see the intro block below — so audio and picture start
+// together rather than the theme opening while the popup is still up. This flag
+// stays the once-per-run guard (it is in _SL_SCALARS and the New Game reset).
 var _enightStingPlayed = false;
-window.__onGameWindowMutation(() => {
-    if (_nukeWar >= 2) return;   // DEFCON-1: the EBS has the airwaves, not ACOP News
-    if (_enightStingPlayed) return;
-    if (!document.getElementById('final_result_button')
-        || !document.getElementById('election_night_window')
-        || document.getElementById('overlay_result_button')) return;
-    _enightStingPlayed = true;
-    const set = _enightSet();   // rolls the run's set on first sight of the popup
-    if (set.sting) _playEggAudio(set.sting);
-});
 
-// ── Opening title animation ──────────────────────────────────────────────────
-// After OK dismisses that opening popup, play the ROLLED SET's animation over
-// the map — the title card of the coverage. State machine on the observer:
-// ARM while the opener popup is up (same detection as the sting above), FIRE
+// ── Opening titles: sting + animation, fired together ────────────────────────
+// After OK dismisses the opening popup, play the ROLLED SET's sting AND its
+// animation over the map — the title card of the coverage, with its theme
+// starting on the same tick so picture and audio are in step. State machine on
+// the observer: ARM while the opener popup is up, FIRE
 // on the tick where the popup is gone but the tally screen remains. No engine
 // handlers touched. GIF-friendly: gifs don't report an end, so the overlay
 // removes itself after the set's durationMs. Sized + positioned like the nuke
@@ -18335,9 +18331,13 @@ window.__onGameWindowMutation(() => {
     if (!map) return;
     _enightIntroPlayed = true;
     _enightIntroArmed = false;
-    const intro = _enightSet().intro || {};   // same set the sting rolled
-    // Hold the count for this set's titles (see _enightHold). Applied before the
-    // url check so a set can hold the map with or without an animation.
+    const set = _enightSet();                 // rolls the run's set if not yet rolled
+    const intro = set.intro || {};
+    // The theme starts HERE, on the same tick as the picture — not back when the
+    // opener popup appeared. Before the url check, so a sting-only set still plays.
+    if (set.sting && !_enightStingPlayed) { _enightStingPlayed = true; _playEggAudio(set.sting); }
+    // Hold the count for this set's titles (see _enightHold). Also before the url
+    // check so a set can hold the map with or without an animation.
     _enightHold.apply(intro.mapDelayMs);
     if (!intro.url) return;
     const img = document.createElement('img');

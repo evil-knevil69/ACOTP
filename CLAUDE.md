@@ -1127,6 +1127,26 @@ the animation ends". Verified: enightsets_check 20/20 (+5: the CBS-only config, 
 no-hold-leaves-the-clock-alone), saveload 10/10 + nuke 147/147 + midterm 25/25
 unchanged, Code 2 EXECUTES CLEAN.
 
+**61. Election Night: sting fires WITH the animation (Jul 2026)** — Code 2. The
+opening theme used to play the moment the opener popup appeared, while the title
+card only went up when OK dismissed it — so audio led the picture by however long
+the player left the popup open. The popup-sting observer is gone; the sting now
+plays inside the intro block on the same tick as the animation, before the
+`intro.url` check so a sting-only set still sounds. `_enightStingPlayed` stays the
+once-per-run guard (it is in `_SL_SCALARS` + the New Game reset) and `_enightSet()`
+still rolls lazily, so the roll simply happens at the intro instead. Verified:
+tests/enightsets_check 23/23.
+
+**TESTS NOW LIVE IN THE REPO (`tests/`).** The scratchpad was wiped when the
+container recycled and every harness built this session went with it — they were
+never committed. `tests/enightsets_check.js` is the rebuilt first one; put any
+new harness there, not in the scratchpad. Run: `node tests/enightsets_check.js`.
+The suites lost (and worth rebuilding when their areas are next touched):
+nuke_check (147), midterm_check (25), rsanim_check (15), lowfx (24), statecard
+(18), saveload (10), scoreboard (7), fog (15), qpage (11), visitmap (15), theme
+(14), themeswap (10), reshuffle_grace (13), trio (9), msdim (7), wmtip (9),
+enight (8), tvcard (6), orgglow (9), orgtip (10), taglow (7), census_split.
+
 ### A Cancer on the Presidency_init (draft).txt
 
 No changes from this session — both Sandinista! and feature branch versions are identical.
