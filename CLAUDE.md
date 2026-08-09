@@ -1137,12 +1137,44 @@ once-per-run guard (it is in `_SL_SCALARS` + the New Game reset) and `_enightSet
 still rolls lazily, so the roll simply happens at the intro instead. Verified:
 tests/enightsets_check 23/23.
 
+**62. Nuke panel stacking + the Election Night button hide (Jul 2026)**
+(a) **The two nuke result cards overlapped and buried the footer button.** The
+CASUALTY CENSUS and DAMAGE ASSESSMENT panels sat at `top: 96` / `top: 270` — only
+174px apart for a card that measures ~177px with a full census in it, so the
+LAYOUT BOXES themselves overlapped before any bezel was drawn, and the damage
+card's shadow reached the "Go to Final Results" button (which at z-index 10 lost
+to the panels' 8996 and vanished behind them). Retuned against MEASURED numbers,
+not estimates: a pixel scan of a rendered panel puts the CRT bezel's painted
+extent at **22px above / 38px below / 29px each side** of the layout box (the
+`42px` border-image outset and the `0 8px 22px 16px` shadow both paint far less
+than their nominal reach, because the gradient's visible ring sits at 10.5–12.5%
+of the slice). Panels → `top: 2` / `top: 258`, nuke footer → `top: 600` with
+`z-index: 8997`. NOTE the coordinate trap: these tops are relative to
+`#main_content_area`, which this block makes `position: relative` as the wire
+feed's anchor — **add 90px** (85px `.game_header` + 5px padding) for game-window
+coordinates. That offset-parent shift is why an isolated mock of the panels
+disagreed with the real screen. The FINAL damage map is untouched by the footer
+rule: its 6-button nav row is laid out by the bottom-anchored
+`#game_window.acop-nuke-final #map_footer:has(.final_menu_button)` rule, whose
+(2,2,0) specificity out-ranks the `.acop-nuke-tv` (2,1,0) one.
+(b) **`_enightInProgress()` widened** (Code 2) to the same two-branch test Code
+1's `__isElectionNightRaw` uses: `#final_result_button`, OR the
+`#overall_result ul` + `#state_result` + map-svg triple with the in-game map and
+final screens excluded. The single-button test went blind during the "Processing
+Results, wait one moment…" beat — the engine swaps the footer out, so the Manual
+and World Map buttons flashed back for it.
+Verified: nuke_check 67/67 (+8 runtime PANEL STACKING assertions measuring the
+real cards with real content on BOTH nuke screens, incl. the bezel bleed — they
+fail on the old 96/270/580 values, checked), chrome_check 11/11 (+2 for the
+Processing Results beat), full suite ALL GREEN, both files EXECUTE CLEAN.
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 160
+session went with it (they were never committed). Rebuilt and COMMITTED, 179
 assertions over the areas that carry the most machinery:
-`nuke_check` (59), `midterm_check` (32), `enightsets_check` (23),
-`saveload_check` (20), `rsanim_check` (16), `census_split_check` (10).
+`nuke_check` (67), `midterm_check` (32), `enightsets_check` (23),
+`saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
+`census_split_check` (10).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.
 Still unrebuilt (older ground, rebuild when next touched): lowfx (24), statecard

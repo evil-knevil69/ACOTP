@@ -18652,9 +18652,20 @@ function openGameManual() {
 // for the duration of the count and come back on the final results screens.
 // #final_result_button ("Go to Final Results") exists ONLY during Election
 // Night — the final screens carry #final_election_map_button and the rest of
-// the nav row instead — so its presence is the whole test.
+// the nav row instead — so its presence is the main test.
+// Second branch = the "Processing Results, wait one moment…" beat: clicking Go
+// to Final Results replaces the footer (killing the button) while the tally
+// screen is still up, and without this the two buttons flashed back for it.
+// Same discriminator Code 1's __isElectionNightRaw uses: #state_result is built
+// ONLY by Election Night and the final map, so the in-game map (resume button)
+// and the final screens (#final_election_map_button) are excluded explicitly.
 function _enightInProgress() {
-    return !!document.getElementById('final_result_button');
+    if (document.getElementById('final_result_button')) return true;
+    return !!(document.querySelector('#overall_result ul')
+        && document.getElementById('state_result')
+        && document.querySelector('#map_container svg')
+        && !document.getElementById('resume_questions_button')
+        && !document.getElementById('final_election_map_button'));
 }
 
 // Create the button once (on document.body) and pin it just below the game

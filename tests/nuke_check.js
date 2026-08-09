@@ -95,7 +95,7 @@ ck('host site banner hidden on the terminal screen',
 ck('fallout map drops the noise gif; election night keeps it',
    /gw\.classList\.toggle\('acop-nuke-final', !!\(on && __isFinalElectionMapRaw\(\)\)\)/.test(c1)
    && /#game_window\.acop-nuke-final #map_container \{[\s\S]{0,90}background-image: none !important;/.test(noiseCss));
-ck('panels + Final Results button at left:777', /#game_window\.acop-nuke-tv #map_footer \{ left: 777px !important; \}/.test(noiseCss)
+ck('panels + Final Results button at left:777', /#game_window\.acop-nuke-tv #map_footer \{[\s\S]{0,120}left: 777px !important/.test(noiseCss)
    && /#game_window\.acop-nuke-tv #overall_result_container \{[\s\S]{0,90}left: 777px/.test(noiseCss)
    && /#game_window\.acop-nuke-tv #state_result_container \{[\s\S]{0,90}left: 777px/.test(noiseCss));
 ck('panels wear the CRT tube bezel (border-image 42px + housing shadow)',
@@ -363,6 +363,70 @@ console.log('\nCENSUS MATHS:');
   ck('state-only wash: grey copies of the 3 census states, ocean untouched, no full rect',
      st.wash === 3 && st.noRect && st.washFirst);
   ck('plumes billow; the wash stays static', st.animated && st.washStatic);
+
+  // ── Panel stacking. The CRT bezel paints outside the layout box, so a check
+  // that only compares the boxes would miss the collision the player sees. The
+  // bleed constants below are the MEASURED painted extent at a perceptible
+  // threshold (22 up / 38 down / 29 sideways) — see the spacing comment on the
+  // panel rules in Code 1.
+  console.log('\nPANEL STACKING (measured, incl. the bezel bleed):');
+  const CENSUS = `<h3>CASUALTY CENSUS</h3><ul>
+    <li><span style="background:#8a2f1e">--</span>The Injured: 62,441,902</li>
+    <li><span style="background:#5a7d2a">--</span>The Irradiated: 59,880,431</li>
+    <li><span style="background:#41505c">--</span>Short-term Survivors: 56,673,549</li>
+    <li><span style="background:#4a4a4a">--</span>The Dead: 31,004,118</li></ul><p>62% complete</p>`;
+  const DAMAGE = `<h3>DAMAGE ASSESSMENT</h3><p>Massachusetts</p><ul>
+    <li><span style="background:#8a2f1e">--</span>The Injured: 3,204,113</li>
+    <li><span style="background:#5a7d2a">--</span>The Irradiated: 2,988,902</li>
+    <li><span style="background:#41505c">--</span>Short-term Survivors: 2,101,447</li>
+    <li><span style="background:#4a4a4a">--</span>The Dead: 1,662,318</li></ul>`;
+  const layout = async (finalMap) => {
+    const p2 = await b.newPage({ viewport: { width: 1140, height: 820 } });
+    const nav = finalMap
+      ? ['Final Results','Election Map','State Results','Popular Vote','Electoral Vote','Main Menu']
+          .map(t => '<button class="final_menu_button">' + t + '</button>').join('')
+      : '<button id="final_result_button">Go to Final Results</button>';
+    await p2.setContent(`<!DOCTYPE html><body class="acop-nuke acop-nuke-screen" style="margin:0">
+      <div id="game_window" class="acop-nuke-tv ${finalMap ? 'acop-nuke-final' : ''}" style="width:1050px;height:660px">
+        <div class="game_header"><h2>ACOP</h2></div>
+        <div id="main_content_area" style="height:560px">
+          <div id="map_container"><svg width="721" height="400"></svg></div>
+          <div id="menu_container">
+            <div id="overall_result_container"><div id="overall_result">${CENSUS}</div></div>
+            <div id="state_result_container"><div id="state_result">${DAMAGE}</div></div>
+          </div>
+        </div>
+        <div id="map_footer">${nav}</div>
+        <div id="nuke-chyron"><span>CIVIL DEFENSE</span></div>
+      </div></body>`);
+    await p2.addStyleTag({ content:
+      mainCss.slice(mainCss.indexOf('.game_header {'), mainCss.indexOf('#opponent_selection_id_button_p'))
+      + mainCss.slice(mainCss.indexOf('#map_footer {'), mainCss.indexOf('.control-knob {'))
+      + mainCss.slice(mainCss.indexOf('#overall_result_container,\n#state_result_container {'), mainCss.indexOf('.map-pin {'))
+      + '\n' + noiseCss });
+    const r = await p2.evaluate(() => {
+      const gw = document.getElementById('game_window').getBoundingClientRect();
+      const box = (id, up, dn) => { const q = document.getElementById(id).getBoundingClientRect();
+        return { top: q.top - gw.top - up, bot: q.bottom - gw.top + dn,
+                 l: q.left - gw.left, r: q.right - gw.left }; };
+      return { win: gw.height, chy: box('nuke-chyron', 0, 0),
+               ov: box('overall_result_container', 22, 38),
+               st: box('state_result_container', 22, 38),
+               ft: box('map_footer', 0, 0) };
+    });
+    await p2.close();
+    return r;
+  };
+  for (const finalMap of [false, true]) {
+    const g = await layout(finalMap);
+    const label = finalMap ? 'final damage map' : 'election night';
+    ck(label + ': the two cards do not touch', g.ov.bot < g.st.top - 8);
+    ck(label + ': the census card clears the chyron', g.ov.top > g.chy.bot);
+    const hOverlap = Math.min(g.st.r + 29, g.ft.r) - Math.max(g.st.l - 29, g.ft.l);
+    ck(label + ': the nav footer sits clear BELOW the damage card',
+       g.ft.top > g.st.bot && (hOverlap <= 0 || g.ft.top > g.st.bot));
+    ck(label + ': the footer is still inside the game window', g.ft.bot <= g.win);
+  }
 
   console.log('\n' + pass + ' passed, ' + fail + ' failed');
   await b.close(); process.exit(fail ? 1 : 0);

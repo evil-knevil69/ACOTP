@@ -16,7 +16,9 @@ const ck = (n, c) => { c ? pass++ : fail++; console.log((c ? '  ok  - ' : '  FAI
 
 console.log('WIRING:');
 ck('election night is detected by #final_result_button (unique to that screen)',
-   /function _enightInProgress\(\) \{\s*return !!document\.getElementById\('final_result_button'\);/.test(src));
+   /function _enightInProgress\(\) \{\s*if \(document\.getElementById\('final_result_button'\)\) return true;/.test(src));
+ck("…and by the state card during the 'Processing Results' beat, when the footer button is gone",
+   /_enightInProgress[\s\S]{0,700}#overall_result ul[\s\S]{0,200}getElementById\('state_result'\)[\s\S]{0,200}#map_container svg[\s\S]{0,300}!document\.getElementById\('final_election_map_button'\)/.test(src));
 ck('the manual button hides for the count, and skips its placement maths while hidden',
    /if \(_enightInProgress\(\)\) \{ btn\.style\.display = 'none'; return true; \}/.test(src));
 ck('the world map button is pulled for the count as well as the nuclear attack',
@@ -68,6 +70,18 @@ ck('the world map button is pulled for the count as well as the nuclear attack',
   ck('election night: BOTH pulled', !r.manual && !r.worldMap);
   r = await p.evaluate(() => { window.__tick(); window.__tick(); return window.__state(); });
   ck('…and they stay gone while the count runs (re-render safe)', !r.manual && !r.worldMap);
+  // "Processing Results, wait one moment…": the engine swaps the footer out, so
+  // #final_result_button is gone while the tally screen is still up. Without the
+  // second branch of _enightInProgress both buttons flashed back for that beat.
+  r = await p.evaluate(() => {
+    document.getElementById('final_result_button').remove();
+    const gw = document.getElementById('game_window');
+    gw.insertAdjacentHTML('beforeend',
+      '<div id="map_container"><svg></svg></div>' +
+      '<div id="overall_result"><ul><li>Nixon: 0</li></ul></div><div id="state_result"></div>');
+    window.__tick(); return window.__state();
+  });
+  ck('processing results (footer button gone): both STAY hidden', !r.manual && !r.worldMap);
   r = await p.evaluate(() => { window.__finalResults(); window.__tick(); return window.__state(); });
   ck('final results: BOTH come back', r.manual && r.worldMap);
   r = await p.evaluate(() => {
