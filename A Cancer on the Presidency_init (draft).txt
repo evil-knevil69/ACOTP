@@ -364,7 +364,44 @@ var ACOP_THEMES = {
         if (hdr) hdr.src = 'https://file.garden/aXPgNT-ZRCxxpy0g/watergatebannerv4.png';
         document.body.background = 'https://file.garden/aXPgNT-ZRCxxpy0g/backgroundv69.gif';
         document.body.style.backgroundSize = '100% auto';   // fit viewport width
+        // Clear the legacy bgColor attribute a flat-colour theme may have set.
+        // (Inline style.backgroundColor is NOT usable for this: _syncLowFxBg
+        // runs after every apply and clears it — hence the attribute.)
+        document.body.bgColor = '';
         corrr = ACOP_DEFAULT_CORRR;
+    },
+
+    // ── "In the Bunker" ── the Emergency Operations Center look: blackout,
+    // concrete and emergency lighting. Ships ASSET-FREE (flat colours only) so
+    // it works the moment it is selected; drop URLs into the two FILL ME IN
+    // slots below for the full treatment. Reachable from the picker, and from
+    // a question via Code 2's themeSwap('In the Bunker').
+    'In the Bunker': function () {
+        const t = (typeof nct_stuff !== 'undefined') && nct_stuff.themes[nct_stuff.selectedTheme];
+        if (t) { t.coloring_title = '#0e1012'; t.coloring_window = '#0e1012'; }
+        const gh = document.getElementsByClassName('game_header')[0];
+        if (gh) gh.style.backgroundColor = '#0e1012';
+        const gw = document.getElementById('game_window');
+        if (gw) gw.style.backgroundColor = '#0e1012';
+        const cont = document.getElementsByClassName('container')[0];
+        if (cont) cont.style.backgroundColor = 'transparent';
+        const BUNKER_BANNER = '';   // FILL ME IN — banner png; '' keeps the shipped Watergate banner
+        const BUNKER_BG     = '';   // FILL ME IN — page background; '' = flat concrete black
+        const hdr = document.getElementById('header');
+        if (hdr) hdr.src = BUNKER_BANNER || 'https://file.garden/aXPgNT-ZRCxxpy0g/watergatebannerv4.png';
+        if (BUNKER_BG) {
+            document.body.background = BUNKER_BG;
+            document.body.style.backgroundSize = '100% auto';
+            document.body.bgColor = '';
+        } else {
+            // No art yet: strip the attribute rather than blanking it — an empty
+            // `background=""` resolves against the page URL and loads the HTML
+            // as an image.
+            document.body.removeAttribute('background');
+            document.body.style.backgroundSize = '';
+            document.body.bgColor = '#0b0c0d';
+        }
+        corrr = ACOP_DEFAULT_CORRR;   // swap for a bunker plate once there is art
     },
 
     // ── ADD THEMES BELOW ── copy the entry above, rename, swap URLs/colours.

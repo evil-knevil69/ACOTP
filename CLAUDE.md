@@ -1168,6 +1168,23 @@ real cards with real content on BOTH nuke screens, incl. the bezel bleed — the
 fail on the old 96/270/580 values, checked), chrome_check 11/11 (+2 for the
 Processing Results beat), full suite ALL GREEN, both files EXECUTE CLEAN.
 
+**63. Theme: "In the Bunker" (Jul 2026)** — Code 1, a second entry in
+`ACOP_THEMES` (grep `ADD THEMES BELOW`). The Emergency Operations Center look:
+near-black title/window/header, flat concrete-black page. Ships ASSET-FREE so it
+works the moment it is picked — two FILL ME IN slots (`BUNKER_BANNER`,
+`BUNKER_BG`) upgrade it to real art, and each falls back on its own ('' banner
+keeps the shipped Watergate one, '' background gives the flat tone). Two traps
+handled, worth knowing for the NEXT theme: (a) a flat-colour theme cannot use
+`body.style.backgroundColor` — `_applyTheme` calls `_syncLowFxBg()` afterwards
+and that clears the inline colour — so it sets the legacy `body.bgColor`
+ATTRIBUTE instead, and the default theme now clears that attribute on the way
+back; (b) clear an unused page background with `removeAttribute('background')`,
+never `background = ''`, which resolves against the page URL and loads the HTML
+as an image. Selectable from the picker and via `themeSwap('In the Bunker')`.
+Verified by driving the real registry: registers, appears in the dropdown,
+repaints (window/title/bg), hands back to the default cleanly, unknown names
+still fall back.
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
 session went with it (they were never committed). Rebuilt and COMMITTED, 179
