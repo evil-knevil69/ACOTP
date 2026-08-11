@@ -3416,10 +3416,10 @@ function __mapVisitTick() {
                 /* translateY nudges the state-results window down on the
                    election-night + final maps (visual only — leaves the drag
                    top/left inline positions untouched; also kills the base
-                   sticky-note rotate, as 'none' did). Was 40px; +175 puts the
-                   card clear of the tally above it. The drag top stays 220px,
-                   so this lands it at ~435px. */
-                transform: translateY(215px) !important;
+                   sticky-note rotate, as 'none' did). Was 40px; +175, then a
+                   further +15, puts the card clear of the tally above it. The
+                   drag top stays 220px, so this lands it at ~450px. */
+                transform: translateY(230px) !important;
                 background: transparent !important;
                 background-color: transparent !important;
                 min-height: 0 !important;
