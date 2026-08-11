@@ -106,6 +106,10 @@ rule 3.1: put the reset lines (`backgroundSize = ''` etc.) in every other
 
 ## 5. Where this plugs into ACOP
 
+**Authoring a whole theme (not just its background): `CLAUDE.md` →
+"How-to: add a theme"** — the registry contract, the picker, event-driven
+swaps, and the traps. This document is the background half of that.
+
 - Global default: Code 1, the base-theme block (grep `backgroundv69`) — runs
   at load.
 - Per-theme: Code 1, `ACOP_THEMES` registry (grep `THEME SELECTOR`) — each

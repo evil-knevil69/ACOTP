@@ -98,6 +98,69 @@ Notes:
 
 ---
 
+## How-to: add a theme
+
+`ACOP_THEMES` (Code 1, grep `THEME SELECTOR`, ~line 338) is a **name → function
+registry**. Each function repaints the live page. Add a key and it appears in
+the dropdown automatically — there is no other wiring.
+
+What a theme function repaints — the whole contract:
+
+| surface | how |
+|---|---|
+| window / title colours | `nct_stuff.themes[nct_stuff.selectedTheme].coloring_title` + `.coloring_window` |
+| the header strip, game window, play column | `.game_header` / `#game_window` / `.container` `style.backgroundColor` |
+| the top banner image | `document.getElementById('header').src` |
+| the page background | `document.body.background` (+ `style.backgroundSize`) |
+| the per-screen logo header | `corrr` (a HTML string the engine stamps into every `.game_header`) |
+
+**To add one:** copy the default entry (`'A Cancer on the Presidency'`), rename
+it, swap the URLs and colours. `'In the Bunker'` is a worked second example, and
+the commented `Tricky Dick Noir` stub shows the minimum shape.
+
+Around the registry:
+
+- `_applyTheme(name)` runs the function, then pushes the new `corrr` into any
+  header ALREADY on screen (setting `corrr` alone only affects the engine's
+  future renders), syncs the picker dropdown, and re-runs `_syncLowFxBg()`.
+- `_mountThemePicker()` replaces the host site's native `<select id="themePicker">`
+  in place (keeping the id, so host CSS still styles it); with no host picker it
+  falls back to a floating control pinned top-right. **Relocating or reskinning
+  the picker is isolated to that one function.**
+- Unknown names fall back to the default, so a theme referenced before it exists
+  fails safe.
+
+**Swapping theme from a question** — Code 2, grep `EVENT-DRIVEN THEME SWAP`:
+
+```js
+themeSwap('In the Bunker')     // from a question's onShow, or an answer-effect branch
+```
+
+Save/load: `_gameTheme` remembers the last EVENT swap and a load re-applies it.
+A manual picker choice is a session preference and is deliberately NOT persisted —
+it survives New Game, an event swap does not.
+
+### Four traps, all of which have bitten
+
+1. **Don't use `body.style.backgroundColor` for a flat-colour theme.**
+   `_applyTheme` calls `_syncLowFxBg()` afterwards, which clears that inline
+   colour. Set the legacy `document.body.bgColor` ATTRIBUTE instead — and clear
+   it in the other entries so it doesn't leak between themes (the default entry
+   already does).
+2. **Clear an unused page background with `document.body.removeAttribute('background')`,
+   never `background = ''`** — an empty value resolves against the page URL and
+   loads the HTML document as an image.
+3. **Every entry must set `body.style.backgroundSize` itself** (`'100% auto'` to
+   fit width, `''` for natural-size tiling). Themes stay self-contained; no
+   MTE-style leak between them. Full background recipes: `BACKGROUND_IMAGES.md`
+   §3–4.
+4. **Ship asset-free where you can.** Give each URL its own `''` fallback (as
+   `'In the Bunker'` does with `BUNKER_BANNER` / `BUNKER_BG`) so the theme is
+   selectable and coherent before the art exists, and improves as slots are
+   filled.
+
+---
+
 ## Change log — session starting ~23:30 BST 7 Jun 2026
 
 ### ACOP Nixon_Agnew.txt
