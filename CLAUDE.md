@@ -1248,11 +1248,33 @@ Verified by driving the real registry: registers, appears in the dropdown,
 repaints (window/title/bg), hands back to the default cleanly, unknown names
 still fall back.
 
+**64. Nuke hit-point editor — `ACOPNuke.moveHits()` (Jul 2026)** — Code 1, next
+to the strike code (inside the `__nukeTvTick`…`__mapVisitTick` block the
+harnesses extract). Drag-and-drop authoring for `_NUKE_HIT_OFFSET`, same shape
+as the World Map's "Move Icons": a red crosshair per state at its current aim
+point (bbox centre + offset), drag to move, and a bottom-left panel prints the
+paste-ready config with Copy / Reset all / Done. Shift-click test-fires one real
+warhead at the point; double-click resets that state and drops it from the
+table. A drag writes straight into the live `_NUKE_HIT_OFFSET`, so a test fire
+uses the new point at once. Coordinates come from `svg.getScreenCTM().inverse()`
+(handles the viewBox scale and any CSS transform — no manual delta maths), and
+the tool runs on ANY screen showing the US map, not just the nuke ones: the
+offsets are svg user units of the same map everywhere, so you can work on the
+calm final damage map instead of mid-barrage. ONE ordering trap: the crosshair
+re-hoist has to sit at the very END of `__nukeTvTick` — `__nukeAftermath` is
+called from inside that tick and self-heals its layer, so a hoist placed earlier
+in the function is undone in the same pass (caught by the harness). Exposed as
+`window.ACOPNukeHits` (Code 1) and surfaced on `window.ACOPNuke.moveHits` (Code
+2). Verified: nuke_check 74/74 (+6: mount on centres/above the map, drag writes
+the rounded offset + prints it, untouched states stay out of the config,
+re-hoist above a re-appended layer, double-click reset, teardown + reopen),
+full suite green, both files EXECUTE CLEAN.
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 179
+session went with it (they were never committed). Rebuilt and COMMITTED, 186
 assertions over the areas that carry the most machinery:
-`nuke_check` (67), `midterm_check` (32), `enightsets_check` (23),
+`nuke_check` (74), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `census_split_check` (10).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +

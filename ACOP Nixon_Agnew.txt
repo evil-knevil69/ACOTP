@@ -20426,6 +20426,11 @@ window.__nukeCensusColors = _NUKE_CENSUS.map(c => (c.color || '').toLowerCase())
 //   ACOPNuke.reset()  — unwind everything (also runs on New Game). NOTE: it
 //                       reinstalls the pristine question order, so treat a
 //                       demo mid-run as end-of-session testing, not resumable.
+//   ACOPNuke.moveHits() — toggle the hit-point editor (Code 1): a draggable
+//                       crosshair per state, and a panel printing the
+//                       _NUKE_HIT_OFFSET lines to paste back. Needs a US map on
+//                       screen — any of them; the calm final damage map is the
+//                       easiest place to work.
 window.ACOPNuke = {
     demo: function () {
         _nukeApplyCensus(); _nukeWar = 2;
@@ -20436,6 +20441,12 @@ window.ACOPNuke = {
     arm:    function () { defcon = 1; },
     census: function () { _nukeApplyCensus(); _nukeWar = 2; },
     reset:  function () { _nukeReset(); },
+    // Lives in Code 1 (next to _NUKE_HIT_OFFSET); surfaced here so the whole
+    // nuke console lives under one name.
+    moveHits: function () {
+        if (!window.ACOPNukeHits) { console.warn('[ACOP] hit editor not loaded (Code 1)'); return false; }
+        return window.ACOPNukeHits.toggle();
+    },
 };
 
 // Console shortcut (dev/preview), the NORMAL Election Night twin of

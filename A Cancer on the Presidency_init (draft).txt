@@ -2196,6 +2196,15 @@ function __nukeTvTick() {
         window.__nukeScorches = [];
         __nukeHits = 0; __nukeSlates = 0; __nukeEbsDone = false;
     }
+    // LAST: keep the hit-point editor's crosshairs on top. The strike and
+    // aftermath layers append themselves to the svg as the night runs, and the
+    // aftermath one self-heals on every tick — so this has to sit after them,
+    // or an editor opened first ends up buried. (Both layers are
+    // pointer-events:none, so dragging never actually broke — this is purely so
+    // you can still SEE what you are dragging.)
+    if (__nukeHitEdit && __nukeHitEdit.svg === svg && svg && svg.lastElementChild !== __nukeHitEdit.layer) {
+        try { svg.appendChild(__nukeHitEdit.layer); } catch (e) {}
+    }
 }
 window.__onGameWindowMutation(__nukeTvTick);
 
@@ -2955,6 +2964,172 @@ function __nukeStrikeWatch(nukeOn) {
     });
     __nukeStrikeObs.observe(svg, { attributes: true, subtree: true, attributeFilter: ['fill'], attributeOldValue: true });
 }
+
+// ── HIT-POINT EDITOR (authoring tool, same shape as the World Map's "Move
+// Icons") ──────────────────────────────────────────────────────────────────────
+// Warheads aim at the state's bbox CENTRE, which sits off the landmass for
+// panhandles, islands and split states. This drops a draggable crosshair on
+// every state at its current aim point; drag one and the panel prints the
+// _NUKE_HIT_OFFSET line to paste back into the config above.
+//
+//   ACOPNuke.moveHits()   toggle on/off   (console; ACOPNukeHits.on/.off too)
+//
+// Works on ANY screen showing the US map — the offsets are in that map's svg
+// user units, which are the same map on every screen — so you can dial them in
+// on the calm final damage map rather than mid-barrage. Live: a drag writes
+// straight into _NUKE_HIT_OFFSET, so a test fire uses the new point at once.
+//   drag        move the aim point        shift-click   test-fire one warhead
+//   double-click  reset that state to the bbox centre
+var __nukeHitEdit = null;   // { svg, layer, panel, base: Map(abbr -> {x,y}) } while on
+function __nukeHitBase(path) {
+    let bb; try { bb = path.getBBox(); } catch (e) { return null; }
+    if (!bb || (!bb.width && !bb.height)) return null;
+    return { x: bb.x + bb.width / 2, y: bb.y + bb.height / 2, bb: bb };
+}
+function __nukeHitsOff() {
+    if (!__nukeHitEdit) return false;
+    try { __nukeHitEdit.layer.remove(); } catch (e) {}
+    try { __nukeHitEdit.panel.remove(); } catch (e) {}
+    __nukeHitEdit = null;
+    return true;
+}
+function __nukeHitsDump() {
+    const keys = Object.keys(_NUKE_HIT_OFFSET).sort();
+    if (!keys.length) return '(no offsets set — every state aims at its bbox centre)';
+    return keys.map(k => '    ' + k + ': { x: ' + Math.round(_NUKE_HIT_OFFSET[k].x)
+        + ', y: ' + Math.round(_NUKE_HIT_OFFSET[k].y) + ' },').join('\n');
+}
+function __nukeHitsOn() {
+    if (__nukeHitEdit) return __nukeHitsOff();
+    const svg = document.querySelector('#map_container svg');
+    if (!svg) { console.warn('[ACOP] hit editor: no map on screen — open an election map first'); return false; }
+    const maps = __nukeMaps(svg);
+    if (!maps.byAbbr.size) { console.warn('[ACOP] hit editor: could not resolve state abbreviations on this map'); return false; }
+    const NS = 'http://www.w3.org/2000/svg';
+    const layer = document.createElementNS(NS, 'g');
+    layer.id = 'nuke-hit-edit-layer';
+    svg.appendChild(layer);   // last child: above the states and the strike layer
+
+    const panel = document.createElement('div');
+    panel.id = 'nuke-hit-edit-panel';
+    panel.style.cssText = 'position:fixed;bottom:14px;left:14px;z-index:100001;'
+        + 'background:rgba(0,0,0,0.9);color:#7fff7f;font-family:monospace;font-size:11px;'
+        + 'line-height:1.55;padding:10px 12px;border:1px solid #3a6a3a;border-radius:5px;'
+        + 'max-width:340px;max-height:60vh;overflow:auto;user-select:text;white-space:pre;';
+    document.body.appendChild(panel);
+
+    const out = document.createElement('div');
+    const bar = document.createElement('div');
+    bar.style.cssText = 'margin-top:8px;display:flex;gap:6px;white-space:normal;';
+    const mkBtn = (label, fn) => {
+        const b = document.createElement('button');
+        b.textContent = label;
+        b.style.cssText = 'font-family:monospace;font-size:11px;padding:2px 8px;cursor:pointer;';
+        b.addEventListener('click', fn);
+        bar.appendChild(b);
+        return b;
+    };
+    const refresh = () => { out.textContent = '_NUKE_HIT_OFFSET = {\n' + __nukeHitsDump() + '\n};'; };
+    mkBtn('Copy', () => {
+        try { navigator.clipboard.writeText(out.textContent); } catch (e) {}
+    });
+    mkBtn('Reset all', () => {
+        Object.keys(_NUKE_HIT_OFFSET).forEach(k => { delete _NUKE_HIT_OFFSET[k]; });
+        layer.querySelectorAll('g[data-abbr]').forEach(g => {
+            const b = __nukeHitEdit.base.get(g.getAttribute('data-abbr'));
+            if (b) g.setAttribute('transform', 'translate(' + b.x + ',' + b.y + ')');
+        });
+        refresh();
+    });
+    mkBtn('Done', () => __nukeHitsOff());
+    panel.appendChild(out);
+    panel.appendChild(bar);
+
+    // Pointer position in the map's own user units — getScreenCTM handles the
+    // viewBox scale and any CSS transform on the way down, so no manual maths.
+    const toUser = ev => {
+        const pt = svg.createSVGPoint();
+        pt.x = ev.clientX; pt.y = ev.clientY;
+        try { return pt.matrixTransform(svg.getScreenCTM().inverse()); } catch (e) { return null; }
+    };
+    const base = new Map();
+    maps.byAbbr.forEach((path, abbr) => {
+        const b = __nukeHitBase(path);
+        if (!b) return;
+        base.set(abbr, { x: b.x, y: b.y });
+        const off = _NUKE_HIT_OFFSET[abbr] || { x: 0, y: 0 };
+        const g = document.createElementNS(NS, 'g');
+        g.setAttribute('data-abbr', abbr);
+        g.setAttribute('transform', 'translate(' + (b.x + off.x) + ',' + (b.y + off.y) + ')');
+        g.style.cursor = 'grab';
+        const mk = (tag, attrs) => {
+            const el = document.createElementNS(NS, tag);
+            for (const k in attrs) el.setAttribute(k, attrs[k]);
+            return el;
+        };
+        g.appendChild(mk('circle', { r: 7, fill: 'rgba(0,0,0,0.35)', stroke: '#ff4d4d', 'stroke-width': 1.2 }));
+        g.appendChild(mk('line', { x1: -10, y1: 0, x2: 10, y2: 0, stroke: '#ff4d4d', 'stroke-width': 1.2 }));
+        g.appendChild(mk('line', { x1: 0, y1: -10, x2: 0, y2: 10, stroke: '#ff4d4d', 'stroke-width': 1.2 }));
+        const label = mk('text', { x: 11, y: 4, fill: '#ffe08a', 'font-size': 9, 'font-family': 'monospace' });
+        label.textContent = abbr;
+        label.style.pointerEvents = 'none';
+        g.appendChild(label);
+
+        const write = () => {
+            const m = (g.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+            if (!m) return;
+            const dx = Math.round(parseFloat(m[1]) - b.x), dy = Math.round(parseFloat(m[2]) - b.y);
+            if (!dx && !dy) delete _NUKE_HIT_OFFSET[abbr];
+            else _NUKE_HIT_OFFSET[abbr] = { x: dx, y: dy };
+            refresh();
+        };
+        g.addEventListener('mousedown', ev => {
+            if (ev.shiftKey) {   // test fire at the current point
+                ev.stopPropagation(); ev.preventDefault();
+                const m = (g.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+                if (!m) return;
+                try {
+                    __nukeOneMissile(svg, __nukeStrikeLayer(svg),
+                        parseFloat(m[1]), parseFloat(m[2]), b.bb, true, null);
+                } catch (e) {}
+                return;
+            }
+            ev.stopPropagation(); ev.preventDefault();
+            const start = toUser(ev);
+            if (!start) return;
+            const m = (g.getAttribute('transform') || '').match(/translate\(([^,]+),\s*([^)]+)\)/);
+            const gx = m ? parseFloat(m[1]) : b.x, gy = m ? parseFloat(m[2]) : b.y;
+            const grabX = gx - start.x, grabY = gy - start.y;
+            g.style.cursor = 'grabbing';
+            const onMove = mv => {
+                const u = toUser(mv);
+                if (u) g.setAttribute('transform', 'translate(' + (u.x + grabX) + ',' + (u.y + grabY) + ')');
+            };
+            const onUp = () => {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                g.style.cursor = 'grab';
+                write();
+            };
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+        g.addEventListener('dblclick', ev => {
+            ev.stopPropagation(); ev.preventDefault();
+            g.setAttribute('transform', 'translate(' + b.x + ',' + b.y + ')');
+            write();
+        });
+        layer.appendChild(g);
+    });
+
+    __nukeHitEdit = { svg: svg, layer: layer, panel: panel, base: base };
+    refresh();
+    return true;
+}
+window.ACOPNukeHits = {
+    on: __nukeHitsOn, off: __nukeHitsOff, toggle: __nukeHitsOn,
+    dump: () => { const s = __nukeHitsDump(); console.log(s); return s; },
+};
 
 function __mapVisitTick() {
     const inGameMap = !!document.getElementById('resume_questions_button');

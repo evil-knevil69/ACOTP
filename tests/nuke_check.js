@@ -95,6 +95,8 @@ ck('host site banner hidden on the terminal screen',
 ck('fallout map drops the noise gif; election night keeps it',
    /gw\.classList\.toggle\('acop-nuke-final', !!\(on && __isFinalElectionMapRaw\(\)\)\)/.test(c1)
    && /#game_window\.acop-nuke-final #map_container \{[\s\S]{0,90}background-image: none !important;/.test(noiseCss));
+ck('hit-point editor is on the ACOPNuke console object', /moveHits: function \(\) \{[\s\S]{0,200}window\.ACOPNukeHits\.toggle\(\)/.test(c2)
+   && /window\.ACOPNukeHits = \{/.test(c1));
 ck('panels + Final Results button at left:777', /#game_window\.acop-nuke-tv #map_footer \{[\s\S]{0,120}left: 777px !important/.test(noiseCss)
    && /#game_window\.acop-nuke-tv #overall_result_container \{[\s\S]{0,90}left: 777px/.test(noiseCss)
    && /#game_window\.acop-nuke-tv #state_result_container \{[\s\S]{0,90}left: 777px/.test(noiseCss));
@@ -363,6 +365,88 @@ console.log('\nCENSUS MATHS:');
   ck('state-only wash: grey copies of the 3 census states, ocean untouched, no full rect',
      st.wash === 3 && st.noRect && st.washFirst);
   ck('plumes billow; the wash stays static', st.animated && st.washStatic);
+
+  // ── Hit-point editor. Drive it the way an author does: turn it on, drag a
+  // crosshair, and check the offset it writes — not merely that it rendered.
+  console.log('\nHIT-POINT EDITOR:');
+  let he = await p.evaluate(() => {
+    const svg = document.querySelector('#map_container svg');
+    svg.setAttribute('viewBox', '0 0 400 200');
+    svg.setAttribute('width', '400'); svg.setAttribute('height', '200');
+    svg.style.position = 'absolute'; svg.style.left = '0px'; svg.style.top = '0px';
+    [...svg.querySelectorAll('path')].forEach(x => x.remove());
+    const NS = 'http://www.w3.org/2000/svg';
+    // CA spans 20..80 x 20..60 -> centre (50, 40); FL 200..260 x 100..140 -> (230, 120)
+    [['CA', 'M20 20h60v40z'], ['FL', 'M200 100h60v40z']].forEach(([ab, d]) => {
+      const q = document.createElementNS(NS, 'path');
+      q.setAttribute('d', d); q.setAttribute('data-abbr', ab); q.setAttribute('fill', '#c8a070');
+      svg.appendChild(q);
+    });
+    delete svg.__nukeMaps;
+    Object.keys(_NUKE_HIT_OFFSET).forEach(k => { delete _NUKE_HIT_OFFSET[k]; });
+    const ok = __nukeHitsOn();
+    const layer = document.getElementById('nuke-hit-edit-layer');
+    const mk = ab => layer.querySelector('g[data-abbr="' + ab + '"]');
+    const at = g => (g.getAttribute('transform').match(/translate\(([^,]+),\s*([^)]+)\)/) || [])
+      .slice(1).map(Number);
+    return { ok: ok, panel: !!document.getElementById('nuke-hit-edit-panel'),
+             markers: layer.querySelectorAll('g[data-abbr]').length,
+             ca: at(mk('CA')), fl: at(mk('FL')),
+             label: mk('CA').querySelector('text').textContent,
+             onTop: layer === svg.lastElementChild };
+  });
+  ck('editor mounts a crosshair per state, on the bbox centre, above the map',
+     he.ok && he.panel && he.markers === 2 && he.label === 'CA' && he.onTop
+     && he.ca[0] === 50 && he.ca[1] === 40 && he.fl[0] === 230 && he.fl[1] === 120);
+
+  he = await p.evaluate(() => {
+    const svg = document.querySelector('#map_container svg');
+    const r = svg.getBoundingClientRect();
+    const g = document.querySelector('#nuke-hit-edit-layer g[data-abbr="CA"]');
+    const fire = (type, ux, uy, opts) => {
+      const e = new MouseEvent(type, Object.assign(
+        { bubbles: true, cancelable: true, clientX: r.left + ux, clientY: r.top + uy }, opts || {}));
+      (type === 'mousedown' || type === 'dblclick' ? g : document).dispatchEvent(e);
+    };
+    fire('mousedown', 50, 40);      // grab the crosshair dead centre
+    fire('mousemove', 38, 47);      // …drag it 12 left, 7 down
+    fire('mouseup', 38, 47);
+    const after = g.getAttribute('transform');
+    const panel = document.getElementById('nuke-hit-edit-panel').textContent;
+    return { off: JSON.parse(JSON.stringify(_NUKE_HIT_OFFSET)), after: after,
+             panelHasCA: /CA: \{ x: -12, y: 7 \}/.test(panel),
+             panelHasFL: /FL:/.test(panel) };
+  });
+  ck('dragging a crosshair writes the offset (svg units, rounded) and prints it',
+     he.off.CA && he.off.CA.x === -12 && he.off.CA.y === 7 && he.panelHasCA
+     && /translate\(38,\s*47\)/.test(he.after));
+  ck('only the states you moved are listed — the rest stay on their centre', !he.panelHasFL);
+
+  he = await p.evaluate(() => {
+    // the strike/aftermath layers append themselves as the night runs — the tick
+    // must lift the crosshairs back on top
+    const svg = document.querySelector('#map_container svg');
+    svg.appendChild(__nukeStrikeLayer(svg));   // as a re-appended strike/aftermath layer does
+    const buried = svg.lastElementChild.id !== 'nuke-hit-edit-layer';
+    window.__T.tick();
+    return { buried: buried, lifted: svg.lastElementChild.id === 'nuke-hit-edit-layer' };
+  });
+  ck('the crosshairs are lifted back above layers that append themselves later',
+     he.buried && he.lifted);
+
+  he = await p.evaluate(() => {
+    const g = document.querySelector('#nuke-hit-edit-layer g[data-abbr="CA"]');
+    g.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }));
+    const reset = { off: JSON.parse(JSON.stringify(_NUKE_HIT_OFFSET)), at: g.getAttribute('transform') };
+    __nukeHitsOff();
+    return { reset: reset, layer: !!document.getElementById('nuke-hit-edit-layer'),
+             panel: !!document.getElementById('nuke-hit-edit-panel'),
+             reopen: (() => { const a = __nukeHitsOn(); const b = !!document.getElementById('nuke-hit-edit-layer'); __nukeHitsOff(); return a && b; })() };
+  });
+  ck('double-click resets that state to the centre and drops it from the config',
+     !he.reset.off.CA && /translate\(50,\s*40\)/.test(he.reset.at));
+  ck('Done tears the layer and panel down, and it can be reopened',
+     !he.layer && !he.panel && he.reopen);
 
   // ── Panel stacking. The CRT bezel paints outside the layout box, so a check
   // that only compares the boxes would miss the collision the player sees. The

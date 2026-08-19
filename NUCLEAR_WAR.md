@@ -229,6 +229,36 @@ Also: `ACOPNuke.arm()` (defcon → 1), `ACOPNuke.census()` (apply without
 changing screens), `ACOPNuke.reset()` (unwind — note it reinstalls the
 pristine question order, so treat a mid-run demo as end-of-session testing).
 
+## Aiming the warheads — `ACOPNuke.moveHits()`
+
+Warheads aim at each state's **bbox centre**, which sits off the landmass for
+panhandles, islands and split states (Michigan's centre lands in the lake).
+`_NUKE_HIT_OFFSET` (Code 1) nudges a state's aim point in svg units, and moves
+**all** of that state's hits together — lead warhead, MIRVs and barrage
+re-strikes.
+
+`ACOPNuke.moveHits()` is the drag-and-drop way to fill that table in — the same
+tool as the World Map's "Move Icons". It drops a red crosshair on every state at
+its current aim point:
+
+| | |
+|---|---|
+| **drag** | move the aim point; the panel prints the `_NUKE_HIT_OFFSET` line |
+| **shift-click** | test-fire one warhead at that point |
+| **double-click** | reset that state to its bbox centre |
+| **Copy / Reset all / Done** | in the panel, bottom-left |
+
+Two things worth knowing. It runs on **any screen showing the US map**, not just
+the nuke ones — the offsets are svg user units of the same map everywhere — so
+dial them in on the calm final damage map rather than mid-barrage. And a drag
+writes straight into the live `_NUKE_HIT_OFFSET`, so a test fire uses the new
+point immediately; paste the panel's output back into Code 1 to keep it.
+
+Implementation: `__nukeHitsOn/Off/Dump` in Code 1 next to the strike code,
+exposed as `window.ACOPNukeHits` and surfaced on `ACOPNuke` from Code 2. The
+crosshair layer is re-hoisted at the END of `__nukeTvTick`, after the strike and
+aftermath layers append themselves.
+
 ## The five moving parts (all in Code 2 unless noted)
 
 | Piece | What it does |
