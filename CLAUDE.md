@@ -1269,6 +1269,28 @@ in the function is undone in the same pass (caught by the harness). Exposed as
 the rounded offset + prints it, untouched states stay out of the config,
 re-hoist above a re-appended layer, double-click reset, teardown + reopen),
 full suite green, both files EXECUTE CLEAN.
+AUTHORED (Aug 2026): 27 states dialled in with the tool and pasted into
+`_NUKE_HIT_OFFSET`. Biggest nudges are the shapes that motivated it — CA 99,
+MI 70 (the lake gap between the peninsulas), FL 61, TX 58, AK 57 svg units.
+A 75th assertion guards the table: >=20 well-formed entries with at least one
+real (>20 unit) nudge, so an accidental wipe back to `{}` fails the suite.
+FOLLOW-UPS (Aug 2026): re-centring the aim point was not enough — MIRVs and
+barrage re-strikes scattered by a fraction of the BOUNDING BOX, so for MI/FL/
+AK/HI a good share still landed in open water however well the centre was
+placed. New `__nukeScatter(path, bb, aimX, aimY, spread)` samples around the
+CORRECTED aim point and keeps the point on the landmass via
+`path.isPointInFill` — exact where a bbox fraction can never be (Michigan's two
+peninsulas count, the lake between them does not). SELF-CALIBRATING: if the test
+cannot see the aim point itself (transformed path, no API) it is dropped for
+that state and the plain bbox scatter stands, so a coordinate mismatch can never
+collapse every warhead onto one pixel. Dials: `_NUKE_SPREAD_MIRV` (0.25),
+`_NUKE_SPREAD_BARRAGE` (0.35), `_NUKE_SPREAD_ONLAND`, `_NUKE_SPREAD_TRIES` (12);
+spread 0 = every warhead on the exact aim point. The barrage also re-reads
+`_NUKE_HIT_OFFSET` at fire time, so a live drag in the editor moves re-strikes
+that are still queued. Verified: nuke_check 81/81 (+6, incl. a RING fixture
+whose bbox centre is a hole — asserts zero hits in the water with containment
+on, that the same scatter WITH IT OFF does hit the hole, and that an uncalibrated
+state still spreads).
 
 **65. The exec check could not fail (Aug 2026)** — a backtick inside a CSS
 comment shipped (`SyntaxError: Unexpected identifier '#game_window'` in the
@@ -1291,9 +1313,9 @@ been exercised is not yet known to work — make it fail once before trusting it
 
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 192
+session went with it (they were never committed). Rebuilt and COMMITTED, 199
 assertions over the areas that carry the most machinery:
-`nuke_check` (74), `midterm_check` (32), `enightsets_check` (23),
+`nuke_check` (81), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +

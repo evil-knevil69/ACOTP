@@ -2528,9 +2528,48 @@ var _NUKE_SLBM_SHARE  = 0.22; // fraction of strikes that come in from the RIGHT
 // panhandles, islands, split states). Add an { x, y } nudge in svg units to
 // move ALL of that state's hits (main salvo + barrage) together — e.g.
 //   FL: { x: 4, y: -12 },   MI: { x: -6, y: 8 },   (positive x = right, y = down)
-// Easiest way to dial one in: run ACOPNuke.demo(), watch where the state's
-// hits land, and nudge until they sit on the landmass. Empty = bbox centre.
-var _NUKE_HIT_OFFSET = {};
+// The offset moves EVERY warhead the state takes — lead, MIRVs and barrage
+// re-strikes — and the follow-ups scatter around the corrected point, on the
+// landmass (see __nukeScatter and the three _NUKE_SPREAD_* dials below).
+// Easiest way to dial one in: ACOPNuke.moveHits() — drag the crosshairs, then
+// paste the panel's output over this table. (By hand: run ACOPNuke.demo() and
+// nudge until the hits sit on the landmass.) Empty = bbox centre.
+var _NUKE_HIT_OFFSET = {
+    AK: { x:   3, y: -57 },
+    CA: { x:  18, y:  97 },
+    FL: { x:  37, y: -49 },
+    GA: { x:  -1, y:   1 },
+    HI: { x:  40, y:  19 },
+    ID: { x: -19, y:  45 },
+    IL: { x:  15, y: -46 },
+    KS: { x:  31, y:   1 },
+    LA: { x: -22, y:  21 },
+    ME: { x: -10, y:  21 },
+    MI: { x:  54, y:  45 },
+    MS: { x:   1, y: -34 },
+    ND: { x:   0, y: -15 },
+    NE: { x:  31, y:   0 },
+    NH: { x: -15, y:   1 },
+    NV: { x: -28, y: -21 },
+    NY: { x:  30, y:  36 },
+    OH: { x: -15, y:  12 },
+    OR: { x: -33, y:  33 },
+    PA: { x:  12, y:   6 },
+    SC: { x:  10, y:  21 },
+    TN: { x: -30, y:  -6 },
+    TX: { x:  33, y:  48 },
+    VA: { x:  46, y:   7 },
+    VT: { x:  -7, y:   0 },
+    WA: { x: -27, y: -10 },
+    WI: { x:  18, y:   4 },
+};
+// How far follow-up warheads stray from the aim point, as a fraction of the
+// state's bbox (0 = every warhead on the exact aim point). ONLAND keeps them
+// on the landmass by resampling — turn it off for the old raw-bbox scatter.
+var _NUKE_SPREAD_MIRV    = 0.25;  // the 2nd/3rd warheads of a big state's salvo
+var _NUKE_SPREAD_BARRAGE = 0.35;  // the gratuitous re-strikes through the night
+var _NUKE_SPREAD_ONLAND  = true;
+var _NUKE_SPREAD_TRIES   = 12;    // resamples before falling back to the aim point
 var _NUKE_EBS_TONE_URL = 'https://file.garden/aXPgNT-ZRCxxpy0g/Emergency_broadcast_system.ogg';  // EBS two-tone attention signal; plays once as the warning popup appears ('' = silent)
 var _NUKE_RUMBLE_URL   = '';  // FILL ME IN — distant impact rumble; throttled to one per 2.5s ('' = silent)
 var _NUKE_CHYRON_TEXT  = 'THIS IS NOT A TEST · AN ATTACK WARNING IS IN EFFECT · TAKE SHELTER IMMEDIATELY · DO NOT USE THE TELEPHONE · STAY TUNED TO THIS STATION';
@@ -2761,6 +2800,45 @@ function __nukeRumble() {
 // A state is called → its salvo. First warhead always ground-bursts on the
 // centroid area (the scorch every state keeps); follow-ups spread across the
 // state and may air-burst (flash + wide shockwave, no cloud, no scorch).
+// Scatter a follow-up warhead (MIRV or barrage re-strike) around the state's
+// AIM POINT — the bbox centre plus its _NUKE_HIT_OFFSET nudge — while keeping
+// it on the landmass. Re-centring the aim point alone was not enough: the
+// scatter is a fraction of the BOUNDING BOX, so for Michigan, Florida, Alaska
+// and Hawaii a good share of the follow-ups still landed in open water however
+// well the centre was placed.
+//
+// isPointInFill is exact where a bbox fraction can never be: it honours every
+// subpath, so Michigan's two peninsulas both count and the lake between them
+// does not. Sample, test, retry; give up after _NUKE_SPREAD_TRIES and use the
+// aim point itself.
+//
+// SELF-CALIBRATING: if the test cannot even see the aim point — a transformed
+// path, a browser without the API — we stop trusting it for this state and keep
+// the plain bbox scatter, rather than collapsing every warhead onto one pixel.
+function __nukeScatter(path, bb, aimX, aimY, spread) {
+    const rx = () => aimX + bb.width * spread * (Math.random() * 2 - 1);
+    const ry = () => aimY + bb.height * spread * (Math.random() * 2 - 1);
+    let inFill = null;
+    if (_NUKE_SPREAD_ONLAND) {
+        try {
+            if (typeof path.isPointInFill === 'function') {
+                const mkPt = (x, y) => {
+                    const svg = path.ownerSVGElement;
+                    if (svg && svg.createSVGPoint) { const p = svg.createSVGPoint(); p.x = x; p.y = y; return p; }
+                    return { x: x, y: y };
+                };
+                inFill = (x, y) => path.isPointInFill(mkPt(x, y));
+                if (!inFill(aimX, aimY)) inFill = null;   // unusable here — don't fight it
+            }
+        } catch (e) { inFill = null; }
+    }
+    let x = rx(), y = ry();
+    if (inFill) {
+        for (let t = 0; t < _NUKE_SPREAD_TRIES && !inFill(x, y); t++) { x = rx(); y = ry(); }
+        if (!inFill(x, y)) { x = aimX; y = aimY; }
+    }
+    return { x: x, y: y };
+}
 function __nukeStrikeAt(svg, path, censusColor) {
     // Paint the deferred census colour on the state (see the strike observer).
     const applyColor = () => { if (censusColor != null) { try { path.setAttribute('fill', censusColor); } catch (e) {} } };
@@ -2786,9 +2864,13 @@ function __nukeStrikeAt(svg, path, censusColor) {
     };
     // No missile flight under reduced motion → fire the beat immediately.
     if (reduce) onLeadImpact();
+    const aimX = bb.x + bb.width / 2 + off.x, aimY = bb.y + bb.height / 2 + off.y;
     for (let i = 0; i < n; i++) {
-        const tx = bb.x + bb.width * (i === 0 ? 0.5 : 0.25 + Math.random() * 0.5) + off.x;
-        const ty = bb.y + bb.height * (i === 0 ? 0.5 : 0.25 + Math.random() * 0.5) + off.y;
+        // Lead warhead: exactly the authored aim point. MIRVs: scattered around
+        // it, but kept ON the state (see __nukeScatter).
+        const s = i === 0 ? { x: aimX, y: aimY }
+                          : __nukeScatter(path, bb, aimX, aimY, _NUKE_SPREAD_MIRV);
+        const tx = s.x, ty = s.y;
         const ground = i === 0 || Math.random() > 0.45;
         const delay = i === 0 ? 0 : 200 + Math.random() * 500;
         const onImpact = (i === 0 && !reduce) ? onLeadImpact : null;
@@ -2813,9 +2895,13 @@ function __nukeStrikeAt(svg, path, censusColor) {
             if (document.body.classList.contains('low-fx-on')) return;
             let bb2;
             try { bb2 = path.getBBox(); } catch (e) { return; }
-            const rx = bb2.x + bb2.width * (0.15 + Math.random() * 0.7) + off.x;
-            const ry = bb2.y + bb2.height * (0.15 + Math.random() * 0.7) + off.y;
-            try { __nukeOneMissile(svg, __nukeStrikeLayer(svg), rx, ry, bb2, Math.random() > 0.5); } catch (e) {}
+            // Re-read the offset: a live drag in the hit editor should move the
+            // barrage too, and these fire seconds-to-minutes after the salvo.
+            const off2 = (abbr && _NUKE_HIT_OFFSET[abbr]) || { x: 0, y: 0 };
+            const r2 = __nukeScatter(path, bb2,
+                bb2.x + bb2.width / 2 + off2.x, bb2.y + bb2.height / 2 + off2.y,
+                _NUKE_SPREAD_BARRAGE);
+            try { __nukeOneMissile(svg, __nukeStrikeLayer(svg), r2.x, r2.y, bb2, Math.random() > 0.5); } catch (e) {}
             __nukeDegrade();
             if (Math.random() < 0.3) __nukeWireLine(abbr, _NUKE_RESTRIKE_LINES);
         }, rDelay);

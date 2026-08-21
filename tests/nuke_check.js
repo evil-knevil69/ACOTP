@@ -95,6 +95,20 @@ ck('host site banner hidden on the terminal screen',
 ck('fallout map drops the noise gif; election night keeps it',
    /gw\.classList\.toggle\('acop-nuke-final', !!\(on && __isFinalElectionMapRaw\(\)\)\)/.test(c1)
    && /#game_window\.acop-nuke-final #map_container \{[\s\S]{0,90}background-image: none !important;/.test(noiseCss));
+ck('the offset moves the whole salvo, and follow-ups scatter around it on land',
+   /const aimX = bb\.x \+ bb\.width \/ 2 \+ off\.x/.test(c1)
+   && /__nukeScatter\(path, bb, aimX, aimY, _NUKE_SPREAD_MIRV\)/.test(c1)
+   && /__nukeScatter\(path, bb2,[\s\S]{0,140}_NUKE_SPREAD_BARRAGE\)/.test(c1)
+   && /_NUKE_SPREAD_ONLAND  = true/.test(c1));
+ck('hit points are authored: a well-formed table of real nudges, not an empty stub', (() => {
+  const m = c1.match(/var _NUKE_HIT_OFFSET = (\{[\s\S]*?\n\});/);
+  if (!m) return false;
+  let o; try { o = eval('(' + m[1] + ')'); } catch (e) { return false; }
+  const keys = Object.keys(o);
+  return keys.length >= 20
+    && keys.every(k => /^[A-Z]{2}$/.test(k) && typeof o[k].x === 'number' && typeof o[k].y === 'number')
+    && keys.some(k => Math.abs(o[k].x) > 20 || Math.abs(o[k].y) > 20);   // the split/panhandle states
+})());
 ck('hit-point editor is on the ACOPNuke console object', /moveHits: function \(\) \{[\s\S]{0,200}window\.ACOPNukeHits\.toggle\(\)/.test(c2)
    && /window\.ACOPNukeHits = \{/.test(c1));
 ck('panels + Final Results button at left:777', /#game_window\.acop-nuke-tv #map_footer \{[\s\S]{0,120}left: 777px !important/.test(noiseCss)
@@ -365,6 +379,66 @@ console.log('\nCENSUS MATHS:');
   ck('state-only wash: grey copies of the 3 census states, ocean untouched, no full rect',
      st.wash === 3 && st.noRect && st.washFirst);
   ck('plumes billow; the wash stays static', st.animated && st.washStatic);
+
+  // ── Follow-up scatter. The point of the containment test is the shape a
+  // bounding box cannot describe, so the fixture is a RING: the bbox centre —
+  // where the aim point would sit untouched — is a hole.
+  console.log('\nFOLLOW-UP SCATTER (MIRVs + barrage stay on the landmass):');
+  let sc = await p.evaluate(() => {
+    const svg = document.querySelector('#map_container svg');
+    const NS = 'http://www.w3.org/2000/svg';
+    const ring = document.createElementNS(NS, 'path');
+    // 100x100 square with a 40x40 hole dead centre (even-odd via a reversed inner ring)
+    ring.setAttribute('d', 'M400 100h100v100h-100z M430 130v40h40v-40z');
+    ring.setAttribute('fill-rule', 'evenodd');
+    ring.setAttribute('fill', '#c8a070');
+    ring.setAttribute('data-abbr', 'RG');
+    svg.appendChild(ring);
+    const bb = ring.getBBox();
+    const aimX = bb.x + bb.width / 2, aimY = bb.y + bb.height / 2;
+    const inHole = (x, y) => x > 430 && x < 470 && y > 130 && y < 170;
+    const sample = (spread, onland) => {
+      const was = _NUKE_SPREAD_ONLAND; _NUKE_SPREAD_ONLAND = onland;
+      let hole = 0, distinct = new Set();
+      for (let i = 0; i < 400; i++) {
+        // aim at a real point on the ring (as an author would), not the hole
+        const r = __nukeScatter(ring, bb, 415, 115, spread);
+        if (inHole(r.x, r.y)) hole++;
+        distinct.add(Math.round(r.x) + ',' + Math.round(r.y));
+      }
+      _NUKE_SPREAD_ONLAND = was;
+      return { hole: hole, distinct: distinct.size };
+    };
+    return { on: sample(0.35, true), off: sample(0.35, false),
+             aimInHole: inHole(aimX, aimY),
+             // a state whose aim point is off-fill must NOT collapse to one pixel
+             uncalibrated: (() => {
+               const was = _NUKE_SPREAD_ONLAND; _NUKE_SPREAD_ONLAND = true;
+               const seen = new Set();
+               for (let i = 0; i < 60; i++) {
+                 const r = __nukeScatter(ring, bb, aimX, aimY, 0.35);   // aim IN the hole
+                 seen.add(Math.round(r.x) + ',' + Math.round(r.y));
+               }
+               _NUKE_SPREAD_ONLAND = was;
+               return seen.size;
+             })() };
+  });
+  ck('the fixture is a real test: its bbox centre is a hole', sc.aimInHole);
+  ck('with containment ON, no follow-up lands in the water', sc.on.hole === 0 && sc.on.distinct > 100);
+  ck('…and it is doing work — the same scatter with it OFF does hit the hole', sc.off.hole > 0);
+  ck('an unusable containment test falls back to plain scatter, never one pixel',
+     sc.uncalibrated > 20);
+  sc = await p.evaluate(() => {
+    const svg = document.querySelector('#map_container svg');
+    const ring = svg.querySelector('[data-abbr="RG"]');
+    const bb = ring.getBBox();
+    const was = _NUKE_SPREAD_MIRV; _NUKE_SPREAD_MIRV = 0;
+    const r = __nukeScatter(ring, bb, 415, 115, _NUKE_SPREAD_MIRV);
+    _NUKE_SPREAD_MIRV = was;
+    ring.remove(); delete svg.__nukeMaps;
+    return { x: Math.round(r.x), y: Math.round(r.y) };
+  });
+  ck('spread 0 puts every warhead on the aim point exactly', sc.x === 415 && sc.y === 115);
 
   // ── Hit-point editor. Drive it the way an author does: turn it on, drag a
   // crosshair, and check the offset it writes — not merely that it rendered.
