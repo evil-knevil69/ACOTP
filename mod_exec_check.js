@@ -7,6 +7,30 @@ const {chromium}=require(require('child_process').execSync('npm root -g').toStri
 const file=process.argv[2]||'/home/user/ACOTP/A Cancer on the Presidency_init (draft).txt';
 const code=fs.readFileSync(file,'utf8');
 
+// PRE-FLIGHT LINT — the one failure mode a SyntaxError cannot locate for you.
+// A backtick inside a /* */ comment terminates the enclosing template literal;
+// the file still parses far enough that the engine reports a bewildering
+// "Unexpected identifier '#game_window'" hundreds of lines later. Both
+// stylesheets in Code 1 are template literals, so every CSS comment is inside
+// one. There are none in either file today, so flagging all of them costs
+// nothing and names the exact line.
+const blockComments=[];
+{
+  const re=/\/\*[\s\S]*?\*\//g;
+  let m;
+  while ((m=re.exec(code))) {
+    if (m[0].indexOf('`') === -1) continue;
+    blockComments.push({ line: code.slice(0, m.index).split('\n').length,
+                         text: m[0].split('\n')[0].slice(0, 100) });
+  }
+}
+if (blockComments.length) {
+  console.log('BACKTICK IN A BLOCK COMMENT — this terminates the template literal it sits in:');
+  blockComments.forEach(c => console.log('  line ' + c.line + ': ' + c.text));
+  console.log('Use apostrophes instead. (CLAUDE.md, the rule that keeps biting.)');
+  process.exit(1);
+}
+
 (async()=>{
   const b=await chromium.launch();const p=await b.newPage();
   p.on('pageerror',e=>console.log('PAGE ERROR:',e.message));
@@ -66,4 +90,6 @@ const code=fs.readFileSync(file,'utf8');
       console.log(String(i+1).padStart(6), (i+1===fl?'>> ':'   ')+lines[i]);
   }
   await b.close();
+  // Non-zero on failure — without this the runner read a printed THROWS as a pass.
+  process.exit(result.ok ? 0 : 1);
 })();

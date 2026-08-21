@@ -26,6 +26,7 @@ and gets committed.
 | `rsanim_check.js` | the cabinet-reshuffle filing-card animations (deck deal, the changeover flight, settle) and their gates |
 | `chrome_check.js` | the injected Manual + World Map buttons across screen changes (pulled for Election Night, back on the final results screens) |
 | `saveload_check.js` | `_SL_SCALARS` integrity and the capture/restore round-trips |
+| `execcheck_check.js` | the execution check itself — poisons a copy of each mod file four ways and asserts it rejects every one |
 
 ## Writing a new one
 
@@ -46,3 +47,10 @@ source moved, fix the anchor rather than loosening the assertion.
 what it does. Several of these tests exist because a feature was present but
 behaving backwards (the midterm verdict printing "down +4", the static flare
 rendering invisibly).
+
+**And test the tests.** `mod_exec_check.js` once found a stray backtick in a CSS
+comment, printed its THROWS dump — and exited 0, so the runner logged PASS and
+the break shipped. `execcheck_check.js` exists because of that: it poisons a
+copy of each mod file and asserts the checker actually rejects it. Any harness
+whose failure path has never been exercised is a harness you don't yet know
+works — force it to fail once before trusting it.

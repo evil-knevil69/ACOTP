@@ -5629,7 +5629,7 @@ body.low-fx-on #game_window.acop-nuke-tv #map_container svg {
    the button sits UNDER both panels rather than behind the lower one. The
    z-index matches theirs so a stray pixel of bleed can't cover it either.
    The FINAL damage map is unaffected: its 6-button nav row is laid out by the
-   bottom-anchored `#game_window.acop-nuke-final #map_footer:has(...)` rule in
+   bottom-anchored '#game_window.acop-nuke-final #map_footer:has(...)' rule in
    the main stylesheet, whose (2,2,0) specificity out-ranks this. */
 #game_window.acop-nuke-tv #map_footer {
     left: 777px !important; top: 600px !important; z-index: 8997 !important;

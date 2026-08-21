@@ -1270,13 +1270,32 @@ the rounded offset + prints it, untouched states stay out of the config,
 re-hoist above a re-appended layer, double-click reset, teardown + reopen),
 full suite green, both files EXECUTE CLEAN.
 
+**65. The exec check could not fail (Aug 2026)** — a backtick inside a CSS
+comment shipped (`SyntaxError: Unexpected identifier '#game_window'` in the
+host), even though `mod_exec_check.js` had DETECTED it and printed its THROWS
+dump: the script never set a non-zero exit code, and `tests/run_all.js` decided
+pass/fail purely on whether `execFileSync` threw. So the runner logged
+`PASS  Code 1 executes  ok` over a file the browser could not parse. Three
+fixes: (a) `mod_exec_check.js` now `process.exit(result.ok ? 0 : 1)`; (b) it
+gained a PRE-FLIGHT LINT for the specific trap — any backtick inside a `/* */`
+comment is rejected BY LINE NUMBER before the eval, because the SyntaxError
+itself points hundreds of lines away from the real culprit (there are none in
+either file, so flagging all of them costs nothing); (c) `run_all.js` now also
+requires the `EXECUTED CLEAN` line in the output, so a silent exit can't pass
+again. New `tests/execcheck_check.js` (6) poisons a COPY of each mod file four
+ways — backtick in a CSS comment, unbalanced backtick, runtime throw at load,
+duplicate `const` — and asserts the checker rejects every one. Verified against
+the real broken file: run_all now reports `FAIL Code 1 executes` and names line
+5625. THE LESSON, worth generalising: a harness whose failure path has never
+been exercised is not yet known to work — make it fail once before trusting it.
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 186
+session went with it (they were never committed). Rebuilt and COMMITTED, 192
 assertions over the areas that carry the most machinery:
 `nuke_check` (74), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
-`census_split_check` (10).
+`census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.
 Still unrebuilt (older ground, rebuild when next touched): lowfx (24), statecard
