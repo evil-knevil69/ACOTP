@@ -111,9 +111,11 @@ ck('hit points are authored: a well-formed table of real nudges, not an empty st
 })());
 ck('hit-point editor is on the ACOPNuke console object', /moveHits: function \(\) \{[\s\S]{0,200}window\.ACOPNukeHits\.toggle\(\)/.test(c2)
    && /window\.ACOPNukeHits = \{/.test(c1));
-ck('panels + Final Results button at left:777', /#game_window\.acop-nuke-tv #map_footer \{[\s\S]{0,120}left: 777px !important/.test(noiseCss)
-   && /#game_window\.acop-nuke-tv #overall_result_container \{[\s\S]{0,90}left: 777px/.test(noiseCss)
-   && /#game_window\.acop-nuke-tv #state_result_container \{[\s\S]{0,90}left: 777px/.test(noiseCss));
+ck('panels at left:792, Final Results button at left:777', /#game_window\.acop-nuke-tv #map_footer \{[\s\S]{0,120}left: 777px !important/.test(noiseCss)
+   && /#game_window\.acop-nuke-tv #overall_result_container \{[\s\S]{0,90}left: 792px/.test(noiseCss)
+   && /#game_window\.acop-nuke-tv #state_result_container \{[\s\S]{0,90}left: 792px/.test(noiseCss));
+ck('no sticky-note pushpins on either war-room terminal',
+   /#game_window\.acop-nuke-tv #overall_result_container-pin,\s*#game_window\.acop-nuke-tv #state_result_container-pin \{ display: none !important; \}/.test(noiseCss));
 ck('panels wear the CRT tube bezel (border-image 42px + housing shadow)',
    /border-image: radial-gradient\(#333, #000 10%, #666 10\.5% 12%, #0000 12\.5%\)\s*45\.5% fill \/ 42px \/ 42px;/.test(noiseCss)
    && /box-shadow: #8a8a8a 0 0 0 16px, #b0b0b0 -1px -1px 0 16px, #000 0 8px 22px 16px;/.test(noiseCss));

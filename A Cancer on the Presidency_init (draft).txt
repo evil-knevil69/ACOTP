@@ -5746,13 +5746,19 @@ body.acop-nuke-screen #header {
    typical content, and ~24px below the lower one, with headroom for a taller
    card (long state name, four census rows) at either end. */
 #game_window.acop-nuke-tv #overall_result_container {
-    left: 777px !important; top: 2px !important; z-index: 8996 !important;
+    left: 792px !important; top: 2px !important; z-index: 8996 !important;
     transform: none !important;
 }
 #game_window.acop-nuke-tv #state_result_container {
-    left: 777px !important; top: 258px !important; z-index: 8996 !important;
+    left: 792px !important; top: 258px !important; z-index: 8996 !important;
     transform: none !important;
 }
+/* …and no pushpins on the war-room terminals. makeDraggable gives every results
+   panel a red sticky-note pin (appended to #main_content_area as '<id>-pin');
+   the normal TV screens already drop theirs in the .acop-final-tv block, and a
+   pin through a CRT bezel reads as a mistake. */
+#game_window.acop-nuke-tv #overall_result_container-pin,
+#game_window.acop-nuke-tv #state_result_container-pin { display: none !important; }
 /* ── Results panels: war-room / CRT terminal reskin (nuke screen only — the
    normal .acop-final-tv sticky-notes are untouched). Pure CSS over the stock
    engine markup: the yellow note becomes a dark phosphor terminal, the h3 a

@@ -1311,11 +1311,22 @@ the real broken file: run_all now reports `FAIL Code 1 executes` and names line
 5625. THE LESSON, worth generalising: a harness whose failure path has never
 been exercised is not yet known to work — make it fail once before trusting it.
 
+**66. Nuke panels: +15px right, pins gone (Aug 2026)** — Code 1. Both war-room
+result panels moved `left: 777 → 792` (the Final Results button stays at 777, so
+it no longer aligns with the state card's left edge — deliberate, per the
+request to move only the boxes). Right-edge clearance re-checked: 792 + 210 +
+29px of measured bezel bleed = 1031 of 1050. And a new rule drops their
+pushpins: `makeDraggable` gives every results panel a red sticky-note pin
+(`'<id>-pin'`, appended to `#main_content_area`), the `.acop-final-tv` block
+already hid its two, and the nuke screen was the one results screen still
+showing them — through a CRT bezel. Verified: nuke_check 82/82 (+1 pins, the
+777 panel assertions retuned to 792), suite green.
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 199
+session went with it (they were never committed). Rebuilt and COMMITTED, 200
 assertions over the areas that carry the most machinery:
-`nuke_check` (81), `midterm_check` (32), `enightsets_check` (23),
+`nuke_check` (82), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
