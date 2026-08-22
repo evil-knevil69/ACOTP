@@ -1233,10 +1233,10 @@ Processing Results beat), full suite ALL GREEN, both files EXECUTE CLEAN.
 
 **63. Theme: "In the Bunker" (Jul 2026)** — Code 1, a second entry in
 `ACOP_THEMES` (grep `ADD THEMES BELOW`). The Emergency Operations Center look:
-near-black title/window/header, flat concrete-black page. Ships ASSET-FREE so it
-works the moment it is picked — two FILL ME IN slots (`BUNKER_BANNER`,
-`BUNKER_BG`) upgrade it to real art, and each falls back on its own ('' banner
-keeps the shipped Watergate one, '' background gives the flat tone). Two traps
+near-black title/window/header, PLAIN BLACK page (`bgColor = '#000000'`, no
+background image — decided Aug 2026, so there is no BUNKER_BG slot). Ships
+asset-free; one FILL ME IN slot (`BUNKER_BANNER`) upgrades the banner, and ''
+keeps the shipped Watergate one. Two traps
 handled, worth knowing for the NEXT theme: (a) a flat-colour theme cannot use
 `body.style.backgroundColor` — `_applyTheme` calls `_syncLowFxBg()` afterwards
 and that clears the inline colour — so it sets the legacy `body.bgColor`
