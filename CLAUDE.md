@@ -1312,9 +1312,8 @@ the real broken file: run_all now reports `FAIL Code 1 executes` and names line
 been exercised is not yet known to work — make it fail once before trusting it.
 
 **66. Nuke panels: +15px right, pins gone (Aug 2026)** — Code 1. Both war-room
-result panels moved `left: 777 → 792` (the Final Results button stays at 777, so
-it no longer aligns with the state card's left edge — deliberate, per the
-request to move only the boxes). Right-edge clearance re-checked: 792 + 210 +
+result panels moved `left: 777 → 792`, and the Final Results button followed to
+792 to keep the alignment. Right-edge clearance re-checked: 792 + 210 +
 29px of measured bezel bleed = 1031 of 1050. And a new rule drops their
 pushpins: `makeDraggable` gives every results panel a red sticky-note pin
 (`'<id>-pin'`, appended to `#main_content_area`), the `.acop-final-tv` block
@@ -1322,11 +1321,37 @@ already hid its two, and the nuke screen was the one results screen still
 showing them — through a CRT bezel. Verified: nuke_check 82/82 (+1 pins, the
 777 panel assertions retuned to 792), suite green.
 
+**67. Nuke performance: two concurrency budgets (Aug 2026)** — Code 1. Profiled
+rather than guessed (a Node/Playwright harness firing a full 51-state night plus
+barrage, then a 90-burst damage map, sampling live nodes + `getAnimations()`).
+Findings: the Election Night strike layer does NOT leak — it drains to 0 nodes —
+so the late slowdown is peak CONCURRENCY (the gratuitous barrage lands on top of
+the main salvo's tail), and the damage map was running **180 infinite WAAPI
+animations**, one per plume band, each re-rasterising a big blurred
+semi-transparent path every frame. Two caps, both capping concurrent work only —
+nothing is dropped from the picture: `_NUKE_MAX_CLOUDS` (14) limits mushroom
+clouds animating at once on Election Night (over budget an impact keeps its
+flash + ring and is still RECORDED for the damage map, so the aftermath is
+unchanged), and `_NUKE_FALLOUT_BILLOW_MAX` (45) limits billowing plumes on the
+damage map — every plume is still DRAWN, a STRIDED sample animates (stride, not
+"the first N", so motion stays spread over the map instead of clustering in the
+states called first). Measured: damage-map animations 180 → 90 and its build
+23.7ms → 5.0ms; Election Night peak 212 → 158 nodes and 136 → 115 animations.
+0 disables either cap. STILL SUSPECTED, not yet changed (it is a look change, so
+it needs a decision): `#game_window.acop-nuke-tv #map_container svg` carries
+`filter: sepia(.3) saturate(1.4) brightness(.85)`, and the aftermath layer lives
+INSIDE that filtered svg — so every billow frame re-runs the filter over the
+whole 721x400 map. Dropping the filter on `.acop-nuke-final` only (the fallout
+map already drops the noise gif) would remove that entirely. Verified:
+nuke_check 89/89 (+7: plumes still all drawn, capped subset animates,
+cap 0 restores all, deterministic across rebuilds, cloud cap holds, over-budget
+impacts keep flash/ring, and are still recorded).
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 200
+session went with it (they were never committed). Rebuilt and COMMITTED, 207
 assertions over the areas that carry the most machinery:
-`nuke_check` (82), `midterm_check` (32), `enightsets_check` (23),
+`nuke_check` (89), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +

@@ -2427,6 +2427,10 @@ function __nukeAftermath(finalOn, svg) {
     const billow = _NUKE_FALLOUT_BILLOW
         && !document.body.classList.contains('low-fx-on')
         && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    // How many plumes actually animate — see the billow block below.
+    let _billowN = 0;
+    const _billowStride = (_NUKE_FALLOUT_BILLOW_MAX > 0 && scorches.length > _NUKE_FALLOUT_BILLOW_MAX)
+        ? Math.ceil(scorches.length / _NUKE_FALLOUT_BILLOW_MAX) : 1;
     // Grey wash FIRST (under the plumes): a grey copy of each census-coloured
     // state path mutes only the states; the plumes drawn after stay vivid.
     if (_NUKE_STATE_WASH_ON) {
@@ -2474,7 +2478,15 @@ function __nukeAftermath(finalOn, svg) {
             // plume rolls out downwind rather than pulsing in place. Per-plume
             // duration + phase (second coordinate hash) so they never move in
             // unison. halo + core share the params to stay coherent.
-            if (billow && halo.animate) {
+            // …but only for a SUBSET when there are a lot of bursts. 90 ground
+            // bursts meant 180 infinite animations, each re-rasterising a big
+            // blurred semi-transparent path every frame — the single biggest
+            // cost on this screen. Every plume is still DRAWN, so the picture
+            // is unchanged; a strided sample of them moves, and because the
+            // plumes overlap heavily the whole field still reads as alive.
+            // Stride (not "the first N") so the motion stays spread over the
+            // map instead of clustering in the states that were called first.
+            if (billow && halo.animate && (_billowStride < 2 || (_billowN % _billowStride) === 0)) {
                 const s2 = Math.sin(s.x * 39.3468 + s.y * 11.135) * 24634.6345;
                 const r2 = s2 - Math.floor(s2);
                 const dur = 4200 + r2 * 2800;   // 4.2–7.0s
@@ -2490,6 +2502,7 @@ function __nukeAftermath(finalOn, svg) {
                     el.animate(kf, { duration: dur, iterations: Infinity, easing: 'ease-in-out', delay: -r2 * dur });
                 });
             }
+            _billowN++;
         }
         const smoke = document.createElementNS(NS, 'circle');
         smoke.setAttribute('cx', s.x); smoke.setAttribute('cy', s.y);
@@ -2570,6 +2583,11 @@ var _NUKE_SPREAD_MIRV    = 0.25;  // the 2nd/3rd warheads of a big state's salvo
 var _NUKE_SPREAD_BARRAGE = 0.35;  // the gratuitous re-strikes through the night
 var _NUKE_SPREAD_ONLAND  = true;
 var _NUKE_SPREAD_TRIES   = 12;    // resamples before falling back to the aim point
+// Performance budgets. Both cap CONCURRENT work, not the number of warheads or
+// plumes — nothing is dropped from the picture, only from the per-frame cost.
+// 0 disables a cap. (Low demand mode already skips this whole layer.)
+var _NUKE_MAX_CLOUDS = 14;   // mushroom clouds animating at once on Election Night
+var _NUKE_FALLOUT_BILLOW_MAX = 45;   // plumes that billow on the damage map; the rest are drawn static
 var _NUKE_EBS_TONE_URL = 'https://file.garden/aXPgNT-ZRCxxpy0g/Emergency_broadcast_system.ogg';  // EBS two-tone attention signal; plays once as the warning popup appears ('' = silent)
 var _NUKE_RUMBLE_URL   = '';  // FILL ME IN — distant impact rumble; throttled to one per 2.5s ('' = silent)
 var _NUKE_CHYRON_TEXT  = 'THIS IS NOT A TEST · AN ATTACK WARNING IS IN EFFECT · TAKE SHELTER IMMEDIATELY · DO NOT USE THE TELEPHONE · STAY TUNED TO THIS STATION';
@@ -2986,6 +3004,16 @@ function __nukeOneMissile(svg, g, tx, ty, bb, ground, onImpact) {
             setTimeout(() => { flash.remove(); ring.remove(); tracer.remove(); }, 1200);
             return;
         }
+        // Cloud budget. Late in the night the gratuitous barrage lands on top of
+        // the tail of the main salvo, and each mushroom is a 6-node group under
+        // a 3.6s animation — enough of them at once and the frame rate goes.
+        // Over budget, the impact keeps its flash and ring (and is still
+        // RECORDED for the damage map) but skips the cloud; the eye reads the
+        // flash as the hit anyway when several land together.
+        if (_NUKE_MAX_CLOUDS > 0 && g.querySelectorAll('.nuke-cloud').length >= _NUKE_MAX_CLOUDS) {
+            setTimeout(() => { flash.remove(); ring.remove(); tracer.remove(); }, 1200);
+            return;
+        }
         let cloud;
         if (_NUKE_IMPACT_IMG) {
             cloud = mk('image', { x: tx - 18, y: ty - 34, width: 36, height: 36 });
@@ -2998,6 +3026,7 @@ function __nukeOneMissile(svg, g, tx, ty, bb, ground, onImpact) {
             cloud.appendChild(mk('ellipse', { cx: tx, cy: ty - 13.5, rx: 4.8, ry: 3,   fill: '#96703f' }));
             cloud.appendChild(mk('ellipse', { cx: tx, cy: ty - 14.5, rx: 2.6, ry: 1.7, fill: '#c49a55' }));
         }
+        cloud.setAttribute('class', 'nuke-cloud');   // the budget above counts these
         cloud.style.transformBox = 'fill-box';
         cloud.style.transformOrigin = '50% 100%';   // grows up from the impact point
         cloud.style.opacity = '0';
@@ -5709,7 +5738,7 @@ body.low-fx-on #game_window.acop-nuke-tv #map_container svg {
     opacity: 0 !important;
 }
 /* "Final Results" button (nuke Election Night) left-aligned with the state
-   results panel (both at left:777). The footer shrink-wraps the single button,
+   results panel (both at left:792). The footer shrink-wraps the single button,
    so its left edge lands on 777. Dropped from the stock top:580 to 600 so it
    clears the DAMAGE ASSESSMENT panel's shadow (see the panel spacing below) —
    the button sits UNDER both panels rather than behind the lower one. The
@@ -5718,7 +5747,7 @@ body.low-fx-on #game_window.acop-nuke-tv #map_container svg {
    bottom-anchored '#game_window.acop-nuke-final #map_footer:has(...)' rule in
    the main stylesheet, whose (2,2,0) specificity out-ranks this. */
 #game_window.acop-nuke-tv #map_footer {
-    left: 777px !important; top: 600px !important; z-index: 8997 !important;
+    left: 792px !important; top: 600px !important; z-index: 8997 !important;
 }
 /* Host site banner OUTSIDE #game_window (#header) — hidden entirely on the nuke
    terminal screen (body.acop-nuke-screen, stamped by __nukeTvTick), so its
@@ -5729,7 +5758,7 @@ body.acop-nuke-screen #header {
 #game_window.acop-nuke-tv #menu_container { position: static !important; }
 /* Results panels (nuke only — the normal .acop-final-tv screen keeps its
    tilted sticky-notes): flat (no rotate tilt). At left:777 (was 817 — nudged
-   40px left with the Final Results button).
+   40px left with the Final Results button, then 15px back right).
    VERTICAL SPACING — these tops are measured, not guessed. Both are relative to
    #main_content_area (which this block makes position:relative as the wire
    feed's anchor), so add 90px — the 85px .game_header plus its 5px padding —
@@ -5771,8 +5800,9 @@ body.acop-nuke-screen #header {
        the edge slices fall in the transparent zone, and 'fill' paints the disc's
        dark centre across the screen as the tube wash. border-image-width does NOT
        affect layout, so the panel's contents never move — the bezel paints
-       entirely outside the 210px box. 42px is the largest that still clears the
-       game window at the panels' left:777 (right edge 1045 of 1050). */
+       entirely outside the 210px box. At the panels' left:792 the nominal 42px
+       reaches 1044 of 1050; the MEASURED painted extent is 29px sideways, so
+       the visible moulding stops at 1031. */
     border: 1px solid transparent;
     border-image: radial-gradient(#333, #000 10%, #666 10.5% 12%, #0000 12.5%)
         45.5% fill / 42px / 42px;

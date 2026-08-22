@@ -111,7 +111,7 @@ ck('hit points are authored: a well-formed table of real nudges, not an empty st
 })());
 ck('hit-point editor is on the ACOPNuke console object', /moveHits: function \(\) \{[\s\S]{0,200}window\.ACOPNukeHits\.toggle\(\)/.test(c2)
    && /window\.ACOPNukeHits = \{/.test(c1));
-ck('panels at left:792, Final Results button at left:777', /#game_window\.acop-nuke-tv #map_footer \{[\s\S]{0,120}left: 777px !important/.test(noiseCss)
+ck('panels and the Final Results button all at left:792', /#game_window\.acop-nuke-tv #map_footer \{[\s\S]{0,120}left: 792px !important/.test(noiseCss)
    && /#game_window\.acop-nuke-tv #overall_result_container \{[\s\S]{0,90}left: 792px/.test(noiseCss)
    && /#game_window\.acop-nuke-tv #state_result_container \{[\s\S]{0,90}left: 792px/.test(noiseCss));
 ck('no sticky-note pushpins on either war-room terminal',
@@ -381,6 +381,62 @@ console.log('\nCENSUS MATHS:');
   ck('state-only wash: grey copies of the 3 census states, ocean untouched, no full rect',
      st.wash === 3 && st.noRect && st.washFirst);
   ck('plumes billow; the wash stays static', st.animated && st.washStatic);
+
+  // ── Performance budgets. Both cap CONCURRENT work; neither may drop anything
+  // from the picture, which is what these assert.
+  console.log('\nPERFORMANCE BUDGETS:');
+  let pf = await p.evaluate(() => {
+    const svg = document.querySelector('#map_container svg');
+    const scorches = [];
+    for (let i = 0; i < 90; i++) scorches.push({ x: 20 + (i % 30) * 5, y: 20 + Math.floor(i / 30) * 7, r: 6 });
+    window.__nukeScorches = scorches;
+    const build = () => {
+      svg.querySelector('#nuke-aftermath-layer')?.remove();
+      __nukeAftermath(true, svg);
+      const g = svg.querySelector('#nuke-aftermath-layer');
+      const paths = [...g.children].filter(e => e.tagName.toLowerCase() === 'path');
+      const wash = paths.filter(e => /1[23][0-9], 1[23][0-9], 1[23][0-9]/.test(e.getAttribute('fill') || ''));
+      const plumes = paths.filter(e => !wash.includes(e));
+      return { plumes: plumes.length, animated: plumes.filter(e => e.getAnimations().length > 0).length };
+    };
+    const capped = build();
+    const was = _NUKE_FALLOUT_BILLOW_MAX; _NUKE_FALLOUT_BILLOW_MAX = 0;
+    const uncapped = build();
+    _NUKE_FALLOUT_BILLOW_MAX = was;
+    const back = build();
+    window.__nukeScorches = [];
+    svg.querySelector('#nuke-aftermath-layer')?.remove();
+    return { capped: capped, uncapped: uncapped, back: back };
+  });
+  ck('90 bursts: every plume is still DRAWN under the billow cap',
+     pf.capped.plumes === 180 && pf.uncapped.plumes === 180);
+  ck('…but only a capped subset animates (was 180 infinite animations)',
+     pf.capped.animated === 90 && pf.capped.animated < pf.uncapped.animated);
+  ck('cap 0 disables it — everything billows again', pf.uncapped.animated === 180);
+  ck('the cap is deterministic across rebuilds', pf.back.animated === pf.capped.animated);
+
+  pf = await p.evaluate(async () => {
+    // Election night: rain impacts on one state and watch the live cloud count.
+    const svg = document.querySelector('#map_container svg');
+    document.getElementById('final_election_map_button')?.remove();
+    const fb = document.createElement('button'); fb.id = 'final_result_button';
+    document.getElementById('game_window').appendChild(fb);
+    svg.querySelector('#nuke-strike-layer')?.remove();
+    const g = __nukeStrikeLayer(svg);
+    const bb = { x: 0, y: 0, width: 40, height: 40 };
+    const was = _NUKE_MAX_CLOUDS, wasF = _NUKE_FLIGHT_MS; _NUKE_MAX_CLOUDS = 4; _NUKE_FLIGHT_MS = 10;
+    window.__nukeScorches = [];
+    for (let i = 0; i < 30; i++) __nukeOneMissile(svg, g, 10 + i, 10, bb, true, null);
+    await new Promise(r => setTimeout(r, 120));
+    const clouds = g.querySelectorAll('.nuke-cloud').length;
+    const flashes = g.querySelectorAll('circle').length;
+    const recorded = window.__nukeScorches.length;
+    _NUKE_MAX_CLOUDS = was; _NUKE_FLIGHT_MS = wasF;
+    return { clouds: clouds, flashes: flashes, recorded: recorded };
+  });
+  ck('election night: simultaneous mushroom clouds are capped', pf.clouds > 0 && pf.clouds <= 4);
+  ck('…while over-budget impacts keep their flash + ring', pf.flashes >= 30);
+  ck('…and are still RECORDED for the damage map', pf.recorded === 30);
 
   // ── Follow-up scatter. The point of the containment test is the shape a
   // bounding box cannot describe, so the fixture is a RING: the bbox centre —
