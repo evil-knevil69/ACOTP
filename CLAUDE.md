@@ -1337,21 +1337,25 @@ damage map — every plume is still DRAWN, a STRIDED sample animates (stride, no
 "the first N", so motion stays spread over the map instead of clustering in the
 states called first). Measured: damage-map animations 180 → 90 and its build
 23.7ms → 5.0ms; Election Night peak 212 → 158 nodes and 136 → 115 animations.
-0 disables either cap. STILL SUSPECTED, not yet changed (it is a look change, so
-it needs a decision): `#game_window.acop-nuke-tv #map_container svg` carries
+0 disables either cap. AND THE FILTER, now dropped on the fallout map (Aug 2026,
+on request): `#game_window.acop-nuke-tv #map_container svg` carries
 `filter: sepia(.3) saturate(1.4) brightness(.85)`, and the aftermath layer lives
-INSIDE that filtered svg — so every billow frame re-runs the filter over the
-whole 721x400 map. Dropping the filter on `.acop-nuke-final` only (the fallout
-map already drops the noise gif) would remove that entirely. Verified:
-nuke_check 89/89 (+7: plumes still all drawn, capped subset animates,
+INSIDE that filtered svg — so every billow frame re-ran the filter over the whole
+721x400 map, the dominant per-frame cost there. `#game_window.acop-nuke-final
+#map_container svg { filter: none }` ends it. Election Night KEEPS the tint
+(nothing billows there, so there is no repeated cost). Look consequence to watch:
+the plumes and census colours were tuned THROUGH that sepia+saturate, so on the
+fallout map they now read cooler and less warm — retune `_NUKE_FALLOUT_CORE` /
+`_NUKE_STATE_WASH` if they sit wrong. Verified:
+nuke_check 90/90 (+8: plumes still all drawn, capped subset animates,
 cap 0 restores all, deterministic across rebuilds, cloud cap holds, over-budget
 impacts keep flash/ring, and are still recorded).
 
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 207
+session went with it (they were never committed). Rebuilt and COMMITTED, 208
 assertions over the areas that carry the most machinery:
-`nuke_check` (89), `midterm_check` (32), `enightsets_check` (23),
+`nuke_check` (90), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +

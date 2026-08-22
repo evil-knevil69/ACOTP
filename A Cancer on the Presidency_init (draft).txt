@@ -5699,6 +5699,16 @@ body.low-fx-on #game_window.acop-nuke-tv #map_container {
 #game_window.acop-nuke-tv #map_container svg {
     filter: sepia(0.3) saturate(1.4) brightness(0.85);
 }
+/* …but NOT on the fallout (final damage) map. The aftermath layer — up to 180
+   plume paths, a strided sample of them billowing — lives INSIDE this svg, so
+   with a filter on it every animation frame re-runs sepia+saturate+brightness
+   over the whole 721x400 map. That was the dominant per-frame cost on that
+   screen. The fallout map is a dose chart rather than a live broadcast (it has
+   already dropped the noise gif), so it loses the tube tint; Election Night,
+   where nothing billows, keeps it. */
+#game_window.acop-nuke-final #map_container svg {
+    filter: none;
+}
 /* LOW DEMAND MODE: the full-map filter is the expensive half (the same reason
    SIGINT is locked off on the world map) — the static gradient overlays stay. */
 body.low-fx-on #game_window.acop-nuke-tv #map_container svg {

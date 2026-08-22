@@ -223,8 +223,8 @@ console.log('\nCENSUS MATHS:');
   ck('the guarded detector stands down under nuke, the raw one still fires', n.guarded === false && n.raw === true);
   ck('EV panel retitled CASUALTY CENSUS', n.h3 === 'CASUALTY CENSUS');
   ck('CRT scanlines + tube vignette live on the map', /repeating-linear-gradient/.test(n.scan) && /radial-gradient/.test(n.vig));
-  ck('SIGINT wash minus the green on the map svg',
-     /sepia\(0\.3\)/.test(n.filt) && /saturate\(1\.4\)/.test(n.filt) && !/hue-rotate/.test(n.filt));
+  ck('the FALLOUT map drops the tube filter (the billowing plumes live inside the svg)',
+     n.filt === 'none' && /#game_window\.acop-nuke-final #map_container svg \{\s*filter: none;/.test(noiseCss));
   ck('the fallout map drops the noise gif', !/tvnoise/.test(n.bg));
   n = await p.evaluate(() => { document.body.classList.remove('acop-nuke'); window.__T.tick();
     const gw = document.getElementById('game_window');
@@ -255,6 +255,11 @@ console.log('\nCENSUS MATHS:');
              scorch: !!layer.querySelector('circle') };
   });
   ck('a call launches a strike: tracer + missile + scorch', st.tracer && st.missile && st.scorch);
+  ck('…and Election Night KEEPS the SIGINT wash minus the green (nothing billows there)',
+     await p.evaluate(() => {
+       const f = getComputedStyle(document.getElementById('usmap')).filter;
+       return /sepia\(0\.3\)/.test(f) && /saturate\(1\.4\)/.test(f) && !/hue-rotate/.test(f);
+     }));
   st = await p.evaluate(async () => {
     const svg = document.querySelector('#map_container svg');
     const dd = document.createElementNS('http://www.w3.org/2000/svg','path');
