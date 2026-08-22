@@ -2234,9 +2234,13 @@ function __nukeEbsTick(nightOn) {
     if (win.dataset.nukeEbs) return;
     win.dataset.nukeEbs = '1';
     win.classList.add('nuke-ebs');
-    // Cover #map_container exactly (same size + position), sitting above the
-    // result panels (z-index in the .nuke-ebs CSS). Measured off the live
-    // boxes so it tracks whatever the map screen laid out.
+    // Sit over #map_container — same left, top and width — but only as TALL as
+    // its own content, so the card ends just below the OK button instead of
+    // covering the whole map. height:auto plus the padding-bottom in the
+    // .nuke-ebs CSS is what makes that bottom margin; max-height keeps it inside
+    // the map if the warning text ever runs long. Measured off the live boxes so
+    // it tracks whatever the map screen laid out. Sits above the result panels
+    // (z-index in the .nuke-ebs CSS).
     const gw = document.getElementById('game_window');
     const mc = document.getElementById('map_container');
     if (gw && mc) {
@@ -2248,13 +2252,13 @@ function __nukeEbsTick(nightOn) {
         set('margin', '0');
         set('transform', 'none');
         set('max-width', 'none');
-        set('max-height', 'none');
         set('box-sizing', 'border-box');
         set('overflow', 'hidden');
         set('left', (mr.left - gr.left) + 'px');
         set('top', (mr.top - gr.top) + 'px');
         set('width', mr.width + 'px');
-        set('height', mr.height + 'px');
+        set('height', 'auto');
+        set('max-height', mr.height + 'px');
     }
     const h3 = win.querySelector('h3');
     if (h3) h3.textContent = 'EMERGENCY BROADCAST SYSTEM';
@@ -5983,6 +5987,9 @@ body.low-fx-on #game_window.acop-nuke-tv #nuke-ebs-intro { filter: none; }
 @media (prefers-reduced-motion: reduce) { .nuke-blip { animation: none; opacity: 0.7; } }
 #election_night_window.nuke-ebs {
     background: #101010 !important; border: 4px solid #7a2016 !important;
+    /* The card is height:auto (see __nukeEbsTick), so this is the margin below
+       the OK button — the bottom bound of the whole popup. */
+    padding-bottom: 20px !important;
 }
 #election_night_window.nuke-ebs h3, #election_night_window.nuke-ebs p {
     color: #f0e6c8 !important; font-family: 'Courier New', monospace;

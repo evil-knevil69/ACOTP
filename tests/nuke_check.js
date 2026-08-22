@@ -325,6 +325,32 @@ console.log('\nCENSUS MATHS:');
      st.h3 === 'EMERGENCY BROADCAST SYSTEM' && st.bars === 1 && !st.img);
   ck('civil-defense chyron mounted in the header strip with its crawl text',
      st.chyron && st.chyronInHeader && /THIS IS NOT A TEST/.test(st.chyText));
+  // The card is over the map but only as tall as its own content: it must end
+  // just below the OK button, NOT cover the map the way it used to. The popup
+  // lives inside #game_window in the real engine, so re-parent it here — the
+  // placement is measured against the game window's box.
+  let eb = await p.evaluate(() => {
+    const win = document.getElementById('election_night_window');
+    document.getElementById('game_window').appendChild(win);
+    if (!win.querySelector('button')) {
+      const okb = document.createElement('button'); okb.id = '__ok'; okb.textContent = 'OK';
+      win.appendChild(okb);
+    }
+    delete win.dataset.nukeEbs;
+    __nukeEbsTick(true);
+    const mc = document.getElementById('map_container').getBoundingClientRect();
+    const w = win.getBoundingClientRect();
+    const ok = win.querySelector('button').getBoundingClientRect();
+    return { belowOk: Math.round(w.bottom - ok.bottom), shorter: w.height < mc.height,
+             sameLeft: Math.round(w.left) === Math.round(mc.left),
+             sameWidth: Math.round(w.width) === Math.round(mc.width),
+             insideMap: w.bottom <= mc.bottom + 1,
+             h: win.style.height, maxH: win.style.maxHeight };
+  });
+  ck('EBS card is bounded by the OK button plus a margin, not by the map',
+     eb.h === 'auto' && eb.belowOk > 8 && eb.belowOk < 60 && eb.shorter);
+  ck('…while keeping the map\'s left edge and width, and staying inside it',
+     eb.sameLeft && eb.sameWidth && eb.insideMap && /px$/.test(eb.maxH));
   st = await p.evaluate(() => {
     __nukeEbsIntroPlayed = false; __nukeEbsIntroArmed = false;
     document.getElementById('nuke-ebs-intro')?.remove();
@@ -339,6 +365,13 @@ console.log('\nCENSUS MATHS:');
   });
   ck('EBS intro still: armed while the popup is up, no image yet', st.armed && !st.early);
   ck('EBS intro still: OK fires it into #map_container, once per night', st.inMap && st.count === 1);
+  ck('EBS intro still fills the map container exactly (unlike the card above it)',
+     await p.evaluate(() => {
+       const img = document.getElementById('nuke-ebs-intro');
+       const cs = getComputedStyle(img);
+       return img.parentElement.id === 'map_container' && cs.position === 'absolute'
+         && cs.objectFit === 'cover' && cs.inset === '0px';
+     }));
   st = await p.evaluate(() => {
     window.__nukeSchedule = [{ abbr: 'ND', t: 30 }, { abbr: 'CA', t: 120 }];
     let q = document.querySelector('#overall_result > p');

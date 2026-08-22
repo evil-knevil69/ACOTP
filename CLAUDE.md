@@ -1351,11 +1351,24 @@ nuke_check 90/90 (+8: plumes still all drawn, capped subset animates,
 cap 0 restores all, deterministic across rebuilds, cloud cap holds, over-budget
 impacts keep flash/ring, and are still recorded).
 
+**68. Nuke EBS card sized to its content (Aug 2026)** — Code 1. The EBS opener
+popup was pinned to `#map_container`'s exact box (change 36), so a short warning
+sat in a card covering the whole map. `__nukeEbsTick` now sets `height: auto`
+with `max-height` = the map's height, keeping the map's `left` and `width`; the
+bottom bound is the `padding-bottom: 20px` on `#election_night_window.nuke-ebs`,
+so the card ends ~24px below the OK button (20px padding + the 4px border).
+Measured on a realistic popup: height 316 vs the map's 570, left/width still
+matched, bottom inside the map. The EBS intro STILL is deliberately unchanged —
+it is `inset: 0` inside `#map_container` (which is `position: relative`), so it
+fills the map exactly, which is what the beat wants. Verified: nuke_check 93/93
+(+3: card ends below the OK button and is shorter than the map, keeps the map's
+left/width and stays inside it, intro still fills the container exactly).
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 208
+session went with it (they were never committed). Rebuilt and COMMITTED, 211
 assertions over the areas that carry the most machinery:
-`nuke_check` (90), `midterm_check` (32), `enightsets_check` (23),
+`nuke_check` (93), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
