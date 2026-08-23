@@ -2244,6 +2244,7 @@ function __nukeTvTick() {
     if (!nuke && window.__nukeScorches && window.__nukeScorches.length) {
         // New Game (or console reset): the war is over-over — drop the debris
         window.__nukeScorches = [];
+        __nukeScorchesFilled = false;
         __nukeHits = 0; __nukeSlates = 0; __nukeEbsDone = false;
     }
     // LAST: keep the hit-point editor's crosshairs on top. The strike and
@@ -2449,8 +2450,52 @@ function __nukePlumePath(x, y, len, halfW, drift) {
         ', ' + x + ' ' + (y + halfW) +
         ' A ' + halfW + ' ' + halfW + ' 0 0 0 ' + x + ' ' + (y - halfW) + ' Z';
 }
+// How many ground bursts a state SHOULD show on the damage map, whether or not
+// the player stayed on Election Night to watch them land. Expectation values for
+// the two coin flips in the strike code: MIRVs burst on the ground ~55% of the
+// time, barrage re-strikes ~50%. The LEAD warhead is always a ground burst,
+// which is what makes this reliable: a state with no record at all is exactly a
+// state whose warhead never landed.
+function __nukeExpectedBursts(abbr) {
+    const n = __nukeSalvoSize(abbr);
+    const q = __nukeRestrikeQuota(abbr);
+    return 1 + Math.round((n - 1) * 0.55) + Math.round(q * 0.5);
+}
+// Complete the record. Clicking "Go to Final Results" early — or just reaching
+// the end while the gratuitous barrage is still raining — leaves those warheads
+// unfired, so their states had no scorches and the damage map drew no plumes for
+// them. Synthesize what is missing, ONCE: the result is pushed into
+// window.__nukeScorches, so every later rebuild of the aftermath layer reuses
+// the same points and the map doesn't reshuffle between viewings.
+var __nukeScorchesFilled = false;
+function __nukeFillScorches(svg) {
+    if (__nukeScorchesFilled || !svg) return;
+    const maps = __nukeMaps(svg);
+    if (!maps.byAbbr.size) return;   // no abbrs resolved yet — try again next tick
+    __nukeScorchesFilled = true;
+    const list = window.__nukeScorches = window.__nukeScorches || [];
+    const have = {};
+    list.forEach(x => { if (x.abbr) have[x.abbr] = (have[x.abbr] || 0) + 1; });
+    maps.byAbbr.forEach((path, abbr) => {
+        let bb;
+        try { bb = path.getBBox(); } catch (e) { return; }
+        if (!bb || (!bb.width && !bb.height)) return;
+        const want = __nukeExpectedBursts(abbr);
+        const off = _NUKE_HIT_OFFSET[abbr] || { x: 0, y: 0 };
+        const aimX = bb.x + bb.width / 2 + off.x, aimY = bb.y + bb.height / 2 + off.y;
+        const r = Math.max(4, Math.min(bb.width, bb.height) * 0.14);
+        for (let i = (have[abbr] || 0); i < want; i++) {
+            // i === 0 means nothing landed here at all: put the lead burst on the
+            // authored aim point, exactly where the real one would have gone.
+            const pt = i === 0 ? { x: aimX, y: aimY }
+                               : __nukeScatter(path, bb, aimX, aimY, _NUKE_SPREAD_BARRAGE);
+            list.push({ x: pt.x, y: pt.y, r: r, abbr: abbr });
+        }
+    });
+}
 function __nukeAftermath(finalOn, svg) {
     if (!finalOn || !svg) return;
+    __nukeFillScorches(svg);
     const scorches = window.__nukeScorches || [];
     if (!scorches.length) return;
     const per = _NUKE_FALLOUT_ON ? 4 : 2;   // children drawn per burst
@@ -2946,7 +2991,7 @@ function __nukeStrikeAt(svg, path, censusColor) {
         const ground = i === 0 || Math.random() > 0.45;
         const delay = i === 0 ? 0 : 200 + Math.random() * 500;
         const onImpact = (i === 0 && !reduce) ? onLeadImpact : null;
-        setTimeout(() => { try { __nukeOneMissile(svg, g, tx, ty, bb, ground, onImpact); } catch (e) {} }, delay);
+        setTimeout(() => { try { __nukeOneMissile(svg, g, tx, ty, bb, ground, onImpact, abbr); } catch (e) {} }, delay);
     }
     // Washington DC — the decapitation strike: a BIG jolt + heavy static flare
     // when its lead warhead lands (re-rolls the ordinary judder schedule so a
@@ -2973,13 +3018,13 @@ function __nukeStrikeAt(svg, path, censusColor) {
             const r2 = __nukeScatter(path, bb2,
                 bb2.x + bb2.width / 2 + off2.x, bb2.y + bb2.height / 2 + off2.y,
                 _NUKE_SPREAD_BARRAGE);
-            try { __nukeOneMissile(svg, __nukeStrikeLayer(svg), r2.x, r2.y, bb2, Math.random() > 0.5); } catch (e) {}
+            try { __nukeOneMissile(svg, __nukeStrikeLayer(svg), r2.x, r2.y, bb2, Math.random() > 0.5, null, abbr); } catch (e) {}
             __nukeDegrade();
             if (Math.random() < 0.3) __nukeWireLine(abbr, _NUKE_RESTRIKE_LINES);
         }, rDelay);
     }
 }
-function __nukeOneMissile(svg, g, tx, ty, bb, ground, onImpact) {
+function __nukeOneMissile(svg, g, tx, ty, bb, ground, onImpact, abbr) {
     const NS = 'http://www.w3.org/2000/svg';
     const mk = (tag, attrs) => {
         const el = document.createElementNS(NS, tag);
@@ -2995,7 +3040,9 @@ function __nukeOneMissile(svg, g, tx, ty, bb, ground, onImpact) {
     let scorch = null;
     if (ground) {
         window.__nukeScorches = window.__nukeScorches || [];
-        if (window.__nukeScorches.length < 400) window.__nukeScorches.push({ x: tx, y: ty, r: scorchR });
+        // Tagged with the state, so the damage map can tell which states it has
+        // a record for and top up the ones the player didn't stay to watch.
+        if (window.__nukeScorches.length < 400) window.__nukeScorches.push({ x: tx, y: ty, r: scorchR, abbr: abbr || null });
         if (_NUKE_SCORCH) {
             scorch = mk('circle', { cx: tx, cy: ty, r: scorchR, fill: '#140d08', opacity: '0' });
             g.appendChild(scorch);

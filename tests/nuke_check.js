@@ -420,6 +420,80 @@ console.log('\nCENSUS MATHS:');
      st.wash === 3 && st.noRect && st.washFirst);
   ck('plumes billow; the wash stays static', st.animated && st.washStatic);
 
+  // ── Skipping out early. The bug: "Go to Final Results" while warheads are
+  // still in flight (or the barrage is still raining) left those states with no
+  // recorded burst, so the damage map drew no plumes for them at all.
+  console.log('\nSKIPPING OUT EARLY:');
+  let sk = await p.evaluate(() => {
+    const svg = document.querySelector('#map_container svg');
+    [...svg.querySelectorAll('path')].forEach(x => x.remove());
+    svg.querySelector('#nuke-aftermath-layer')?.remove();
+    const NS = 'http://www.w3.org/2000/svg';
+    ['AA', 'BB', 'CC', 'DD', 'EE'].forEach((ab, i) => {
+      const q = document.createElementNS(NS, 'path');
+      q.setAttribute('d', 'M' + (10 + i * 60) + ' 10h50v50z');
+      q.setAttribute('data-abbr', ab); q.setAttribute('fill', '#8a2f1e');
+      svg.appendChild(q);
+    });
+    delete svg.__nukeMaps;
+    // only TWO states got as far as landing a warhead before the player skipped
+    window.__nukeScorches = [{ x: 30, y: 30, r: 6, abbr: 'AA' }, { x: 90, y: 30, r: 6, abbr: 'BB' }];
+    __nukeScorchesFilled = false;
+    __nukeAftermath(true, svg);
+    const g = svg.querySelector('#nuke-aftermath-layer');
+    const byState = {};
+    (window.__nukeScorches || []).forEach(x => { byState[x.abbr] = (byState[x.abbr] || 0) + 1; });
+    return { states: Object.keys(byState).sort().join(','), total: window.__nukeScorches.length,
+             layerKids: g ? g.childElementCount : 0 };
+  });
+  ck('states the count never reached still get bursts on the damage map',
+     sk.states === 'AA,BB,CC,DD,EE' && sk.total >= 5);
+  ck('…and they are drawn (plume + smoke + char per burst, plus the wash)',
+     sk.layerKids >= sk.total * 4);
+
+  sk = await p.evaluate(() => {
+    const svg = document.querySelector('#map_container svg');
+    const before = window.__nukeScorches.length;
+    svg.querySelector('#nuke-aftermath-layer')?.remove();
+    __nukeAftermath(true, svg);            // revisiting the map must not add more
+    const mid = window.__nukeScorches.map(x => Math.round(x.x) + ',' + Math.round(x.y)).join('|');
+    svg.querySelector('#nuke-aftermath-layer')?.remove();
+    __nukeAftermath(true, svg);
+    const after = window.__nukeScorches.map(x => Math.round(x.x) + ',' + Math.round(x.y)).join('|');
+    return { grew: window.__nukeScorches.length !== before, stable: mid === after };
+  });
+  ck('the top-up happens once — revisiting does not pile on more craters',
+     !sk.grew && sk.stable);
+
+  sk = await p.evaluate(() => {
+    // a full night watched to the end: every state already has its bursts, so
+    // the top-up must add nothing
+    const svg = document.querySelector('#map_container svg');
+    window.__nukeScorches = [];
+    ['AA', 'BB', 'CC', 'DD', 'EE'].forEach(ab => {
+      for (let i = 0; i < __nukeExpectedBursts(ab); i++) window.__nukeScorches.push({ x: 20, y: 20, r: 5, abbr: ab });
+    });
+    const before = window.__nukeScorches.length;
+    __nukeScorchesFilled = false;
+    __nukeFillScorches(svg);
+    return { before: before, after: window.__nukeScorches.length };
+  });
+  ck('a night watched to the end gets no synthetic bursts at all',
+     sk.before === sk.after && sk.before > 0);
+
+  sk = await p.evaluate(() => {
+    const svg = document.querySelector('#map_container svg');
+    const g = __nukeStrikeLayer(svg);
+    window.__nukeScorches = [];
+    const wasF = _NUKE_FLIGHT_MS; _NUKE_FLIGHT_MS = 5;
+    __nukeOneMissile(svg, g, 30, 30, { x: 10, y: 10, width: 50, height: 50 }, true, null, 'ZZ');
+    return new Promise(r => setTimeout(() => {
+      _NUKE_FLIGHT_MS = wasF;
+      r({ tagged: (window.__nukeScorches[0] || {}).abbr });
+    }, 60));
+  });
+  ck('real impacts record which state they hit (what the top-up counts)', sk.tagged === 'ZZ');
+
   // ── Performance budgets. Both cap CONCURRENT work; neither may drop anything
   // from the picture, which is what these assert.
   console.log('\nPERFORMANCE BUDGETS:');

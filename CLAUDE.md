@@ -1402,11 +1402,34 @@ how-to). `_NUKE_THEME = ''` disables the whole behaviour. New harness
 Code 2 census/reset: swap, picker sync, event-swap recording, unwind, the
 manual-pick-survives case, and the disabled case.
 
+**70. Nuke bug: skipping out early lost most of the damage map (Aug 2026)** —
+Code 1. Clicking "Go to Final Results" while warheads were still in flight — or
+just reaching the end while the gratuitous barrage was still raining, which it
+does for up to 45s after each declaration — left those states with NO plumes on
+the fallout map. Cause: `window.__nukeScorches` is only written by
+`__nukeOneMissile` at the moment a ground burst actually LANDS, and the queued
+strikes bail out (`svg.isConnected`, the `body.acop-nuke` guard) once the screen
+is gone. So the damage map was a record of what the player happened to watch
+render, not of the war. Fix: bursts are now TAGGED with their state
+(`__nukeOneMissile` takes an `abbr`), and `__nukeFillScorches(svg)` — called at
+the top of `__nukeAftermath` — tops the record up to `__nukeExpectedBursts(abbr)`
+for every state on the map: `1 + round((salvo-1) * 0.55) + round(quota * 0.5)`,
+the expectation values of the two ground/air coin flips. The lead warhead is
+ALWAYS a ground burst, which is what makes the test reliable — a state with no
+record at all is exactly a state whose warhead never landed. Runs ONCE
+(`__nukeScorchesFilled`, cleared where the scorch list is), and the synthesized
+points are pushed into `__nukeScorches` so later rebuilds reuse them and the map
+doesn't reshuffle between viewings. A night watched to the end synthesizes
+nothing. Verified: nuke_check 98/98 (+5: never-reached states get bursts and are
+drawn, once-only + stable across revisits, full night adds nothing, impacts
+record their state) — and the first of those was checked to FAIL against the
+un-fixed code.
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 228
+session went with it (they were never committed). Rebuilt and COMMITTED, 233
 assertions over the areas that carry the most machinery:
-`nuke_check` (93), `midterm_check` (32), `enightsets_check` (23),
+`nuke_check` (98), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `nuketheme_check` (17),
 `census_split_check` (10), `execcheck_check` (6).
