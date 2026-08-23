@@ -361,7 +361,13 @@ var ACOP_THEMES = {
         const cont = document.getElementsByClassName('container')[0];
         if (cont) cont.style.backgroundColor = 'transparent';
         const hdr = document.getElementById('header');
-        if (hdr) hdr.src = 'https://file.garden/aXPgNT-ZRCxxpy0g/watergatebannerv4.png';
+        if (hdr) {
+            hdr.src = 'https://file.garden/aXPgNT-ZRCxxpy0g/watergatebannerv4.png';
+            // Hand the banner back to the shipped stylesheet rule (which
+            // stretches it to fill div.center); clear anything a fit-to-height
+            // theme set inline, or it follows us here.
+            ['height', 'width', 'max-width', 'object-fit', 'margin'].forEach(k => hdr.style.removeProperty(k));
+        }
         document.body.background = 'https://file.garden/aXPgNT-ZRCxxpy0g/backgroundv69.gif';
         document.body.style.backgroundSize = '100% auto';   // fit viewport width
         document.body.style.backgroundRepeat = '';          // tiles down the page (the default)
@@ -386,9 +392,28 @@ var ACOP_THEMES = {
         if (gw) gw.style.backgroundColor = '#0e1012';
         const cont = document.getElementsByClassName('container')[0];
         if (cont) cont.style.backgroundColor = 'transparent';
-        const BUNKER_BANNER = '';   // FILL ME IN — banner png; '' keeps the shipped Watergate banner
+        const BUNKER_BANNER = 'https://file.garden/aXPgNT-ZRCxxpy0g/nukelogo.jpg';
         const hdr = document.getElementById('header');
-        if (hdr) hdr.src = BUNKER_BANNER || 'https://file.garden/aXPgNT-ZRCxxpy0g/watergatebannerv4.png';
+        if (hdr) {
+            hdr.src = BUNKER_BANNER;
+            // Fit the logo to the banner division's height WITHOUT stretching:
+            // the shipped rule is `div.center img#header { width:100%;
+            // height:100% !important }`, which distorts anything that isn't the
+            // banner's aspect. Inline !important is what beats it (a stylesheet
+            // rule can't out-rank an inline one), height comes from the live
+            // division so it matches whatever the host laid out, and width:auto
+            // + margin:0 auto keeps the aspect and centres the result.
+            const centre = document.getElementsByClassName('center')[0];
+            const h = centre && centre.clientHeight;
+            hdr.style.setProperty('height', h ? h + 'px' : '100%', 'important');
+            hdr.style.setProperty('width', 'auto', 'important');
+            // Guard for a very wide logo: rather than letting it run out of the
+            // division, cap the width — object-fit then letterboxes inside the
+            // box instead of distorting.
+            hdr.style.setProperty('max-width', '100%', 'important');
+            hdr.style.setProperty('object-fit', 'contain', 'important');
+            hdr.style.setProperty('margin', '0 auto', 'important');
+        }
         // The hallway across the full width, ONCE — no tiling — with plain black
         // filling whatever it doesn't cover. Three separate mechanisms, because
         // each survives a different thing:

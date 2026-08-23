@@ -1237,8 +1237,14 @@ Processing Results beat), full suite ALL GREEN, both files EXECUTE CLEAN.
 `ACOP_THEMES` (grep `ADD THEMES BELOW`). The Emergency Operations Center look:
 near-black title/window/header; the page is the bunker hallway
 (`Bunker-hallway-1900x800.jpg`) across the top, `no-repeat` at `100% auto`, with
-`bgColor = '#000000'` filling everything it doesn't cover. One FILL ME IN slot
-(`BUNKER_BANNER`) upgrades the banner; '' keeps the shipped Watergate one.
+`bgColor = '#000000'` filling everything it doesn't cover. The banner is `nukelogo.jpg`,
+FITTED TO THE BANNER DIVISION'S HEIGHT rather than stretched: the shipped rule
+`div.center img#header { width:100%; height:100% !important }` distorts anything
+that isn't the banner's aspect, so the entry sets height (from the live
+`div.center` clientHeight) / `width:auto` / `max-width:100%` / `object-fit` /
+`margin:0 auto` as INLINE !important — the only thing that out-ranks a
+stylesheet !important — and the default entry removes those five properties so
+the stretch comes back with no leak. No FILL ME IN slots left in this theme.
 THREE mechanisms, because each survives something different: the image on the
 legacy `background` ATTRIBUTE; `no-repeat`/`backgroundSize` on inline style
 (which `_syncLowFxBg` leaves alone — it only clears backgroundImage and
@@ -1391,11 +1397,11 @@ manual-pick-survives case, and the disabled case.
 
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 222
+session went with it (they were never committed). Rebuilt and COMMITTED, 226
 assertions over the areas that carry the most machinery:
 `nuke_check` (93), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
-`nuketheme_check` (11),
+`nuketheme_check` (15),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.
