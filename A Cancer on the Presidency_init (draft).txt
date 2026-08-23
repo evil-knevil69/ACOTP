@@ -1567,6 +1567,13 @@ body.edu-tips-off .edu-tip > svg.edu-stroke { display: none; }
     font-size: 16px;
     cursor: default;
     pointer-events: auto !important;
+    /* Nudge the label 11px left of the progress bar's centre. A transform, not
+       a margin or a left offset: the h3 is absolutely positioned at its static
+       (flex-centred) spot, so this moves the paint without touching layout, and
+       both faces of the hover swap — "Question N" and the date — shift together
+       because they are the same element. The attribute is stamped on every
+       question, dated or not, so it never misses one. */
+    transform: translateX(-11px);
 }
   #results_container { color: #fcfcfc; }
   .inner_window_w_desc { background-color: transparent !important; }
