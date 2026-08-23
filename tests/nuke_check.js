@@ -100,6 +100,9 @@ ck('the offset moves the whole salvo, and follow-ups scatter around it on land',
    && /__nukeScatter\(path, bb, aimX, aimY, _NUKE_SPREAD_MIRV\)/.test(c1)
    && /__nukeScatter\(path, bb2,[\s\S]{0,140}_NUKE_SPREAD_BARRAGE\)/.test(c1)
    && /_NUKE_SPREAD_ONLAND  = true/.test(c1));
+ck('nuke post-election nav row sits 22px lower, via a taller window not a smaller gap',
+   /body\.acop-nuke #game_window:has\(#map_footer \.final_menu_button\) \{\s*min-height: 647px !important;/.test(noiseCss)
+   && !/body\.acop-nuke #game_window #map_footer:has\(\.final_menu_button\)/.test(noiseCss));
 ck('hit points are authored: a well-formed table of real nudges, not an empty stub', (() => {
   const m = c1.match(/var _NUKE_HIT_OFFSET = (\{[\s\S]*?\n\});/);
   if (!m) return false;

@@ -1425,11 +1425,26 @@ drawn, once-only + stable across revisits, full night adds nothing, impacts
 record their state) — and the first of those was checked to FAIL against the
 un-fixed code.
 
+**71. Nuke post-election nav row 22px lower (Aug 2026)** — Code 1, one rule:
+`body.acop-nuke #game_window:has(#map_footer .final_menu_button) { min-height:
+647px }` (the stock 625 + 22). Done by GROWING the window, not by cutting the
+row's `bottom` from 40 to 18 — the row is bottom-anchored, so a taller window
+carries it down while the air beneath it is preserved. Measured, doing both at
+once shifted it 44px, which is the trap here. Covers every post-election screen
+in the path: the fallout damage map (`.acop-nuke-final`) and the
+narrative/table screens (neither -tv nor -final, but still under
+`body.acop-nuke`). Works because the nuke screens do NOT get `logo-hide-style`'s
+fixed 692px height — its detectors stand down under `body.acop-nuke` — so the
+window there is auto-height on min-height:625. Measured: row 564..585 → 586..607,
+window 625 → 647, gap under the buttons still 40px, nothing clipped; the normal
+final screens are untouched. Verified: nuke_check 99/99 (+1, which also asserts
+the bottom-offset override is ABSENT, so the two can't creep back together).
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 233
+session went with it (they were never committed). Rebuilt and COMMITTED, 234
 assertions over the areas that carry the most machinery:
-`nuke_check` (98), `midterm_check` (32), `enightsets_check` (23),
+`nuke_check` (99), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `nuketheme_check` (17),
 `census_split_check` (10), `execcheck_check` (6).

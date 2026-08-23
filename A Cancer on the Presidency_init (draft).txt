@@ -5867,6 +5867,21 @@ body.acop-nuke-screen #header {
     display: none !important;
 }
 #game_window.acop-nuke-tv #menu_container { position: static !important; }
+/* Post-election nav row, NUKE PATH ONLY: 22px lower down the page. Done by
+   GROWING the window rather than by shrinking the row's bottom offset — the row
+   is bottom-anchored, so a taller window carries it down while the 40px of air
+   beneath it is preserved. (Cutting 'bottom' to 18px instead would have moved
+   the row down AND closed that gap; measured, the two together shifted it 44px,
+   which is not what was asked for.)
+   Covers every post-election screen in this path: the fallout damage map, which
+   is .acop-nuke-final, and the narrative/table screens, which are neither -tv
+   nor -final but are still under body.acop-nuke. The nuke screens don't get
+   logo-hide-style's fixed 692px height (its detectors stand down under
+   body.acop-nuke), so the window here is auto-height on min-height:625 — which
+   is the number this raises. */
+body.acop-nuke #game_window:has(#map_footer .final_menu_button) {
+    min-height: 647px !important;   /* the stock 625 + 22 */
+}
 /* Results panels (nuke only — the normal .acop-final-tv screen keeps its
    tilted sticky-notes): flat (no rotate tilt). At left:777 (was 817 — nudged
    40px left with the Final Results button, then 15px back right).
