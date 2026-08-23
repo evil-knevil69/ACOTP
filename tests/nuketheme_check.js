@@ -65,6 +65,7 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
       size: getComputedStyle(document.body).backgroundSize,
       pos: getComputedStyle(document.body).backgroundPosition,
       attach: getComputedStyle(document.body).backgroundAttachment,
+      minH: document.body.style.minHeight,
       picker: document.querySelector('.acop-theme-select').value });
   `});
 
@@ -79,6 +80,8 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
      && s.repeat === 'no-repeat' && s.bgColor === '#000000');
   ck('…whole, centred, and pinned to the viewport (not halfway down a long page)',
      s.size === 'contain' && s.pos === '50% 50%' && s.attach === 'fixed');
+  ck('…and the black covers the viewport, so the host page colour never shows',
+     s.minH === '100vh');
   ck('…the picker follows, so the dropdown is not lying about the look',
      s.picker === 'In the Bunker');
   ck('…and it is recorded as an EVENT swap, so a save reloads black',
@@ -88,8 +91,8 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
   ck('unwinding the branch hands the look back and clears the event swap',
      s.theme === 'A Cancer on the Presidency' && /backgroundv69/.test(s.bg || '')
      && s.bgColor === '' && s.gameTheme === '');
-  ck('…including no-repeat, centring and fixed, which would otherwise all leak',
-     s.repeat === 'repeat' && s.pos === '0% 0%' && s.attach === 'scroll');
+  ck('…including no-repeat, centring, fixed and the min-height, which would all leak',
+     s.repeat === 'repeat' && s.pos === '0% 0%' && s.attach === 'scroll' && s.minH === '');
 
   // The one that is easy to get wrong: a player who CHOSE the bunker theme
   // themselves must keep it, because a manual pick is a session preference.

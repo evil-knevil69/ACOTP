@@ -373,6 +373,7 @@ var ACOP_THEMES = {
         document.body.style.backgroundRepeat = '';          // tiles down the page (the default)
         document.body.style.backgroundPosition = '';        // from the top-left
         document.body.style.backgroundAttachment = '';      // scrolls with the page
+        document.body.style.minHeight = '';                 // host default height
         // Clear the legacy bgColor attribute a flat-colour theme may have set.
         // (Inline style.backgroundColor is NOT usable for this: _syncLowFxBg
         // runs after every apply and clears it — hence the attribute.)
@@ -440,6 +441,11 @@ var ACOP_THEMES = {
         document.body.style.backgroundPosition = 'center center';
         document.body.style.backgroundAttachment = 'fixed';
         document.body.bgColor = '#000000';
+        // Cover the viewport. The black above is on BODY, so it only paints
+        // body's own box; on a short page the host site's own page colour shows
+        // above and below it as pale bands. min-height pushes the box out to the
+        // full viewport so the black always reaches the edges.
+        document.body.style.minHeight = '100vh';
         corrr = ACOP_DEFAULT_CORRR;   // swap for a bunker plate once there is art
     },
 
@@ -2214,14 +2220,7 @@ function __nukeTvTick() {
     // Body-level signal for chrome OUTSIDE #game_window (the host site banner):
     // the terminal screen hides it entirely (CSS below).
     document.body.classList.toggle('acop-nuke-screen', !!on);
-    // …and a wider one for the WHOLE post-election path, which the two raw
-    // detectors above miss: the narrative and table screens are neither
-    // Election Night nor the damage map, but they still belong to the nuke run
-    // and must not show the site banner. Every one of them carries the
-    // .final_menu_button nav row.
-    const nukeOn = document.body && document.body.classList.contains('acop-nuke');
-    document.body.classList.toggle('acop-nuke-post',
-        !!(nukeOn && (on || document.querySelector('#map_footer .final_menu_button'))));
+
     // The census zeroed every electoral vote (Code 2), so the engine already
     // hides the EV chrome — the panel's hardcoded <h3> is the one piece left
     // to rename. Idempotent by text; unwound if the flag drops mid-screen.
@@ -5837,17 +5836,16 @@ body.low-fx-on #game_window.acop-nuke-tv #map_container svg {
     -webkit-mask-image: none !important;
     mask-image: none !important;
     overflow: visible !important;
-    /* The window paints black BELOW the header strip and nothing above it, so
-       the banner area is genuinely transparent and the page background shows
-       through, while the war room behind the map stays solid black.
-       Why a gradient rather than a flat colour: the .game_header below is
-       opacity:0, which only hides its CONTENT — the strip still shows whatever
-       #game_window paints there, and a flat fill made that a black bar. The
-       stop is 90px = the 85px .game_header plus its 5px padding-bottom.
-       #nuke-chyron is a CHILD of #game_window at z-index 9005 with its own
-       opaque ground, so it paints over this and stays legible either way. */
-    background-color: transparent !important;
-    background-image: linear-gradient(to bottom, rgba(0,0,0,0) 0, rgba(0,0,0,0) 90px, #000 90px) !important;
+    /* Black out the whole window: the .game_header below is opacity:0, so it
+       revealed #game_window's OWN background image (background.png, from the
+       global #game_window rule) as a strip across the top. Blacking the window
+       makes that strip — and everything behind the war-room map — solid black.
+       A gradient that left the strip TRANSPARENT was tried (Aug 2026) and
+       reverted: the strip is where #nuke-chyron sits, and its semi-transparent
+       maroon band then picked up whatever was behind the page rather than
+       black. */
+    background-color: #000 !important;
+    background-image: none !important;
 }
 #game_window.acop-nuke-tv #main_content_area {
     overflow: visible !important;
@@ -5873,30 +5871,25 @@ body.low-fx-on #game_window.acop-nuke-tv #map_container svg {
 #game_window.acop-nuke-tv #map_footer {
     left: 792px !important; top: 600px !important; z-index: 8997 !important;
 }
-/* Host site banner OUTSIDE #game_window (#header) — hidden entirely on the nuke
-   terminal screen (body.acop-nuke-screen), so its default background bar doesn't
-   sit above the war-room feed, AND across the rest of the post-election path
-   (body.acop-nuke-post: the narrative and table screens, which are neither -tv
-   nor -final). Without the second class those screens still showed the banner
-   image over the game window's own background.png. Both stamped by
-   __nukeTvTick.
-   SPECIFICITY, the reason this did not work before: the main stylesheet carries
-   'div.center img#header { display: block !important }' at (1,1,2), which beat
-   the old 'body.acop-nuke-screen #header' at (1,1,1) no matter which sheet came
-   later — so the banner was never actually hidden, and the strip showed the
-   image through. Matching the full path here puts these at (1,2,3). Caught by a
-   pixel probe; the old assertion only checked the rule EXISTED. */
-body.acop-nuke-screen div.center img#header,
-body.acop-nuke-post div.center img#header {
-    display: none !important;
-}
+/* NOTE: the site banner (#header, outside #game_window) is deliberately LEFT
+   VISIBLE on the nuke screens — the bunker theme swaps it for the nuke logo, so
+   it belongs to the look rather than fighting it. A rule that hid it shipped
+   between change 41 and Aug 2026; it never actually took effect, because
+   'div.center img#header { display: block !important }' in the main stylesheet
+   is (1,1,2) and beat it. Removed rather than fixed, once it was clear the
+   banner was wanted. */
 #game_window.acop-nuke-tv #menu_container { position: static !important; }
 /* Post-election nav row, NUKE PATH ONLY: 22px lower down the page. Done by
    GROWING the window rather than by shrinking the row's bottom offset — the row
    is bottom-anchored, so a taller window carries it down while the 40px of air
    beneath it is preserved. (Cutting 'bottom' to 18px instead would have moved
-   the row down AND closed that gap; measured, the two together shifted it 44px,
-   which is not what was asked for.)
+   the row down AND closed that gap; measured, the two together shifted it 44px.)
+   PADDING, not min-height: min-height only does anything when the content is
+   SHORTER than it, and these screens are already taller — which is why the
+   first attempt moved nothing in the real game while passing a harness whose
+   stub content was short. Padding-bottom extends the padding box, and an
+   absolutely positioned child's 'bottom' is measured from that edge, so the row
+   moves down 22px whatever the content height is.
    Covers every post-election screen in this path: the fallout damage map, which
    is .acop-nuke-final, and the narrative/table screens, which are neither -tv
    nor -final but are still under body.acop-nuke. The nuke screens don't get
@@ -5904,7 +5897,7 @@ body.acop-nuke-post div.center img#header {
    body.acop-nuke), so the window here is auto-height on min-height:625 — which
    is the number this raises. */
 body.acop-nuke #game_window:has(#map_footer .final_menu_button) {
-    min-height: 647px !important;   /* the stock 625 + 22 */
+    padding-bottom: 22px !important;
 }
 /* Results panels (nuke only — the normal .acop-final-tv screen keeps its
    tilted sticky-notes): flat (no rotate tilt). At left:777 (was 817 — nudged

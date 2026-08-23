@@ -49,9 +49,11 @@ for (const f of [C1, C2]) {
 console.log('\nPOISONED COPIES (each must FAIL):');
 // 1. The one that shipped: a backtick inside a CSS comment in a stylesheet
 //    template literal. Caught by the pre-flight lint, which names the line.
+// Anchored on a comment that describes a mechanism rather than a decision, so
+// it survives look changes — the previous anchor was a rule that got rewritten.
 let r = poison(C1, s => s.replace(
-  '/* Host site banner OUTSIDE #game_window',
-  '/* A `backticked` phrase. Host site banner OUTSIDE #game_window'));
+  '/* CRT scanlines over the panel body */',
+  '/* CRT scanlines over the panel body — a `backticked` phrase */'));
 ck('backtick in a CSS comment: non-zero exit, no CLEAN, names the line',
    r.code === 1 && !/EXECUTED CLEAN/.test(r.out) && /BACKTICK IN A BLOCK COMMENT/.test(r.out)
    && /line \d+:/.test(r.out));

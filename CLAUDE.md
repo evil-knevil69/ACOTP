@@ -1440,39 +1440,40 @@ window 625 → 647, gap under the buttons still 40px, nothing clipped; the norma
 final screens are untouched. Verified: nuke_check 99/99 (+1, which also asserts
 the bottom-offset override is ABSENT, so the two can't creep back together).
 
-**72. Nuke banner strip: actually transparent (Aug 2026)** — Code 1. Two things,
-one of them a bug that had been shipping.
-(a) **The site banner was never hidden.** `body.acop-nuke-screen #header {
-display: none !important }` is (1,1,1); the main stylesheet's `div.center
-img#header { display: block !important }` is (1,1,2) — so it won regardless of
-sheet order, and the banner image kept showing on every nuke screen. Change 41
-claimed this worked; the assertion only checked the RULE EXISTED, which is
-exactly the failure mode `tests/README.md` warns about. The selector now matches
-the full path (`body.acop-nuke-screen div.center img#header`, (1,2,3)) and the
-test is a PIXEL PROBE of computed display.
-(b) **The strip is now transparent rather than black.** `.game_header` is
-opacity:0, which only hides its CONTENT — the strip still showed whatever
-`#game_window` painted there, and the flat `background-color: #000` made that a
-black bar. The window now paints `linear-gradient(to bottom, transparent 0,
-transparent 90px, #000 90px)` — 90px = the 85px header plus its 5px padding — so
-the page background (the bunker hallway) shows through the banner area while the
-war room below stays solid black. `#nuke-chyron` is a CHILD of `#game_window` at
-z-index 9005 with its own opaque maroon ground, so it paints over the clear strip
-and is NOT occluded — probed, not assumed.
-(c) New `body.acop-nuke-post` class (stamped in `__nukeTvTick` from
-`body.acop-nuke` + a `.final_menu_button` row) extends the banner hide to the
-narrative and table screens, which are neither -tv nor -final and were showing it.
-Verified: nuke_check 103/103 (+4 pixel probes: banner display none, strip shows
-the page through above AND below the chyron, chyron keeps its ground, war room
-still black; the blacked-out-window assertion retuned to the gradient).
-NOTE: `execcheck_check`'s stray-backtick poison anchor moved — it was keyed to
-the banner rule this change rewrote.
+**72. Four fixes after a misread (Aug 2026)** — Code 1. Change 72's first pass
+read "I want the banner to be completely transparent" as *hide the banner*; it
+meant *take the black off it*. Reverted, plus three real faults it exposed.
+(a) **The banner stays visible.** The hide rule is gone entirely — and it had
+never worked anyway: `body.acop-nuke-screen #header` is (1,1,1) and the main
+stylesheet's `div.center img#header { display: block !important }` is (1,1,2), so
+it lost the cascade regardless of sheet order. Change 41 reported it working
+because the assertion only checked the RULE EXISTED. The test is now a pixel
+probe of computed display, asserting the banner IS shown.
+(b) **The window is solid black again.** A gradient leaving the top 90px
+transparent was tried so the page would show through the banner strip; but that
+strip is where `#nuke-chyron` sits, and its semi-transparent maroon band then
+picked up whatever was behind the page — pale blue on the host site, on Election
+Night too. Reverted to the flat fill.
+(c) **The page background now covers the viewport.** `bgColor` paints BODY's
+box, so on a short page the host site's own colour showed as bands above and
+below the hallway image. The bunker theme sets `body.style.minHeight = '100vh'`
+(cleared by the default entry, like every other background property).
+(d) **The nav row actually moves.** Change 71 raised `min-height` 625 → 647,
+which does nothing once the content is TALLER than it — which these screens are.
+It passed a harness whose stub content was short: a false green. Now
+`padding-bottom: 22px` on `#game_window`, which extends the padding box; an
+absolutely positioned child's `bottom` is measured from that edge, so the row
+moves 22px whatever the content height. The runtime check uses 700px of content
+and asserts row +22, window +22, gap unchanged.
+LESSON, the same one as change 65: a harness that doesn't reproduce the real
+conditions produces a false green just as confidently as a true one.
+Verified: nuke_check 106/106, nuketheme 17/17, suite green.
 
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 238
+session went with it (they were never committed). Rebuilt and COMMITTED, 242
 assertions over the areas that carry the most machinery:
-`nuke_check` (103), `midterm_check` (32), `enightsets_check` (23),
+`nuke_check` (106), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `nuketheme_check` (17),
 `census_split_check` (10), `execcheck_check` (6).
