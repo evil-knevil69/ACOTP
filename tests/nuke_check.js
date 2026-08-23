@@ -87,11 +87,16 @@ ck('map feather: sides/top feather, BOTTOM edge solid',
 ck('map_container uniformly bigger on the nuke screen, svg untouched',
    /#game_window\.acop-nuke-tv #map_container \{[\s\S]{0,700}width: 791px !important;[\s\S]{0,40}height: 570px !important;[\s\S]{0,40}margin-left: 55px !important;[\s\S]{0,40}margin-top: 25px !important;/.test(noiseCss)
    && !/#game_window\.acop-nuke-tv #map_container svg \{[^}]*width: 7\d\dpx/.test(noiseCss));
-ck('game window blacked out so the opacity:0 header shows no bg image',
-   /#game_window\.acop-nuke-tv \{[\s\S]{0,700}background-color: #000 !important;[\s\S]{0,60}background-image: none !important;/.test(noiseCss));
-ck('host site banner hidden on the terminal screen',
+ck('window paints black only BELOW the 90px header strip, so the banner area is clear',
+   /#game_window\.acop-nuke-tv \{[\s\S]{0,900}background-color: transparent !important;[\s\S]{0,120}linear-gradient\(to bottom, rgba\(0,0,0,0\) 0, rgba\(0,0,0,0\) 90px, #000 90px\) !important;/.test(noiseCss));
+ck('host site banner hidden across the whole post-election path',
    /document\.body\.classList\.toggle\('acop-nuke-screen', !!on\)/.test(c1)
-   && /body\.acop-nuke-screen #header \{[^}]*display: none !important;/.test(noiseCss));
+   && /document\.body\.classList\.toggle\('acop-nuke-post',/.test(c1)
+   // The selector must out-specify 'div.center img#header { display:block
+   // !important }' in the main stylesheet — matching the full path is what does
+   // it. A bare '#header' loses, which is how the banner stayed visible for a
+   // month. The runtime probe below is the real check.
+   && /body\.acop-nuke-screen div\.center img#header,\s*body\.acop-nuke-post div\.center img#header \{\s*display: none !important;/.test(noiseCss));
 ck('fallout map drops the noise gif; election night keeps it',
    /gw\.classList\.toggle\('acop-nuke-final', !!\(on && __isFinalElectionMapRaw\(\)\)\)/.test(c1)
    && /#game_window\.acop-nuke-final #map_container \{[\s\S]{0,90}background-image: none !important;/.test(noiseCss));
@@ -422,6 +427,53 @@ console.log('\nCENSUS MATHS:');
   ck('state-only wash: grey copies of the 3 census states, ocean untouched, no full rect',
      st.wash === 3 && st.noRect && st.washFirst);
   ck('plumes billow; the wash stays static', st.animated && st.washStatic);
+
+  // ── The banner strip. Pixel-probed, not asserted from the CSS text: the
+  // hide rule was present and correct-looking for a month while losing the
+  // cascade to the main stylesheet's 'div.center img#header'.
+  console.log('\nBANNER STRIP (pixels, not selectors):');
+  const strip = await (async () => {
+    const p2 = await b.newPage({ viewport: { width: 1120, height: 780 } });
+    p2.on('pageerror', e => console.log('PAGE ERROR:', e.message));
+    // magenta page background: anything showing through the strip is obvious
+    await p2.setContent(`<!DOCTYPE html><body class="acop-nuke acop-nuke-screen acop-nuke-post" style="margin:0;background:#ff00ff">
+      <div class="center"><img id="header" src="data:image/gif;base64,R0lGODlhAQABAAAAACw="></div>
+      <div id="game_window" class="acop-nuke-tv" style="width:1050px;height:660px;margin:0 auto">
+        <div class="game_header"><h2>ACOP</h2></div>
+        <div id="main_content_area" style="height:520px"><div id="map_container"><svg width="721" height="400"></svg></div></div>
+        <div id="nuke-chyron"><span>THIS IS NOT A TEST</span></div>
+      </div></body>`);
+    await p2.addStyleTag({ content: mainCss });
+    await p2.addStyleTag({ content: noiseCss });
+    const geo = await p2.evaluate(() => {
+      const gw = document.getElementById('game_window').getBoundingClientRect();
+      const ch = document.getElementById('nuke-chyron').getBoundingClientRect();
+      return { top: Math.round(gw.top), left: Math.round(gw.left), w: Math.round(gw.width),
+               chTop: Math.round(ch.top), chBot: Math.round(ch.bottom),
+               banner: getComputedStyle(document.getElementById('header')).display };
+    });
+    const b64 = (await p2.screenshot()).toString('base64');
+    const px = await p2.evaluate(async ({ b64, geo }) => {
+      const im = new Image(); im.src = 'data:image/png;base64,' + b64; await im.decode();
+      const cv = document.createElement('canvas'); cv.width = im.width; cv.height = im.height;
+      const cx = cv.getContext('2d'); cx.drawImage(im, 0, 0);
+      const at = (x, y) => { const d = cx.getImageData(x, y, 1, 1).data; return d[0] + ',' + d[1] + ',' + d[2]; };
+      const mid = geo.left + Math.round(geo.w / 2);
+      return { above: at(mid, geo.top + 10), below: at(mid, geo.chBot + 8),
+               chyron: at(mid, Math.round((geo.chTop + geo.chBot) / 2)),
+               room: at(mid, geo.top + 300) };
+    }, { b64, geo });
+    await p2.close();
+    return { geo, px };
+  })();
+  ck('the site banner really is hidden (computed display, not just a rule)',
+     strip.geo.banner === 'none');
+  ck('the header strip is transparent — the page shows through, no black bar',
+     strip.px.above === '255,0,255' && strip.px.below === '255,0,255');
+  ck('…but the chyron is NOT occluded: it keeps its own opaque ground on top',
+     strip.px.chyron !== '255,0,255' && /^\d+,\d+,\d+$/.test(strip.px.chyron)
+     && Number(strip.px.chyron.split(',')[0]) < 120);
+  ck('…and the war room below the strip is still solid black', strip.px.room === '0,0,0');
 
   // ── Skipping out early. The bug: "Go to Final Results" while warheads are
   // still in flight (or the barrage is still raining) left those states with no

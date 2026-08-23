@@ -2214,6 +2214,14 @@ function __nukeTvTick() {
     // Body-level signal for chrome OUTSIDE #game_window (the host site banner):
     // the terminal screen hides it entirely (CSS below).
     document.body.classList.toggle('acop-nuke-screen', !!on);
+    // …and a wider one for the WHOLE post-election path, which the two raw
+    // detectors above miss: the narrative and table screens are neither
+    // Election Night nor the damage map, but they still belong to the nuke run
+    // and must not show the site banner. Every one of them carries the
+    // .final_menu_button nav row.
+    const nukeOn = document.body && document.body.classList.contains('acop-nuke');
+    document.body.classList.toggle('acop-nuke-post',
+        !!(nukeOn && (on || document.querySelector('#map_footer .final_menu_button'))));
     // The census zeroed every electoral vote (Code 2), so the engine already
     // hides the EV chrome — the panel's hardcoded <h3> is the one piece left
     // to rename. Idempotent by text; unwound if the flag drops mid-screen.
@@ -5829,12 +5837,17 @@ body.low-fx-on #game_window.acop-nuke-tv #map_container svg {
     -webkit-mask-image: none !important;
     mask-image: none !important;
     overflow: visible !important;
-    /* Black out the whole window: the .game_header below is opacity:0, so it
-       revealed #game_window's OWN background image (background.png, from the
-       global #game_window rule) as a strip across the top. Blacking the window
-       makes that strip — and everything behind the war-room map — solid black. */
-    background-color: #000 !important;
-    background-image: none !important;
+    /* The window paints black BELOW the header strip and nothing above it, so
+       the banner area is genuinely transparent and the page background shows
+       through, while the war room behind the map stays solid black.
+       Why a gradient rather than a flat colour: the .game_header below is
+       opacity:0, which only hides its CONTENT — the strip still shows whatever
+       #game_window paints there, and a flat fill made that a black bar. The
+       stop is 90px = the 85px .game_header plus its 5px padding-bottom.
+       #nuke-chyron is a CHILD of #game_window at z-index 9005 with its own
+       opaque ground, so it paints over this and stays legible either way. */
+    background-color: transparent !important;
+    background-image: linear-gradient(to bottom, rgba(0,0,0,0) 0, rgba(0,0,0,0) 90px, #000 90px) !important;
 }
 #game_window.acop-nuke-tv #main_content_area {
     overflow: visible !important;
@@ -5861,9 +5874,20 @@ body.low-fx-on #game_window.acop-nuke-tv #map_container svg {
     left: 792px !important; top: 600px !important; z-index: 8997 !important;
 }
 /* Host site banner OUTSIDE #game_window (#header) — hidden entirely on the nuke
-   terminal screen (body.acop-nuke-screen, stamped by __nukeTvTick), so its
-   default background bar doesn't sit above the war-room feed. */
-body.acop-nuke-screen #header {
+   terminal screen (body.acop-nuke-screen), so its default background bar doesn't
+   sit above the war-room feed, AND across the rest of the post-election path
+   (body.acop-nuke-post: the narrative and table screens, which are neither -tv
+   nor -final). Without the second class those screens still showed the banner
+   image over the game window's own background.png. Both stamped by
+   __nukeTvTick.
+   SPECIFICITY, the reason this did not work before: the main stylesheet carries
+   'div.center img#header { display: block !important }' at (1,1,2), which beat
+   the old 'body.acop-nuke-screen #header' at (1,1,1) no matter which sheet came
+   later — so the banner was never actually hidden, and the strip showed the
+   image through. Matching the full path here puts these at (1,2,3). Caught by a
+   pixel probe; the old assertion only checked the rule EXISTED. */
+body.acop-nuke-screen div.center img#header,
+body.acop-nuke-post div.center img#header {
     display: none !important;
 }
 #game_window.acop-nuke-tv #menu_container { position: static !important; }

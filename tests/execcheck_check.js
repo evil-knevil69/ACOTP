@@ -57,7 +57,7 @@ ck('backtick in a CSS comment: non-zero exit, no CLEAN, names the line',
    && /line \d+:/.test(r.out));
 
 // 2. A single stray backtick — terminates the literal with nothing to close it.
-r = poison(C1, s => s.replace('body.acop-nuke-screen #header {', 'body.acop-nuke-screen ` #header {'));
+r = poison(C1, s => s.replace('#game_window.acop-nuke-tv #menu_container {', '#game_window.acop-nuke-tv ` #menu_container {'));
 ck('unbalanced backtick in the stylesheet: rejected', r.code !== 0 && !/EXECUTED CLEAN/.test(r.out));
 
 // 3. A runtime throw at load — what the browser eval catches and a parse check
