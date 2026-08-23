@@ -56,6 +56,7 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
     ${fn(c2, '_nukeReset')}
     window.__look = () => ({ theme: _acopTheme, gameTheme: _gameTheme,
       bg: document.body.getAttribute('background'), bgColor: document.body.getAttribute('bgcolor'),
+      repeat: getComputedStyle(document.body).backgroundRepeat,
       picker: document.querySelector('.acop-theme-select').value });
   `});
 
@@ -65,8 +66,9 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
      s.theme === 'A Cancer on the Presidency' && /backgroundv69/.test(s.bg || ''));
 
   s = await p.evaluate(() => { _nukeApplyCensus(); _nukeWar = 2; return window.__look(); });
-  ck('the census puts the page on the bunker theme — plain black, no image',
-     s.theme === 'In the Bunker' && s.bg === null && s.bgColor === '#000000');
+  ck('the census puts the page on the bunker theme — the hallway, once, on black',
+     s.theme === 'In the Bunker' && /Bunker-hallway/.test(s.bg || '')
+     && s.repeat === 'no-repeat' && s.bgColor === '#000000');
   ck('…the picker follows, so the dropdown is not lying about the look',
      s.picker === 'In the Bunker');
   ck('…and it is recorded as an EVENT swap, so a save reloads black',
@@ -76,6 +78,8 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
   ck('unwinding the branch hands the look back and clears the event swap',
      s.theme === 'A Cancer on the Presidency' && /backgroundv69/.test(s.bg || '')
      && s.bgColor === '' && s.gameTheme === '');
+  ck('…including no-repeat, which would otherwise leak onto the default gif',
+     s.repeat === 'repeat');
 
   // The one that is easy to get wrong: a player who CHOSE the bunker theme
   // themselves must keep it, because a manual pick is a session preference.

@@ -364,6 +364,7 @@ var ACOP_THEMES = {
         if (hdr) hdr.src = 'https://file.garden/aXPgNT-ZRCxxpy0g/watergatebannerv4.png';
         document.body.background = 'https://file.garden/aXPgNT-ZRCxxpy0g/backgroundv69.gif';
         document.body.style.backgroundSize = '100% auto';   // fit viewport width
+        document.body.style.backgroundRepeat = '';          // tiles down the page (the default)
         // Clear the legacy bgColor attribute a flat-colour theme may have set.
         // (Inline style.backgroundColor is NOT usable for this: _syncLowFxBg
         // runs after every apply and clears it — hence the attribute.)
@@ -372,11 +373,10 @@ var ACOP_THEMES = {
     },
 
     // ── "In the Bunker" ── the Emergency Operations Center look: blackout,
-    // concrete and emergency lighting. Ships ASSET-FREE (flat colours only) so
-    // it works the moment it is selected: the page is plain black by choice (no
-    // background image), and the one FILL ME IN slot below upgrades the banner.
-    // Reachable from the picker, and from a question via Code 2's
-    // themeSwap('In the Bunker').
+    // concrete and emergency lighting. The bunker hallway across the top of the
+    // page, NOT tiled, with black behind and below it. One FILL ME IN slot
+    // (the banner) is left. Reachable from the picker, and from a question via
+    // Code 2's themeSwap('In the Bunker').
     'In the Bunker': function () {
         const t = (typeof nct_stuff !== 'undefined') && nct_stuff.themes[nct_stuff.selectedTheme];
         if (t) { t.coloring_title = '#0e1012'; t.coloring_window = '#0e1012'; }
@@ -389,21 +389,31 @@ var ACOP_THEMES = {
         const BUNKER_BANNER = '';   // FILL ME IN — banner png; '' keeps the shipped Watergate banner
         const hdr = document.getElementById('header');
         if (hdr) hdr.src = BUNKER_BANNER || 'https://file.garden/aXPgNT-ZRCxxpy0g/watergatebannerv4.png';
-        // Plain black page, by choice — no background image at all. Strip the
-        // attribute rather than blanking it: an empty background="" resolves
-        // against the page URL and loads the HTML document as an image. And the
-        // colour goes on the legacy bgColor ATTRIBUTE, because _applyTheme runs
-        // _syncLowFxBg() afterwards and that clears inline body styles.
-        document.body.removeAttribute('background');
-        document.body.style.backgroundSize = '';
+        // The hallway across the full width, ONCE — no tiling — with plain black
+        // filling whatever it doesn't cover. Three separate mechanisms, because
+        // each survives a different thing:
+        //   · the image goes on the legacy `background` ATTRIBUTE, as every
+        //     theme here does;
+        //   · no-repeat and the size go on inline style, which _syncLowFxBg
+        //     leaves alone (it only clears backgroundImage/backgroundColor);
+        //   · the black fill goes on the legacy `bgColor` ATTRIBUTE, because
+        //     _applyTheme runs _syncLowFxBg() afterwards and an inline
+        //     background-color would be wiped.
+        // '100% auto' fits the viewport width and keeps the 1900x800 aspect, so
+        // the hallway sits along the top and the rest of the page is black.
+        document.body.background = 'https://file.garden/aXPgNT-ZRCxxpy0g/Bunker-hallway-1900x800.jpg';
+        document.body.style.backgroundSize = '100% auto';
+        document.body.style.backgroundRepeat = 'no-repeat';
         document.body.bgColor = '#000000';
         corrr = ACOP_DEFAULT_CORRR;   // swap for a bunker plate once there is art
     },
 
     // ── ADD THEMES BELOW ── copy the entry above, rename, swap URLs/colours.
-    // NOTE: every entry must set body backgroundSize itself ('100% auto' to
-    // fit width, '' for natural-size tiling) — themes stay self-contained, no
-    // MTE-style leak between them (BACKGROUND_IMAGES.md §3).
+    // NOTE: every entry must set body backgroundSize AND backgroundRepeat
+    // itself ('100% auto' to fit width, '' for natural size; '' to tile,
+    // 'no-repeat' for one copy) — themes stay self-contained, no MTE-style leak
+    // between them (BACKGROUND_IMAGES.md §3). A theme that leaves a background
+    // image off should also set bgColor, since there is nothing to hide it.
     // 'Tricky Dick Noir': function () {
     //     const t = nct_stuff.themes[nct_stuff.selectedTheme];
     //     t.coloring_title = '#111'; t.coloring_window = '#111';

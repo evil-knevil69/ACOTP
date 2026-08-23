@@ -150,10 +150,12 @@ it survives New Game, an event swap does not.
 2. **Clear an unused page background with `document.body.removeAttribute('background')`,
    never `background = ''`** — an empty value resolves against the page URL and
    loads the HTML document as an image.
-3. **Every entry must set `body.style.backgroundSize` itself** (`'100% auto'` to
-   fit width, `''` for natural-size tiling). Themes stay self-contained; no
-   MTE-style leak between them. Full background recipes: `BACKGROUND_IMAGES.md`
-   §3–4.
+3. **Every entry must set `body.style.backgroundSize` AND
+   `body.style.backgroundRepeat` itself** (`'100% auto'` to fit width, `''` for
+   natural size; `''` to tile, `'no-repeat'` for a single copy). Themes stay
+   self-contained; no MTE-style leak between them. A theme showing one un-tiled
+   image should set `bgColor` too, since there is nothing to hide the gap. Full
+   background recipes: `BACKGROUND_IMAGES.md` §3–4.
 4. **Ship asset-free where you can.** Give each URL its own `''` fallback (as
    `'In the Bunker'` does with `BUNKER_BANNER` / `BUNKER_BG`) so the theme is
    selectable and coherent before the art exists, and improves as slots are
@@ -1233,10 +1235,16 @@ Processing Results beat), full suite ALL GREEN, both files EXECUTE CLEAN.
 
 **63. Theme: "In the Bunker" (Jul 2026)** — Code 1, a second entry in
 `ACOP_THEMES` (grep `ADD THEMES BELOW`). The Emergency Operations Center look:
-near-black title/window/header, PLAIN BLACK page (`bgColor = '#000000'`, no
-background image — decided Aug 2026, so there is no BUNKER_BG slot). Ships
-asset-free; one FILL ME IN slot (`BUNKER_BANNER`) upgrades the banner, and ''
-keeps the shipped Watergate one. Two traps
+near-black title/window/header; the page is the bunker hallway
+(`Bunker-hallway-1900x800.jpg`) across the top, `no-repeat` at `100% auto`, with
+`bgColor = '#000000'` filling everything it doesn't cover. One FILL ME IN slot
+(`BUNKER_BANNER`) upgrades the banner; '' keeps the shipped Watergate one.
+THREE mechanisms, because each survives something different: the image on the
+legacy `background` ATTRIBUTE; `no-repeat`/`backgroundSize` on inline style
+(which `_syncLowFxBg` leaves alone — it only clears backgroundImage and
+backgroundColor); the black fill on the legacy `bgColor` ATTRIBUTE. NOTE the new
+leak to reset per theme: the default entry now sets `backgroundRepeat = ''`, or
+`no-repeat` would follow you back onto the tiling Watergate gif. Two traps
 handled, worth knowing for the NEXT theme: (a) a flat-colour theme cannot use
 `body.style.backgroundColor` — `_applyTheme` calls `_syncLowFxBg()` afterwards
 and that clears the inline colour — so it sets the legacy `body.bgColor`
@@ -1383,11 +1391,11 @@ manual-pick-survives case, and the disabled case.
 
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 221
+session went with it (they were never committed). Rebuilt and COMMITTED, 222
 assertions over the areas that carry the most machinery:
 `nuke_check` (93), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
-`nuketheme_check` (10),
+`nuketheme_check` (11),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.
