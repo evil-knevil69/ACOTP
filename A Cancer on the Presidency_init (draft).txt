@@ -371,6 +371,8 @@ var ACOP_THEMES = {
         document.body.background = 'https://file.garden/aXPgNT-ZRCxxpy0g/backgroundv69.gif';
         document.body.style.backgroundSize = '100% auto';   // fit viewport width
         document.body.style.backgroundRepeat = '';          // tiles down the page (the default)
+        document.body.style.backgroundPosition = '';        // from the top-left
+        document.body.style.backgroundAttachment = '';      // scrolls with the page
         // Clear the legacy bgColor attribute a flat-colour theme may have set.
         // (Inline style.backgroundColor is NOT usable for this: _syncLowFxBg
         // runs after every apply and clears it — hence the attribute.)
@@ -424,21 +426,31 @@ var ACOP_THEMES = {
         //   · the black fill goes on the legacy `bgColor` ATTRIBUTE, because
         //     _applyTheme runs _syncLowFxBg() afterwards and an inline
         //     background-color would be wiped.
-        // '100% auto' fits the viewport width and keeps the 1900x800 aspect, so
-        // the hallway sits along the top and the rest of the page is black.
+        // 'contain' + centre: the whole hallway is always visible, never cropped
+        // and never distorted, with black filling whatever is left over on
+        // whichever axis has the slack. 'fixed' makes the positioning area the
+        // VIEWPORT rather than the document, which matters more than it sounds:
+        // measured on a 3000px page, a plain 'center' centres against the whole
+        // DOCUMENT, so the hallway sits ~1200px down and the screen you open on
+        // is entirely black. Fixed keeps it centred behind the game window, and
+        // it stays put as the page scrolls.
         document.body.background = 'https://file.garden/aXPgNT-ZRCxxpy0g/Bunker-hallway-1900x800.jpg';
-        document.body.style.backgroundSize = '100% auto';
+        document.body.style.backgroundSize = 'contain';
         document.body.style.backgroundRepeat = 'no-repeat';
+        document.body.style.backgroundPosition = 'center center';
+        document.body.style.backgroundAttachment = 'fixed';
         document.body.bgColor = '#000000';
         corrr = ACOP_DEFAULT_CORRR;   // swap for a bunker plate once there is art
     },
 
     // ── ADD THEMES BELOW ── copy the entry above, rename, swap URLs/colours.
-    // NOTE: every entry must set body backgroundSize AND backgroundRepeat
-    // itself ('100% auto' to fit width, '' for natural size; '' to tile,
-    // 'no-repeat' for one copy) — themes stay self-contained, no MTE-style leak
-    // between them (BACKGROUND_IMAGES.md §3). A theme that leaves a background
-    // image off should also set bgColor, since there is nothing to hide it.
+    // NOTE: every entry must set the body's backgroundSize, backgroundRepeat,
+    // backgroundPosition and backgroundAttachment ITSELF — themes stay
+    // self-contained, no MTE-style leak between them (BACKGROUND_IMAGES.md §3).
+    // '' restores the browser default for each ('auto', tile, top-left,
+    // scroll). A theme that leaves a background image off, or shows one that
+    // doesn't cover the page, should set bgColor too — that is what fills the
+    // gap.
     // 'Tricky Dick Noir': function () {
     //     const t = nct_stuff.themes[nct_stuff.selectedTheme];
     //     t.coloring_title = '#111'; t.coloring_window = '#111';
