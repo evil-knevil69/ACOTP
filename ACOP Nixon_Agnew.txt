@@ -20119,6 +20119,10 @@ var _NUKE_ELECTION_POPUP = 'THIS IS NOT A TEST. This station has been directed '
     + 'and stay tuned to this frequency. The count will continue for as long '
     + 'as we are able.';
 var _NUKE_POPUP_ORIG = campaignTrail_temp.ElectionPopup;
+// Theme the census switches the page to (a key in Code 1's ACOP_THEMES) and the
+// one it hands back to when the branch is unwound. '' = leave the theme alone.
+var _NUKE_THEME = 'In the Bunker';
+var _ACOP_DEFAULT_THEME = 'A Cancer on the Presidency';
 
 // Pristine per-state elector counts. The census ZEROES every state's
 // electoral_votes (the Electoral College did not survive the exchange) — the
@@ -20184,6 +20188,14 @@ function _nukeApplyCensus() {
         if (_NUKE_EV_ORIG.has(s.pk)) s.fields.electoral_votes = 0;
     });
     campaignTrail_temp.ElectionPopup = _NUKE_ELECTION_POPUP;
+    // The surround goes with it. The nuke screens black out #game_window and
+    // hide the host banner themselves, but the PAGE behind them still carried
+    // the Watergate gif — so the theme swaps to the bunker's plain black for
+    // the bunker beat and the whole of election night. Routed through the
+    // registry (Code 1), so the picker follows and _gameTheme puts it in
+    // _SL_SCALARS: loading a save mid-war comes back black. Every entry point
+    // to the census goes through here, ACOPNuke.demo() included.
+    if (typeof themeSwap === 'function') themeSwap(_NUKE_THEME);
 }
 // Undo the rename + the turnout crank + the EV zeroing (New Game without reload).
 function _nukeRestoreCandidates() {
@@ -20217,6 +20229,13 @@ function _nukeReset() {
     }
     _nukeWar = 0;
     if (document.body) document.body.classList.remove('acop-nuke');
+    // Hand the look back, but only if the war is what took it — a player who
+    // picked a theme themselves keeps it (a manual pick is a session
+    // preference; see the theme how-to in CLAUDE.md).
+    if (_NUKE_THEME && _gameTheme === _NUKE_THEME && typeof themeSwap === 'function') {
+        themeSwap(_ACOP_DEFAULT_THEME);
+        _gameTheme = '';   // no event swap is in force any more
+    }
 }
 // Answer hook (called from cyoAdventure): the census fires only when the
 // answer just given belongs to the bunker question — so the normal question

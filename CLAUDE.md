@@ -1364,12 +1364,30 @@ fills the map exactly, which is what the beat wants. Verified: nuke_check 93/93
 (+3: card ends below the OK button and is shorter than the map, keeps the map's
 left/width and stays inside it, intro still fills the container exactly).
 
+**69. The nuke branch wears "In the Bunker" (Aug 2026)** — Code 2. The census
+now calls `themeSwap(_NUKE_THEME)` from inside `_nukeApplyCensus`, so the page
+goes plain black for the bunker beat and the whole of election night. Chosen
+there rather than at any one call site because EVERY entry to the census goes
+through it — the answer hook, `ACOPNuke.demo()`, `ACOPNuke.census()` and the
+save-restore re-apply. Why it was needed at all: the nuke screens black out
+`#game_window` and hide the host banner themselves, but the PAGE behind them
+still carried the Watergate gif. Routed through the registry, so the picker
+follows and `_gameTheme` (already in `_SL_SCALARS`) makes a mid-war save reload
+black. `_nukeReset` hands the look back via `_ACOP_DEFAULT_THEME` — but ONLY
+when `_gameTheme` still names the bunker theme, so a player who picked it
+themselves keeps it (a manual pick is a session preference, per the theme
+how-to). `_NUKE_THEME = ''` disables the whole behaviour. New harness
+`tests/nuketheme_check.js` (10) drives the real Code 1 registry against the real
+Code 2 census/reset: swap, picker sync, event-swap recording, unwind, the
+manual-pick-survives case, and the disabled case.
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 211
+session went with it (they were never committed). Rebuilt and COMMITTED, 221
 assertions over the areas that carry the most machinery:
 `nuke_check` (93), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
+`nuketheme_check` (10),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.
