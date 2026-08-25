@@ -1244,14 +1244,18 @@ All four background properties are therefore back at the browser defaults, the
 same treatment the default theme's gif gets; `bgColor = '#000000'` is the ground
 beneath, visible only if the image fails to load. `body.style.minHeight = '100vh'`
 is still required: a body background paints only BODY's box, so on a short page
-the host site's own colour showed as pale bands above and below. The banner is `nukelogo.jpg`,
-FITTED TO THE BANNER DIVISION'S HEIGHT rather than stretched: the shipped rule
-`div.center img#header { width:100%; height:100% !important }` distorts anything
-that isn't the banner's aspect, so the entry sets height (from the live
-`div.center` clientHeight) / `width:auto` / `max-width:100%` / `object-fit` /
-`margin:0 auto` as INLINE !important — the only thing that out-ranks a
-stylesheet !important — and the default entry removes those five properties so
-the stretch comes back with no leak. No FILL ME IN slots left in this theme.
+the host site's own colour showed as pale bands above and below. The banner is `nukelogo.jpg` at its
+OWN SIZE (Aug 2026 — fitting it to the division's height was the previous
+treatment): the shipped rule `div.center img#header { width:100%; height:100%
+!important }` would stretch it, so `height:auto` / `width:auto` /
+`max-width:100%` / `margin:0 auto` / `background:transparent` go on as INLINE
+!important — the only thing that out-ranks a stylesheet !important. `max-width`
+is the one guard, and does nothing unless the image is wider than the division.
+The SEATING is forced transparent too — `div.center` and its parent, the host's
+own banner division — so the page shows around the logo instead of a band. The
+default entry removes all of it, image and seating, with `removeProperty` (which
+drops the inline value and lets the host's own stylesheet back through). No
+FILL ME IN slots left in this theme.
 THREE mechanisms, because each survives something different: the image on the
 legacy `background` ATTRIBUTE; `no-repeat`/`backgroundSize` on inline style
 (which `_syncLowFxBg` leaves alone — it only clears backgroundImage and
@@ -1472,11 +1476,11 @@ Verified: nuke_check 106/106, nuketheme 17/17, suite green.
 
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 242
+session went with it (they were never committed). Rebuilt and COMMITTED, 243
 assertions over the areas that carry the most machinery:
 `nuke_check` (106), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
-`nuketheme_check` (17),
+`nuketheme_check` (18),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.

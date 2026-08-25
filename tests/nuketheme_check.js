@@ -115,10 +115,10 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
   ck('_NUKE_THEME = \'\' leaves the theme untouched', s.theme === 'A Cancer on the Presidency');
 
   // ── The banner. The shipped stylesheet stretches #header to fill div.center
-  // (width AND height 100% !important), which distorts any logo that isn't the
-  // banner's aspect — so the bunker entry has to beat that rule and fit to
-  // height instead. Real assets are unreachable from the sandbox, so these are
-  // stand-ins at telling aspect ratios; a SQUARE logo is the worst case.
+  // (width AND height 100% !important), so the bunker entry has to beat that
+  // rule to show the logo at its own size. Real assets are unreachable from the
+  // sandbox, so these are stand-ins at known pixel sizes — the point is that the
+  // rendered box matches the file, whatever the division measures.
   console.log('\nTHE BANNER:');
   const stub = (w, h) => 'data:image/svg+xml;base64,' + Buffer.from(
     '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '">' +
@@ -127,13 +127,21 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
   await p.addStyleTag({ content: centreCss });
   await p.evaluate(({ wide, square }) => {
     const host = document.createElement('div');
+    // The host's banner division starts with a solid colour FROM A STYLESHEET —
+    // as the real host's would. That matters: the theme clears the seating with
+    // removeProperty, which drops an inline value and lets the stylesheet back
+    // through, so an inline fixture colour would test the wrong thing.
+    host.id = 'banner_host';
     host.style.cssText = 'width:1100px;height:120px;margin:0 auto';
+    const st = document.createElement('style');
+    st.textContent = '#banner_host { background: #123456; }';
+    document.head.appendChild(st);
     const c = document.createElement('div'); c.className = 'center';
     document.getElementById('header').remove();
     const img = document.createElement('img'); img.id = 'header'; img.src = wide;
     c.appendChild(img); host.appendChild(c); document.body.insertBefore(host, document.body.firstChild);
     window.__BANNER = wide; window.__LOGO = square;
-  }, { wide: stub(1900, 200), square: stub(1000, 1000) });
+  }, { wide: stub(1900, 200), square: stub(300, 90) });   // a logo SMALLER than the division
   const banner = async (theme, src) => p.evaluate(async ({ theme, src }) => {
     _applyTheme(theme);
     const h = document.getElementById('header');
@@ -141,21 +149,28 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
     await h.decode().catch(() => {});
     const c = document.getElementsByClassName('center')[0].getBoundingClientRect();
     const r = h.getBoundingClientRect();
+    const seat = document.getElementsByClassName('center')[0];
     return { divH: Math.round(c.height), imgH: Math.round(r.height), imgW: Math.round(r.width),
              divW: Math.round(c.width),
              aspectOk: Math.abs((r.width / r.height) - (h.naturalWidth / h.naturalHeight)) < 0.02,
              inlineH: h.style.height,
+             imgBg: getComputedStyle(h).backgroundColor,
+             seatBg: getComputedStyle(seat).backgroundColor,
+             hostBg: getComputedStyle(seat.parentElement).backgroundColor,
              centred: Math.abs((r.left + r.right) / 2 - (c.left + c.right) / 2) < 2 };
   }, { theme, src });
   let bn = await banner('In the Bunker', await p.evaluate(() => window.__LOGO));
-  ck('bunker logo is fitted to the division height, undistorted and centred',
-     bn.imgH === bn.divH && bn.aspectOk && bn.centred && bn.inlineH === bn.divH + 'px');
-  ck('…and a square logo does NOT get stretched across the banner',
-     bn.imgW < bn.divW / 2);
+  ck('bunker logo renders at its NATURAL size — not stretched to the division',
+     bn.imgW === 300 && bn.imgH === 90 && bn.inlineH === 'auto');
+  ck('…centred, with nothing painted behind it or its seating',
+     bn.centred && bn.imgBg === 'rgba(0, 0, 0, 0)' && bn.seatBg === 'rgba(0, 0, 0, 0)'
+     && bn.hostBg === 'rgba(0, 0, 0, 0)');
   ck('the bunker theme names the nuke logo', /nukelogo\.jpg/.test(c1));
   bn = await banner('A Cancer on the Presidency', await p.evaluate(() => window.__BANNER));
   ck('the shipped banner gets its full-width stretch back, with no inline leak',
      bn.imgW === bn.divW && bn.imgH === bn.divH && bn.inlineH === '');
+  ck('…and the seating gets its own colour back — the transparency does not leak',
+     bn.hostBg === 'rgb(18, 52, 86)');
 
   console.log('\n' + pass + ' passed, ' + fail + ' failed');
   await b.close(); process.exit(fail ? 1 : 0);

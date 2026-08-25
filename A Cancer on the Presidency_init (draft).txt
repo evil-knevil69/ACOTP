@@ -364,9 +364,16 @@ var ACOP_THEMES = {
         if (hdr) {
             hdr.src = 'https://file.garden/aXPgNT-ZRCxxpy0g/watergatebannerv4.png';
             // Hand the banner back to the shipped stylesheet rule (which
-            // stretches it to fill div.center); clear anything a fit-to-height
-            // theme set inline, or it follows us here.
-            ['height', 'width', 'max-width', 'object-fit', 'margin'].forEach(k => hdr.style.removeProperty(k));
+            // stretches it to fill div.center); clear anything a natural-size
+            // theme set inline, on the image AND on its seating, or it follows
+            // us here.
+            ['height', 'width', 'max-width', 'object-fit', 'margin', 'background']
+                .forEach(k => hdr.style.removeProperty(k));
+            const centre = document.getElementsByClassName('center')[0];
+            if (centre) {
+                centre.style.removeProperty('background');
+                if (centre.parentElement) centre.parentElement.style.removeProperty('background');
+            }
         }
         document.body.background = 'https://file.garden/aXPgNT-ZRCxxpy0g/backgroundv69.gif';
         document.body.style.backgroundSize = '100% auto';   // fit viewport width
@@ -398,34 +405,32 @@ var ACOP_THEMES = {
         const hdr = document.getElementById('header');
         if (hdr) {
             hdr.src = BUNKER_BANNER;
-            // Fit the logo to the banner division's height WITHOUT stretching:
-            // the shipped rule is `div.center img#header { width:100%;
-            // height:100% !important }`, which distorts anything that isn't the
-            // banner's aspect. Inline !important is what beats it (a stylesheet
-            // rule can't out-rank an inline one), height comes from the live
-            // division so it matches whatever the host laid out, and width:auto
-            // + margin:0 auto keeps the aspect and centres the result.
-            const centre = document.getElementsByClassName('center')[0];
-            const h = centre && centre.clientHeight;
-            hdr.style.setProperty('height', h ? h + 'px' : '100%', 'important');
+            // The logo at its OWN size, centred, on nothing. The shipped rule
+            // 'div.center img#header { width:100%; height:100% !important }'
+            // would stretch it to fill the division, so height/width auto have
+            // to be set as INLINE !important — the only thing that out-ranks a
+            // stylesheet !important. max-width is the single guard: it does
+            // nothing unless the image is wider than the division, in which case
+            // scaling down beats overflowing the page.
+            hdr.style.setProperty('height', 'auto', 'important');
             hdr.style.setProperty('width', 'auto', 'important');
-            // Guard for a very wide logo: rather than letting it run out of the
-            // division, cap the width — object-fit then letterboxes inside the
-            // box instead of distorting.
             hdr.style.setProperty('max-width', '100%', 'important');
-            hdr.style.setProperty('object-fit', 'contain', 'important');
             hdr.style.setProperty('margin', '0 auto', 'important');
+            hdr.style.setProperty('background', 'transparent', 'important');
+            // …and the seating it sits in is transparent, so the page shows
+            // around the logo rather than a band of anything. div.center is
+            // transparent in the main stylesheet already; its PARENT is the
+            // host's own banner division, which is not ours to know about.
+            const centre = document.getElementsByClassName('center')[0];
+            if (centre) {
+                centre.style.setProperty('background', 'transparent', 'important');
+                if (centre.parentElement) centre.parentElement.style.setProperty('background', 'transparent', 'important');
+            }
         }
-        // The hallway across the full width, ONCE — no tiling — with plain black
-        // filling whatever it doesn't cover. Three separate mechanisms, because
-        // each survives a different thing:
-        //   · the image goes on the legacy `background` ATTRIBUTE, as every
-        //     theme here does;
-        //   · no-repeat and the size go on inline style, which _syncLowFxBg
-        //     leaves alone (it only clears backgroundImage/backgroundColor);
-        //   · the black fill goes on the legacy `bgColor` ATTRIBUTE, because
-        //     _applyTheme runs _syncLowFxBg() afterwards and an inline
-        //     background-color would be wiped.
+        // The image goes on the legacy 'background' ATTRIBUTE, as every theme
+        // here does, and the black on the legacy 'bgColor' ATTRIBUTE — NOT on
+        // inline style, because _applyTheme runs _syncLowFxBg() afterwards and
+        // that clears inline backgroundImage/backgroundColor.
         // The hallway at its NATURAL size (1900x800), tiling to cover anything
         // bigger — the same treatment the default theme's gif gets, so all four
         // background properties go back to the browser defaults: auto size,
