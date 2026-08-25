@@ -1238,12 +1238,13 @@ Processing Results beat), full suite ALL GREEN, both files EXECUTE CLEAN.
 **63. Theme: "In the Bunker" (Jul 2026)** — Code 1, a second entry in
 `ACOP_THEMES` (grep `ADD THEMES BELOW`). The Emergency Operations Center look:
 near-black title/window/header; the page is the bunker hallway
-(`Bunker-hallway-1900x800.jpg`) shown WHOLE and CENTRED — `contain` +
-`center center` + `no-repeat` + `background-attachment: fixed` — with
-`bgColor = '#000000'` filling whatever is left over. `fixed` is doing real work,
-not decoration: measured on a 3000px page, plain `center` centres against the
-whole DOCUMENT, so the image sits ~1200px down and the screen you open on is
-entirely black. The banner is `nukelogo.jpg`,
+(`Bunker-hallway-1900x800.jpg`) at its NATURAL size, TILED to cover anything
+bigger (Aug 2026 — `contain` + centred + `fixed` was tried first and replaced).
+All four background properties are therefore back at the browser defaults, the
+same treatment the default theme's gif gets; `bgColor = '#000000'` is the ground
+beneath, visible only if the image fails to load. `body.style.minHeight = '100vh'`
+is still required: a body background paints only BODY's box, so on a short page
+the host site's own colour showed as pale bands above and below. The banner is `nukelogo.jpg`,
 FITTED TO THE BANNER DIVISION'S HEIGHT rather than stretched: the shipped rule
 `div.center img#header { width:100%; height:100% !important }` distorts anything
 that isn't the banner's aspect, so the entry sets height (from the live
@@ -1255,9 +1256,9 @@ THREE mechanisms, because each survives something different: the image on the
 legacy `background` ATTRIBUTE; `no-repeat`/`backgroundSize` on inline style
 (which `_syncLowFxBg` leaves alone — it only clears backgroundImage and
 backgroundColor); the black fill on the legacy `bgColor` ATTRIBUTE. NOTE the leaks to reset per
-theme: the default entry now clears `backgroundRepeat`, `backgroundPosition` and
-`backgroundAttachment`, or the bunker's no-repeat/centre/fixed follow you back
-onto the tiling Watergate gif. Two traps
+theme: the default entry clears `backgroundRepeat`, `backgroundPosition`,
+`backgroundAttachment` and `minHeight`. The bunker theme no longer sets the
+first three, but the resets stay — the next theme that does will need them. Two traps
 handled, worth knowing for the NEXT theme: (a) a flat-colour theme cannot use
 `body.style.backgroundColor` — `_applyTheme` calls `_syncLowFxBg()` afterwards
 and that clears the inline colour — so it sets the legacy `body.bgColor`

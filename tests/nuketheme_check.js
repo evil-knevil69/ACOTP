@@ -75,12 +75,11 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
      s.theme === 'A Cancer on the Presidency' && /backgroundv69/.test(s.bg || ''));
 
   s = await p.evaluate(() => { _nukeApplyCensus(); _nukeWar = 2; return window.__look(); });
-  ck('the census puts the page on the bunker theme — the hallway, once, on black',
-     s.theme === 'In the Bunker' && /Bunker-hallway/.test(s.bg || '')
-     && s.repeat === 'no-repeat' && s.bgColor === '#000000');
-  ck('…whole, centred, and pinned to the viewport (not halfway down a long page)',
-     s.size === 'contain' && s.pos === '50% 50%' && s.attach === 'fixed');
-  ck('…and the black covers the viewport, so the host page colour never shows',
+  ck('the census puts the page on the bunker theme — the hallway, on black',
+     s.theme === 'In the Bunker' && /Bunker-hallway/.test(s.bg || '') && s.bgColor === '#000000');
+  ck('…at natural size, tiling to cover a screen bigger than the image',
+     s.size === 'auto' && s.repeat === 'repeat' && s.pos === '0% 0%' && s.attach === 'scroll');
+  ck('…and body covers the viewport, so the host page colour never shows through',
      s.minH === '100vh');
   ck('…the picker follows, so the dropdown is not lying about the look',
      s.picker === 'In the Bunker');
@@ -91,7 +90,7 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
   ck('unwinding the branch hands the look back and clears the event swap',
      s.theme === 'A Cancer on the Presidency' && /backgroundv69/.test(s.bg || '')
      && s.bgColor === '' && s.gameTheme === '');
-  ck('…including no-repeat, centring, fixed and the min-height, which would all leak',
+  ck('…including the min-height, which would otherwise leak onto the default look',
      s.repeat === 'repeat' && s.pos === '0% 0%' && s.attach === 'scroll' && s.minH === '');
 
   // The one that is easy to get wrong: a player who CHOSE the bunker theme

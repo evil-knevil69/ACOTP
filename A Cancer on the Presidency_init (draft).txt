@@ -382,9 +382,8 @@ var ACOP_THEMES = {
     },
 
     // ── "In the Bunker" ── the Emergency Operations Center look: blackout,
-    // concrete and emergency lighting. The bunker hallway across the top of the
-    // page, NOT tiled, with black behind and below it. One FILL ME IN slot
-    // (the banner) is left. Reachable from the picker, and from a question via
+    // concrete and emergency lighting. The bunker hallway tiled across the page
+    // at its natural size, on black. No FILL ME IN slots left. Reachable from the picker, and from a question via
     // Code 2's themeSwap('In the Bunker').
     'In the Bunker': function () {
         const t = (typeof nct_stuff !== 'undefined') && nct_stuff.themes[nct_stuff.selectedTheme];
@@ -427,24 +426,21 @@ var ACOP_THEMES = {
         //   · the black fill goes on the legacy `bgColor` ATTRIBUTE, because
         //     _applyTheme runs _syncLowFxBg() afterwards and an inline
         //     background-color would be wiped.
-        // 'contain' + centre: the whole hallway is always visible, never cropped
-        // and never distorted, with black filling whatever is left over on
-        // whichever axis has the slack. 'fixed' makes the positioning area the
-        // VIEWPORT rather than the document, which matters more than it sounds:
-        // measured on a 3000px page, a plain 'center' centres against the whole
-        // DOCUMENT, so the hallway sits ~1200px down and the screen you open on
-        // is entirely black. Fixed keeps it centred behind the game window, and
-        // it stays put as the page scrolls.
+        // The hallway at its NATURAL size (1900x800), tiling to cover anything
+        // bigger — the same treatment the default theme's gif gets, so all four
+        // background properties go back to the browser defaults: auto size,
+        // repeat, top-left origin, scrolls with the page. bgColor stays as the
+        // ground beneath, which shows only if the image fails to load.
         document.body.background = 'https://file.garden/aXPgNT-ZRCxxpy0g/Bunker-hallway-1900x800.jpg';
-        document.body.style.backgroundSize = 'contain';
-        document.body.style.backgroundRepeat = 'no-repeat';
-        document.body.style.backgroundPosition = 'center center';
-        document.body.style.backgroundAttachment = 'fixed';
+        document.body.style.backgroundSize = '';
+        document.body.style.backgroundRepeat = '';
+        document.body.style.backgroundPosition = '';
+        document.body.style.backgroundAttachment = '';
         document.body.bgColor = '#000000';
-        // Cover the viewport. The black above is on BODY, so it only paints
-        // body's own box; on a short page the host site's own page colour shows
+        // Cover the viewport. A body background — colour or image — paints only
+        // BODY's own box; on a short page the host site's own page colour showed
         // above and below it as pale bands. min-height pushes the box out to the
-        // full viewport so the black always reaches the edges.
+        // full viewport so the tiled hallway always reaches the edges.
         document.body.style.minHeight = '100vh';
         corrr = ACOP_DEFAULT_CORRR;   // swap for a bunker plate once there is art
     },
