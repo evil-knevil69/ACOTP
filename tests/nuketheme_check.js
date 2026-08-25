@@ -172,6 +172,64 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
   ck('…and the seating gets its own colour back — the transparency does not leak',
      bn.hostBg === 'rgb(18, 52, 86)');
 
+  // ── The .game_header strip. Two requirements that pull against each other:
+  // nothing of the shipped header survives under this theme (no logo image, no
+  // ground), but the nuke map still needs a black ground behind the chyron.
+  console.log('\nTHE HEADER STRIP:');
+  const noiseStart = c1.indexOf('customStyling.innerHTML = `') + 'customStyling.innerHTML = `'.length;
+  const noiseCss = c1.slice(noiseStart, c1.indexOf('`;', noiseStart));
+  const PAPER = 'data:image/svg+xml;base64,' + Buffer.from(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="#00c000"/></svg>').toString('base64');
+  const stripAt = async (nuke) => {
+    const p2 = await b.newPage({ viewport: { width: 1120, height: 700 } });
+    p2.on('pageerror', e => console.log('PAGE ERROR:', e.message));
+    await p2.setContent(`<!DOCTYPE html><body class="${nuke ? 'acop-nuke acop-nuke-screen' : ''}" style="margin:0">
+      <div class="container"><div id="game_window" class="${nuke ? 'acop-nuke-tv' : ''}" style="width:1050px;height:600px;margin:0 auto">
+        <div class="game_header"><h2>ACOP</h2><img src="${PAPER}" width="40" height="40"></div>
+        <div id="main_content_area" style="height:400px"><div id="map_container"><svg width="721" height="400"></svg></div></div>
+        ${nuke ? '<div id="nuke-chyron"><span>THIS IS NOT A TEST</span></div>' : ''}
+      </div></div></body>`);
+    await p2.addStyleTag({ content: mainCss });
+    await p2.addStyleTag({ content: noiseCss });
+    // the host's own paper on #game_window, and a loud page behind everything
+    await p2.addStyleTag({ content: `#game_window { background-image: url(${PAPER}); background-color: #eee; }
+                                     body { background: #ff00ff; }` });
+    await p2.addScriptTag({ content: `
+      var corrr = '<h2>ACOP</h2><img src="${PAPER}" width="40" height="40">';
+      var nct_stuff = { selectedTheme: 'x', themes: { x: {} } };
+      var campaignTrail_temp = {};
+      ${themeBlock}
+      _applyTheme('In the Bunker');
+      document.body.removeAttribute('background');
+    `});
+    const geo = await p2.evaluate(() => {
+      const gh = document.getElementsByClassName('game_header')[0];
+      const r = gh.getBoundingClientRect();
+      return { top: Math.round(r.top), left: Math.round(r.left), w: Math.round(r.width),
+               imgs: document.querySelectorAll('.game_header img').length,
+               html: gh.innerHTML.length, title: nct_stuff.themes.x.coloring_title };
+    });
+    const b64 = (await p2.screenshot()).toString('base64');
+    const px = await p2.evaluate(async ({ b64, geo }) => {
+      const im = new Image(); im.src = 'data:image/png;base64,' + b64; await im.decode();
+      const cv = document.createElement('canvas'); cv.width = im.width; cv.height = im.height;
+      const cx = cv.getContext('2d'); cx.drawImage(im, 0, 0);
+      const d = cx.getImageData(geo.left + Math.round(geo.w / 2), geo.top + 8, 1, 1).data;
+      return d[0] + ',' + d[1] + ',' + d[2];
+    }, { b64, geo });
+    await p2.close();
+    return { geo, px };
+  };
+  const plainStrip = await stripAt(false), nukeStrip = await stripAt(true);
+  ck('the shipped header content is gone entirely — no logo image, nothing',
+     plainStrip.geo.imgs === 0 && plainStrip.geo.html === 0 && nukeStrip.geo.imgs === 0);
+  ck('…and future renders stay clear too (coloring_title, not just the live element)',
+     plainStrip.geo.title === 'transparent');
+  ck('the strip is transparent: the PAGE shows through, not the paper image',
+     plainStrip.px === '255,0,255');
+  ck('…except on the nuke map, where it stays black behind the news ticker',
+     nukeStrip.px === '0,0,0');
+
   console.log('\n' + pass + ' passed, ' + fail + ' failed');
   await b.close(); process.exit(fail ? 1 : 0);
 })();

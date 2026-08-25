@@ -357,7 +357,10 @@ var ACOP_THEMES = {
         const gh = document.getElementsByClassName('game_header')[0];
         if (gh) gh.style.backgroundColor = 'transparent';
         const gw = document.getElementById('game_window');
-        if (gw) gw.style.backgroundColor = 'transparent';
+        if (gw) {
+            gw.style.backgroundColor = 'transparent';
+            gw.style.removeProperty('background-image');   // let the host's paper back through
+        }
         const cont = document.getElementsByClassName('container')[0];
         if (cont) cont.style.backgroundColor = 'transparent';
         const hdr = document.getElementById('header');
@@ -393,12 +396,26 @@ var ACOP_THEMES = {
     // at its natural size, on black. No FILL ME IN slots left. Reachable from the picker, and from a question via
     // Code 2's themeSwap('In the Bunker').
     'In the Bunker': function () {
+        // Everything the engine paints goes TRANSPARENT, exactly as the default
+        // entry does — the mod's own stylesheet paints the real surfaces, and
+        // the page (the hallway, on black) shows through the rest. coloring_title
+        // is the one that matters for the header strip: it is what the engine
+        // uses on every FUTURE render, so setting only the live element's inline
+        // colour would leave the next screen's header painted again.
         const t = (typeof nct_stuff !== 'undefined') && nct_stuff.themes[nct_stuff.selectedTheme];
-        if (t) { t.coloring_title = '#0e1012'; t.coloring_window = '#0e1012'; }
+        if (t) { t.coloring_title = 'transparent'; t.coloring_window = 'transparent'; }
         const gh = document.getElementsByClassName('game_header')[0];
-        if (gh) gh.style.backgroundColor = '#0e1012';
+        if (gh) gh.style.backgroundColor = 'transparent';
         const gw = document.getElementById('game_window');
-        if (gw) gw.style.backgroundColor = '#0e1012';
+        if (gw) {
+            gw.style.backgroundColor = 'transparent';
+            // …and no paper. #game_window carries background.png from the host's
+            // own stylesheet; with the header strip transparent that image was
+            // what showed through it. A blackout theme has no paper, so drop it
+            // and let the page (the hallway) be what is behind everything. The
+            // default entry removes this again.
+            gw.style.setProperty('background-image', 'none', 'important');
+        }
         const cont = document.getElementsByClassName('container')[0];
         if (cont) cont.style.backgroundColor = 'transparent';
         const BUNKER_BANNER = 'https://file.garden/aXPgNT-ZRCxxpy0g/nukelogo.jpg';
@@ -447,7 +464,12 @@ var ACOP_THEMES = {
         // above and below it as pale bands. min-height pushes the box out to the
         // full viewport so the tiled hallway always reaches the edges.
         document.body.style.minHeight = '100vh';
-        corrr = ACOP_DEFAULT_CORRR;   // swap for a bunker plate once there is art
+        // No header plate at all: corrr is the HTML the engine stamps into every
+        // .game_header, and the shipped one carries the ACOP logo image. An
+        // empty string leaves the strip genuinely empty — no png, nothing to
+        // paint a ground for. The strip keeps its 85px height (from the main
+        // stylesheet), which the nuke chyron sits in.
+        corrr = '';
     },
 
     // ── ADD THEMES BELOW ── copy the entry above, rename, swap URLs/colours.

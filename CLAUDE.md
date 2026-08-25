@@ -1237,7 +1237,14 @@ Processing Results beat), full suite ALL GREEN, both files EXECUTE CLEAN.
 
 **63. Theme: "In the Bunker" (Jul 2026)** — Code 1, a second entry in
 `ACOP_THEMES` (grep `ADD THEMES BELOW`). The Emergency Operations Center look:
-near-black title/window/header; the page is the bunker hallway
+everything the ENGINE paints goes transparent
+(`coloring_title`/`coloring_window` + the live `.game_header`/`#game_window`/
+`.container`), exactly as the default entry does, and `corrr = ''` so the header
+strip carries no logo plate at all. `#game_window` also drops the host's
+`background.png` (`background-image: none`), which was what showed through the
+transparent strip. Net: the strip shows the PAGE — except on the nuke map, where
+`#game_window.acop-nuke-tv` blacks the window and the chyron keeps its ground.
+The page is the bunker hallway
 (`Bunker-hallway-1900x800.jpg`) at its NATURAL size, TILED to cover anything
 bigger (Aug 2026 — `contain` + centred + `fixed` was tried first and replaced).
 All four background properties are therefore back at the browser defaults, the
@@ -1476,11 +1483,11 @@ Verified: nuke_check 106/106, nuketheme 17/17, suite green.
 
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 243
+session went with it (they were never committed). Rebuilt and COMMITTED, 247
 assertions over the areas that carry the most machinery:
 `nuke_check` (106), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
-`nuketheme_check` (18),
+`nuketheme_check` (22),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.
