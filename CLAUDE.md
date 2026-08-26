@@ -1275,9 +1275,15 @@ treatment): the shipped rule `div.center img#header { width:100%; height:100%
 `max-width:100%` / `margin:0 auto` / `background:transparent` go on as INLINE
 !important — the only thing that out-ranks a stylesheet !important. `max-width`
 is the one guard, and does nothing unless the image is wider than the division.
-The SEATING is transparent too — `div.center` and its parent, the host's own
-banner division, reached with `div:has(> div.center)` — so the page shows around
-the logo instead of a band. All of it (logo box, seating, the game window's
+The SEATING is transparent too — `div.center` and EVERY wrapper above it, reached
+with a descendant `:is(div, section, …):has(div.center)` — so the logo bleeds
+straight into the hallway instead of sitting on a plate. The descendant form
+matters: the host nests the banner several levels deep and the OPAQUE one is an
+outer wrapper, so stopping at the immediate parent left the logo on black. The
+rule is `!important`, which is what lets it beat the host's INLINE background;
+being a class rule, dropping the class hands that inline value back untouched.
+Deliberately not `*:has(div.center)` — that would match body, whose background
+IS the hallway. All of it (logo box, seating, the game window's
 paper) is CSS on `body.acop-theme-bunker`, NOT inline styles on host elements:
 see change 73 for why that distinction matters. No
 FILL ME IN slots left in this theme.
@@ -1519,11 +1525,11 @@ inline background intact — confirmed to FAIL against the un-fixed code).
 
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 250
+session went with it (they were never committed). Rebuilt and COMMITTED, 251
 assertions over the areas that carry the most machinery:
 `nuke_check` (106), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
-`nuketheme_check` (25),
+`nuketheme_check` (26),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.

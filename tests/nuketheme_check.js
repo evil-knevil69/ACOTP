@@ -207,6 +207,28 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
          && duringComputed === 'rgba(0, 0, 0, 0)'         // …but overridden visually
          && after === 'rgb(11, 11, 11)';                  // and still there afterwards
      }));
+  // The logo has to bleed into the hallway, which means EVERY wrapper between it
+  // and body goes transparent — not just the immediate parent. The host nests
+  // the banner a few levels deep and paints the OUTER one.
+  ck('every seat above the logo goes transparent, so it bleeds into the page',
+     await p.evaluate(() => {
+       const host = document.getElementById('banner_host');
+       const outer = document.createElement('div');
+       outer.id = 'outer_seat';
+       outer.style.background = '#000';                 // opaque, inline, as the host's is
+       host.parentElement.insertBefore(outer, host);
+       outer.appendChild(host);                          // banner now two levels deep
+       _applyTheme('In the Bunker');
+       const during = getComputedStyle(outer).backgroundColor;
+       const inlineKept = outer.style.background;
+       _applyTheme('A Cancer on the Presidency');
+       const after = getComputedStyle(outer).backgroundColor;
+       host.parentElement.parentElement.insertBefore(host, outer);
+       outer.remove();
+       return during === 'rgba(0, 0, 0, 0)'        // see-through while themed
+         && inlineKept === 'rgb(0, 0, 0)'          // …without destroying the host's value
+         && after === 'rgb(0, 0, 0)';              // and opaque again afterwards
+     }));
   ck('the overrides are a body class, not writes into host elements',
      /document\.body\.classList\.add\('acop-theme-bunker'\)/.test(c1)
      && /document\.body\.classList\.remove\('acop-theme-bunker'\)/.test(c1)

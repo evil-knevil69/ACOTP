@@ -1177,12 +1177,22 @@ body.acop-theme-bunker div.center img#header {
     margin: 0 auto;
     background: transparent;
 }
-/* …and the seating it sits in, so the page shows around the logo rather than a
-   band of colour. :has() picks the host's own banner division — the parent of
-   div.center — which we otherwise have no name for. */
+/* …and EVERY seat it sits in, so the logo bleeds straight into the hallway
+   rather than onto a plate. A descendant :has() (not '> div.center') walks the
+   whole chain of wrappers up to body — the host nests the banner a few levels
+   deep and the outer wrapper is the opaque one. Stopping at the immediate
+   parent left the logo on that wrapper's black.
+   !important is what makes this work against the host: its wrapper background
+   is an INLINE style, which a plain author rule could never reach — but an
+   !important author rule beats a non-important inline one. And because it is a
+   CLASS rule, dropping the class hands the host back its own inline value
+   untouched (change 73).
+   Deliberately NOT '*:has(div.center)': that would match body and html too, and
+   body's background IS the hallway. */
 body.acop-theme-bunker div.center,
-body.acop-theme-bunker div:has(> div.center) {
+body.acop-theme-bunker :is(div, section, main, header, article, aside, nav):has(div.center) {
     background: transparent !important;
+    background-image: none !important;
 }
 /* No paper. #game_window carries background.png from the host's stylesheet, and
    with this theme's header strip transparent that image was what showed through
