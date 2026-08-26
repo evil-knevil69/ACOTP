@@ -140,7 +140,7 @@ Save/load: `_gameTheme` remembers the last EVENT swap and a load re-applies it.
 A manual picker choice is a session preference and is deliberately NOT persisted —
 it survives New Game, an event swap does not.
 
-### Four traps, all of which have bitten
+### Five traps, all of which have bitten
 
 1. **Don't use `body.style.backgroundColor` for a flat-colour theme.**
    `_applyTheme` calls `_syncLowFxBg()` afterwards, which clears that inline
@@ -158,7 +158,14 @@ it survives New Game, an event swap does not.
    centre a background, set `attachment: fixed` with it — otherwise it centres
    against the whole document, not the viewport. Full background recipes:
    `BACKGROUND_IMAGES.md` §3–4.
-4. **Ship asset-free where you can.** Give each URL its own `''` fallback (as
+4. **Never write inline styles onto the HOST page's own elements.** A theme may
+   set what the mechanism already owns — `nct_stuff` colours, the body
+   background attribute, `corrr`. For anything else (the banner's seating, the
+   game window's paper), add a body class and put the overrides in the
+   stylesheet. Undoing a class restores the host exactly; `removeProperty` on a
+   host element deletes whatever inline value the host had there first, which is
+   how the default theme once turned the whole page white (change 73).
+5. **Ship asset-free where you can.** Give each URL its own `''` fallback (as
    `'In the Bunker'` does with `BUNKER_BANNER` / `BUNKER_BG`) so the theme is
    selectable and coherent before the art exists, and improves as slots are
    filled.
@@ -1258,10 +1265,11 @@ treatment): the shipped rule `div.center img#header { width:100%; height:100%
 `max-width:100%` / `margin:0 auto` / `background:transparent` go on as INLINE
 !important — the only thing that out-ranks a stylesheet !important. `max-width`
 is the one guard, and does nothing unless the image is wider than the division.
-The SEATING is forced transparent too — `div.center` and its parent, the host's
-own banner division — so the page shows around the logo instead of a band. The
-default entry removes all of it, image and seating, with `removeProperty` (which
-drops the inline value and lets the host's own stylesheet back through). No
+The SEATING is transparent too — `div.center` and its parent, the host's own
+banner division, reached with `div:has(> div.center)` — so the page shows around
+the logo instead of a band. All of it (logo box, seating, the game window's
+paper) is CSS on `body.acop-theme-bunker`, NOT inline styles on host elements:
+see change 73 for why that distinction matters. No
 FILL ME IN slots left in this theme.
 THREE mechanisms, because each survives something different: the image on the
 legacy `background` ATTRIBUTE; `no-repeat`/`backgroundSize` on inline style
@@ -1481,13 +1489,31 @@ LESSON, the same one as change 65: a harness that doesn't reproduce the real
 conditions produces a false green just as confidently as a true one.
 Verified: nuke_check 106/106, nuketheme 17/17, suite green.
 
+**73. The default theme was whitening the page (Aug 2026)** — Code 1, a bug I
+shipped in `d70b919`. The bunker theme forced the banner's SEATING transparent by
+writing inline styles onto host elements, and the default entry undid that with
+`removeProperty('background')` — which does not restore anything, it DELETES
+whatever inline value the host had there first. `div.center`'s parent is the
+host's own page wrapper, and its background is inline, so every load wiped it:
+`_mountThemePicker()` applies the default theme at mount, so the area behind the
+game window, the footer and the credits all went white with no theme switch
+involved. Fixed by moving every host-furniture override to CSS hung off a
+`body.acop-theme-bunker` class (logo box, seating via `div:has(> div.center)`,
+and `#game_window`'s paper) — dropping a class is a clean undo, writing into a
+host element's inline style never is. THE RULE, worth generalising: a theme may
+set inline styles on what the theme mechanism already owns (`nct_stuff` colours,
+the body background attribute, `corrr`), but must not write into the host page's
+own elements — use a body class and a stylesheet. Verified: nuketheme_check 24/24
+(+2, including a regression check that applying the default theme leaves a host
+inline background intact — confirmed to FAIL against the un-fixed code).
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 247
+session went with it (they were never committed). Rebuilt and COMMITTED, 249
 assertions over the areas that carry the most machinery:
 `nuke_check` (106), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
-`nuketheme_check` (22),
+`nuketheme_check` (24),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.

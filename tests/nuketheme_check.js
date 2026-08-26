@@ -161,7 +161,7 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
   }, { theme, src });
   let bn = await banner('In the Bunker', await p.evaluate(() => window.__LOGO));
   ck('bunker logo renders at its NATURAL size — not stretched to the division',
-     bn.imgW === 300 && bn.imgH === 90 && bn.inlineH === 'auto');
+     bn.imgW === 300 && bn.imgH === 90);
   ck('…centred, with nothing painted behind it or its seating',
      bn.centred && bn.imgBg === 'rgba(0, 0, 0, 0)' && bn.seatBg === 'rgba(0, 0, 0, 0)'
      && bn.hostBg === 'rgba(0, 0, 0, 0)');
@@ -175,6 +175,30 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
   // ── The .game_header strip. Two requirements that pull against each other:
   // nothing of the shipped header survives under this theme (no logo image, no
   // ground), but the nuke map still needs a black ground behind the chyron.
+  // The bug this section exists for: the theme used to force the seating
+  // transparent with INLINE styles and undo it with removeProperty, which
+  // deletes whatever inline value the HOST had there. Applying the default theme
+  // — which happens on every load, when the picker mounts — then wiped the page
+  // wrapper's background and the whole page went white.
+  ck('applying the default theme leaves the host\'s own inline background alone',
+     await p.evaluate(() => {
+       const host = document.getElementById('banner_host');
+       host.style.background = '#0b0b0b';          // as a host page may well do
+       _applyTheme('In the Bunker');
+       const duringInline = host.style.background;
+       const duringComputed = getComputedStyle(host).backgroundColor;
+       _applyTheme('A Cancer on the Presidency');
+       const after = host.style.background;
+       host.style.removeProperty('background');
+       return duringInline === 'rgb(11, 11, 11)'          // untouched while themed
+         && duringComputed === 'rgba(0, 0, 0, 0)'         // …but overridden visually
+         && after === 'rgb(11, 11, 11)';                  // and still there afterwards
+     }));
+  ck('the overrides are a body class, not writes into host elements',
+     /document\.body\.classList\.add\('acop-theme-bunker'\)/.test(c1)
+     && /document\.body\.classList\.remove\('acop-theme-bunker'\)/.test(c1)
+     && !/centre\.parentElement\.style/.test(c1));
+
   console.log('\nTHE HEADER STRIP:');
   const noiseStart = c1.indexOf('customStyling.innerHTML = `') + 'customStyling.innerHTML = `'.length;
   const noiseCss = c1.slice(noiseStart, c1.indexOf('`;', noiseStart));

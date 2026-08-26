@@ -357,27 +357,20 @@ var ACOP_THEMES = {
         const gh = document.getElementsByClassName('game_header')[0];
         if (gh) gh.style.backgroundColor = 'transparent';
         const gw = document.getElementById('game_window');
-        if (gw) {
-            gw.style.backgroundColor = 'transparent';
-            gw.style.removeProperty('background-image');   // let the host's paper back through
-        }
+        if (gw) gw.style.backgroundColor = 'transparent';
         const cont = document.getElementsByClassName('container')[0];
         if (cont) cont.style.backgroundColor = 'transparent';
         const hdr = document.getElementById('header');
-        if (hdr) {
-            hdr.src = 'https://file.garden/aXPgNT-ZRCxxpy0g/watergatebannerv4.png';
-            // Hand the banner back to the shipped stylesheet rule (which
-            // stretches it to fill div.center); clear anything a natural-size
-            // theme set inline, on the image AND on its seating, or it follows
-            // us here.
-            ['height', 'width', 'max-width', 'object-fit', 'margin', 'background']
-                .forEach(k => hdr.style.removeProperty(k));
-            const centre = document.getElementsByClassName('center')[0];
-            if (centre) {
-                centre.style.removeProperty('background');
-                if (centre.parentElement) centre.parentElement.style.removeProperty('background');
-            }
-        }
+        if (hdr) hdr.src = 'https://file.garden/aXPgNT-ZRCxxpy0g/watergatebannerv4.png';
+        // Everything a theme changes about the HOST's own furniture — the banner
+        // image's box, the divisions seating it, the game window's paper — is
+        // done with a body class and CSS, never by writing inline styles onto
+        // host elements. Dropping the class is a clean undo; removeProperty is
+        // NOT, because it deletes whatever inline value the host had there
+        // first. That bug shipped: the default entry cleared the host page
+        // wrapper's inline background on every load, and the whole page behind
+        // the game window went white.
+        document.body.classList.remove('acop-theme-bunker');
         document.body.background = 'https://file.garden/aXPgNT-ZRCxxpy0g/backgroundv69.gif';
         document.body.style.backgroundSize = '100% auto';   // fit viewport width
         document.body.style.backgroundRepeat = '';          // tiles down the page (the default)
@@ -407,43 +400,17 @@ var ACOP_THEMES = {
         const gh = document.getElementsByClassName('game_header')[0];
         if (gh) gh.style.backgroundColor = 'transparent';
         const gw = document.getElementById('game_window');
-        if (gw) {
-            gw.style.backgroundColor = 'transparent';
-            // …and no paper. #game_window carries background.png from the host's
-            // own stylesheet; with the header strip transparent that image was
-            // what showed through it. A blackout theme has no paper, so drop it
-            // and let the page (the hallway) be what is behind everything. The
-            // default entry removes this again.
-            gw.style.setProperty('background-image', 'none', 'important');
-        }
+        if (gw) gw.style.backgroundColor = 'transparent';
+        // The rest of this theme's overrides — no paper on the game window, the
+        // banner at its own size, transparent seating — are CSS hung off this
+        // class (main stylesheet, grep acop-theme-bunker). See the default entry
+        // for why they are NOT inline styles on the host's elements.
+        document.body.classList.add('acop-theme-bunker');
         const cont = document.getElementsByClassName('container')[0];
         if (cont) cont.style.backgroundColor = 'transparent';
         const BUNKER_BANNER = 'https://file.garden/aXPgNT-ZRCxxpy0g/nukelogo.png';
         const hdr = document.getElementById('header');
-        if (hdr) {
-            hdr.src = BUNKER_BANNER;
-            // The logo at its OWN size, centred, on nothing. The shipped rule
-            // 'div.center img#header { width:100%; height:100% !important }'
-            // would stretch it to fill the division, so height/width auto have
-            // to be set as INLINE !important — the only thing that out-ranks a
-            // stylesheet !important. max-width is the single guard: it does
-            // nothing unless the image is wider than the division, in which case
-            // scaling down beats overflowing the page.
-            hdr.style.setProperty('height', 'auto', 'important');
-            hdr.style.setProperty('width', 'auto', 'important');
-            hdr.style.setProperty('max-width', '100%', 'important');
-            hdr.style.setProperty('margin', '0 auto', 'important');
-            hdr.style.setProperty('background', 'transparent', 'important');
-            // …and the seating it sits in is transparent, so the page shows
-            // around the logo rather than a band of anything. div.center is
-            // transparent in the main stylesheet already; its PARENT is the
-            // host's own banner division, which is not ours to know about.
-            const centre = document.getElementsByClassName('center')[0];
-            if (centre) {
-                centre.style.setProperty('background', 'transparent', 'important');
-                if (centre.parentElement) centre.parentElement.style.setProperty('background', 'transparent', 'important');
-            }
-        }
+        if (hdr) hdr.src = BUNKER_BANNER;   // the box + its seating: see the CSS
         // The image goes on the legacy 'background' ATTRIBUTE, as every theme
         // here does, and the black on the legacy 'bgColor' ATTRIBUTE — NOT on
         // inline style, because _applyTheme runs _syncLowFxBg() afterwards and
@@ -1184,6 +1151,36 @@ div.center img#header {
     width: 100% !important;
     height: 100% !important;
     display: block !important;
+}
+/* ── "In the Bunker" theme (body.acop-theme-bunker, added by its entry in
+   ACOP_THEMES) ─────────────────────────────────────────────────────────────
+   Everything this theme changes about the HOST's own furniture lives here
+   rather than in inline styles. The reason is undo: dropping the class restores
+   the host exactly, whereas removeProperty on a host element deletes whatever
+   inline value the host had there to begin with — which is how the default
+   theme once wiped the page wrapper's background and turned the page white.
+   The logo at its OWN size, centred, on nothing: this out-specifies the
+   stretch rule above without needing !important on the width/height. */
+body.acop-theme-bunker div.center img#header {
+    width: auto !important;
+    height: auto !important;
+    max-width: 100%;          /* the one guard: only bites on a very wide logo */
+    margin: 0 auto;
+    background: transparent;
+}
+/* …and the seating it sits in, so the page shows around the logo rather than a
+   band of colour. :has() picks the host's own banner division — the parent of
+   div.center — which we otherwise have no name for. */
+body.acop-theme-bunker div.center,
+body.acop-theme-bunker div:has(> div.center) {
+    background: transparent !important;
+}
+/* No paper. #game_window carries background.png from the host's stylesheet, and
+   with this theme's header strip transparent that image was what showed through
+   it. A blackout theme has no paper: the page (the hallway) is what is behind
+   everything. */
+body.acop-theme-bunker #game_window {
+    background-image: none !important;
 }
 .inner_inner_window h3 {
     height: auto !important;
