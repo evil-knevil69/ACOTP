@@ -418,7 +418,7 @@ var ACOP_THEMES = {
         }
         const cont = document.getElementsByClassName('container')[0];
         if (cont) cont.style.backgroundColor = 'transparent';
-        const BUNKER_BANNER = 'https://file.garden/aXPgNT-ZRCxxpy0g/nukelogo.jpg';
+        const BUNKER_BANNER = 'https://file.garden/aXPgNT-ZRCxxpy0g/nukelogo.png';
         const hdr = document.getElementById('header');
         if (hdr) {
             hdr.src = BUNKER_BANNER;

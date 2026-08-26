@@ -1251,7 +1251,7 @@ All four background properties are therefore back at the browser defaults, the
 same treatment the default theme's gif gets; `bgColor = '#000000'` is the ground
 beneath, visible only if the image fails to load. `body.style.minHeight = '100vh'`
 is still required: a body background paints only BODY's box, so on a short page
-the host site's own colour showed as pale bands above and below. The banner is `nukelogo.jpg` at its
+the host site's own colour showed as pale bands above and below. The banner is `nukelogo.png` at its
 OWN SIZE (Aug 2026 — fitting it to the division's height was the previous
 treatment): the shipped rule `div.center img#header { width:100%; height:100%
 !important }` would stretch it, so `height:auto` / `width:auto` /

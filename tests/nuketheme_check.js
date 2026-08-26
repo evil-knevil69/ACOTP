@@ -165,7 +165,7 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
   ck('…centred, with nothing painted behind it or its seating',
      bn.centred && bn.imgBg === 'rgba(0, 0, 0, 0)' && bn.seatBg === 'rgba(0, 0, 0, 0)'
      && bn.hostBg === 'rgba(0, 0, 0, 0)');
-  ck('the bunker theme names the nuke logo', /nukelogo\.jpg/.test(c1));
+  ck('the bunker theme names the nuke logo', /nukelogo\.png/.test(c1));
   bn = await banner('A Cancer on the Presidency', await p.evaluate(() => window.__BANNER));
   ck('the shipped banner gets its full-width stretch back, with no inline leak',
      bn.imgW === bn.divW && bn.imgH === bn.divH && bn.inlineH === '');
