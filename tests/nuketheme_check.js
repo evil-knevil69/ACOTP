@@ -79,6 +79,19 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
      s.theme === 'In the Bunker' && /Bunker-hallway/.test(s.bg || '') && s.bgColor === '#000000');
   ck('…at natural size, tiling to cover a screen bigger than the image',
      s.size === 'auto' && s.repeat === 'repeat' && s.pos === '0% 0%' && s.attach === 'scroll');
+  // …and it must HOLD that against the host's own stylesheet. Clearing the
+  // inline value hands the property to the host, not to the browser default —
+  // the host has a body background-size rule, which stretched the hallway.
+  ck('…and a host background-size rule cannot stretch it, even with !important',
+     await p.evaluate(() => {
+       const st = document.createElement('style');
+       st.textContent = 'body { background-size: 100% 100% !important; }';
+       document.head.appendChild(st);
+       _applyTheme('In the Bunker');
+       const held = getComputedStyle(document.body).backgroundSize;
+       st.remove();
+       return held === 'auto';
+     }));
   ck('…and body covers the viewport, so the host page colour never shows through',
      s.minH === '100vh');
   ck('…the picker follows, so the dropdown is not lying about the look',

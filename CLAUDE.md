@@ -151,8 +151,13 @@ it survives New Game, an event swap does not.
    never `background = ''`** — an empty value resolves against the page URL and
    loads the HTML document as an image.
 3. **Every entry must set the body's `backgroundSize`, `backgroundRepeat`,
-   `backgroundPosition` and `backgroundAttachment` itself** — `''` restores the
-   browser default for each (auto, tile, top-left, scroll). Themes stay
+   `backgroundPosition` and `backgroundAttachment` itself — to EXPLICIT values,
+   not `''`.** Clearing an inline declaration doesn't restore the browser
+   default; it hands the property to the host page's own stylesheet, which has
+   its own ideas (a body `background-size` rule once stretched a theme's image
+   vertically). Use `setProperty(k, v, 'important')` if the host fights back —
+   and note that a theme which does must be undone with `removeProperty`, since
+   a plain assignment can't clear an !important flag. Themes stay
    self-contained; no MTE-style leak between them. A theme showing one un-tiled
    image should set `bgColor` too, since that is what fills the gap. And if you
    centre a background, set `attachment: fixed` with it — otherwise it centres
@@ -1254,8 +1259,13 @@ transparent strip. Net: the strip shows the PAGE — except on the nuke map, whe
 The page is the bunker hallway
 (`Bunker-hallway-1900x800.jpg`) at its NATURAL size, TILED to cover anything
 bigger (Aug 2026 — `contain` + centred + `fixed` was tried first and replaced).
-All four background properties are therefore back at the browser defaults, the
-same treatment the default theme's gif gets; `bgColor = '#000000'` is the ground
+All four background properties are set EXPLICITLY and !important, NOT cleared to
+'' (Aug 2026): clearing an inline declaration does not give you the browser
+default, it gives you whatever the HOST's stylesheet says — and the host has a
+body `background-size` rule, which stretched the hallway vertically. The default
+entry now `removeProperty`s the four first (a plain assignment cannot clear an
+!important flag) and then sets its own explicit values.
+ `bgColor = '#000000'` is the ground
 beneath, visible only if the image fails to load. `body.style.minHeight = '100vh'`
 is still required: a body background paints only BODY's box, so on a short page
 the host site's own colour showed as pale bands above and below. The banner is `nukelogo.png` at its
@@ -1509,11 +1519,11 @@ inline background intact — confirmed to FAIL against the un-fixed code).
 
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 249
+session went with it (they were never committed). Rebuilt and COMMITTED, 250
 assertions over the areas that carry the most machinery:
 `nuke_check` (106), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
-`nuketheme_check` (24),
+`nuketheme_check` (25),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.
