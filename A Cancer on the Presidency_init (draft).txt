@@ -1176,18 +1176,10 @@ body.acop-theme-bunker div.center img#header {
     max-width: 100%;          /* the one guard: only bites on a very wide logo */
     margin: 0 auto;
     background: transparent;
-    /* Feather the edges into the page. nukelogo.png carries its own alpha, but
-       only a few pixels of it: mean alpha 239, 87% of pixels at 224+, and solid
-       255 through the middle — so with nothing behind it, it still reads as a
-       rectangle. This mask fades the outer ~14% on each axis to nothing, which
-       is what actually makes it bleed into the hallway. Widen the percentages
-       for a softer edge; delete the two declarations for the raw file. */
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%),
-                        linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%);
-    -webkit-mask-composite: source-in;
-    mask-image: linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%),
-                linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%);
-    mask-composite: intersect;
+    /* No mask here: the edge falloff is baked into nukelogo.png itself (Aug
+       2026). The raw file was mostly opaque — mean alpha 239, solid 255 through
+       the middle — and read as a rectangle; a CSS mask was tried and dropped in
+       favour of fixing the asset, so the fade travels with the image. */
 }
 /* …and EVERY seat it sits in, so the logo bleeds straight into the hallway
    rather than onto a plate. A descendant :has() (not '> div.center') walks the

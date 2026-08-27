@@ -176,10 +176,9 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
   let bn = await banner('In the Bunker', await p.evaluate(() => window.__LOGO));
   ck('bunker logo renders at its NATURAL size — not stretched to the division',
      bn.imgW === 300 && bn.imgH === 90);
-  // nukelogo.png is mostly OPAQUE (mean alpha 239, solid through the middle), so
-  // without this it reads as a rectangle however transparent the seating is.
-  ck('…with its edges masked, so it dissolves into the page instead of ending',
-     bn.mask !== 'none' && /linear-gradient/.test(bn.mask));
+  // The edge falloff belongs to the ASSET, not to a CSS mask — so assert the
+  // mask is NOT here, or the two would compound if the file is ever re-cut.
+  ck('…and no CSS mask: the fade is baked into the file', bn.mask === 'none');
   ck('…centred, with nothing painted behind it or its seating',
      bn.centred && bn.imgBg === 'rgba(0, 0, 0, 0)' && bn.seatBg === 'rgba(0, 0, 0, 0)'
      && bn.hostBg === 'rgba(0, 0, 0, 0)');

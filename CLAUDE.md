@@ -1284,12 +1284,15 @@ rule is `!important`, which is what lets it beat the host's INLINE background;
 being a class rule, dropping the class hands that inline value back untouched.
 Deliberately not `*:has(div.center)` — that would match body, whose background
 IS the hallway.
-THE LOGO'S OWN EDGES are masked (Aug 2026): `nukelogo.png` has an alpha channel
-but only a few pixels of falloff — measured mean alpha 239, 87% of pixels at 224+
-and solid 255 through the middle — so with nothing behind it it still read as a
-rectangle. A two-axis linear-gradient mask fades the outer 14% of each axis, and
-that is what actually makes it bleed into the hallway. Widen the percentages for
-a softer edge; delete the two declarations for the raw file. All of it (logo box, seating, the game window's
+THE LOGO'S EDGE FALLOFF IS IN THE ASSET (Aug 2026), not in CSS. The original
+`nukelogo.png` had an alpha channel but only a few pixels of falloff — measured
+mean alpha 239, 87% of pixels at 224+, solid 255 through the middle — so with
+nothing behind it it still read as a rectangle. A CSS mask was tried and dropped
+in favour of re-cutting the file: a smoothstep vignette over the outer 14% of
+each axis (74px / 42px), MULTIPLIED into the existing alpha so the image's own
+soft border survives. Mean alpha 239 → 187, corners and edge midpoints at 0,
+centre still 255. The theme deliberately carries NO mask, and the test asserts
+its absence — a mask plus a feathered file would compound. All of it (logo box, seating, the game window's
 paper) is CSS on `body.acop-theme-bunker`, NOT inline styles on host elements:
 see change 73 for why that distinction matters. No
 FILL ME IN slots left in this theme.
