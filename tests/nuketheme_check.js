@@ -168,6 +168,7 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
              aspectOk: Math.abs((r.width / r.height) - (h.naturalWidth / h.naturalHeight)) < 0.02,
              inlineH: h.style.height,
              imgBg: getComputedStyle(h).backgroundColor,
+             mask: getComputedStyle(h).maskImage || getComputedStyle(h).webkitMaskImage || 'none',
              seatBg: getComputedStyle(seat).backgroundColor,
              hostBg: getComputedStyle(seat.parentElement).backgroundColor,
              centred: Math.abs((r.left + r.right) / 2 - (c.left + c.right) / 2) < 2 };
@@ -175,6 +176,10 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
   let bn = await banner('In the Bunker', await p.evaluate(() => window.__LOGO));
   ck('bunker logo renders at its NATURAL size — not stretched to the division',
      bn.imgW === 300 && bn.imgH === 90);
+  // nukelogo.png is mostly OPAQUE (mean alpha 239, solid through the middle), so
+  // without this it reads as a rectangle however transparent the seating is.
+  ck('…with its edges masked, so it dissolves into the page instead of ending',
+     bn.mask !== 'none' && /linear-gradient/.test(bn.mask));
   ck('…centred, with nothing painted behind it or its seating',
      bn.centred && bn.imgBg === 'rgba(0, 0, 0, 0)' && bn.seatBg === 'rgba(0, 0, 0, 0)'
      && bn.hostBg === 'rgba(0, 0, 0, 0)');
