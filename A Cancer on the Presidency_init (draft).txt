@@ -414,7 +414,7 @@ var ACOP_THEMES = {
         document.body.classList.add('acop-theme-bunker');
         const cont = document.getElementsByClassName('container')[0];
         if (cont) cont.style.backgroundColor = 'transparent';
-        const BUNKER_BANNER = 'https://file.garden/aXPgNT-ZRCxxpy0g/nukelogo.png';
+        const BUNKER_BANNER = 'https://file.garden/aXPgNT-ZRCxxpy0g/nukelogo2.png';
         const hdr = document.getElementById('header');
         if (hdr) hdr.src = BUNKER_BANNER;   // the box + its seating: see the CSS
         // The image goes on the legacy 'background' ATTRIBUTE, as every theme
@@ -1176,7 +1176,7 @@ body.acop-theme-bunker div.center img#header {
     max-width: 100%;          /* the one guard: only bites on a very wide logo */
     margin: 0 auto;
     background: transparent;
-    /* No mask here: the edge falloff is baked into nukelogo.png itself (Aug
+    /* No mask here: the edge falloff is baked into nukelogo2.png itself (Aug
        2026). The raw file was mostly opaque — mean alpha 239, solid 255 through
        the middle — and read as a rectangle; a CSS mask was tried and dropped in
        favour of fixing the asset, so the fade travels with the image. */

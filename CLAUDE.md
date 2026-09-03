@@ -1268,7 +1268,7 @@ entry now `removeProperty`s the four first (a plain assignment cannot clear an
  `bgColor = '#000000'` is the ground
 beneath, visible only if the image fails to load. `body.style.minHeight = '100vh'`
 is still required: a body background paints only BODY's box, so on a short page
-the host site's own colour showed as pale bands above and below. The banner is `nukelogo.png` at its
+the host site's own colour showed as pale bands above and below. The banner is `nukelogo2.png` at its
 OWN SIZE (Aug 2026 — fitting it to the division's height was the previous
 treatment): the shipped rule `div.center img#header { width:100%; height:100%
 !important }` would stretch it, so `height:auto` / `width:auto` /
@@ -1291,7 +1291,9 @@ nothing behind it it still read as a rectangle. A CSS mask was tried and dropped
 in favour of re-cutting the file: a smoothstep vignette over the outer 14% of
 each axis (74px / 42px), MULTIPLIED into the existing alpha so the image's own
 soft border survives. Mean alpha 239 → 187, corners and edge midpoints at 0,
-centre still 255. The theme deliberately carries NO mask, and the test asserts
+centre still 255. The re-cut file is hosted as `nukelogo2.png` (Aug 2026), which
+is what the theme points at — the original `nukelogo.png` is left in place
+unfeathered, so do not switch back to it expecting the fade. The theme deliberately carries NO mask, and the test asserts
 its absence — a mask plus a feathered file would compound. All of it (logo box, seating, the game window's
 paper) is CSS on `body.acop-theme-bunker`, NOT inline styles on host elements:
 see change 73 for why that distinction matters. No
