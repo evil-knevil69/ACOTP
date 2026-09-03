@@ -1257,8 +1257,9 @@ strip carries no logo plate at all. `#game_window` also drops the host's
 transparent strip. Net: the strip shows the PAGE — except on the nuke map, where
 `#game_window.acop-nuke-tv` blacks the window and the chyron keeps its ground.
 The page is the bunker hallway
-(`Bunker-hallway-1900x800.jpg`) at its NATURAL size, TILED to cover anything
-bigger (Aug 2026 — `contain` + centred + `fixed` was tried first and replaced).
+(`Bunker-hallway-1900x800.jpg`) at its NATURAL size, shown ONCE — `no-repeat`,
+with `bgColor` black filling whatever it does not reach (Aug 2026: `contain` +
+centred + `fixed` was tried first, then natural-size TILED, then this).
 All four background properties are set EXPLICITLY and !important, NOT cleared to
 '' (Aug 2026): clearing an inline declaration does not give you the browser
 default, it gives you whatever the HOST's stylesheet says — and the host has a

@@ -77,8 +77,8 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
   s = await p.evaluate(() => { _nukeApplyCensus(); _nukeWar = 2; return window.__look(); });
   ck('the census puts the page on the bunker theme — the hallway, on black',
      s.theme === 'In the Bunker' && /Bunker-hallway/.test(s.bg || '') && s.bgColor === '#000000');
-  ck('…at natural size, tiling to cover a screen bigger than the image',
-     s.size === 'auto' && s.repeat === 'repeat' && s.pos === '0% 0%' && s.attach === 'scroll');
+  ck('…at natural size, shown ONCE — bgColor fills whatever it does not reach',
+     s.size === 'auto' && s.repeat === 'no-repeat' && s.pos === '0% 0%' && s.attach === 'scroll');
   // …and it must HOLD that against the host's own stylesheet. Clearing the
   // inline value hands the property to the host, not to the browser default —
   // the host has a body background-size rule, which stretched the hallway.

@@ -421,8 +421,9 @@ var ACOP_THEMES = {
         // here does, and the black on the legacy 'bgColor' ATTRIBUTE — NOT on
         // inline style, because _applyTheme runs _syncLowFxBg() afterwards and
         // that clears inline backgroundImage/backgroundColor.
-        // The hallway at its NATURAL size (1900x800), tiling to cover anything
-        // bigger. Set EXPLICITLY, and !important, rather than cleared to '':
+        // The hallway ONCE, at its NATURAL size (1900x800) — no tiling; bgColor
+        // below is what fills whatever it doesn't reach. Set EXPLICITLY, and
+        // !important, rather than cleared to '':
         // clearing an inline value doesn't give you the browser default, it
         // gives you whatever the HOST's stylesheet says, and the host has a
         // body background-size rule — which is what stretched the hallway
@@ -431,7 +432,7 @@ var ACOP_THEMES = {
         document.body.background = 'https://file.garden/aXPgNT-ZRCxxpy0g/Bunker-hallway-1900x800.jpg';
         const bg = (k, v) => document.body.style.setProperty(k, v, 'important');
         bg('background-size', 'auto');
-        bg('background-repeat', 'repeat');
+        bg('background-repeat', 'no-repeat');
         bg('background-position', 'left top');
         bg('background-attachment', 'scroll');
         document.body.bgColor = '#000000';
