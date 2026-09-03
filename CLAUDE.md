@@ -1534,13 +1534,33 @@ own elements — use a body class and a stylesheet. Verified: nuketheme_check 24
 (+2, including a regression check that applying the default theme leaves a host
 inline background intact — confirmed to FAIL against the un-fixed code).
 
+**74. Nuke map injects a track into the music player (Aug 2026)** — Code 2,
+the same mechanism as the Allende easter egg (grep `Last Speech`): append a
+`window.Song` to the live `window.playlist`, point `currentSongIndex` at it,
+refresh the `<select>` (via `window._rebuildPlaylistSelect`, falling back to a
+hand-appended `<option>`), `window.loadAndPlay()`. Config `_NUKE_TRACK`
+{title, artist, url} next to `_NUKE_THEME`; `url: ''` disables it.
+FIRED FROM THE `electionNight` WRAPPER, not from `_nukeApplyCensus` where the
+theme swap lives — the census runs a question EARLIER, at the bunker answer, so
+hanging the music there would start it over the last question instead of over
+the map. The wrapper already gates on `_nukeWar >= 2` and is where the screen is
+actually built. Once per run: `_nukeTrackPlayed` in `_SL_SCALARS` + cleared by
+`_nukeReset`, so revisiting the map (or `ACOPNuke.demo()` twice) neither stacks
+copies nor restarts it. Fail-safe exactly like the Allende egg — the whole thing
+no-ops unless `Song`/`playlist`/`loadAndPlay` are up, so it cannot break the
+screen if the player has not been built. NOT gated by low demand mode, matching
+the Allende precedent. Verified: nuketheme_check 33/33 (+6: config + saved flag +
+fires-from-the-wrapper-not-the-census greps, and a runtime drive against a stub
+player — appends/selects/plays once, revisits don't stack, no-player no-ops
+instead of throwing).
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 252
+session went with it (they were never committed). Rebuilt and COMMITTED, 258
 assertions over the areas that carry the most machinery:
 `nuke_check` (106), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
-`nuketheme_check` (27),
+`nuketheme_check` (33),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.

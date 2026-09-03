@@ -17633,7 +17633,7 @@ document.addEventListener('mouseleave', () => {
 // covered — if a new per-run var is added to the mod, add its name here.
 var _SL_SCALARS = [
     // run counters / flow
-    '_questionCount', '_pressureOn', '_allendeSpeechPlayed', '_actionCrimesRevealed',
+    '_questionCount', '_pressureOn', '_allendeSpeechPlayed', '_nukeTrackPlayed', '_actionCrimesRevealed',
     '_campaignLength', '_lengthInstalled', '_endAchFired', '_projStingPlayed', '_enightStingPlayed',
     '_enightIntroPlayed', '_enightSetIdx', '_gameTheme', '_nukeWar',
     // ticket
@@ -20123,6 +20123,15 @@ var _NUKE_POPUP_ORIG = campaignTrail_temp.ElectionPopup;
 // one it hands back to when the branch is unwound. '' = leave the theme alone.
 var _NUKE_THEME = 'In the Bunker';
 var _ACOP_DEFAULT_THEME = 'A Cancer on the Presidency';
+// Track injected into the music player when the nuke map comes up — the same
+// mechanism as the Allende easter egg (grep 'Last Speech'): appended to the
+// live playlist, selected, and played. url '' = no track.
+var _NUKE_TRACK = {
+    title: 'Emergency Action Message',
+    artist: 'ACOP News',
+    url: 'https://audio.jukehost.co.uk/01a0699b-184b-7036-aa52-4839a1985213',
+};
+var _nukeTrackPlayed = false;   // once per run; in _SL_SCALARS + the New Game reset
 
 // Pristine per-state elector counts. The census ZEROES every state's
 // electoral_votes (the Electoral College did not survive the exchange) — the
@@ -20228,6 +20237,7 @@ function _nukeReset() {
         }
     }
     _nukeWar = 0;
+    _nukeTrackPlayed = false;   // a fresh run gets the track again
     if (document.body) document.body.classList.remove('acop-nuke');
     // Hand the look back, but only if the war is what took it — a player who
     // picked a theme themselves keeps it (a manual pick is a session
@@ -20400,12 +20410,41 @@ var _NUKE_STRIKE_WAVES = [
     // then the rest: stragglers, re-strikes, fallout reports
     { from: 240, to: 440, states: [] },
 ];
+// Put _NUKE_TRACK on the music player, once per run. Lifted from the Allende
+// easter egg in openWorldMap: append to the live playlist, point the player at
+// it, refresh the <select>, play. Same fail-safes — the whole thing no-ops
+// unless the engine's Song/playlist/loadAndPlay globals are up, so it cannot
+// break the screen if the player has not been built yet.
+function _nukePlayTrack() {
+    if (_nukeTrackPlayed || !_NUKE_TRACK || !_NUKE_TRACK.url) return;
+    if (!(window.Song && window.playlist && window.loadAndPlay)) return;
+    _nukeTrackPlayed = true;
+    const track = new window.Song(_NUKE_TRACK.title, _NUKE_TRACK.artist, '', _NUKE_TRACK.url);
+    window.playlist.addSong(track);
+    window.playlist.currentSongIndex = window.playlist.songs.length - 1;
+    if (window._rebuildPlaylistSelect) {
+        window._rebuildPlaylistSelect();
+    } else {
+        const sel = document.getElementById('playlist-select');
+        if (sel) {
+            const opt = document.createElement('option');
+            opt.value = window.playlist.currentSongIndex;
+            opt.textContent = track.getTitle();
+            sel.appendChild(opt);
+        }
+    }
+    window.loadAndPlay();
+}
 (function () {
     const orig = typeof window.electionNight === 'function' ? window.electionNight : null;
     if (!orig) return;
     window.electionNight = function () {
         const r = orig.apply(this, arguments);
         try {
+            // The nuke MAP is the moment, not the census — the census fires a
+            // question earlier, at the bunker answer. This wrapper is where the
+            // screen is actually built, and it already gates on _nukeWar >= 2.
+            if (_nukeWar >= 2) _nukePlayTrack();
             if (_nukeWar >= 2 && Array.isArray(campaignTrail_temp.final_state_results)) {
                 const waveOf = abbr => {
                     for (const w of _NUKE_STRIKE_WAVES) {

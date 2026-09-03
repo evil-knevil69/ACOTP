@@ -293,6 +293,64 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
   ck('…except on the nuke map, where it stays black behind the news ticker',
      nukeStrip.px === '0,0,0');
 
+  // ── The music-player injection, driven against a stub of the engine's player
+  // globals — the same shape the Allende easter egg uses.
+  console.log('\nTHE NUKE TRACK:');
+  ck('the track is configured with a real url, and a once-per-run flag',
+     /var _NUKE_TRACK = \{[\s\S]{0,240}url: 'https:\/\/audio\.jukehost\.co\.uk\/[0-9a-f-]+',/.test(c2)
+     && /var _nukeTrackPlayed = false;/.test(c2));
+  ck('…the flag is saved and cleared on New Game, like every other per-run flag',
+     /'_nukeTrackPlayed'/.test(c2.match(/var _SL_SCALARS = \[[\s\S]*?\];/)[0])
+     && /_nukeTrackPlayed = false;\s*\/\/ a fresh run/.test(c2));
+  ck('…and it fires from the electionNight wrapper (the map), not the census',
+     /if \(_nukeWar >= 2\) _nukePlayTrack\(\);/.test(c2)
+     && !/_nukeApplyCensus\(\)[\s\S]{0,1400}_nukePlayTrack/.test(c2));
+
+  const track = await p.evaluate(async ({ src }) => {
+    // stub the engine's music player exactly as far as the injector touches it
+    const log = { added: [], played: 0, rebuilt: 0 };
+    window.Song = function (t, a, _x, url) { this.t = t; this.a = a; this.url = url;
+                                             this.getTitle = () => t; };
+    window.playlist = { songs: [], currentSongIndex: 0,
+                        addSong(sg) { this.songs.push(sg); log.added.push(sg); } };
+    window.loadAndPlay = () => { log.played++; };
+    window._rebuildPlaylistSelect = () => { log.rebuilt++; };
+    var _nukeWar = 0, _nukeTrackPlayed = false;
+    eval(src);                                    // the real config + injector
+    const before = { added: log.added.length };
+    _nukePlayTrack();                             // first arrival at the map
+    const one = { added: log.added.length, played: log.played, rebuilt: log.rebuilt,
+                  title: (log.added[0] || {}).t, url: (log.added[0] || {}).url,
+                  selected: window.playlist.currentSongIndex };
+    _nukePlayTrack(); _nukePlayTrack();           // revisits must not stack it
+    const three = { added: log.added.length, played: log.played };
+    // …and with no player up, it must no-op rather than throw
+    const noPlayer = (() => {
+      _nukeTrackPlayed = false;
+      const keep = window.playlist; delete window.playlist;
+      let threw = false;
+      try { _nukePlayTrack(); } catch (e) { threw = true; }
+      window.playlist = keep;
+      return { threw, stillUnplayed: _nukeTrackPlayed === false };
+    })();
+    return { before, one, three, noPlayer };
+  }, { src: (() => {
+    const cfgStart = c2.indexOf('var _NUKE_TRACK = {');
+    const cfgEnd = c2.indexOf('var _nukeTrackPlayed');
+    const fnStart = c2.indexOf('function _nukePlayTrack() {');
+    let i = c2.indexOf('{', fnStart), d = 0, fnEnd = fnStart;
+    for (let j = i; j < c2.length; j++) { if (c2[j] === '{') d++; else if (c2[j] === '}') { d--; if (!d) { fnEnd = j + 1; break; } } }
+    return c2.slice(cfgStart, cfgEnd) + '\n' + c2.slice(fnStart, fnEnd);
+  })() });
+
+  ck('arriving at the map appends the track, selects it and plays it',
+     track.one.added === 1 && track.one.played === 1 && track.one.rebuilt === 1
+     && /jukehost/.test(track.one.url || '') && track.one.selected === 0);
+  ck('…once per run: revisiting the map does not stack copies or restart it',
+     track.three.added === 1 && track.three.played === 1);
+  ck('…and with no music player up it no-ops instead of throwing',
+     !track.noPlayer.threw && track.noPlayer.stillUnplayed);
+
   console.log('\n' + pass + ' passed, ' + fail + ' failed');
   await b.close(); process.exit(fail ? 1 : 0);
 })();
