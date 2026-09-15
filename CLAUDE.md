@@ -1593,6 +1593,54 @@ paths, redraw-while-open, Hush Money untouched and independent of the pool, and 
 back-compat folds). The shared-pool assertions were CONFIRMED TO FAIL against a copy
 given `blame` its own stack again. Full suite green, Code 2 EXECUTES CLEAN.
 
+**76. Initiative: Smear, Interrogate, Grace + priced actions (Sep 2026)** — Code 2.
+Three more actions in the Initiative submenu, and the pool now has PRICES.
+- **Smear** (cost **2**) — targeted. The man can never turn state's witness. Guarded
+  INSIDE `_flipWitness` (the single choke point, so it holds however the flip is
+  reached — a question effect calling it directly is refused too), plus the
+  `_flipDanger` counter stops climbing for him so the telegraph isn't lying. Note what
+  it deliberately does NOT do: he keeps radiating exposure up the chart. Silence, not
+  safety.
+- **Interrogate** (1) — targeted. Reveals his loyalty through Fog of War, permanently.
+  Both fog render sites (card back + hover tip) now route through ONE helper,
+  `_loyaltyFogged(person, loyalty)`, which takes the ORG-CHART id and resolves it with
+  `_taKeyFor` — so the burglars (the one person whose chart id differs from the stat
+  key) un-fog correctly. `available()` locks it when Fog of War is off.
+- **Grace** (1) — the first UNTARGETED action: `global: true` on the def, resolved by
+  `_taApplyGlobal` the moment it's picked, so it never enters target-select mode.
+  Sets `_pressureFrozenUntil = _questionCount + 1`; `_pressureFrozen()` is read by the
+  pressure `_everyTurn` tick AND by `_expFlowLevel`, so the wires visibly go dark for
+  the quiet turn. Ticks run after `_questionCount++`, so +1 freezes exactly the next
+  turn. `available()` locks it before Part II.
+PRICING: `cost` on the action def (default 1). `_spendTeamAction` deducts `_taCost(key)`
+and refuses below it; `_teamActionClicked` gates on it; the submenu shows each price in
+the same `.nw-ta-count` pill and disables what the pool can't cover ("Costs 2 — you have
+1"); the Initiative row button turns on `_taMinPooledCost()`, not zero, so it never
+opens a submenu in which nothing is affordable.
+SUBMENU IS NOT A CARD (on request): `#nw-init-pick` is just an indented flex column —
+no background, border, shadow or headline — and its buttons carry `.nw-ta-btn` so they
+inherit the row's pill styling exactly. The pool is shown once, on the Initiative
+button. No cancel button: clicking Initiative again closes it. NOTE for harnesses —
+"the row" must now be `#nw-team-actions > .nw-ta-btn` (direct children), since the
+submenu's buttons share the class.
+Save/load: `_smeared` + `_interrogated` are Sets captured in `_slCaptureMod` and
+restored by mutation; `_pressureFrozenUntil` is in `_SL_SCALARS`; all three cleared on
+New Game.
+**BUG FOUND AND FIXED while wiring this** — `_flipped` was never saved OR rebuilt, so a
+load left it EMPTY while the men's STATUS vars (which are saved) still said 1 = state's
+witness. A restored witness therefore went on radiating exposure and could be flipped a
+SECOND time (+2 to Nixon again, another `_innerCircleFlips` entry). `_slRestoreMod` now
+derives it: `_flipped` = everyone at STATUS 1. Deriving rather than storing also repairs
+saves written before this was noticed.
+Verified: initiative_check 58/58 (submenu contents + prices, all three gates, Smear
+with a CONTROL case proving an un-smeared man at the brink does flip, the direct
+`_flipWitness` refusal, Grace's exact one-turn window + the darkened glow + exposure
+climbing again after, Interrogate's reveal/isolation/burglars-alias, the de-carding, and
+`_flipped` rebuild). FOUR POISONS confirmed to fail the suite (Smear guard removed, Grace
+freeze removed, Smear priced at 1, Interrogate ignored by the fog helper) — and the
+first poison is what revealed the choke-point guard had no runtime test, since the
+`_flipDanger` guard shadows it in the tick path. Full suite green, Code 2 EXECUTES CLEAN.
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
 session went with it (they were never committed). Rebuilt and COMMITTED, 258
@@ -1600,7 +1648,7 @@ assertions over the areas that carry the most machinery:
 `nuke_check` (106), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `nuketheme_check` (33),
-`initiative_check` (27),
+`initiative_check` (58),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.

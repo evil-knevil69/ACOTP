@@ -13189,16 +13189,33 @@ const _TEAM_ACTIONS = [
     // Both of these read and write the Initiative pool, so _spendTeamAction and
     // _addTeamAction need no special case: spending either takes one point, and
     // an authored _addTeamAction('cut', 1) grants one point.
-    { key: 'cut',        label: 'Cut Them Loose', pool: true, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
-    { key: 'blame',      label: 'Pin the Blame',  pool: true, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
+    { key: 'cut',         label: 'Cut Them Loose', pool: true, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
+    { key: 'blame',       label: 'Pin the Blame',  pool: true, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
+    { key: 'smear',       label: 'Smear',          pool: true, cost: 2, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
+    { key: 'interrogate', label: 'Interrogate',    pool: true, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
+    { key: 'grace',       label: 'Grace',          pool: true, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
 ];
 
 // Which keys render as buttons in the row, in order…
 const _TA_MAIN_ROW = ['hush', 'clemency', 'initiative'];
-// …and which the Initiative picker offers, in order.
-const _TA_POOLED   = ['cut', 'blame'];
+// …and which the Initiative picker offers, in order. All of these spend the
+// pool; a `cost` on the action def (default 1) is what they spend.
+const _TA_POOLED   = ['cut', 'blame', 'smear', 'interrogate', 'grace'];
 
 function _taIsPooled(key) { const a = _teamAction(key); return !!(a && a.pool); }
+function _taCost(key) { const a = _teamAction(key); return (a && a.cost) || 1; }
+// Should this man's loyalty number be blurred? Takes the ORG-CHART person id
+// (which differs from the _ORG_PRESSURE key for the burglars), so both render
+// sites — the card back and the hover tip — can share one answer. Fogged
+// unless he is about to crack (≤1, always shown) or has been Interrogated.
+function _loyaltyFogged(person, loyalty) {
+    return loyalty > 1 && !_interrogated.has(_taKeyFor(person));
+}
+// The cheapest thing the pool can buy — what the Initiative button's enabled
+// state turns on, so it doesn't offer a picker in which nothing is affordable.
+function _taMinPooledCost() {
+    return Math.min.apply(null, _TA_POOLED.map(_taCost));
+}
 
 function _teamAction(key) { return _TEAM_ACTIONS.find(a => a.key === key); }
 
@@ -13235,8 +13252,10 @@ function _addTeamAction(key, n) {
 // _teamActionClicked below and spend there.
 function _spendTeamAction(key) {
     const a = _teamAction(key);
-    if (!a || a.get() <= 0) return false;
-    a.set(a.get() - 1);
+    if (!a) return false;
+    const cost = _taCost(key);
+    if (a.get() < cost) return false;
+    a.set(a.get() - cost);
     _syncTeamActionBtns();
     return true;
 }
@@ -13320,6 +13339,40 @@ const _TA_WIRED = {
             return 'Pinned the blame on ' + _crimeName(key) + ' — his exposure +2 and loyalty −2; the President\'s exposure eases to ' + WatergateExposure + ' / 20.';
         }
     },
+    smear: {
+        prompt: 'Smear: pick the man to discredit (click Initiative again to cancel).',
+        // Destroy his credibility and he can never become a state's witness —
+        // the guard lives in _flipWitness, so it holds however the flip is
+        // reached. Note what it does NOT do: he keeps radiating exposure up the
+        // chart, so smearing a man buys silence, not safety.
+        canTarget(key) { return !_smeared.has(key); },
+        apply(key) {
+            _smeared.add(key);
+            return _crimeName(key) + ' is finished as a witness — whatever he says now, no one will believe him.';
+        }
+    },
+    interrogate: {
+        prompt: 'Interrogate: pick the man to lean on (click Initiative again to cancel).',
+        // Only worth a point while Fog of War is hiding the numbers.
+        available() { return document.body.classList.contains('fog-of-war-on'); },
+        unavailableHint: 'Nothing to reveal — Fog of War is off, so loyalty is already in plain sight.',
+        canTarget(key) { return !_interrogated.has(key); },
+        apply(key) {
+            _interrogated.add(key);
+            const p = _ORG_PRESSURE[key];
+            return _crimeName(key) + ' stands at ' + (p ? p.loy() : '?') + ' / 10 loyalty — and you will see it from now on.';
+        }
+    },
+    grace: {
+        // No target: it buys the whole conspiracy a quiet turn.
+        global: true,
+        available() { return _pressureOn && _lengthAllows('pressure'); },
+        unavailableHint: 'Nothing is moving yet — the investigation has not begun to bite.',
+        apply() {
+            _pressureFrozenUntil = _questionCount + 1;
+            return 'One quiet turn bought — nothing climbs the chart until the turn after next.';
+        }
+    },
 };
 
 // Active clemency promises: { key, boost, expiresTurn, statusAtGrant }.
@@ -13348,7 +13401,7 @@ function _teamActionClicked(key) {
     if (_taMode === key) { _taExitMode(); _taHint(''); return; }   // second click cancels
     _taExitMode();
     const a = _teamAction(key);
-    if (!a || a.get() <= 0) return;
+    if (!a || a.get() < _taCost(key)) return;
     const wired = _TA_WIRED[key];
     if (!wired) return;   // mechanic not designed yet
     if (wired.available && !wired.available()) return;   // e.g. blame below the exposure gate
@@ -13387,40 +13440,48 @@ function _openInitiativePicker() {
     if (!box || _initiativePickerOpen()) return;
     const pick = document.createElement('div');
     pick.id = 'nw-init-pick';
-
-    const head = document.createElement('div');
-    head.className = 'nw-init-head';
     const pts = InitiativeStack;
-    head.textContent = pts + (pts === 1 ? ' initiative point' : ' initiative points');
-    pick.appendChild(head);
 
     _TA_POOLED.forEach(key => {
         const a = _teamAction(key);
         const wired = _TA_WIRED[key];
         if (!a || !wired) return;
+        const cost = _taCost(key);
+        // Same pill as the row buttons (.nw-ta-btn + .nw-ta-count), so the
+        // submenu reads as more of the same control rather than a popup: the
+        // count pill carries the PRICE here instead of a charge total.
         const btn = document.createElement('button');
-        btn.className = 'nw-init-btn';
+        btn.className = 'nw-ta-btn nw-init-btn';
         btn.dataset.action = key;
-        btn.textContent = a.label;
-        // Same gates as the row buttons: no points, or the action's own
-        // availability test (Pin the Blame below the exposure threshold).
+        btn.innerHTML = a.label + ' <span class="nw-ta-count">' + cost + '</span>';
+        // Two gates: the pool has to cover the price, and the action's own
+        // availability test has to pass (Pin the Blame below the exposure
+        // threshold, Interrogate with Fog of War off, Grace before Part II).
         const locked = !!(wired.available && !wired.available());
-        btn.disabled = pts <= 0 || locked;
+        const poor = pts < cost;
+        btn.disabled = poor || locked;
         if (locked) btn.title = wired.unavailableHint || '';
+        else if (poor) btn.title = 'Costs ' + cost + ' — you have ' + pts + '.';
         btn.addEventListener('click', () => {
             _closeInitiativePicker();
-            _teamActionClicked(key);
+            if (wired.global) _taApplyGlobal(key);
+            else _teamActionClicked(key);
         });
         pick.appendChild(btn);
     });
 
-    const cancel = document.createElement('button');
-    cancel.className = 'nw-init-cancel';
-    cancel.textContent = 'Never mind';
-    cancel.addEventListener('click', () => { _closeInitiativePicker(); _taHint(''); });
-    pick.appendChild(cancel);
-
     box.appendChild(pick);
+}
+
+// An action with no target (Grace) resolves the moment it's picked — there is
+// nobody to click on the chart, so it never enters target-select mode.
+function _taApplyGlobal(key) {
+    const wired = _TA_WIRED[key];
+    if (!wired || !wired.global) return;
+    if (wired.available && !wired.available()) return;
+    if (!_spendTeamAction(key)) return;
+    _taHint(wired.apply());
+    if (typeof window._syncOrgStates === 'function') window._syncOrgStates();
 }
 
 // The Initiative button: cancels a live pooled action, else toggles the picker.
@@ -13429,7 +13490,7 @@ function _initiativeClicked() {
     if (_initiativePickerOpen()) { _closeInitiativePicker(); return; }
     _taExitMode();          // drop any other action's target-select mode first
     _taHint('');
-    if (InitiativeStack <= 0) return;
+    if (InitiativeStack < _taMinPooledCost()) return;
     _openInitiativePicker();
 }
 
@@ -13466,7 +13527,8 @@ function _syncTeamActionBtns() {
         const wired = _TA_WIRED[key];
         const locked = !!(wired && wired.available && !wired.available());
         btn.querySelector('.nw-ta-count').textContent = a.get();
-        btn.disabled = a.get() <= 0 || locked;
+        const need = key === 'initiative' ? _taMinPooledCost() : _taCost(key);
+        btn.disabled = a.get() < need || locked;
         btn.title = locked ? (wired.unavailableHint || '') : '';
     });
     // The picker shows the pool as a headline and gates its two buttons on it,
@@ -14978,47 +15040,15 @@ var _RESHUFFLE = {
             outline: 2px solid #ffd24a;
             box-shadow: 0 0 8px 2px rgba(255, 210, 74, 0.6);
         }
-        /* The Initiative picker — Cut Them Loose / Pin the Blame, paid for out
-           of the shared pool. Sits in the flex column under its button. */
+        /* The Initiative submenu. Deliberately NOT a card: the buttons carry
+           .nw-ta-btn, so they inherit the row's pill styling above and the
+           count pill shows each action's PRICE. All this adds is the indent
+           that marks them as sitting under Initiative. */
         #nw-init-pick {
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            padding: 6px;
-            margin-left: 8px;
-            border: 1px solid rgba(0,0,0,0.35);
-            border-radius: 3px;
-            background: rgba(232, 222, 198, 0.97);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.35);
-        }
-        #nw-init-pick .nw-init-head {
-            font-family: 'TypewriterDry', sans-serif;
-            font-size: 10px;
-            font-weight: bold;
-            color: #4a2b16;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-        #nw-init-pick .nw-init-btn {
-            text-align: left;
-            font-size: 12px;
-            padding: 4px 8px;
-            cursor: pointer;
-        }
-        #nw-init-pick .nw-init-btn:disabled {
-            opacity: 0.45;
-            cursor: default;
-        }
-        #nw-init-pick .nw-init-cancel {
-            font-family: 'TypewriterDry', sans-serif;
-            font-size: 10px;
-            padding: 2px 6px;
-            cursor: pointer;
-            background: none;
-            border: none;
-            text-decoration: underline;
-            color: #4a2b16;
-            align-self: flex-start;
+            gap: 6px;
+            margin-left: 14px;
         }
         #nw-ta-hint {
             max-width: 170px;
@@ -15615,7 +15645,7 @@ var _RESHUFFLE = {
             // pre-game toggle can blur it — except once the man is about to
             // crack (loyalty ≤1), which always shows. Render-time decision:
             // the back is rebuilt on every flip, so it tracks the live stat.
-            if (loyalty  != null) html += `<div class="nw-back-stat"><div class="nw-back-label">Loyalty</div><div class="nw-back-value"><span${loyalty > 1 ? ' class="nw-fog"' : ''}>${loyalty}</span> / 10</div></div>`;
+            if (loyalty  != null) html += `<div class="nw-back-stat"><div class="nw-back-label">Loyalty</div><div class="nw-back-value"><span${_loyaltyFogged(id, loyalty) ? ' class="nw-fog"' : ''}>${loyalty}</span> / 10</div></div>`;
             if (exposure != null) html += `<div class="nw-back-stat"><div class="nw-back-label">Exposure</div><div class="nw-back-value">${exposure} / 10</div></div>`;
             html += '</div>';
             back.innerHTML = html;
@@ -15658,7 +15688,7 @@ var _RESHUFFLE = {
             } else {
                 const loyalty  = window._getOrgStat(id, 'loyalty');
                 const exposure = window._getOrgStat(id, 'exposure');
-                if (loyalty  != null) rows.push(['Loyalty',  loyalty,  ' / 10', loyalty > 1]);
+                if (loyalty  != null) rows.push(['Loyalty',  loyalty,  ' / 10', _loyaltyFogged(id, loyalty)]);
                 if (exposure != null) rows.push(['Exposure', exposure, ' / 10', false]);
             }
             if (!rows.length) { _hideOrgTip(); return; }
@@ -15695,6 +15725,7 @@ var _RESHUFFLE = {
     function _expFlowLevel(src, tgt) {
         try {
             if (!_pressureOn || (typeof _lengthAllows === 'function' && !_lengthAllows('pressure'))) return 0;
+            if (_pressureFrozen()) return 0;   // Grace: nothing is flowing this turn
             // only edges the engine actually radiates along (matters for the
             // strings, which get asked about BOTH directions)
             if (tgt === 'Nixon') {
@@ -16251,6 +16282,16 @@ const _flipDanger     = {}; // name -> consecutive turns at loyalty 0 / exposure
 const _pausedUntil    = {}; // name -> turn number a pay-off pause expires
 const _flipped        = new Set();
 const _innerCircleFlips = []; // inner-circle witnesses, consumed by the Nixon mechanic (TBD)
+// Initiative actions (see _TA_WIRED): men who can no longer turn state's
+// witness, men whose loyalty is revealed through the Fog of War, and the turn a
+// Grace freeze runs to. All per-run — snapshotted in _slCaptureMod, cleared on
+// New Game.
+const _smeared        = new Set();
+const _interrogated   = new Set();
+var _pressureFrozenUntil = -1;
+// True while Grace is holding the chart still. Read by the pressure tick and by
+// the wire glow, so a frozen turn visibly goes dark.
+function _pressureFrozen() { return _questionCount <= _pressureFrozenUntil; }
 
 // Hush money / clemency — call from a question effect, e.g. _payOff('Hunt')
 function _payOff(name) {
@@ -16262,6 +16303,10 @@ function _payOff(name) {
 
 function _flipWitness(name) {
     const p = _ORG_PRESSURE[name];
+    // Smeared (Initiative action): his credibility is gone, so he can never
+    // become a witness. Guarded here rather than at the caller so it holds
+    // however the flip is reached.
+    if (_smeared.has(name)) return;
     _flipped.add(name);
     p.setSt(1); // state's witness
     (_ORG_EDGES[name] || []).forEach(tgt => {
@@ -16279,6 +16324,7 @@ function _flipWitness(name) {
 
 _everyTurn(() => {
     if (!_pressureOn || !_lengthAllows('pressure')) return; // dormant until PART II: Fulmination (pk 430); off on short runs
+    if (_pressureFrozen()) return;   // Grace (Initiative action): one quiet turn
     const paused = name => (_pausedUntil[name] || 0) >= _questionCount;
 
     // 1. Radiation — exposure leaks upward along the edges, per-edge clocks
@@ -16352,7 +16398,7 @@ _everyTurn(() => {
         }
 
         // 4. The breaking point — 3-turn grace, then 33% per turn
-        if (p.loy() === 0 && p.exp() >= 8) {
+        if (p.loy() === 0 && p.exp() >= 8 && !_smeared.has(name)) {
             _flipDanger[name] = (_flipDanger[name] || 0) + 1;
             if (_flipDanger[name] > 3 && Math.random() < 1 / 3) _flipWitness(name);
         } else {
@@ -17109,6 +17155,7 @@ window.__onGameWindowMutation(() => {
                     Object.keys(COUNTRY_LOYAL).forEach(c => { window[c + '_STAB'] = 0; });
                     _president = 'nixon'; _vp = 'agnew'; _ticketStage = 1; _refreshTicket();
                     _actionCrimes.length = 0; _actionCrimesRevealed = false;
+                    _smeared.clear(); _interrogated.clear(); _pressureFrozenUntil = -1;
                     _enemiesReset();
                     _nukeReset();   // unwind the nuclear-war branch + candidate rename
                     // Only unwind an EVENT-driven theme swap — a look the player
@@ -17824,7 +17871,7 @@ var _SL_SCALARS = [
     'oojClemency', 'dncbreakin', 'OilEmbargo', 'SaturdayNightMassacre',
     // action stacks
     'HushMoneyStack', 'CutThemLooseStack', 'OfferClemencyStack', 'PinTheBlameStack', '_taUnseen',
-    'InitiativeStack',
+    'InitiativeStack', '_pressureFrozenUntil',
     'ImproveRelationsStack', 'SendAidStack', 'ReduceAidStack', 'DestabiliseStack',
     // world events
     'Vietnam', 'chad', 'khmer', 'laos', 'eritrea', 'managua', 'cyprusInvasion',
@@ -17864,6 +17911,8 @@ function _slCaptureMod() {
         midtermFired: _MIDTERM._fired,
         eventDebutPk: Object.assign({}, _wmEventDebutPk),
         enemies: _enemiesSnapshot(),
+        smeared: Array.from(_smeared),
+        interrogated: Array.from(_interrogated),
     };
 }
 
@@ -17895,6 +17944,19 @@ function _slRestoreMod(m) {
     Object.keys(_wmEventDebutPk).forEach(k => { delete _wmEventDebutPk[k]; });
     Object.assign(_wmEventDebutPk, m.eventDebutPk || {});
     _enemiesRestore(m.enemies);   // absent on a pre-feature save -> starting field
+    _smeared.clear();
+    (m.smeared || []).forEach(n => _smeared.add(n));
+    _interrogated.clear();
+    (m.interrogated || []).forEach(n => _interrogated.add(n));
+    // _flipped is NOT in the save: it is rebuilt from the men's STATUS vars,
+    // which are (STATUS 1 = state's witness). Deriving rather than storing also
+    // repairs saves written before this was noticed — without it a load left
+    // the set empty, so a witness went on radiating exposure and could be
+    // flipped a second time.
+    _flipped.clear();
+    Object.keys(_ORG_PRESSURE).forEach(n => {
+        if (_ORG_PRESSURE[n].st() === 1) _flipped.add(n);
+    });
     // A save from before the Initiative pool carries per-action cut/blame
     // charges; fold them in so they aren't lost (no-op on a current save).
     _foldLegacyInitiative();
@@ -18770,10 +18832,13 @@ function openGameManual() {
         '<p><b>Your tools.</b> Three buttons sit at the top-left of the screen, each with limited uses earned through the game. When you earn a fresh use, the <b>Enemies/Friends</b> button glows green until you next open this screen. They only work on the junior staff — the men below the top row (Dean included), never the President or the inner four:</p><ul>'+
         '<li><b>Hush Money</b> — buy a man off: +1 loyalty, and his loyalty stops eroding and his exposure stops spreading for a few turns.</li>'+
         '<li><b>Offer Clemency</b> — dangle a pardon before a loyal man who’s been indicted or jailed: a temporary loyalty boost that evaporates the moment his situation changes.</li>'+
-        '<li><b>Initiative</b> — a pool of <b>initiative points</b>, and the two hardest moves you have. Click it to choose which one to spend a point on:</li><ul>'+
+        '<li><b>Initiative</b> — a pool of <b>initiative points</b>, and the hardest moves you have. Click it to open the list; each action shows its price, and you spend from the one pool:</li><ul>'+
         '<li><b>Cut Them Loose</b> — publicly disown a man still in post; distances him, but does nothing to stop him cracking.</li>'+
-        '<li><b>Pin the Blame</b> — available only once your own exposure is dangerously high: hang it on a wavering man (his exposure up, his loyalty down) to take the heat off yourself. A devil’s bargain — you’re manufacturing the next man to crack.</li></ul></ul>'+
-        '<p>Cut Them Loose and Pin the Blame are paid for out of the same pool, so spending on one is spending against the other — the question is never how many you were handed, it is which of the two you are willing to do.</p>'+
+        '<li><b>Pin the Blame</b> — available only once your own exposure is dangerously high: hang it on a wavering man (his exposure up, his loyalty down) to take the heat off yourself. A devil’s bargain — you’re manufacturing the next man to crack.</li>'+
+        '<li><b>Smear</b> (2 points) — destroy a man’s credibility so thoroughly that he can <b>never turn state’s witness</b>, whatever happens to his nerve. It does not calm him and it does not stop his exposure climbing the chart: it buys silence, not safety.</li>'+
+        '<li><b>Interrogate</b> — lean on a man and <b>read his loyalty</b>. Under Fog of War that number is blurred; once you have interrogated him you see it from then on. Nothing to buy if you turned the fog off.</li>'+
+        '<li><b>Grace</b> — no target: <b>one quiet turn</b>. Nothing climbs the chart, nothing erodes, nobody cracks, and the wires go dark for a turn. A breath, not a cure.</li></ul></ul>'+
+        '<p>Every one of these is paid for out of the same pool, so spending on one is spending against the others — the question is never how many you were handed, it is which of them you are willing to do.</p>'+
         '<p>The machine only truly comes alive in Part II (“Fulmination”); before that, the numbers move only through your answers.</p>'+
         '<h3>Officials</h3>'+
         '<p>Your cabinet — State, Defense, Justice, National Security, CIA, FBI. Flip a card for the effects of that person in post. At certain moments you’ll be invited to <b>reshuffle</b>: the Enemies/Friends and Officials buttons glow, and the swappable roles glow — click one to choose a successor. You have <b>two turns</b> to decide; ignore it and the choice is <b>made for you at random</b> — so a bad appointment can’t simply be waited out.</p>'+
