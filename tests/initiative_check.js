@@ -51,14 +51,17 @@ ck('a pre-Initiative save folds its cut/blame charges into the pool',
    /_foldLegacyInitiative\(\);/.test(extractFn('_slRestoreMod')));
 ck('the row is built from _TA_MAIN_ROW, not the full action list',
    /_TA_MAIN_ROW\.forEach\(key =>/.test(src) && !/_TEAM_ACTIONS\.forEach\(a => \{\s*const btn = document\.createElement/.test(src));
-ck('the submenu is styled as an indented column, NOT a card',
-   /#nw-init-pick \{[^}]*\}/.test(src)
-   && !/#nw-init-pick \{[^}]*(background|box-shadow|border:)/.test(src)
-   && /#nw-init-pick \{[^}]*margin-left/.test(src));
-ck('…and its buttons reuse the row pill classes rather than their own skin',
+ck('the submenu is a DROPDOWN — overlaid, with a caret on its button',
+   /#nw-init-pick \{[^}]*position: absolute/.test(src)
+   && /\[data-action="initiative"\]::after \{[^}]*content: ' \\\\25BE'/.test(src));
+ck('…and its buttons are the row\'s own pills, with no extra furniture',
    /className = 'nw-ta-btn nw-init-btn'/.test(src)
    && /nw-ta-count">' \+ cost \+ '/.test(src)
    && !/nw-init-head|nw-init-cancel/.test(src));
+ck('the dropdown closes on click-away, and takes its listener with it',
+   /_initAwayHandler = \(e\) =>/.test(src)
+   && /document\.addEventListener\('mousedown', _initAwayHandler, true\)/.test(src)
+   && /removeEventListener\('mousedown', _initAwayHandler, true\)/.test(extractFn('_closeInitiativePicker')));
 ck('Smear costs 2 and the others default to 1',
    /key: 'smear',[^}]*cost: 2/.test(src)
    && !/key: 'grace',[^}]*cost:/.test(src)
@@ -92,6 +95,8 @@ ck('the stale "three do nothing" comment on _TA_WIRED is gone',
     '<div class="nw-node" data-person="Magruder"><div class="nw-flip-area"></div></div>' +
     '<div class="nw-node" data-person="Haldeman"><div class="nw-flip-area"></div></div>' +
     '</div></body>');
+  // The real panel stylesheet, so the dropdown's geometry is the shipped one.
+  await p.addStyleTag({ content: slice('#nw-team-actions {', 'z-index: 20;\n        }') });
 
   await p.addScriptTag({ content: `
     // ---- stubs for everything the actions touch but this harness isn't testing
@@ -129,6 +134,7 @@ ck('the stale "three do nothing" comment on _TA_WIRED is gone',
     ${extractFn('_taHint')}
     ${extractFn('_taExitMode')}
     ${extractFn('_teamActionClicked')}
+    ${slice('var _initAwayHandler = null;', 'var _initAwayHandler = null;')}
     ${extractFn('_closeInitiativePicker')}
     ${extractFn('_initiativePickerOpen')}
     ${extractFn('_openInitiativePicker')}
@@ -325,6 +331,37 @@ ck('the stale "three do nothing" comment on _TA_WIRED is gone',
     return out;
   });
   ck('Grace locks itself out before the pressure engine wakes', r.dis === true && /not begun to bite/.test(r.title));
+
+  console.log('\nDROPDOWN BEHAVIOUR:');
+  r = await ev(() => {
+    _taExitMode();
+    InitiativeStack = 4; _syncTeamActionBtns();
+    const hint = document.getElementById('nw-ta-hint');
+    const before = hint.getBoundingClientRect().top;
+    window.__open();
+    const pick = document.getElementById('nw-init-pick');
+    const anchor = window.__btn('initiative');
+    return { before, after: hint.getBoundingClientRect().top,
+             pos: getComputedStyle(pick).position,
+             below: pick.getBoundingClientRect().top >= anchor.getBoundingClientRect().bottom - 1,
+             leftish: Math.abs(pick.getBoundingClientRect().left - anchor.getBoundingClientRect().left) < 40 };
+  });
+  ck('the dropdown overlays — opening it does not shift the hint or chart below',
+     r.pos === 'absolute' && r.after === r.before);
+  ck('…and it hangs directly under the Initiative button', r.below && r.leftish);
+  r = await ev(() => {
+    const open = _initiativePickerOpen();
+    document.getElementById('nw-chart-wrapper')
+      .dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    return { open, nowOpen: _initiativePickerOpen() };
+  });
+  ck('clicking away closes it', r.open === true && r.nowOpen === false);
+  r = await ev(() => {
+    window.__open();
+    window.__btn('initiative').dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    return _initiativePickerOpen();
+  });
+  ck('…but a mousedown on the Initiative button itself does not (its click toggles)', r === true);
 
   console.log('\nSMEAR:');
   r = await ev(() => {

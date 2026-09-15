@@ -1617,12 +1617,24 @@ and refuses below it; `_teamActionClicked` gates on it; the submenu shows each p
 the same `.nw-ta-count` pill and disables what the pool can't cover ("Costs 2 — you have
 1"); the Initiative row button turns on `_taMinPooledCost()`, not zero, so it never
 opens a submenu in which nothing is affordable.
-SUBMENU IS NOT A CARD (on request): `#nw-init-pick` is just an indented flex column —
-no background, border, shadow or headline — and its buttons carry `.nw-ta-btn` so they
-inherit the row's pill styling exactly. The pool is shown once, on the Initiative
-button. No cancel button: clicking Initiative again closes it. NOTE for harnesses —
-"the row" must now be `#nw-team-actions > .nw-ta-btn` (direct children), since the
-submenu's buttons share the class.
+THE SUBMENU IS A DROPDOWN (on request), mirroring the world map's DIPLOMACY menu —
+same interaction exactly: caret on the button, pick an action, then click a target.
+`#nw-init-pick` is `position: absolute` and OVERLAYS, so the chart and hint below never
+shift; `_openInitiativePicker` measures `anchor.offsetTop + offsetHeight` rather than
+hard-coding a `top`, because `_TA_MAIN_ROW` decides where the Initiative button sits
+(`#nw-team-actions` is already the containing block, so no wrapper — which also keeps
+the row a flat list of direct children). Click-away closes it: `_initAwayHandler` on
+`document` in the CAPTURE phase (so it beats the chart's own click handling), excluding
+the Initiative button so its toggle isn't fighting the handler, and
+`_closeInitiativePicker` REMOVES the listener so nothing leaks across opens.
+The actions themselves are deliberately the row's own `.nw-ta-btn` pills with the
+`.nw-ta-count` pill carrying each PRICE — no bespoke skin, no headline, no cancel row
+(clicking Initiative again closes it). The pool is shown once, on the Initiative button.
+The caret is CSS (`::after { content: ' \\25BE' }`) so `a.label` stays clean for the
+hint messages. NOTE for harnesses — "the row" must now be
+`#nw-team-actions > .nw-ta-btn` (DIRECT children), since the dropdown's buttons share
+the class; and geometry assertions need the real stylesheet injected (this harness
+slices it out of Code 2), or the dropdown measures as static flow.
 Save/load: `_smeared` + `_interrogated` are Sets captured in `_slCaptureMod` and
 restored by mutation; `_pressureFrozenUntil` is in `_SL_SCALARS`; all three cleared on
 New Game.
@@ -1632,7 +1644,7 @@ witness. A restored witness therefore went on radiating exposure and could be fl
 SECOND time (+2 to Nixon again, another `_innerCircleFlips` entry). `_slRestoreMod` now
 derives it: `_flipped` = everyone at STATUS 1. Deriving rather than storing also repairs
 saves written before this was noticed.
-Verified: initiative_check 58/58 (submenu contents + prices, all three gates, Smear
+Verified: initiative_check 63/63 (dropdown geometry + overlay + click-away, submenu contents + prices, all three gates, Smear
 with a CONTROL case proving an un-smeared man at the brink does flip, the direct
 `_flipWitness` refusal, Grace's exact one-turn window + the darkened glow + exposure
 climbing again after, Interrogate's reveal/isolation/burglars-alias, the de-carding, and
@@ -1648,7 +1660,7 @@ assertions over the areas that carry the most machinery:
 `nuke_check` (106), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `nuketheme_check` (33),
-`initiative_check` (58),
+`initiative_check` (63),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.

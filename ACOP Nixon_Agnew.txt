@@ -13429,8 +13429,14 @@ function _teamActionClicked(key) {
 // having buttons of their own. Clicking Initiative opens this little card under
 // it; choosing an action closes the card and hands straight over to the normal
 // target-select mode, so the chart is never picked from behind a popup.
+var _initAwayHandler = null;   // document click-away while the dropdown is open
+
 function _closeInitiativePicker() {
     document.getElementById('nw-init-pick')?.remove();
+    if (_initAwayHandler) {
+        document.removeEventListener('mousedown', _initAwayHandler, true);
+        _initAwayHandler = null;
+    }
 }
 
 function _initiativePickerOpen() { return !!document.getElementById('nw-init-pick'); }
@@ -13471,6 +13477,19 @@ function _openInitiativePicker() {
     });
 
     box.appendChild(pick);
+    // Hang it directly under the Initiative button. Measured rather than set in
+    // CSS because the button's place in the row is not fixed — #TA_MAIN_ROW
+    // decides that, and #nw-team-actions is already the containing block.
+    const anchor = box.querySelector('.nw-ta-btn[data-action="initiative"]');
+    pick.style.top = (anchor ? anchor.offsetTop + anchor.offsetHeight + 4 : 0) + 'px';
+    // Click-away, like the map's DIPLOMACY menu. Capture phase so it beats the
+    // chart's own click handling; the Initiative button is excluded so its own
+    // toggle isn't fighting this.
+    _initAwayHandler = (e) => {
+        if (pick.contains(e.target) || (anchor && anchor.contains(e.target))) return;
+        _closeInitiativePicker();
+    };
+    document.addEventListener('mousedown', _initAwayHandler, true);
 }
 
 // An action with no target (Grace) resolves the moment it's picked — there is
@@ -15040,15 +15059,27 @@ var _RESHUFFLE = {
             outline: 2px solid #ffd24a;
             box-shadow: 0 0 8px 2px rgba(255, 210, 74, 0.6);
         }
-        /* The Initiative submenu. Deliberately NOT a card: the buttons carry
-           .nw-ta-btn, so they inherit the row's pill styling above and the
-           count pill shows each action's PRICE. All this adds is the indent
-           that marks them as sitting under Initiative. */
+        /* The Initiative dropdown — same shape as the world map's DIPLOMACY
+           menu: a caret on the button, the actions in a panel that OVERLAYS
+           (absolute, so the chart and hint below never shift), click-away to
+           close. The actions themselves are the row's own .nw-ta-btn pills
+           with the count pill carrying each action's PRICE — no separate
+           skin, no headline, no cancel row. */
+        #nw-team-actions > .nw-ta-btn[data-action="initiative"]::after {
+            content: ' \\25BE';
+            font-weight: bold;
+        }
         #nw-init-pick {
+            position: absolute;
+            left: 10px;
             display: flex;
             flex-direction: column;
             gap: 6px;
-            margin-left: 14px;
+            padding: 7px;
+            min-width: 168px;
+            background: rgba(222, 211, 184, 0.98);
+            border: 1px solid #6b5a33;
+            z-index: 20;
         }
         #nw-ta-hint {
             max-width: 170px;
