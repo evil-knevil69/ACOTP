@@ -1664,3 +1664,45 @@ the short preset's date-ascending pk list (plan §4.5 authoring rules) and both 
 placeholder texts. Empty pks = inert (short plays the full set, gates still engage).
 Verified: Node harness (9 checks: install/restore/tail-parking/unknown-pk/idempotency)
 + Chromium render of the selector in an options-screen replica.
+
+**P6. The evidence board — PARKED FOR THE MEDIA-SIDE PLAYER (Sep 2026)**
+Reviewed the WATERGATE board game (Matthias Cramer, 2-player card duel) for mechanics
+worth importing. Its central object is a corkboard: seven potential informants around
+the edge, threads running from each through a chain of evidence slots to Nixon's photo
+in the centre. The press pins evidence FACE UP (a link closes); Nixon pins it FACE DOWN
+(the link is dead). Two informants connected all the way to Nixon and Nixon loses,
+immediately. Evidence comes in three colours — blue = CRP checks, yellow = Watergate
+ground-plans, green = White House tape transcripts.
+
+DECISION: do NOT build it for the Nixon side. Too far into development to add a new
+core mechanic there, and pulling evidence in is a different game from the one the
+Nixon side plays. Hold it for the MEDIA-side player as that side's signature system.
+
+Why it belongs there — it's the board game's own asymmetry, and the contrast is the
+point: **hierarchy versus evidence trail**. Nixon plays PEOPLE (Conspirators return to
+the discard — reusable, and what you spend is their careers), the Editor plays EVIDENCE
+(Events are removed from the game — one-shot, and they accumulate into a chain). ACOP's
+Nixon side is already the hierarchy game: the President's Men organogram, loyalty,
+exposure radiating up the wires. So the two chairs get different verbs rather than
+mirrored ones.
+
+What the Media side could reuse when it comes: `_ORG_EDGES` is already the thread map,
+`_flipped` the set of men who have turned, `_expFlowLevel` already computes exposure
+travelling upward along real edges toward Nixon, and `_drawOrgArc` already draws the red
+strings. The board is largely a RE-RENDER of state Code 2 computes today — a strand of
+3–4 slots between each flipped man's card and Nixon's, filled as his testimony
+corroborates. Note the hook for P2: a green token IS a tape excerpt, so earning one
+through the tape player is how the green chain closes.
+
+Other mechanics from the same review, NOT adopted and not planned — recorded so the
+ground isn't re-walked: the reaction/block card (cancel a hostile event, at the cost of
+removing that man from the game), "Gambit" (burn a Conspirator to keep a one-shot),
+the Editor's truthful-answer query (fits Fog of War — spend a charge, un-blur one man),
+"A brilliant mood" (a lockout round: nothing radiates for N turns), the public
+removed-from-game burn pile plus "The system works" (replay one burned card), and the
+rule that undecided evidence returns to the bag (contested rather than automatic decay).
+Rejected as structurally unportable: the initiative token (tempo + hand size 4 vs 5),
+the five-slot momentum ladder, and the value-part/action-part fork — all load-bearing
+for a two-player alternating hand-management duel, which ACOP has no turn structure or
+hand for. The value/action fork would additionally mean rewriting every authored answer
+to have two halves: a content cost, not a code cost.
