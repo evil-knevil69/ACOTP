@@ -26,6 +26,7 @@ and gets committed.
 | `rsanim_check.js` | the cabinet-reshuffle filing-card animations (deck deal, the changeover flight, settle) and their gates |
 | `chrome_check.js` | the injected Manual + World Map buttons across screen changes (pulled for Election Night, back on the final results screens) |
 | `nuketheme_check.js` | the page theme following the DEFCON-1 branch: swap in, unwind out, and the manual-pick case that must survive it |
+| `initiative_check.js` | the Initiative button: the three-button row, the picker, and that Cut Them Loose + Pin the Blame really spend ONE shared pool |
 | `saveload_check.js` | `_SL_SCALARS` integrity and the capture/restore round-trips |
 | `execcheck_check.js` | the execution check itself — poisons a copy of each mod file four ways and asserts it rejects every one |
 

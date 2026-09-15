@@ -1555,6 +1555,44 @@ fires-from-the-wrapper-not-the-census greps, and a runtime drive against a stub
 player — appends/selects/plays once, revisits don't stack, no-player no-ops
 instead of throwing).
 
+**75. Initiative button — Cut Them Loose + Pin the Blame share one pool (Sep 2026)** —
+Code 2. The President's Men row had FOUR action buttons each with its own charge
+counter. Now it has THREE: Hush Money and Offer Clemency keep their own charges and
+their place in the row; Cut Them Loose and Pin the Blame have no buttons of their own
+and sit behind a new **Initiative** button, both paid for out of ONE shared pool
+(`InitiativeStack`). So the decision is which of the two hard moves to make, not how
+many of each you happened to be handed.
+Shape: `_TEAM_ACTIONS` still holds all four action definitions (label, prompt,
+`canTarget`, `apply`) — cut/blame just carry `pool: true` and their `get`/`set` PROXY
+the pool, so `_spendTeamAction` and `_addTeamAction` need no special case at all and an
+authored `_addTeamAction('cut', 1)` grants a point. Two new lists drive the UI:
+`_TA_MAIN_ROW` (which keys get a button, in order) and `_TA_POOLED` (what the picker
+offers). `openInnerCircle` builds from the former.
+The picker (`#nw-init-pick`, built by `_openInitiativePicker`) is a small card in the
+row's flex column: a headline reading the live pool, one button per pooled action, and
+Never mind. Choosing one CLOSES the picker and hands straight to the existing
+`_teamActionClicked(key)` — so the chart is never targeted from behind a popup, and the
+per-action gates still apply (Pin the Blame stays disabled below `WatergateExposure` 10,
+with `unavailableHint` as its title). `_teamActionClicked` now lights up the INITIATIVE
+button for a pooled action (it has no button of its own), and `_initiativeClicked`
+cancels a live pooled mode on a second click, else toggles the picker.
+Two invariants worth keeping: `_taExitMode` closes the picker (mode and picker must
+never coexist) and `_syncTeamActionBtns` REBUILDS it when open, since its headline and
+button gating both read the pool.
+Legacy: `CutThemLooseStack` / `PinTheBlameStack` stay declared and in `_SL_SCALARS` so a
+pre-Initiative save still restores, and `_foldLegacyInitiative()` pours any stray value
+into the pool — called from `_slRestoreMod` (old saves) and from `openInnerCircle` (an
+authored direct bump between panel opens). `InitiativeStack` added to `_SL_SCALARS` + the
+New Game reset. Manual updated (three buttons; the two pooled ones nested under
+Initiative with the trade spelled out). Also fixed the stale comment over `_TA_WIRED`
+claiming three actions "do nothing" — all four have been wired for a while.
+Verified: new `tests/initiative_check.js` 27/27 (row contents + order, pool count and
+disabled state, picker contents/headline/gating, arming lights the Initiative button,
+one point spent per use from the SHARED pool — 2 points buying one of each — cancel
+paths, redraw-while-open, Hush Money untouched and independent of the pool, and the two
+back-compat folds). The shared-pool assertions were CONFIRMED TO FAIL against a copy
+given `blame` its own stack again. Full suite green, Code 2 EXECUTES CLEAN.
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
 session went with it (they were never committed). Rebuilt and COMMITTED, 258
@@ -1562,6 +1600,7 @@ assertions over the areas that carry the most machinery:
 `nuke_check` (106), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `nuketheme_check` (33),
+`initiative_check` (27),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.

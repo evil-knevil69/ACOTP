@@ -13146,25 +13146,59 @@ function openLegalPad() {
 }
 
 // ── TEAM ACTIONS (All the President's Men screen) ─────────────────────────────
-// Four charge-based actions, shown as buttons pinned to the top-left of the
+// Charge-based actions, shown as buttons pinned to the top-left of the
 // President's Men window (above the Dean column). Each button embeds the number
 // of uses remaining. Question answers grant charges — from cyoAdventure or an
 // onShow, either bump the var directly (HushMoneyStack += 1) or call
 // _addTeamAction('hush', 1), which also refreshes the buttons if the panel is
-// open. Console test:  _addTeamAction('blame', 2)
+// open. Console test:  _addTeamAction('initiative', 2)
+//
+// THREE BUTTONS, FOUR ACTIONS. Hush Money and Offer Clemency have their own
+// charges and sit in the row. Cut Them Loose and Pin the Blame do NOT: they live
+// behind an INITIATIVE button that opens a small picker, and both are paid for
+// out of ONE shared pool of initiative points — spend a point on either. So the
+// choice is which of the two hard options to take, not how many of each you were
+// handed.
 //
 // Charges are per-run resources: reset to 0 on New Game.
 var HushMoneyStack     = 0;
-var CutThemLooseStack  = 0;
 var OfferClemencyStack = 0;
+var InitiativeStack    = 0;   // the shared pool behind Cut Them Loose + Pin the Blame
+// LEGACY, no longer the source of truth for either action. Kept declared (and in
+// _SL_SCALARS) so a pre-Initiative save still restores, and so an authored
+// `CutThemLooseStack += 1` isn't silently dropped: _foldLegacyInitiative() pours
+// any stray value into the pool. Grant points with _addTeamAction('initiative', n).
+var CutThemLooseStack  = 0;
 var PinTheBlameStack   = 0;
 
+// Move any legacy per-action charge into the shared pool. Called on save restore
+// and on each President's Men open, which covers both ways a value can appear
+// (an old save, or an authored direct bump between panel opens).
+function _foldLegacyInitiative() {
+    const stray = (CutThemLooseStack || 0) + (PinTheBlameStack || 0);
+    if (stray <= 0) return;
+    InitiativeStack += stray;
+    CutThemLooseStack = 0;
+    PinTheBlameStack = 0;
+}
+
 const _TEAM_ACTIONS = [
-    { key: 'hush',     label: 'Hush Money',     get: () => HushMoneyStack,     set: v => { HushMoneyStack = v; } },
-    { key: 'cut',      label: 'Cut Them Loose', get: () => CutThemLooseStack,  set: v => { CutThemLooseStack = v; } },
-    { key: 'clemency', label: 'Offer Clemency', get: () => OfferClemencyStack, set: v => { OfferClemencyStack = v; } },
-    { key: 'blame',    label: 'Pin the Blame',  get: () => PinTheBlameStack,   set: v => { PinTheBlameStack = v; } },
+    { key: 'hush',       label: 'Hush Money',     get: () => HushMoneyStack,     set: v => { HushMoneyStack = v; } },
+    { key: 'clemency',   label: 'Offer Clemency', get: () => OfferClemencyStack, set: v => { OfferClemencyStack = v; } },
+    { key: 'initiative', label: 'Initiative',     get: () => InitiativeStack,    set: v => { InitiativeStack = v; } },
+    // Both of these read and write the Initiative pool, so _spendTeamAction and
+    // _addTeamAction need no special case: spending either takes one point, and
+    // an authored _addTeamAction('cut', 1) grants one point.
+    { key: 'cut',        label: 'Cut Them Loose', pool: true, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
+    { key: 'blame',      label: 'Pin the Blame',  pool: true, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
 ];
+
+// Which keys render as buttons in the row, in order…
+const _TA_MAIN_ROW = ['hush', 'clemency', 'initiative'];
+// …and which the Initiative picker offers, in order.
+const _TA_POOLED   = ['cut', 'blame'];
+
+function _taIsPooled(key) { const a = _teamAction(key); return !!(a && a.pool); }
 
 function _teamAction(key) { return _TEAM_ACTIONS.find(a => a.key === key); }
 
@@ -13223,8 +13257,7 @@ function _taEligible(person) {
         && !_flipped.has(k);
 }
 
-// Which actions have a wired effect. The other three keep their charges and
-// buttons but do nothing until their mechanics are designed.
+// The effect of each action, plus its targeting rules. All four are wired.
 const _TA_WIRED = {
     hush: {
         prompt: 'Hush money: pick the man to pay off (click the button again to cancel).',
@@ -13302,6 +13335,7 @@ function _taHint(text) {
 
 function _taExitMode() {
     _taMode = null;
+    _closeInitiativePicker();   // mode and the picker must never be up together
     document.querySelectorAll('#nw-team-actions .nw-ta-armed').forEach(b => b.classList.remove('nw-ta-armed'));
     const w = document.getElementById('nw-chart-wrapper');
     if (w) {
@@ -13319,7 +13353,10 @@ function _teamActionClicked(key) {
     if (!wired) return;   // mechanic not designed yet
     if (wired.available && !wired.available()) return;   // e.g. blame below the exposure gate
     _taMode = key;
-    const btn = document.querySelector('#nw-team-actions [data-action="' + key + '"]');
+    // A pooled action has no button of its own — the Initiative button it came
+    // from is what lights up, and clicking that again cancels.
+    const btn = document.querySelector('#nw-team-actions [data-action="'
+        + (a.pool ? 'initiative' : key) + '"]');
     if (btn) btn.classList.add('nw-ta-armed');
     const w = document.getElementById('nw-chart-wrapper');
     if (w) {
@@ -13332,6 +13369,68 @@ function _teamActionClicked(key) {
         });
     }
     _taHint(wired.prompt);
+}
+
+// ---- the Initiative picker ---------------------------------------------------
+// Cut Them Loose and Pin the Blame live behind the Initiative button instead of
+// having buttons of their own. Clicking Initiative opens this little card under
+// it; choosing an action closes the card and hands straight over to the normal
+// target-select mode, so the chart is never picked from behind a popup.
+function _closeInitiativePicker() {
+    document.getElementById('nw-init-pick')?.remove();
+}
+
+function _initiativePickerOpen() { return !!document.getElementById('nw-init-pick'); }
+
+function _openInitiativePicker() {
+    const box = document.getElementById('nw-team-actions');
+    if (!box || _initiativePickerOpen()) return;
+    const pick = document.createElement('div');
+    pick.id = 'nw-init-pick';
+
+    const head = document.createElement('div');
+    head.className = 'nw-init-head';
+    const pts = InitiativeStack;
+    head.textContent = pts + (pts === 1 ? ' initiative point' : ' initiative points');
+    pick.appendChild(head);
+
+    _TA_POOLED.forEach(key => {
+        const a = _teamAction(key);
+        const wired = _TA_WIRED[key];
+        if (!a || !wired) return;
+        const btn = document.createElement('button');
+        btn.className = 'nw-init-btn';
+        btn.dataset.action = key;
+        btn.textContent = a.label;
+        // Same gates as the row buttons: no points, or the action's own
+        // availability test (Pin the Blame below the exposure threshold).
+        const locked = !!(wired.available && !wired.available());
+        btn.disabled = pts <= 0 || locked;
+        if (locked) btn.title = wired.unavailableHint || '';
+        btn.addEventListener('click', () => {
+            _closeInitiativePicker();
+            _teamActionClicked(key);
+        });
+        pick.appendChild(btn);
+    });
+
+    const cancel = document.createElement('button');
+    cancel.className = 'nw-init-cancel';
+    cancel.textContent = 'Never mind';
+    cancel.addEventListener('click', () => { _closeInitiativePicker(); _taHint(''); });
+    pick.appendChild(cancel);
+
+    box.appendChild(pick);
+}
+
+// The Initiative button: cancels a live pooled action, else toggles the picker.
+function _initiativeClicked() {
+    if (_taMode && _taIsPooled(_taMode)) { _taExitMode(); _taHint(''); return; }
+    if (_initiativePickerOpen()) { _closeInitiativePicker(); return; }
+    _taExitMode();          // drop any other action's target-select mode first
+    _taHint('');
+    if (InitiativeStack <= 0) return;
+    _openInitiativePicker();
 }
 
 // Called from the org chart's click handler BEFORE flip handling.
@@ -13360,15 +13459,19 @@ function _taHandleNodeClick(node) {
 function _syncTeamActionBtns() {
     const box = document.getElementById('nw-team-actions');
     if (!box) return;
-    _TEAM_ACTIONS.forEach(a => {
-        const btn = box.querySelector('[data-action="' + a.key + '"]');
+    _TA_MAIN_ROW.forEach(key => {
+        const a = _teamAction(key);
+        const btn = a && box.querySelector('.nw-ta-btn[data-action="' + key + '"]');
         if (!btn) return;
-        const wired = _TA_WIRED[a.key];
+        const wired = _TA_WIRED[key];
         const locked = !!(wired && wired.available && !wired.available());
         btn.querySelector('.nw-ta-count').textContent = a.get();
         btn.disabled = a.get() <= 0 || locked;
         btn.title = locked ? (wired.unavailableHint || '') : '';
     });
+    // The picker shows the pool as a headline and gates its two buttons on it,
+    // so a charge arriving or being spent while it's open has to redraw it.
+    if (_initiativePickerOpen()) { _closeInitiativePicker(); _openInitiativePicker(); }
 }
 // ── END TEAM ACTIONS ──────────────────────────────────────────────────────────
 
@@ -13390,15 +13493,21 @@ function openInnerCircle() {
     // stays; only the action tooling goes. _syncTaButtons already no-ops when
     // #nw-team-actions is absent.
     _taMode = null;   // never carry target-select mode across panel opens
+    _foldLegacyInitiative();   // pick up any authored CutThemLooseStack/PinTheBlameStack bump
     if (_lengthAllows('teamActions')) {
     const taBox = document.createElement('div');
     taBox.id = 'nw-team-actions';
-    _TEAM_ACTIONS.forEach(a => {
+    // Only _TA_MAIN_ROW gets a button. Cut Them Loose and Pin the Blame are
+    // reached through Initiative, which opens the picker rather than arming.
+    _TA_MAIN_ROW.forEach(key => {
+        const a = _teamAction(key);
+        if (!a) return;
         const btn = document.createElement('button');
         btn.className = 'nw-ta-btn';
         btn.dataset.action = a.key;
         btn.innerHTML = a.label + ' <span class="nw-ta-count"></span>';
-        btn.addEventListener('click', () => _teamActionClicked(a.key));
+        btn.addEventListener('click', () =>
+            a.key === 'initiative' ? _initiativeClicked() : _teamActionClicked(a.key));
         taBox.appendChild(btn);
     });
     const taHint = document.createElement('div');
@@ -14868,6 +14977,48 @@ var _RESHUFFLE = {
         #nw-team-actions .nw-ta-btn.nw-ta-armed {
             outline: 2px solid #ffd24a;
             box-shadow: 0 0 8px 2px rgba(255, 210, 74, 0.6);
+        }
+        /* The Initiative picker — Cut Them Loose / Pin the Blame, paid for out
+           of the shared pool. Sits in the flex column under its button. */
+        #nw-init-pick {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 6px;
+            margin-left: 8px;
+            border: 1px solid rgba(0,0,0,0.35);
+            border-radius: 3px;
+            background: rgba(232, 222, 198, 0.97);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+        }
+        #nw-init-pick .nw-init-head {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 10px;
+            font-weight: bold;
+            color: #4a2b16;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        #nw-init-pick .nw-init-btn {
+            text-align: left;
+            font-size: 12px;
+            padding: 4px 8px;
+            cursor: pointer;
+        }
+        #nw-init-pick .nw-init-btn:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+        #nw-init-pick .nw-init-cancel {
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 10px;
+            padding: 2px 6px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            text-decoration: underline;
+            color: #4a2b16;
+            align-self: flex-start;
         }
         #nw-ta-hint {
             max-width: 170px;
@@ -16947,6 +17098,7 @@ window.__onGameWindowMutation(() => {
                     _RESHUFFLE.reset();
                     HushMoneyStack = 0; CutThemLooseStack = 0;
                     OfferClemencyStack = 0; PinTheBlameStack = 0;
+                    InitiativeStack = 0;
                     _taUnseen = false;
                     _clemencies.length = 0;
                     WatergateExposure = 1;
@@ -17672,6 +17824,7 @@ var _SL_SCALARS = [
     'oojClemency', 'dncbreakin', 'OilEmbargo', 'SaturdayNightMassacre',
     // action stacks
     'HushMoneyStack', 'CutThemLooseStack', 'OfferClemencyStack', 'PinTheBlameStack', '_taUnseen',
+    'InitiativeStack',
     'ImproveRelationsStack', 'SendAidStack', 'ReduceAidStack', 'DestabiliseStack',
     // world events
     'Vietnam', 'chad', 'khmer', 'laos', 'eritrea', 'managua', 'cyprusInvasion',
@@ -17742,6 +17895,9 @@ function _slRestoreMod(m) {
     Object.keys(_wmEventDebutPk).forEach(k => { delete _wmEventDebutPk[k]; });
     Object.assign(_wmEventDebutPk, m.eventDebutPk || {});
     _enemiesRestore(m.enemies);   // absent on a pre-feature save -> starting field
+    // A save from before the Initiative pool carries per-action cut/blame
+    // charges; fold them in so they aren't lost (no-op on a current save).
+    _foldLegacyInitiative();
     _refreshTicket();
     // Re-apply an event-swapped theme (the _gameTheme scalar was just restored
     // above). '' = no event swap in that run — leave the current look alone,
@@ -18611,11 +18767,13 @@ function openGameManual() {
         '<p>Every man in the conspiracy has two numbers, shown when you flip his card: <b>Loyalty</b> (10 = a true believer, 0 = ready to talk) and <b>Exposure</b> (how far the investigation has reached him). With <b>Fog of War</b> on (the pre-game default), a man’s loyalty stays blurred — you won’t know when he’ll bust until he’s at breaking point. Nixon’s own card shows your <b>Watergate Exposure</b> — the number that ultimately decides your fate.</p>'+
         '<p><b>Exposure climbs.</b> Each turn a man’s exposure leaks upward to the men above him on the chart — the more exposed he is, the faster it spreads. A man who is still clean is shielded and absorbs nothing from below. Left unchecked it works its way up the chain and, in the end, to the President himself. <b>Watch the wires:</b> a line glows where exposure is passing along it, hotter and redder the faster it flows — follow the glow up the organisation to see how close the fire has crept to the Oval Office.</p>'+
         '<p><b>Men crack.</b> The more exposed a man is, the faster his loyalty erodes — and once his loyalty bottoms out while his exposure is high, he may turn <b>state’s witness</b>. A witness is a catastrophe: his testimony throws fresh exposure onto everyone he was tied to, and if one of the inner circle (Haldeman, Ehrlichman, Colson, Mitchell, Dean) flips, it lands directly on you. Minor exposure fades on its own over time — unless the man has been indicted or jailed, which keeps him in the headlines.</p>'+
-        '<p><b>Your tools.</b> Four actions sit at the top-left of the screen, each with limited uses earned through the game. When you earn a fresh use, the <b>Enemies/Friends</b> button glows green until you next open this screen. They only work on the junior staff — the men below the top row (Dean included), never the President or the inner four:</p><ul>'+
+        '<p><b>Your tools.</b> Three buttons sit at the top-left of the screen, each with limited uses earned through the game. When you earn a fresh use, the <b>Enemies/Friends</b> button glows green until you next open this screen. They only work on the junior staff — the men below the top row (Dean included), never the President or the inner four:</p><ul>'+
         '<li><b>Hush Money</b> — buy a man off: +1 loyalty, and his loyalty stops eroding and his exposure stops spreading for a few turns.</li>'+
-        '<li><b>Cut Them Loose</b> — publicly disown a man still in post; distances him, but does nothing to stop him cracking.</li>'+
         '<li><b>Offer Clemency</b> — dangle a pardon before a loyal man who’s been indicted or jailed: a temporary loyalty boost that evaporates the moment his situation changes.</li>'+
-        '<li><b>Pin the Blame</b> — available only once your own exposure is dangerously high: hang it on a wavering man (his exposure up, his loyalty down) to take the heat off yourself. A devil’s bargain — you’re manufacturing the next man to crack.</li></ul>'+
+        '<li><b>Initiative</b> — a pool of <b>initiative points</b>, and the two hardest moves you have. Click it to choose which one to spend a point on:</li><ul>'+
+        '<li><b>Cut Them Loose</b> — publicly disown a man still in post; distances him, but does nothing to stop him cracking.</li>'+
+        '<li><b>Pin the Blame</b> — available only once your own exposure is dangerously high: hang it on a wavering man (his exposure up, his loyalty down) to take the heat off yourself. A devil’s bargain — you’re manufacturing the next man to crack.</li></ul></ul>'+
+        '<p>Cut Them Loose and Pin the Blame are paid for out of the same pool, so spending on one is spending against the other — the question is never how many you were handed, it is which of the two you are willing to do.</p>'+
         '<p>The machine only truly comes alive in Part II (“Fulmination”); before that, the numbers move only through your answers.</p>'+
         '<h3>Officials</h3>'+
         '<p>Your cabinet — State, Defense, Justice, National Security, CIA, FBI. Flip a card for the effects of that person in post. At certain moments you’ll be invited to <b>reshuffle</b>: the Enemies/Friends and Officials buttons glow, and the swappable roles glow — click one to choose a successor. You have <b>two turns</b> to decide; ignore it and the choice is <b>made for you at random</b> — so a bad appointment can’t simply be waited out.</p>'+
