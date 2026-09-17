@@ -12735,6 +12735,36 @@ cyoAdventure = function (a) {
     }
 
     // =========================================================================
+    // TEAM-ACTION + INITIATIVE GRANTS  (grep: GRANT CHARGES)
+    // =========================================================================
+    // This is where an answer hands the player a charge. `ans` above is the pk
+    // of the answer just given, so one line per grant:
+    //
+    //     if (ans === 1234) _addTeamAction('initiative', 1);
+    //
+    // _addTeamAction also refreshes the buttons if the President's Men panel is
+    // open, and lights the green glow on Enemies/Friends if it isn't — so the
+    // player is always told a charge arrived. Grant more than one with the
+    // second argument.
+    //
+    // THE FIVE KEYS:
+    //   'hush'       Hush Money      — its own charge, own button in the row
+    //   'clemency'   Offer Clemency  — its own charge, own button in the row
+    //   'initiative' Initiative      — the SHARED pool behind the dropdown:
+    //                                  Cut Them Loose (1), Pin the Blame (1),
+    //                                  Smear (2), Interrogate (1), Grace (1)
+    //   'cut'/'blame' also add to the Initiative pool (kept working so older
+    //   authoring doesn't break) — prefer 'initiative' for new grants.
+    //
+    // Nothing is granted yet, so all three counters sit at 0 for a whole run
+    // and the actions are unreachable. FILL ME IN: add grant lines below as the
+    // answers that should earn them are written.
+    //
+    //   if (ans === FILL_ME_IN) _addTeamAction('initiative', 1);
+    //   if (ans === FILL_ME_IN) _addTeamAction('hush', 1);
+    //   if (ans === FILL_ME_IN) _addTeamAction('clemency', 1);
+
+    // =========================================================================
     // SANDBOX — World Event: Oil Embargo (Yom Kippur War / Operation Reforger)
     // =========================================================================
     // TO ACTIVATE:

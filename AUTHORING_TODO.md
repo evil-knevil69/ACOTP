@@ -121,6 +121,15 @@ call it repeatedly to see both sets). Nuke twin: `ACOPNuke.demo()`.
       pretrial. Component not yet built — flag when the question bank is
       tidy and you want it.
 
+- [ ] **4.5 Team-action + Initiative grants.** Code 2, grep `GRANT CHARGES`
+      (in `cyoAdventure`) — one line per answer that should earn a charge:
+      `if (ans === <answer pk>) _addTeamAction('initiative', 1);`. Keys:
+      `'hush'`, `'clemency'`, and `'initiative'` (the shared pool behind Cut
+      Them Loose / Pin the Blame / Smear / Interrogate / Grace). NOTHING
+      grants a charge today, so all three counters sit at 0 for a whole run
+      and every action on the President's Men screen is unreachable — this
+      is the one step that switches the whole screen on.
+
 ## 5 · Small / optional
 
 - [ ] **5.1 Low-demand static background.** `_LOWFX_STATIC_BG` (Code 1) —
