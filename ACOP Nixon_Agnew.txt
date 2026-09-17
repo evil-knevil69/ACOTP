@@ -13224,16 +13224,23 @@ const _TEAM_ACTIONS = [
     { key: 'smear',       label: 'Smear',          pool: true, cost: 2, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
     { key: 'interrogate', label: 'Interrogate',    pool: true, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
     { key: 'grace',       label: 'Grace',          pool: true, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
+    { key: 'stonewall',   label: 'Stonewall',      pool: true, cost: 2, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
 ];
 
 // Which keys render as buttons in the row, in order…
 const _TA_MAIN_ROW = ['hush', 'clemency', 'initiative'];
 // …and which the Initiative picker offers, in order. All of these spend the
 // pool; a `cost` on the action def (default 1) is what they spend.
-const _TA_POOLED   = ['cut', 'blame', 'smear', 'interrogate', 'grace'];
+const _TA_POOLED   = ['cut', 'blame', 'smear', 'interrogate', 'grace', 'stonewall'];
 
 function _taIsPooled(key) { const a = _teamAction(key); return !!(a && a.pool); }
 function _taCost(key) { const a = _teamAction(key); return (a && a.cost) || 1; }
+// An action's locked-out reason. A string on most, a function where the reason
+// depends on live state (Stonewall: not yet biting vs already up).
+function _taHintText(wired) {
+    const h = wired && wired.unavailableHint;
+    return (typeof h === 'function' ? h() : h) || '';
+}
 // Should this man's loyalty number be blurred? Takes the ORG-CHART person id
 // (which differs from the _ORG_PRESSURE key for the burglars), so both render
 // sites — the card back and the hover tip — can share one answer. Fogged
@@ -13393,6 +13400,23 @@ const _TA_WIRED = {
             return _crimeName(key) + ' stands at ' + (p ? p.loy() : '?') + ' / 10 loyalty — and you will see it from now on.';
         }
     },
+    stonewall: {
+        // No target: it is the President's own firewall, not a man's.
+        global: true,
+        available() {
+            return _pressureOn && _lengthAllows('pressure') && _stonewallLeft() === 0;
+        },
+        unavailableHint() {
+            return _stonewalled()
+                ? 'Already stonewalling \u2014 ' + _stonewallLeft() + ' turn(s) of cover left.'
+                : 'Nothing is reaching you yet \u2014 the investigation has not begun to bite.';
+        },
+        apply() {
+            _stonewallUntil = _questionCount + _STONEWALL_TURNS;
+            return 'Executive privilege asserted \u2014 nothing climbs the last rung to you for '
+                + _STONEWALL_TURNS + ' turns. It does not stop a man testifying.';
+        }
+    },
     grace: {
         // No target: it buys the whole conspiracy a quiet turn.
         global: true,
@@ -13496,7 +13520,7 @@ function _openInitiativePicker() {
         const locked = !!(wired.available && !wired.available());
         const poor = pts < cost;
         btn.disabled = poor || locked;
-        if (locked) btn.title = wired.unavailableHint || '';
+        if (locked) btn.title = _taHintText(wired);
         else if (poor) btn.title = 'Costs ' + cost + ' — you have ' + pts + '.';
         btn.addEventListener('click', () => {
             _closeInitiativePicker();
@@ -13578,7 +13602,7 @@ function _syncTeamActionBtns() {
         btn.querySelector('.nw-ta-count').textContent = a.get();
         const need = key === 'initiative' ? _taMinPooledCost() : _taCost(key);
         btn.disabled = a.get() < need || locked;
-        btn.title = locked ? (wired.unavailableHint || '') : '';
+        btn.title = locked ? _taHintText(wired) : '';
     });
     // The picker shows the pool as a headline and gates its two buttons on it,
     // so a charge arriving or being spent while it's open has to redraw it.
@@ -15791,6 +15815,10 @@ var _RESHUFFLE = {
             // strings, which get asked about BOTH directions)
             if (tgt === 'Nixon') {
                 if (['Haldeman', 'Ehrlichman', 'Dean', 'Colson', 'Mitchell'].indexOf(src) === -1) return 0;
+                // Stonewall: only the LAST rung goes dark. The chart below keeps
+                // glowing, which is exactly the picture — still burning, just
+                // not reaching him.
+                if (_stonewalled()) return 0;
             } else if ((_ORG_EDGES[src] || []).indexOf(tgt) === -1) return 0;
             const s = _ORG_PRESSURE[src];
             if (!s || _flipped.has(src) || (_pausedUntil[src] || 0) >= _questionCount) return 0;
@@ -16350,9 +16378,22 @@ const _innerCircleFlips = []; // inner-circle witnesses, consumed by the Nixon m
 const _smeared        = new Set();
 const _interrogated   = new Set();
 var _pressureFrozenUntil = -1;
+// Stonewall: the turn the executive-privilege firewall runs to. Unlike Grace
+// this freezes ONLY the last rung — exposure goes on climbing among the men,
+// it just stops reaching the President.
+var _stonewallUntil = -1;
+var _STONEWALL_TURNS = 3;   // turns of cover bought, counting the next one
 // True while Grace is holding the chart still. Read by the pressure tick and by
 // the wire glow, so a frozen turn visibly goes dark.
 function _pressureFrozen() { return _questionCount <= _pressureFrozenUntil; }
+// True while Stonewall holds. Read by the last rung of the pressure tick and by
+// the wire glow, so the drops into Nixon's card go dark while the rest of the
+// chart keeps burning.
+function _stonewalled() { return _questionCount <= _stonewallUntil; }
+// Turns of cover STILL TO COME. Ticks run immediately after _questionCount++,
+// so the current turn's tick has already been skipped by the time anyone reads
+// this — counting it would overstate the cover by one.
+function _stonewallLeft() { return Math.max(0, _stonewallUntil - _questionCount); }
 
 // Hush money / clemency — call from a question effect, e.g. _payOff('Hunt')
 function _payOff(name) {
@@ -16413,21 +16454,27 @@ _everyTurn(() => {
     // cut-loose halving (STATUS 4, set via question effects), same pay-off
     // pause, same ≤2 receiver firewall on Nixon's own dial (flip contagion
     // pierces it — see _flipWitness). Nixon's dial is WatergateExposure, 0–20.
-    ['Haldeman', 'Ehrlichman', 'Dean', 'Colson', 'Mitchell'].forEach(src => {
-        if (_flipped.has(src) || paused(src)) return;
-        const s = _ORG_PRESSURE[src];
-        const e = s.exp();
-        let interval = e >= 8 ? 2 : e >= 5 ? 4 : e >= 2 ? 6 : 0;
-        if (!interval) return;
-        if (s.st() === 4) interval *= 2; // cut loose: half impact upward
-        if (WatergateExposure <= 2) return; // firewalled while the President is clean
-        const key = src + '>Nixon';
-        _edgeClocks[key] = (_edgeClocks[key] || 0) + 1;
-        if (_edgeClocks[key] >= interval) {
-            _edgeClocks[key] = 0;
-            WatergateExposure = Math.min(20, WatergateExposure + 1);
-        }
-    });
+    // Stonewall (Initiative action) holds this rung shut while it lasts. The men
+    // below go on heating up; it just stops reaching Nixon's dial. NOT a shield
+    // against testimony — _flipWitness adds to WatergateExposure directly and
+    // deliberately pierces this, which is the hole the player has to know about.
+    if (!_stonewalled()) {
+        ['Haldeman', 'Ehrlichman', 'Dean', 'Colson', 'Mitchell'].forEach(src => {
+            if (_flipped.has(src) || paused(src)) return;
+            const s = _ORG_PRESSURE[src];
+            const e = s.exp();
+            let interval = e >= 8 ? 2 : e >= 5 ? 4 : e >= 2 ? 6 : 0;
+            if (!interval) return;
+            if (s.st() === 4) interval *= 2; // cut loose: half impact upward
+            if (WatergateExposure <= 2) return; // firewalled while the President is clean
+            const key = src + '>Nixon';
+            _edgeClocks[key] = (_edgeClocks[key] || 0) + 1;
+            if (_edgeClocks[key] >= interval) {
+                _edgeClocks[key] = 0;
+                WatergateExposure = Math.min(20, WatergateExposure + 1);
+            }
+        });
+    }
 
     Object.keys(_ORG_PRESSURE).forEach(name => {
         if (_flipped.has(name)) return;
@@ -17216,7 +17263,8 @@ window.__onGameWindowMutation(() => {
                     Object.keys(COUNTRY_LOYAL).forEach(c => { window[c + '_STAB'] = 0; });
                     _president = 'nixon'; _vp = 'agnew'; _ticketStage = 1; _refreshTicket();
                     _actionCrimes.length = 0; _actionCrimesRevealed = false;
-                    _smeared.clear(); _interrogated.clear(); _pressureFrozenUntil = -1;
+                    _smeared.clear(); _interrogated.clear();
+                    _pressureFrozenUntil = -1; _stonewallUntil = -1;
                     _enemiesReset();
                     _nukeReset();   // unwind the nuclear-war branch + candidate rename
                     // Only unwind an EVENT-driven theme swap — a look the player
@@ -17932,7 +17980,7 @@ var _SL_SCALARS = [
     'oojClemency', 'dncbreakin', 'OilEmbargo', 'SaturdayNightMassacre',
     // action stacks
     'HushMoneyStack', 'CutThemLooseStack', 'OfferClemencyStack', 'PinTheBlameStack', '_taUnseen',
-    'InitiativeStack', '_pressureFrozenUntil',
+    'InitiativeStack', '_pressureFrozenUntil', '_stonewallUntil',
     'ImproveRelationsStack', 'SendAidStack', 'ReduceAidStack', 'DestabiliseStack',
     // world events
     'Vietnam', 'chad', 'khmer', 'laos', 'eritrea', 'managua', 'cyprusInvasion',
@@ -18898,7 +18946,8 @@ function openGameManual() {
         '<li><b>Pin the Blame</b> — available only once your own exposure is dangerously high: hang it on a wavering man (his exposure up, his loyalty down) to take the heat off yourself. A devil’s bargain — you’re manufacturing the next man to crack.</li>'+
         '<li><b>Smear</b> (2 points) — destroy a man’s credibility so thoroughly that he can <b>never turn state’s witness</b>, whatever happens to his nerve. It does not calm him and it does not stop his exposure climbing the chart: it buys silence, not safety.</li>'+
         '<li><b>Interrogate</b> — lean on a man and <b>read his loyalty</b>. Under Fog of War that number is blurred; once you have interrogated him you see it from then on. Nothing to buy if you turned the fog off.</li>'+
-        '<li><b>Grace</b> — no target: <b>one quiet turn</b>. Nothing climbs the chart, nothing erodes, nobody cracks, and the wires go dark for a turn. A breath, not a cure.</li></ul></ul>'+
+        '<li><b>Grace</b> — no target: <b>one quiet turn</b>. Nothing climbs the chart, nothing erodes, nobody cracks, and the wires go dark for a turn. A breath, not a cure.</li>'+
+        '<li><b>Stonewall</b> (2 points) — no target: <b>executive privilege</b>. For three turns nothing climbs the <i>last</i> rung to you. Your men go on heating up — watch their wires keep glowing while the drops into your own card go dark — it simply stops reaching you. It is <b>not</b> protection from a man testifying: if one of the inner circle turns state’s witness, that lands on you through the stonewall.</li></ul></ul>'+
         '<p>Every one of these is paid for out of the same pool, so spending on one is spending against the others — the question is never how many you were handed, it is which of them you are willing to do.</p>'+
         '<p>The machine only truly comes alive in Part II (“Fulmination”); before that, the numbers move only through your answers.</p>'+
         '<h3>Officials</h3>'+

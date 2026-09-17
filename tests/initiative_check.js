@@ -76,10 +76,22 @@ ck('Grace stands the pressure tick down, and darkens the wire glow with it',
 ck('Interrogate routes both fog render sites through one shared helper',
    (src.match(/_loyaltyFogged\(id, loyalty\)/g) || []).length === 2
    && !/loyalty > 1 \? ' class="nw-fog"'/.test(src));
+ck('Stonewall costs 2, is untargeted, and blocks ONLY the last rung',
+   /key: 'stonewall',[^}]*cost: 2/.test(src)
+   && /stonewall: \{[\s\S]{0,120}global: true/.test(src)
+   && /if \(!_stonewalled\(\)\) \{\s*\n\s*\['Haldeman', 'Ehrlichman', 'Dean', 'Colson', 'Mitchell'\]/.test(src));
+ck('…and it does NOT guard _flipWitness, so testimony still lands',
+   !/_stonewalled/.test(extractFn('_flipWitness')));
+ck('the wire glow darkens the Nixon rung only',
+   /if \(tgt === 'Nixon'\) \{[\s\S]{0,600}if \(_stonewalled\(\)\) return 0;/.test(src));
+ck('a locked-out reason may be a function, resolved at read time',
+   /typeof h === 'function' \? h\(\) : h/.test(src)
+   && /btn\.title = locked \? _taHintText\(wired\)/.test(src)
+   && /if \(locked\) btn\.title = _taHintText\(wired\)/.test(src));
 ck('the new per-run state is saved and cleared on New Game',
    /smeared: Array\.from\(_smeared\)/.test(src) && /interrogated: Array\.from\(_interrogated\)/.test(src)
-   && /'_pressureFrozenUntil'/.test(src)
-   && /_smeared\.clear\(\); _interrogated\.clear\(\); _pressureFrozenUntil = -1;/.test(src));
+   && /'_pressureFrozenUntil', '_stonewallUntil'/.test(src)
+   && /_pressureFrozenUntil = -1; _stonewallUntil = -1;/.test(src));
 ck('_flipped is rebuilt from the saved STATUS vars on restore (it is not stored)',
    /_flipped\.clear\(\);[\s\S]{0,200}_ORG_PRESSURE\[n\]\.st\(\) === 1\) _flipped\.add\(n\)/.test(src));
 ck('the stale "three do nothing" comment on _TA_WIRED is gone',
@@ -126,7 +138,10 @@ ck('the stale "three do nothing" comment on _TA_WIRED is gone',
     ${extractFn('_teamAction')}
     ${extractFn('_addTeamAction')}
     ${extractFn('_spendTeamAction')}
-    ${slice('const _smeared        = new Set();', 'function _pressureFrozen() { return _questionCount <= _pressureFrozenUntil; }')}
+    ${slice('const _smeared        = new Set();', 'var _STONEWALL_TURNS = 3;')}
+    ${extractFn('_pressureFrozen')}
+    ${extractFn('_stonewalled')}
+    ${extractFn('_stonewallLeft')}
     ${slice('const _TA_EXCLUDED =', 'function _taEligible(person) {')}
     ${extractFn('_taEligible').replace(/^function _taEligible\(person\) \{/, '')}
     ${slice('const _TA_WIRED = {', '\n};')}
@@ -145,6 +160,7 @@ ck('the stale "three do nothing" comment on _TA_WIRED is gone',
     ${extractFn('_taApplyGlobal')}
     ${extractFn('_taCost')}
     ${extractFn('_taMinPooledCost')}
+    ${extractFn('_taHintText')}
     ${extractFn('_loyaltyFogged')}
     ${extractFn('_flipWitness')}
     // The wire-glow level function (nested inside _drawOrgLinks in the mod) —
@@ -304,10 +320,10 @@ ck('the stale "three do nothing" comment on _TA_WIRED is gone',
     window.__open();
     return { keys: window.__pickKeys(), costs: _TA_POOLED.map(k => window.__pickCost(k)) };
   });
-  ck('all five pooled actions are offered',
-     JSON.stringify(r.keys) === JSON.stringify(['cut', 'blame', 'smear', 'interrogate', 'grace']));
-  ck('each shows its price in the row pill — Smear 2, the rest 1',
-     JSON.stringify(r.costs) === JSON.stringify(['1', '1', '2', '1', '1']));
+  ck('all six pooled actions are offered',
+     JSON.stringify(r.keys) === JSON.stringify(['cut', 'blame', 'smear', 'interrogate', 'grace', 'stonewall']));
+  ck('each shows its price in the row pill — Smear and Stonewall 2, the rest 1',
+     JSON.stringify(r.costs) === JSON.stringify(['1', '1', '2', '1', '1', '2']));
   r = await ev(() => {
     InitiativeStack = 1; _syncTeamActionBtns();
     return { smear: window.__pickBtn('smear').disabled, title: window.__pickBtn('smear').title,
@@ -473,6 +489,87 @@ ck('the stale "three do nothing" comment on _TA_WIRED is gone',
     return _loyaltyFogged('WatergateBurglars', 5);
   });
   ck('the burglars resolve through _taKeyFor, so their card un-fogs too', r === false);
+
+  console.log('\nSTONEWALL:');
+  r = await ev(() => {
+    _taExitMode();
+    _questionCount = 40; _stonewallUntil = -1; _pressureFrozenUntil = -1;
+    _flipped.clear(); _smeared.clear();
+    WatergateExposure = 8;                  // above the <=2 firewall on Nixon
+    _ORG_PRESSURE.Haldeman = mk(8, 5, 5);   // exp 5 -> interval 4 up to Nixon
+    _ORG_PRESSURE.Hunt = mk(6, 9, 5);       // exp 9 -> interval 2 up to Haldeman
+    InitiativeStack = 4; _syncTeamActionBtns();
+    window.__open();
+    return window.__pickCost('stonewall');
+  });
+  ck('Stonewall is offered at 2 points', r === '2');
+  r = await ev(() => {
+    _taExitMode();
+    _edgeClocks['Haldeman>Nixon'] = 3;      // one tick short of the interval
+    const before = WatergateExposure;
+    _questionCount++; window.__pressureTick();
+    return { before, after: WatergateExposure };
+  });
+  ck('without it, the drip reaches the President — the control case',
+     r.after === r.before + 1);
+  r = await ev(() => {
+    window.__open();
+    window.__pickBtn('stonewall').click();
+    return { pool: InitiativeStack, open: _initiativePickerOpen(), mode: _taMode,
+             until: _stonewallUntil, qc: _questionCount, left: _stonewallLeft(),
+             hint: document.getElementById('nw-ta-hint').textContent };
+  });
+  ck('it resolves untargeted and costs two points',
+     r.pool === 2 && r.open === false && r.mode === null);
+  ck('…and buys _STONEWALL_TURNS of FUTURE turns, not counting the tick already run',
+     r.until === r.qc + 3 && r.left === 3);
+  ck('…and says what it does and does not do',
+     /Executive privilege/.test(r.hint) && /does not stop a man testifying/i.test(r.hint));
+  r = await ev(() => {
+    _edgeClocks['Haldeman>Nixon'] = 3;      // primed to reach Nixon…
+    _edgeClocks['Hunt>Haldeman'] = 1;       // …and to reach Haldeman
+    const nixonBefore = WatergateExposure;
+    const haldBefore = _ORG_PRESSURE.Haldeman.exp();
+    _questionCount++; window.__pressureTick();
+    return { nixonBefore, nixonAfter: WatergateExposure,
+             haldBefore, haldAfter: _ORG_PRESSURE.Haldeman.exp(),
+             glowTop: _expFlowLevel('Haldeman', 'Nixon'),
+             glowBelow: _expFlowLevel('Hunt', 'Haldeman') };
+  });
+  ck('the drip no longer reaches the President', r.nixonAfter === r.nixonBefore);
+  ck('…but the men below go on heating up — it is a firewall, not a freeze',
+     r.haldAfter === r.haldBefore + 1);
+  ck('the last rung of the wire glow goes dark', r.glowTop === 0);
+  ck('…while the chart below keeps burning (unlike Grace)', r.glowBelow > 0);
+  r = await ev(() => {
+    window.__open();
+    const b = window.__pickBtn('stonewall');
+    return { dis: b.disabled, title: b.title };
+  });
+  ck('it cannot be bought twice over, and says how long is left',
+     r.dis === true && /Already stonewalling/.test(r.title) && /turn\(s\) of cover left/.test(r.title));
+  r = await ev(() => {
+    _taExitMode();
+    // Testimony pierces it: an inner-circle man flipping hits Nixon directly,
+    // which is the hole the action's own hint warns about.
+    const before = WatergateExposure;
+    _ORG_PRESSURE.Colson = mk(0, 9, 5); _ORG_PRESSURE.Colson.inner = true;
+    _flipWitness('Colson');
+    return { before, after: WatergateExposure, stonewalled: _stonewalled() };
+  });
+  ck('a man testifying still lands on the President THROUGH the stonewall',
+     r.stonewalled === true && r.after >= r.before + 2);
+  r = await ev(() => {
+    _questionCount = _stonewallUntil + 1;   // cover has run out
+    _edgeClocks['Haldeman>Nixon'] = 3;
+    const before = WatergateExposure;
+    window.__pressureTick();
+    return { before, after: WatergateExposure, left: _stonewallLeft(),
+             available: _TA_WIRED.stonewall.available() };
+  });
+  ck('the cover expires and the drip resumes',
+     r.left === 0 && r.after === r.before + 1);
+  ck('…and it can be bought again once it has', r.available === true);
 
   console.log('\n' + pass + ' passed, ' + fail + ' failed');
   await b.close();

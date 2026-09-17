@@ -1653,6 +1653,43 @@ freeze removed, Smear priced at 1, Interrogate ignored by the fog helper) — an
 first poison is what revealed the choke-point guard had no runtime test, since the
 `_flipDanger` guard shadows it in the tick path. Full suite green, Code 2 EXECUTES CLEAN.
 
+**77. Initiative: Stonewall (Sep 2026)** — Code 2. Sixth action in the dropdown,
+cost **2**, UNTARGETED (`global: true`, so `_taApplyGlobal` resolves it on pick like
+Grace). Executive privilege: for `_STONEWALL_TURNS` (3) turns nothing climbs the LAST
+RUNG to Nixon, while the chart below goes on heating up.
+Why it is not just a longer Grace: Grace stands the WHOLE pressure tick down for one
+turn; Stonewall wraps only the inner-circle→Nixon block (`['Haldeman', 'Ehrlichman',
+'Dean', 'Colson', 'Mitchell'].forEach`) in `if (!_stonewalled())`. Exposure keeps
+radiating among the men and keeps eroding loyalty — it just stops arriving. The wire
+glow matches: `_expFlowLevel` returns 0 for `tgt === 'Nixon'` while stonewalled, so the
+drops into Nixon's card go dark and everything below keeps burning. That contrast IS
+the read.
+THE HOLE, deliberate and stated in both the apply message and the manual: exactly two
+things raise `WatergateExposure` — the drip on that rung, and `_flipWitness`'s +2
+(min 3) when an inner-circle man turns. Stonewall blocks the FIRST ONLY. Testimony
+pierces it. A test asserts `_flipWitness` carries no `_stonewalled` guard, so the hole
+can't be closed by accident.
+State: `_stonewallUntil` (in `_SL_SCALARS`, cleared on New Game), `_STONEWALL_TURNS`,
+`_stonewalled()`, `_stonewallLeft()`. CAUTION on the arithmetic — ticks run right after
+`_questionCount++`, so by the time anything reads state the current turn's tick has
+ALREADY been skipped; `_stonewallLeft()` is therefore `until - qc` (future ticks still
+covered), NOT `+1`. The first draft had the `+1` and reported 4 on a 3-turn buy; the
+harness caught it. `available()` gates on `_stonewallLeft() === 0` rather than
+`!_stonewalled()`, so the last covered turn can be re-upped instead of being a dead
+turn where the action is locked but no future tick is protected.
+ALSO: `unavailableHint` may now be a FUNCTION, resolved at read time by the new
+`_taHintText(wired)` (both the row buttons and the dropdown go through it). Stonewall
+needs it because its locked-out reason differs by state ("not begun to bite" vs
+"already stonewalling — N turn(s) of cover left"); a plain string is frozen at load,
+which is what the first draft wrote and would have shown the wrong reason forever.
+Verified: initiative_check 80/80 (offered at 2, a CONTROL case proving the drip does
+reach Nixon without it, untargeted resolution, the exact 3-future-turn window, drip
+blocked while the men below still heat up, glow dark on the last rung only and lit
+below, no double-buy + the reason text, testimony piercing it, expiry + re-buy). FOUR
+POISONS confirmed to fail (rung guard removed, `_flipWitness` wrongly guarded, glow
+darkening the whole chart, cover counting the already-run tick). Full suite green ×3,
+Code 2 EXECUTES CLEAN.
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
 session went with it (they were never committed). Rebuilt and COMMITTED, 258
@@ -1660,7 +1697,7 @@ assertions over the areas that carry the most machinery:
 `nuke_check` (106), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `nuketheme_check` (33),
-`initiative_check` (63),
+`initiative_check` (80),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.
