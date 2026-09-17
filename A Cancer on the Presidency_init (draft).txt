@@ -760,12 +760,18 @@ body.low-fx-on #wm-event-tooltip {
 /* pulse glows → static mid-intensity halos (reshuffle amber, team-action
    green, last-turn red) */
 body.low-fx-on .rs-glow,
+body.low-fx-on .news-glow,
+body.low-fx-on #nw-chart-wrapper .nw-node.nw-cracking .nw-flip-area,
 body.low-fx-on .ta-glow {
     animation: none !important;
 }
 body.low-fx-on .rs-glow { box-shadow: 0 0 8px 3px rgba(255, 200, 60, 0.75) !important; }
 body.low-fx-on .ta-glow { box-shadow: 0 0 8px 3px rgba(80, 200, 110, 0.75) !important; }
 body.low-fx-on .rs-glow.rs-last { box-shadow: 0 0 9px 4px rgba(226, 58, 40, 0.85) !important; }
+body.low-fx-on .news-glow { box-shadow: 0 0 9px 4px rgba(183, 28, 28, 0.85) !important; }
+body.low-fx-on #nw-chart-wrapper .nw-node.nw-cracking .nw-flip-area {
+    box-shadow: 0 0 9px 4px rgba(183, 28, 28, 0.85) !important;
+}
 /* CRT flickers off: election-night cards (must out-specific the !important
    rules in the per-screen logo-hide-style) + the midterm broadcast */
 body.low-fx-on #game_window.acop-final-tv #overall_result,

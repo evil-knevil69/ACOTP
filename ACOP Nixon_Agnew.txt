@@ -13047,6 +13047,7 @@ function addInnerCircleButton() {
         if (_RESHUFFLE.turnsLeft() <= 0) btn.classList.add('rs-last');   // final turn: red
     }
     if (_taUnseen) btn.classList.add('ta-glow');
+    if (_orgNewsUnseen) btn.classList.add('news-glow');
     ref.insertAdjacentElement('afterend', btn);
 }
 
@@ -13622,6 +13623,21 @@ function openInnerCircle() {
     const title = document.createElement('h2');
     title.textContent = "All the President's Men";
     panel.appendChild(title);
+
+    // News since last turn: who is cracking, who has turned. Reading it here is
+    // what clears the glow on the Enemies/Friends button.
+    _orgNewsUnseen = false;
+    if (_orgNews.length) {
+        const news = document.createElement('div');
+        news.id = 'nw-news';
+        _orgNews.forEach(n => {
+            const line = document.createElement('div');
+            line.className = 'nw-news-line' + (n.kind === 'flipped' ? ' nw-news-flip' : '');
+            line.textContent = n.line;
+            news.appendChild(line);
+        });
+        panel.appendChild(news);
+    }
 
     // Team action buttons, pinned top-left (above the Dean column).
     // Cottage Cheese runs don't build them (_lengthAllows) — the chart itself
@@ -14551,6 +14567,17 @@ const OFFICIALS_VARS = {
             0%, 100% { box-shadow: 0 0 3px 1px  rgba(80, 200, 110, 0.55); }
             50%      { box-shadow: 0 0 12px 5px rgba(80, 200, 110, 0.95); }
         }
+        /* ── Unread news on the President's Men screen (see _orgNewsUnseen) —
+              deep crimson, matching the state's-witness pill, so it reads apart
+              from the amber reshuffle and green charge glows. ── */
+        .news-glow {
+            animation: news-pulse 1.3s ease-in-out infinite;
+            border-radius: 3px;
+        }
+        @keyframes news-pulse {
+            0%, 100% { box-shadow: 0 0 3px 1px  rgba(183, 28, 28, 0.6); }
+            50%      { box-shadow: 0 0 13px 5px rgba(183, 28, 28, 1.0); }
+        }
         .oc-pending {
             margin-top: 6px;
             padding: 3px 5px;
@@ -15122,6 +15149,37 @@ var _RESHUFFLE = {
         #nw-team-actions > .nw-ta-btn[data-action="initiative"]::after {
             content: ' \\25BE';
             font-weight: bold;
+        }
+        /* News chip above the chart — who is cracking, who has turned. Built on
+           the .oc-deadline idiom from the Officials panel, in oxblood because it
+           is never good news. */
+        #nw-news {
+            margin: 2px auto 8px;
+            padding: 5px 12px;
+            width: fit-content;
+            max-width: 560px;
+            border: 1px solid #a02218;
+            border-radius: 3px;
+            background: rgba(255, 228, 220, 0.94);
+            font-family: 'TypewriterDry', sans-serif;
+            font-size: 10.5px;
+            line-height: 1.5;
+            letter-spacing: 0.05em;
+            color: #7c150c;
+            text-align: left;
+        }
+        #nw-news .nw-news-flip {
+            font-weight: bold;
+            letter-spacing: 0.07em;
+        }
+        /* The man himself, while he is in the breaking-point window. */
+        #nw-chart-wrapper .nw-node.nw-cracking .nw-flip-area {
+            border-radius: 3px;
+            animation: nw-crack-pulse 1.3s ease-in-out infinite;
+        }
+        @keyframes nw-crack-pulse {
+            0%, 100% { box-shadow: 0 0 3px 1px  rgba(183, 28, 28, 0.55); }
+            50%      { box-shadow: 0 0 13px 5px rgba(183, 28, 28, 0.95); }
         }
         #nw-init-pick {
             position: absolute;
@@ -16187,6 +16245,14 @@ var _RESHUFFLE = {
             ['Stans',     StansSTATUS],     ['Kalmbach',  KalmbachSTATUS],  ['Dean',     DeanSTATUS],
             ['Colson',    ColsonSTATUS],    ['WatergateBurglars', Watergateburglarsstatus],
         ].forEach(([id, val]) => window._setOrgState(id, toState(val)));
+        // Mark anyone in the breaking-point window, so the warning has somewhere
+        // to point. Smeared men never enter it; a man who has already turned
+        // wears the witness pill instead.
+        document.querySelectorAll('#nw-chart-wrapper .nw-node[data-person]').forEach(n => {
+            const k = _taKeyFor(n.dataset.person);
+            n.classList.toggle('nw-cracking',
+                (_flipDanger[k] || 0) > 0 && !_smeared.has(k) && !_flipped.has(k));
+        });
         // Stats just changed (team action, load, turn tick with the panel up) —
         // rebuild the link layer so the radiation glow tracks the new numbers.
         // _drawOrgLinks is idempotent (wipes and redraws the whole svg).
@@ -16383,6 +16449,57 @@ var _pressureFrozenUntil = -1;
 // it just stops reaching the President.
 var _stonewallUntil = -1;
 var _STONEWALL_TURNS = 3;   // turns of cover bought, counting the next one
+
+// ── THE CHART REPORTS ON ITSELF ───────────────────────────────────────────────
+// Two things used to happen in silence. A man entering the breaking-point window
+// (the engine already counts a 3-turn grace in _flipDanger before it starts
+// rolling, and threw that warning away), and a man actually turning state's
+// witness — the most consequential event in the whole engine, previously
+// visible only as a pill quietly changing colour on a screen you might not have
+// open. Both now land as NEWS: a red glow on the Enemies/Friends button until
+// read, a chip above the chart, and a ring on the man's own card.
+//
+// NOTE on Fog of War: the warning gives nothing away that fog was hiding. The
+// danger window requires loyalty 0, and fog already renders loyalty <=1
+// UNfogged ("about to bust", change 24) — so by the time a man is in the window
+// his number is legible anyway.
+const _orgNews    = [];         // [{ kind:'cracking'|'flipped', name, line, turn }]
+const _crackWarned = new Set(); // warned once per descent into the window
+var _orgNewsUnseen = false;
+var _ORG_NEWS_TURNS = 2;        // turns a line stays on the panel before pruning
+// Authoring: add lines freely. One is chosen at the moment the news is made and
+// STORED on the item, so it can't reshuffle between panel opens or across a save.
+var _ORG_CRACK_LINES = [
+    '{N} has stopped returning calls.',
+    '{N} has retained his own lawyer.',
+    '{N} was seen leaving the prosecutor\u2019s office.',
+    '{N} is not sleeping, and people have noticed.',
+    '{N} has been asking what the others have said.',
+];
+var _ORG_FLIP_LINE = '{N} HAS TURNED \u2014 he is talking to the prosecutors.';
+
+function _orgNewsAdd(kind, name) {
+    const who = _crimeName(name);
+    const tpl = kind === 'flipped'
+        ? _ORG_FLIP_LINE
+        : _ORG_CRACK_LINES[Math.floor(Math.random() * _ORG_CRACK_LINES.length)];
+    _orgNews.push({ kind, name, line: tpl.replace('{N}', who), turn: _questionCount });
+    _orgNewsUnseen = true;
+    _syncOrgNewsGlow();
+}
+
+// Paint or clear the red glow on the Enemies/Friends button, if it's on screen.
+function _syncOrgNewsGlow() {
+    const btn = document.getElementById('inner_circle_button');
+    if (btn) btn.classList.toggle('news-glow', _orgNewsUnseen);
+}
+
+// Drop lines older than _ORG_NEWS_TURNS, so the chip stays current and bounded.
+function _orgNewsPrune() {
+    for (let i = _orgNews.length - 1; i >= 0; i--) {
+        if (_questionCount - _orgNews[i].turn > _ORG_NEWS_TURNS) _orgNews.splice(i, 1);
+    }
+}
 // True while Grace is holding the chart still. Read by the pressure tick and by
 // the wire glow, so a frozen turn visibly goes dark.
 function _pressureFrozen() { return _questionCount <= _pressureFrozenUntil; }
@@ -16410,6 +16527,7 @@ function _flipWitness(name) {
     // however the flip is reached.
     if (_smeared.has(name)) return;
     _flipped.add(name);
+    _orgNewsAdd('flipped', name);
     p.setSt(1); // state's witness
     (_ORG_EDGES[name] || []).forEach(tgt => {
         const t = _ORG_PRESSURE[tgt];
@@ -16508,14 +16626,29 @@ _everyTurn(() => {
         // 4. The breaking point — 3-turn grace, then 33% per turn
         if (p.loy() === 0 && p.exp() >= 8 && !_smeared.has(name)) {
             _flipDanger[name] = (_flipDanger[name] || 0) + 1;
+            // He has just entered the grace window: say so, once per descent,
+            // while there are still turns left to do something about it.
+            if (_flipDanger[name] === 1 && !_crackWarned.has(name)) {
+                _crackWarned.add(name);
+                _orgNewsAdd('cracking', name);
+            }
             if (_flipDanger[name] > 3 && Math.random() < 1 / 3) _flipWitness(name);
         } else {
             _flipDanger[name] = 0;
+            _crackWarned.delete(name);   // a man who recovers can be warned about again
         }
     });
 
     // 5. Repaint the org chart status pills if the chart is on screen
     if (typeof window._syncOrgStates === 'function') window._syncOrgStates();
+});
+// News upkeep — UNGATED on purpose. The pressure tick above early-returns when
+// the engine is asleep or Grace is holding, but lines still have to age out and
+// the button still has to glow.
+// ── ORG NEWS UPKEEP ──
+_everyTurn(() => {
+    _orgNewsPrune();
+    _syncOrgNewsGlow();
 });
 // ── END WATERGATE PRESSURE ENGINE ─────────────────────────────────────────────
 
@@ -17265,6 +17398,7 @@ window.__onGameWindowMutation(() => {
                     _actionCrimes.length = 0; _actionCrimesRevealed = false;
                     _smeared.clear(); _interrogated.clear();
                     _pressureFrozenUntil = -1; _stonewallUntil = -1;
+                    _orgNews.length = 0; _crackWarned.clear(); _orgNewsUnseen = false;
                     _enemiesReset();
                     _nukeReset();   // unwind the nuclear-war branch + candidate rename
                     // Only unwind an EVENT-driven theme swap — a look the player
@@ -17980,7 +18114,7 @@ var _SL_SCALARS = [
     'oojClemency', 'dncbreakin', 'OilEmbargo', 'SaturdayNightMassacre',
     // action stacks
     'HushMoneyStack', 'CutThemLooseStack', 'OfferClemencyStack', 'PinTheBlameStack', '_taUnseen',
-    'InitiativeStack', '_pressureFrozenUntil', '_stonewallUntil',
+    'InitiativeStack', '_pressureFrozenUntil', '_stonewallUntil', '_orgNewsUnseen',
     'ImproveRelationsStack', 'SendAidStack', 'ReduceAidStack', 'DestabiliseStack',
     // world events
     'Vietnam', 'chad', 'khmer', 'laos', 'eritrea', 'managua', 'cyprusInvasion',
@@ -18022,6 +18156,8 @@ function _slCaptureMod() {
         enemies: _enemiesSnapshot(),
         smeared: Array.from(_smeared),
         interrogated: Array.from(_interrogated),
+        orgNews: _orgNews.slice(),
+        crackWarned: Array.from(_crackWarned),
     };
 }
 
@@ -18057,6 +18193,10 @@ function _slRestoreMod(m) {
     (m.smeared || []).forEach(n => _smeared.add(n));
     _interrogated.clear();
     (m.interrogated || []).forEach(n => _interrogated.add(n));
+    _orgNews.length = 0;
+    (m.orgNews || []).forEach(n => _orgNews.push(n));
+    _crackWarned.clear();
+    (m.crackWarned || []).forEach(n => _crackWarned.add(n));
     // _flipped is NOT in the save: it is rebuilt from the men's STATUS vars,
     // which are (STATUS 1 = state's witness). Deriving rather than storing also
     // repairs saves written before this was noticed — without it a load left
@@ -18938,6 +19078,7 @@ function openGameManual() {
         '<p>Every man in the conspiracy has two numbers, shown when you flip his card: <b>Loyalty</b> (10 = a true believer, 0 = ready to talk) and <b>Exposure</b> (how far the investigation has reached him). With <b>Fog of War</b> on (the pre-game default), a man’s loyalty stays blurred — you won’t know when he’ll bust until he’s at breaking point. Nixon’s own card shows your <b>Watergate Exposure</b> — the number that ultimately decides your fate.</p>'+
         '<p><b>Exposure climbs.</b> Each turn a man’s exposure leaks upward to the men above him on the chart — the more exposed he is, the faster it spreads. A man who is still clean is shielded and absorbs nothing from below. Left unchecked it works its way up the chain and, in the end, to the President himself. <b>Watch the wires:</b> a line glows where exposure is passing along it, hotter and redder the faster it flows — follow the glow up the organisation to see how close the fire has crept to the Oval Office.</p>'+
         '<p><b>Men crack.</b> The more exposed a man is, the faster his loyalty erodes — and once his loyalty bottoms out while his exposure is high, he may turn <b>state’s witness</b>. A witness is a catastrophe: his testimony throws fresh exposure onto everyone he was tied to, and if one of the inner circle (Haldeman, Ehrlichman, Colson, Mitchell, Dean) flips, it lands directly on you. Minor exposure fades on its own over time — unless the man has been indicted or jailed, which keeps him in the headlines.</p>'+
+        '<p><b>You get warning.</b> A man does not break without notice. When one reaches his breaking point the <b>Enemies/Friends</b> button glows red, his card is ringed on the chart, and a note at the top of this screen tells you what has been noticed about him — he has retained a lawyer, he has stopped returning calls. You have a few turns from that moment: pay him off, smear him, cut him loose, or let it happen. When a man does turn, the same note says so — you will not have to work it out from the colour of a card.</p>'+
         '<p><b>Your tools.</b> Three buttons sit at the top-left of the screen, each with limited uses earned through the game. When you earn a fresh use, the <b>Enemies/Friends</b> button glows green until you next open this screen. They only work on the junior staff — the men below the top row (Dean included), never the President or the inner four:</p><ul>'+
         '<li><b>Hush Money</b> — buy a man off: +1 loyalty, and his loyalty stops eroding and his exposure stops spreading for a few turns.</li>'+
         '<li><b>Offer Clemency</b> — dangle a pardon before a loyal man who’s been indicted or jailed: a temporary loyalty boost that evaporates the moment his situation changes.</li>'+

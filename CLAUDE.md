@@ -1690,6 +1690,55 @@ POISONS confirmed to fail (rung guard removed, `_flipWitness` wrongly guarded, g
 darkening the whole chart, cover counting the already-run tick). Full suite green ×3,
 Code 2 EXECUTES CLEAN.
 
+**78. The chart reports on itself — crack warnings + flip announcements (Sep 2026)**
+Two things used to happen in complete silence, and both were the most dramatic beats
+the pressure engine had.
+(a) **The warning.** `_flipDanger[name]` already counted a THREE-TURN grace at loyalty
+0 + exposure >=8 before it began rolling 33%/turn — a warning the engine computed and
+threw away. It now fires news on the FIRST turn of that window, once per descent
+(`_crackWarned`), and re-arms if the man climbs back out (the `else` branch deletes
+him), so a second collapse warns again. This is also what finally makes the Initiative
+menu a decision rather than a list: Smear stops him for good, Hush Money pauses him,
+Cut Them Loose halves what he leaks — the warning is the moment you choose.
+(b) **The flip.** `_flipWitness` announced nothing; a state's witness was visible only
+as a pill quietly changing colour on a screen you might not have open. It now announces
+from INSIDE `_flipWitness`, placed AFTER the smear guard so a refused flip stays silent
+(a poison that moved it above the guard was confirmed to fail).
+THREE SURFACES, one state container: a red `.news-glow` on the Enemies/Friends button
+until read (deep crimson `rgba(183,28,28)`, matching the state's-witness pill, so it
+reads apart from the amber reshuffle and green charge glows; re-applied by
+`addInnerCircleButton` on every engine re-render, like `.ta-glow`), a `#nw-news` chip
+above the chart built on the `.oc-deadline` idiom (flips bold via `.nw-news-flip`), and
+a `.nw-cracking` crimson ring on the man's own card, toggled in `_syncOrgStates` and
+skipping smeared/flipped men. Opening the panel is what marks the news read.
+Config/authoring: `_ORG_CRACK_LINES` (five, add freely), `_ORG_FLIP_LINE`,
+`_ORG_NEWS_TURNS` (2). The line is chosen ONCE and STORED on the item rather than
+picked at render — otherwise it reshuffled on every panel open and across a save.
+FOG OF WAR is untouched and not undermined: the danger window requires loyalty 0, and
+fog already renders loyalty <=1 UNfogged (change 24), so by the time a man is in the
+window his number was legible anyway. The warning gives away nothing fog was hiding.
+UPKEEP IS UNGATED (grep `ORG NEWS UPKEEP`) — its own `_everyTurn`, NOT inside the
+pressure tick, which early-returns when the engine is asleep or Grace is holding; lines
+still have to age out and the button still has to glow. Low demand mode keeps both
+signals as STATIC halos per the project rule (signals stay, motion goes).
+Save/load: `_orgNews` + `_crackWarned` are containers in `_slCaptureMod`/restore;
+`_orgNewsUnseen` is in `_SL_SCALARS`; all three cleared on New Game.
+Verified: new `tests/orgnews_check.js` 29/29, driving the REAL pressure tick, the real
+`_flipWitness` and the real panel/button/ring surfaces — warning on the first grace
+turn with the man NOT yet flipped, no repeat while he stays in the window, recovery
+clearing window+ring+guard, a second descent warning again, the chip + glow-clearing,
+ageing out THROUGH the tick, the flip line, a smeared man announcing nothing, and an
+end-to-end run where one man is warned about and then reported as turned with real
+turns of grace between. FIVE POISONS confirmed to fail (announcement removed, warning
+every turn, re-arm removed, announcement above the smear guard, pruning dropped from
+the tick). NOTE the harness lesson: the news list is PRUNED, so a multi-turn sequence
+has to be observed as it happens (the harness wraps `_orgNewsAdd`) rather than read off
+the survivors — two of my own assertions were wrong that way first. Manual paragraph
+added ("You get warning."). NOTE for other harnesses — the pressure tick and
+`_flipWitness` now call `_orgNewsAdd`, so anything extracting either needs
+`_orgNewsAdd`/`_syncOrgNewsGlow`/`_crackWarned` stubbed (initiative_check was patched).
+Full suite green, both files EXECUTE CLEAN.
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
 session went with it (they were never committed). Rebuilt and COMMITTED, 258
@@ -1698,6 +1747,7 @@ assertions over the areas that carry the most machinery:
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `nuketheme_check` (33),
 `initiative_check` (80),
+`orgnews_check` (29),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.

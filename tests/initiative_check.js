@@ -131,6 +131,11 @@ ck('the stale "three do nothing" comment on _TA_WIRED is gone',
     const _ORG_EDGES = { Hunt: ['Haldeman'], Magruder: ['Haldeman'] };
     function _syncTeamActionGlow() {}
     var _taUnseen = false;
+    // The pressure tick and _flipWitness now report crack/flip news (change 78).
+    // That is orgnews_check's subject, not this one's — stub the sink.
+    const _crackWarned = new Set();
+    function _orgNewsAdd() {}
+    function _syncOrgNewsGlow() {}
     Math.random = () => 0;   // the flip roll always fires, so Smear is testable
 
     // ---- the real code under test
