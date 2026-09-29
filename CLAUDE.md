@@ -1769,19 +1769,25 @@ after engine rebuilds without re-throwing. The throw-in (WAAPI, once) is skipped
 low demand mode and reduced motion. The document: backdrop / Esc / close button,
 `role=dialog`, focus moves in, "Open the World Map" link via
 `_openWorldMapViaTunnel`, re-readable while the question is up. `_PDB_FOREIGN_ALONE`
-(true) lets foreign news alone summon a brief; `_PDB_FOLDER_IMG` ('' = CSS-drawn
-folder). Save/load: `_pdbDone`, `_evLastState` and the current `_pdb` in
+(true) lets foreign news alone summon a brief. COVER ART: the object on the desk is
+a White House BRIEFING BOOK — the user's photo, cut out of its white surround and
+embedded as a 9.5 KB WebP data URI (`_PDB_BOOK_ART`, inside the block so the harness
+slice sees it), shown `_PDB_FOLDER_IMG_H` (128px) tall at its own aspect. Point
+`_PDB_FOLDER_IMG` at any hosted URL to swap it; '' = the typed CSS folder, which is
+ALSO the fallback if the image fails to load (`onerror`), so a dead URL never leaves
+an invisible click target on the desk. Save/load: `_pdbDone`, `_evLastState` and the current `_pdb` in
 `_slCaptureMod` (a pre-feature save leaves the snapshot empty, so it re-seeds
 silently); New Game clears all three. Both examples ship INERT (`pks: []`,
 FILL ME IN): Felt leaking the Kissinger wiretaps around the Gray hearings, and the
 Andes survivors (Uruguayan Flight 571 — not Bolivian). Console: `ACOPPdb.preview()`.
 NAMING NOTE: the world map already has a "Daily Brief" fly-through button; the two
-are unrelated. Manual section added. Verified: new `tests/pdb_check.js` 42/42 (seed,
+are unrelated. Manual section added. Verified: new `tests/pdb_check.js` 46/46 (seed,
 began/ended, World Affairs feed, throwing `state()`, pk keying, once/window/
 once:false, `_answered`, throwing `when`, sorting, folder mount/clickable/throw-once/
 re-mount/leaves-with-the-question/low-fx, the document's open/close/Esc/backdrop/map/
-re-read, caps rule). SIX POISONS confirmed to fail (slot keying, once ignored, no
-silent seed, shown on any question, throwing `when` burns the story, caps-typed head).
+re-read, caps rule, the cover art: decodes, 128px at its own aspect, dead-URL
+fallback, '' = typed folder). SEVEN POISONS confirmed to fail (slot keying, once ignored, no
+silent seed, shown on any question, throwing `when` burns the story, caps-typed head, image fallback removed).
 
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
@@ -1791,7 +1797,7 @@ assertions over the areas that carry the most machinery:
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `nuketheme_check` (33),
 `initiative_check` (80),
-`orgnews_check` (29), `pdb_check` (42),
+`orgnews_check` (29), `pdb_check` (46),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.

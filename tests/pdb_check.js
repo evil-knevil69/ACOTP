@@ -211,6 +211,40 @@ ck('the document bakes tooltips into every authored string',
                        const n = document.getElementById('pdb-folder').getAnimations().length; __lowfx = false; return n; });
   ck('low demand mode: it simply appears, no throw', r === 0);
 
+  console.log('\nTHE COVER ART:');
+  r = await ev(async () => {
+    __set([{ id: 'art', pks: [563], head: 'H' }]); __strip(); __arrive(563); _pdbMount();
+    const f = document.getElementById('pdb-folder'), img = f.querySelector('img.pdb-art');
+    if (img) await img.decode().catch(() => {});
+    const rb = f.getBoundingClientRect();
+    return { img: !!img, typed: !!f.querySelector('.pdb-title'), ok: img ? img.naturalWidth : 0,
+             h: f.offsetHeight, w: f.offsetWidth, bh: Math.round(rb.height), cls: f.classList.contains('pdb-has-art') };
+  });
+  ck('ships with the briefing-book cover, embedded (no host needed) and actually decoding',
+     /_PDB_FOLDER_IMG\s*=\s*_PDB_BOOK_ART;/.test(PDB) && /var _PDB_BOOK_ART = 'data:image\/webp;base64,/.test(PDB)
+     && r.img && !r.typed && r.ok > 0 && r.cls);
+  ck('…shown at its own portrait aspect, _PDB_FOLDER_IMG_H tall, fitting the portrait strip',
+     r.h === 128 && r.w > 70 && r.w < 110);
+  r = await ev(async () => {
+    const was = _PDB_FOLDER_IMG; _PDB_FOLDER_IMG = 'data:image/png;base64,bm90IGFuIGltYWdl';
+    document.getElementById('pdb-folder').remove(); _pdbMount();
+    const f = document.getElementById('pdb-folder');
+    await new Promise(res => setTimeout(res, 150));
+    const out = { typed: !!f.querySelector('.pdb-title'), img: !!f.querySelector('img'),
+                  cls: f.classList.contains('pdb-has-art'), h: f.offsetHeight };
+    _PDB_FOLDER_IMG = was; return out;
+  });
+  ck('a dead image URL falls back to the typed folder — never an invisible click target',
+     r.typed && !r.img && !r.cls && r.h === 96);
+  r = await ev(() => {
+    const was = _PDB_FOLDER_IMG; _PDB_FOLDER_IMG = '';
+    document.getElementById('pdb-folder').remove(); _pdbMount();
+    const f = document.getElementById('pdb-folder');
+    const out = { typed: !!f.querySelector('.pdb-title'), img: !!f.querySelector('img') };
+    _PDB_FOLDER_IMG = was; document.getElementById('pdb-folder').remove(); return out;
+  });
+  ck("_PDB_FOLDER_IMG = '' gives the typed CSS folder", r.typed && !r.img);
+
   console.log('\nTHE DOCUMENT:');
   r = await ev(() => {
     __set([{ id: 'doc', pks: [570], head: 'Kissinger talks', body: 'A <i>Post</i> story.' },
