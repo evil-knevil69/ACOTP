@@ -25,7 +25,17 @@ for (const n of ['_nukeWar', '_enightStingPlayed', '_enightIntroPlayed', '_enigh
 
 console.log('\nCAPTURE / RESTORE:');
 const cap = src.slice(src.indexOf('function _slCaptureMod()'), src.indexOf('function _slRestoreMod(m)'));
-const res = src.slice(src.indexOf('function _slRestoreMod(m)'), src.indexOf('function _slRestoreMod(m)') + 4000);
+// The whole function, brace-matched — a fixed-width window silently dropped the
+// nuke re-apply off its end when the restore grew (Sep 2026).
+const res = (() => {
+  const s0 = src.indexOf('function _slRestoreMod(m)');
+  let d = 0;
+  for (let j = src.indexOf('{', s0); j < src.length; j++) {
+    if (src[j] === '{') d++;
+    else if (src[j] === '}') { d--; if (d === 0) return src.slice(s0, j + 1); }
+  }
+  throw new Error('_slRestoreMod: unbalanced braces');
+})();
 // mod vars live in the new Function() scope, so window[name] can't reach them —
 // they go through _slGetVar/_slSetVar, which use eval
 ck('scalars are captured and restored by direct eval (window[name] is out of scope here)',

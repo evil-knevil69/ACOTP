@@ -8,6 +8,8 @@
 // ║   answer_feedback_json … advisor feedback                                  ║
 // ║ PER-QUESTION CONFIG:                                                       ║
 // ║   questionData …… date, signImg, transition, onShow, stinger, historical   ║
+// ║   PDB_ITEMS ………………… President's Daily Brief stories — keyed by PK,         ║
+// ║                      not slot (examples ship inert: pks: [])               ║
 // ║ WORLD MAP:                                                                 ║
 // ║   COUNTRIES ……………… single source of per-country data (loyal, name, flag)   ║
 // ║   _EVENT_DEFS …………… world events (label, img, body, country, lifespan)     ║
@@ -16293,6 +16295,344 @@ let _lastQNum = null; // engine question_number last seen — a decrease means N
 const _newEvents = new Set(); // event ids that became active this question — shown red
 function _markEventNew(id) { _newEvents.add(id); }
 
+// ── PRESIDENT'S DAILY BRIEF ───────────────────────────────────────────────────
+// grep: PRESIDENT'S DAILY BRIEF
+// A classified folder that lands on the desk in the portrait strip — NOT every
+// question, only when there is something to report — and opens to a typed,
+// bullet-point brief. Three kinds of line:
+//   1. CONSEQUENCES of earlier answers, scheduled onto a later question.
+//   2. FLAVOUR — period headlines. Use sparingly.
+//   3. ABROAD — foreign events that went live (or ended) since the last
+//      question, read off _EVENT_DEFS: the same list the World Affairs tab and
+//      the world map draw, so the brief can never disagree with them.
+//
+// Mechanism ported from 1976: Year Zero (thrownObjectsByQ + openModal in its
+// ChurchJordan Code 2), with two deliberate changes:
+//   - KEYED BY QUESTION PK, never by question_number. Year Zero never reorders;
+//     ACOP does (the campaign-length presets, the nuke arm swap,
+//     questionSwapper), so a slot index would pin a story to whatever question
+//     happened to land in that slot — silently.
+//   - TYPED HTML, not a picture of an article, so people-tooltips, educational
+//     tooltips and the historicity spans all reach inside it.
+//
+// AUTHORING — one entry per story in PDB_ITEMS:
+//   {
+//     id:   'felt-wiretaps',        // unique; remembers that a once-story ran
+//     pks:  [512, 515, 519],        // the questions it may appear on, BY PK
+//     when: () => FBI !== 'Felt',   // optional gate (see below)
+//     once: true,                   // default true (see below)
+//     kind: 'consequence',          // 'consequence' | 'flavour'
+//     head: 'Headline in ordinary case',  // CSS sets it in capitals —
+//                                   // typing it in caps would hide the
+//                                   // names from the (case-sensitive)
+//                                   // tooltip matcher
+//     body: 'Optional line or two beneath it.',
+//   }
+// pks + once:true  — runs at the FIRST listed pk the player reaches where
+//                    when() holds. List several to give it a WINDOW: a short
+//                    campaign may skip a question, and "around the Gray
+//                    hearings" can reasonably cover two or three.
+// pks + once:false — runs at EVERY listed pk where when() holds: a story that
+//                    develops across several briefs.
+// when() is read as the question arrives, AFTER its onShow, so it can test
+// anything — a var, who is in post (FBI, SOS…), or _answered(answerPk, …),
+// which is true if the player gave ANY of those answers this run (it reads
+// campaignTrail_temp.player_answers, which the save already carries).
+// An entry with pks: [] never runs — which is how the examples below ship.
+var PDB_ITEMS = [
+    // CONSEQUENCE, from your notes: Felt, passed over and not dealt with, leaks
+    // the Kissinger wiretaps around the Gray confirmation hearings.
+    // FILL ME IN: the Gray-hearings question pk(s), and the "Felt fired"
+    // condition — nothing in the file tracks a firing yet. FBI is the live
+    // FBI Director official (it starts as 'Gray').
+    {
+        id: 'felt-wiretaps',
+        pks: [],   // FILL ME IN
+        when: () => FBI !== 'Felt' /* && Felt not fired — FILL ME IN */,
+        kind: 'consequence',
+        head: 'Bureau source leaks Kissinger wiretap logs',
+        body: 'Details of the 1969 NSC taps are with the <i>Post</i> — timed, it would appear, for the Gray confirmation hearings.',
+    },
+    // FLAVOUR example. NOTE: the Andes survivors were a Uruguayan rugby team
+    // (Uruguayan Air Force Flight 571), not Bolivian — crashed 13 Oct 1972,
+    // found 22 Dec 1972. FILL ME IN: the late-December 1972 question pk.
+    {
+        id: 'andes-survivors',
+        pks: [],   // FILL ME IN
+        kind: 'flavour',
+        head: 'Sixteen found alive in Andes, 72 days after crash',
+        body: 'Uruguayan rugby team presumed lost since October. Reports that the survivors lived off the dead.',
+    },
+];
+var _PDB_FOREIGN_ALONE = true;  // does a new foreign event, on its own, warrant a brief?
+var _PDB_FOLDER_IMG    = '';    // optional cover art (FILL ME IN) — '' = the typed CSS folder
+
+const _pdbDone    = new Set(); // once-stories that have already run this campaign
+const _evLastState = {};       // event id -> state() at the last question (the ABROAD diff)
+var _pdb = null;               // the brief for the current question, or null
+
+// True if the player gave ANY of these answer pks this run.
+function _answered() {
+    const given = (campaignTrail_temp && campaignTrail_temp.player_answers) || [];
+    for (let i = 0; i < arguments.length; i++) {
+        const want = Number(arguments[i]);
+        if (given.some(a => Number(a) === want)) return true;
+    }
+    return false;
+}
+
+// Which foreign events began or ended since the last question. The FIRST call
+// of a run only seeds the snapshot: otherwise the opening brief would report
+// every permanently-active event (the Troubles, the Years of Lead…) as news.
+function _pdbForeignDiff() {
+    const seeded = Object.keys(_evLastState).length > 0;
+    const began = [], ended = [];
+    _EVENT_DEFS.forEach(def => {
+        let st = 0;
+        try { st = def.state(); } catch (err) { st = 0; }
+        const was = _evLastState[def.id];
+        if (seeded) {
+            if (st === 1 && was !== 1) began.push(def);
+            else if (st === 3 && was === 1) ended.push(def);
+        }
+        _evLastState[def.id] = st;
+    });
+    return { began, ended };
+}
+
+// Called at every question boundary, after onShow. Builds this question's brief
+// (or clears it), and feeds the World Affairs "new this question" highlight.
+function _pdbCompose(pk, qd) {
+    const diff = _pdbForeignDiff();
+    // _markEventNew had no callers, so the World Affairs tab's red "new" styling
+    // never showed. This diff is exactly that signal.
+    diff.began.forEach(d => _markEventNew(d.id));
+
+    const items = [];
+    PDB_ITEMS.forEach(it => {
+        if (!it || !it.id || !Array.isArray(it.pks)) return;
+        if (it.pks.map(Number).indexOf(Number(pk)) === -1) return;
+        const once = it.once !== false;
+        if (once && _pdbDone.has(it.id)) return;
+        let ok = true;
+        if (typeof it.when === 'function') { try { ok = !!it.when(); } catch (err) { ok = false; } }
+        if (!ok) return;
+        if (once) _pdbDone.add(it.id);   // it happened in-world, read or not
+        items.push({ id: it.id, kind: it.kind === 'flavour' ? 'flavour' : 'consequence',
+                     head: it.head || '', body: it.body || '' });
+    });
+    // Consequences lead, flavour follows.
+    items.sort((a, b) => (a.kind === 'flavour') - (b.kind === 'flavour'));
+
+    const foreign = diff.began.length + diff.ended.length > 0;
+    if (!items.length && !(foreign && _PDB_FOREIGN_ALONE)) { _pdb = null; return; }
+    _pdb = {
+        pk: pk,
+        date: (qd && qd.date) || '',
+        items: items,
+        abroad: diff.began.map(d => ({ id: d.id, label: d.label, continent: d.continent || '' })),
+        ended:  diff.ended.map(d => ({ id: d.id, label: d.label })),
+        landed: false,
+        read: false,
+        tilt: -3 + Math.random() * 6,
+    };
+}
+
+function _pdbAnimOk() {
+    if (typeof _lowFx === 'function' && _lowFx()) return false;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+    return !!Element.prototype.animate;
+}
+
+function _pdbEnsureCss() {
+    if (document.getElementById('pdb-css')) return;
+    const s = document.createElement('style');
+    s.id = 'pdb-css';
+    s.textContent = [
+        /* the folder, lying on the desk in the portrait strip */
+        '#pdb-folder { position:absolute; left:23%; bottom:16px; width:138px; height:96px;',
+        '  pointer-events:auto; cursor:pointer; z-index:14; user-select:none;',
+        "  font-family:'TypewriterDry', 'Courier New', monospace; color:#3a2a12;",
+        '  transition: filter 160ms ease; }',
+        '#pdb-folder .pdb-cover { position:absolute; inset:10px 0 0 0; border-radius:2px 4px 4px 4px;',
+        '  background:linear-gradient(160deg,#e6d3a3 0%,#d9c28a 55%,#cdb277 100%);',
+        '  border:1px solid #9c8350; box-shadow:2px 4px 8px rgba(0,0,0,0.35); }',
+        '#pdb-folder .pdb-tab { position:absolute; top:0; left:8px; width:52px; height:14px;',
+        '  background:#dcc792; border:1px solid #9c8350; border-bottom:none; border-radius:4px 4px 0 0; }',
+        '#pdb-folder .pdb-title { position:absolute; top:22px; left:0; right:0; text-align:center;',
+        '  font-size:9.5px; line-height:1.25; letter-spacing:0.06em; font-weight:bold; }',
+        '#pdb-folder .pdb-fdate { position:absolute; top:52px; left:0; right:0; text-align:center; font-size:8px; }',
+        '#pdb-folder .pdb-fstamp { position:absolute; bottom:6px; right:8px; font-size:9px; font-weight:bold;',
+        '  color:#a4211a; border:1.5px solid #a4211a; padding:0 4px; transform:rotate(-6deg); letter-spacing:0.08em; }',
+        '#pdb-folder img.pdb-art { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }',
+        '#pdb-folder:hover, #pdb-folder:focus-visible { outline:none;',
+        '  filter: drop-shadow(0 0 10px rgba(198,198,158,0.6)) drop-shadow(0 0 18px rgba(198,198,158,0.3)); }',
+        /* the document */
+        '#pdb-backdrop { position:fixed; inset:0; z-index:10050; display:flex; align-items:center;',
+        '  justify-content:center; background:rgba(0,0,0,0.42); opacity:0; transition:opacity 180ms ease; }',
+        '#pdb-backdrop.pdb-open { opacity:1; }',
+        '#pdb-doc { position:relative; width:min(560px, 88vw); max-height:80vh; overflow-y:auto;',
+        '  background:#f4ecd6; color:#1e1a12; border:1px solid #b9a77a; box-shadow:0 18px 44px rgba(0,0,0,0.55);',
+        "  padding:26px 34px 22px; font-family:'TypewriterDry', 'Courier New', monospace; font-size:13px; line-height:1.5; }",
+        '#pdb-doc .pdb-close { position:absolute; top:8px; right:10px; background:none; border:none; cursor:pointer;',
+        '  font-size:20px; line-height:1; color:#6b5a33; }',
+        '#pdb-doc .pdb-stamp { text-align:center; color:#a4211a; font-weight:bold; letter-spacing:0.2em; font-size:12px; }',
+        '#pdb-doc .pdb-mast { text-align:center; font-weight:bold; letter-spacing:0.12em; font-size:16px; margin-top:6px; }',
+        '#pdb-doc .pdb-sub { text-align:center; font-size:11px; letter-spacing:0.08em; margin-top:2px; }',
+        '#pdb-doc hr { border:none; border-top:1px solid #8a7550; margin:12px 0 10px; }',
+        '#pdb-doc .pdb-section { font-weight:bold; letter-spacing:0.1em; font-size:11.5px; margin:12px 0 4px; }',
+        '#pdb-doc ul { margin:0; padding-left:18px; }',
+        '#pdb-doc li { margin:0 0 8px; }',
+        '#pdb-doc .pdb-head { font-weight:bold; text-transform:uppercase; }',
+        '#pdb-doc .pdb-head .mytooltiptext { text-transform:none; }',
+        '#pdb-doc .pdb-body { display:block; font-size:12px; }',
+        '#pdb-doc .pdb-flavour .pdb-head { font-weight:normal; }',
+        '#pdb-doc .pdb-cont { color:#6b5a33; font-size:11px; }',
+        '#pdb-doc .pdb-ended { text-decoration:line-through; color:#7d7160; }',
+        '#pdb-doc .pdb-map { margin-top:8px; cursor:pointer; font-family:inherit; font-size:11.5px; }',
+        '#pdb-doc .pdb-foot { margin-top:14px; font-size:10px; letter-spacing:0.08em; text-align:center; color:#6b5a33; }',
+    ].join('\n');
+    document.head.appendChild(s);
+}
+
+// The body of the document. Every authored string goes through the same
+// tooltip baking the questions get, so names in a brief carry their cards.
+function _pdbHTML() {
+    const bake = (t) => (typeof applyTooltipsMarked === 'function' ? applyTooltipsMarked(t) : t);
+    let h = '<button class="pdb-close" type="button" aria-label="Close the brief">×</button>'
+        + '<div class="pdb-stamp">TOP SECRET</div>'
+        + '<div class="pdb-mast">THE PRESIDENT’S DAILY BRIEF</div>'
+        + '<div class="pdb-sub">FOR THE PRESIDENT ONLY' + (_pdb.date ? ' · ' + _pdb.date.toUpperCase() : '') + '</div>'
+        + '<hr>';
+    if (_pdb.items.length) {
+        h += '<ul class="pdb-list">';
+        _pdb.items.forEach(it => {
+            h += '<li class="pdb-item pdb-' + it.kind + '"><span class="pdb-head">' + bake(it.head) + '</span>'
+               + (it.body ? '<span class="pdb-body">' + bake(it.body) + '</span>' : '') + '</li>';
+        });
+        h += '</ul>';
+    }
+    if (_pdb.abroad.length || _pdb.ended.length) {
+        h += '<div class="pdb-section">ABROAD</div><ul class="pdb-abroad">';
+        _pdb.abroad.forEach(a => {
+            h += '<li>' + bake(a.label) + (a.continent ? ' <span class="pdb-cont">— ' + a.continent + '</span>' : '') + '</li>';
+        });
+        _pdb.ended.forEach(a => { h += '<li class="pdb-ended">' + a.label + '</li>'; });
+        h += '</ul><button class="pdb-map" type="button">Open the World Map →</button>';
+    }
+    h += '<div class="pdb-foot">DISSEMINATION: THE PRESIDENT · COPY 1 OF 1</div>';
+    return h;
+}
+
+function _pdbKey(ev) { if (ev.key === 'Escape') _pdbClose(); }
+
+function _pdbClose(instant) {
+    document.removeEventListener('keydown', _pdbKey);
+    const back = document.getElementById('pdb-backdrop');
+    if (!back) return;
+    if (instant) { back.remove(); return; }
+    back.classList.remove('pdb-open');
+    setTimeout(() => { if (back.parentNode) back.remove(); }, 200);
+}
+
+function _pdbOpen() {
+    if (!_pdb) return;
+    _pdbEnsureCss();
+    _pdbClose(true);
+    _pdb.read = true;
+    const folder = document.getElementById('pdb-folder');
+    if (folder) folder.classList.add('pdb-read');
+    const back = document.createElement('div');
+    back.id = 'pdb-backdrop';
+    const doc = document.createElement('div');
+    doc.id = 'pdb-doc';
+    doc.setAttribute('role', 'dialog');
+    doc.setAttribute('aria-modal', 'true');
+    doc.setAttribute('aria-label', 'The President’s Daily Brief');
+    doc.innerHTML = _pdbHTML();
+    back.appendChild(doc);
+    document.body.appendChild(back);
+    requestAnimationFrame(() => back.classList.add('pdb-open'));
+    back.addEventListener('click', (ev) => { if (ev.target === back) _pdbClose(); });
+    doc.querySelector('.pdb-close').addEventListener('click', () => _pdbClose());
+    const map = doc.querySelector('.pdb-map');
+    if (map) map.addEventListener('click', () => { _pdbClose(true); _openWorldMapViaTunnel(); });
+    document.addEventListener('keydown', _pdbKey);
+    const close = doc.querySelector('.pdb-close');
+    if (close) close.focus();
+}
+
+// Called on every #game_window mutation. Keeps the folder on the desk for as
+// long as its question is up (the engine can rebuild the strip), throws it in
+// the first time only, and takes it away everywhere else.
+function _pdbMount() {
+    const strip = document.querySelector('#game_window > g');
+    const existing = document.getElementById('pdb-folder');
+    const live = !!(_pdb && strip && document.getElementById('question_form')
+        && Number(_pdb.pk) === Number(_lastQuestionPK));
+    if (!live) {
+        if (existing) existing.remove();
+        if (!_pdb) _pdbClose(true);
+        return;
+    }
+    if (existing && existing.parentNode === strip) return;
+    if (existing) existing.remove();
+    _pdbEnsureCss();
+
+    const f = document.createElement('div');
+    f.id = 'pdb-folder';
+    f.setAttribute('role', 'button');
+    f.setAttribute('tabindex', '0');
+    f.setAttribute('aria-label', 'Open the President’s Daily Brief');
+    f.title = 'The President’s Daily Brief';
+    if (_pdb.read) f.classList.add('pdb-read');
+    f.innerHTML = _PDB_FOLDER_IMG
+        ? '<img class="pdb-art" alt="" draggable="false" src="' + _PDB_FOLDER_IMG + '">'
+        : '<div class="pdb-tab"></div><div class="pdb-cover"></div>'
+          + '<div class="pdb-title">THE PRESIDENT’S<br>DAILY BRIEF</div>'
+          + (_pdb.date ? '<div class="pdb-fdate">' + _pdb.date + '</div>' : '')
+          + '<div class="pdb-fstamp">TOP SECRET</div>';
+    f.style.transform = 'rotate(' + _pdb.tilt.toFixed(2) + 'deg)';
+    f.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); _pdbOpen(); });
+    f.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); _pdbOpen(); }
+    });
+    strip.appendChild(f);
+
+    // Year Zero's arrival: tossed onto the desk from above-right, overshooting
+    // into place at its resting tilt. Once per brief — a strip rebuild just
+    // puts it back where it lay.
+    if (!_pdb.landed) {
+        _pdb.landed = true;
+        if (_pdbAnimOk()) {
+            const end = 'rotate(' + _pdb.tilt.toFixed(2) + 'deg)';
+            f.animate([
+                { transform: 'translate(160px, -240px) rotate(' + (_pdb.tilt + 22).toFixed(2) + 'deg)', opacity: 0 },
+                { transform: 'translate(0, 0) ' + end, opacity: 1 },
+            ], { duration: 520, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'backwards', delay: 120 });
+        }
+    }
+}
+
+// Console: ACOPPdb.preview() drops a sample brief onto the current question,
+// so the look can be checked without authoring pks.
+window.ACOPPdb = {
+    preview() {
+        if (!document.querySelector('#game_window > g')) { console.warn('ACOPPdb: open a question first.'); return; }
+        _pdb = {
+            pk: _lastQuestionPK, date: (questionData[_lastQuestionPK] || {}).date || '',
+            items: PDB_ITEMS.filter(it => it.head).map(it => ({ id: it.id,
+                kind: it.kind === 'flavour' ? 'flavour' : 'consequence', head: it.head, body: it.body || '' }))
+                .sort((a, b) => (a.kind === 'flavour') - (b.kind === 'flavour')),
+            abroad: _EVENT_DEFS.slice(0, 2).map(d => ({ id: d.id, label: d.label, continent: d.continent || '' })),
+            ended: [], landed: false, read: false, tilt: -3 + Math.random() * 6,
+        };
+        document.getElementById('pdb-folder')?.remove();
+        _pdbMount();
+    },
+    get current() { return _pdb; },
+};
+
 // ── TURN ENGINE ───────────────────────────────────────────────────────────────
 // One turn = one question. Callbacks registered with _everyTurn(fn) run once
 // per turn, in registration order, BEFORE the new question's onShow — so a
@@ -17355,6 +17695,7 @@ window.__onGameWindowMutation(() => {
             updateTypewriterVisibility();
             updateCampaignSign();
             addInnerCircleButton();
+            _pdbMount();
 
             const _gs = _liveGameState();
             if (_gs) {
@@ -17399,6 +17740,8 @@ window.__onGameWindowMutation(() => {
                     _smeared.clear(); _interrogated.clear();
                     _pressureFrozenUntil = -1; _stonewallUntil = -1;
                     _orgNews.length = 0; _crackWarned.clear(); _orgNewsUnseen = false;
+                    _pdbDone.clear(); Object.keys(_evLastState).forEach(k => { delete _evLastState[k]; });
+                    _pdb = null; _pdbClose(true);
                     _enemiesReset();
                     _nukeReset();   // unwind the nuclear-war branch + candidate rename
                     // Only unwind an EVENT-driven theme swap — a look the player
@@ -17426,6 +17769,9 @@ window.__onGameWindowMutation(() => {
                     if (qd.signImg) changeImage(qd.signImg);
                     _newEvents.clear();
                     if (qd.onShow) qd.onShow();
+                    // President's Daily Brief: after onShow, so any event flag
+                    // it flips is reported this question, not next.
+                    _pdbCompose(currentPK, qd);
                     // Reactive soundtrack: section entry (queued, installs when the
                     // current song ends) + scripted stingers (fade out + play now).
                     const _mSec = _pkToSection(currentPK);
@@ -18158,6 +18504,11 @@ function _slCaptureMod() {
         interrogated: Array.from(_interrogated),
         orgNews: _orgNews.slice(),
         crackWarned: Array.from(_crackWarned),
+        pdb: {
+            done: Array.from(_pdbDone),
+            evLast: Object.assign({}, _evLastState),
+            cur: _pdb ? JSON.parse(JSON.stringify(_pdb)) : null,
+        },
     };
 }
 
@@ -18197,6 +18548,18 @@ function _slRestoreMod(m) {
     (m.orgNews || []).forEach(n => _orgNews.push(n));
     _crackWarned.clear();
     (m.crackWarned || []).forEach(n => _crackWarned.add(n));
+    // President's Daily Brief. A pre-feature save carries no pdb: the ABROAD
+    // snapshot is then left empty, so the next question re-seeds it silently
+    // instead of reporting every running event as news.
+    _pdbDone.clear();
+    Object.keys(_evLastState).forEach(k => { delete _evLastState[k]; });
+    if (m.pdb) {
+        (m.pdb.done || []).forEach(id => _pdbDone.add(id));
+        Object.assign(_evLastState, m.pdb.evLast || {});
+        _pdb = m.pdb.cur || null;
+    } else {
+        _pdb = null;
+    }
     // _flipped is NOT in the save: it is rebuilt from the men's STATUS vars,
     // which are (STATUS 1 = state's witness). Deriving rather than storing also
     // repairs saves written before this was noticed — without it a load left
@@ -19093,6 +19456,8 @@ function openGameManual() {
         '<p>The machine only truly comes alive in Part II (“Fulmination”); before that, the numbers move only through your answers.</p>'+
         '<h3>Officials</h3>'+
         '<p>Your cabinet — State, Defense, Justice, National Security, CIA, FBI. Flip a card for the effects of that person in post. At certain moments you’ll be invited to <b>reshuffle</b>: the Enemies/Friends and Officials buttons glow, and the swappable roles glow — click one to choose a successor. You have <b>two turns</b> to decide; ignore it and the choice is <b>made for you at random</b> — so a bad appointment can’t simply be waited out.</p>'+
+        '<h3>The President’s Daily Brief</h3>'+
+        '<p>Some mornings a classified folder lands on the desk beside your portrait. Click it for the brief: what your earlier decisions have set in motion, the odd story from the wider world, and — under <b>Abroad</b> — any foreign crisis that has broken or ended since the last question, with a link straight to the World Map. It does not come every day; when it does, it is worth reading. It stays on the desk until you answer.</p>'+
         '<h3>World map</h3>'+
         '<p>Toggle display layers along the bars: <b>Allegiance</b> (colours by how pro-US a country is), <b>Flags</b>, <b>Events</b>, <b>Capitals</b>, <b>Night</b>, <b>SIGINT</b>, and <b>Stats</b> (shows the exact relations number and destabilisation count in a country’s hover, and the detailed outcome of your diplomacy actions — with it off, actions land silently).</p>'+
         '<p>The <b>Diplomacy</b> dropdown holds four actions — arm one, then click a target country:</p><ul>'+

@@ -130,6 +130,21 @@ call it repeatedly to see both sets). Nuke twin: `ACOPNuke.demo()`.
       and every action on the President's Men screen is unreachable — this
       is the one step that switches the whole screen on.
 
+- [ ] **4.6 President's Daily Brief stories.** Code 2, grep `PDB_ITEMS`
+      (full authoring notes in the comment above it). Both examples ship
+      INERT with `pks: []`:
+      - `felt-wiretaps` — set `pks` to the Gray-confirmation question(s)
+        (none written yet; list several pks as a window if you like), and
+        finish its `when()`: today it only checks `FBI !== 'Felt'`. There is
+        no "Felt was fired" state anywhere in the code — once the question
+        that fires him exists, gate on its answer with
+        `!_answered(<answer pk>, …)`.
+      - `andes-survivors` — pick the pk nearest 22 Dec 1972. (The crash you
+        remembered as Bolivian was Uruguayan Air Force Flight 571.)
+      Foreign events need NO authoring: the ABROAD section reads
+      `_EVENT_DEFS` and works today. Preview in the console:
+      `ACOPPdb.preview()`.
+
 ## 5 · Small / optional
 
 - [ ] **5.1 Low-demand static background.** `_LOWFX_STATIC_BG` (Code 1) —

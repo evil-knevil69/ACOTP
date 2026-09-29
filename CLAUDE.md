@@ -1739,6 +1739,50 @@ added ("You get warning."). NOTE for other harnesses — the pressure tick and
 `_orgNewsAdd`/`_syncOrgNewsGlow`/`_crackWarned` stubbed (initiative_check was patched).
 Full suite green, both files EXECUTE CLEAN.
 
+**79. The President's Daily Brief (Sep 2026)** — Code 2, grep `PRESIDENT'S DAILY
+BRIEF` (block sits right after `_markEventNew`). A classified folder lands in the
+engine's portrait strip (`#game_window > g`) — NOT every question, only when there is
+something to report — and opens to a typed bullet-point brief in a modal. Mechanism
+ported from 1976: Year Zero's `thrownObjectsByQ` + `openModal` (its ChurchJordan Code
+2), with two deliberate changes: KEYED BY PK, never `question_number` (Year Zero never
+reorders; ACOP does — campaign length, the nuke arm swap, questionSwapper — so a slot
+index would silently pin a story to whichever question landed there), and TYPED HTML
+rather than a picture of an article, so tooltips and historicity spans reach inside.
+Three kinds of line: (1) CONSEQUENCES of earlier answers, scheduled onto later pks;
+(2) FLAVOUR, sparingly; (3) ABROAD — foreign events that went live or ended since the
+last question, diffed off `_EVENT_DEFS` (the list the World Affairs tab and the map
+draw, so the three can never disagree). Authoring: `PDB_ITEMS` entries
+`{id, pks:[…], when, once, kind, head, body}` — `pks` with once:true (default) runs at
+the FIRST listed pk where `when()` holds, so several pks = a WINDOW (a short campaign
+may skip one); `once: false` = a developing story at every listed pk; `when` gates on
+state, with `_answered(ansPk, …)` for "did the player pick any of these". A throwing
+`when` reads as false and does NOT burn the story. Consequences sort before flavour.
+HEADLINES ARE AUTHORED IN ORDINARY CASE — CSS sets them in capitals — because the
+tooltip matcher is case-sensitive: "KISSINGER" would never get its card (a render
+caught that; the harness now forbids caps-typed heads). The foreign diff SEEDS
+silently on the first question of a run, so permanently-running events (the
+Troubles…) are not reported as news. It also finally feeds `_markEventNew`, which had
+ZERO callers — the World Affairs tab's red "new this question" styling was dead
+until now. Compose runs at the question boundary AFTER `onShow` (so a flag it flips
+reports this question); `_pdbMount` runs with the other injected chrome and re-mounts
+after engine rebuilds without re-throwing. The throw-in (WAAPI, once) is skipped under
+low demand mode and reduced motion. The document: backdrop / Esc / close button,
+`role=dialog`, focus moves in, "Open the World Map" link via
+`_openWorldMapViaTunnel`, re-readable while the question is up. `_PDB_FOREIGN_ALONE`
+(true) lets foreign news alone summon a brief; `_PDB_FOLDER_IMG` ('' = CSS-drawn
+folder). Save/load: `_pdbDone`, `_evLastState` and the current `_pdb` in
+`_slCaptureMod` (a pre-feature save leaves the snapshot empty, so it re-seeds
+silently); New Game clears all three. Both examples ship INERT (`pks: []`,
+FILL ME IN): Felt leaking the Kissinger wiretaps around the Gray hearings, and the
+Andes survivors (Uruguayan Flight 571 — not Bolivian). Console: `ACOPPdb.preview()`.
+NAMING NOTE: the world map already has a "Daily Brief" fly-through button; the two
+are unrelated. Manual section added. Verified: new `tests/pdb_check.js` 42/42 (seed,
+began/ended, World Affairs feed, throwing `state()`, pk keying, once/window/
+once:false, `_answered`, throwing `when`, sorting, folder mount/clickable/throw-once/
+re-mount/leaves-with-the-question/low-fx, the document's open/close/Esc/backdrop/map/
+re-read, caps rule). SIX POISONS confirmed to fail (slot keying, once ignored, no
+silent seed, shown on any question, throwing `when` burns the story, caps-typed head).
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
 session went with it (they were never committed). Rebuilt and COMMITTED, 258
@@ -1747,7 +1791,7 @@ assertions over the areas that carry the most machinery:
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `nuketheme_check` (33),
 `initiative_check` (80),
-`orgnews_check` (29),
+`orgnews_check` (29), `pdb_check` (42),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.
