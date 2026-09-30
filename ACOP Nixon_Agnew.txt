@@ -8,8 +8,8 @@
 // ║   answer_feedback_json … advisor feedback                                  ║
 // ║ PER-QUESTION CONFIG:                                                       ║
 // ║   questionData …… date, signImg, transition, onShow, stinger, historical   ║
-// ║   PDB_ITEMS ………………… President's Daily Brief stories — keyed by PK,         ║
-// ║                      not slot (examples ship inert: pks: [])               ║
+// ║   questionData[pk].news  story thrown on the desk at that question,        ║
+// ║                      gated by ifAnswered: [answer pks] (NEWS ON THE DESK)  ║
 // ║ WORLD MAP:                                                                 ║
 // ║   COUNTRIES ……………… single source of per-country data (loyal, name, flag)   ║
 // ║   _EVENT_DEFS …………… world events (label, img, body, country, lifespan)     ║
@@ -16295,89 +16295,70 @@ let _lastQNum = null; // engine question_number last seen — a decrease means N
 const _newEvents = new Set(); // event ids that became active this question — shown red
 function _markEventNew(id) { _newEvents.add(id); }
 
-// ── PRESIDENT'S DAILY BRIEF ───────────────────────────────────────────────────
-// grep: PRESIDENT'S DAILY BRIEF
-// A classified folder that lands on the desk in the portrait strip — NOT every
-// question, only when there is something to report — and opens to a typed,
-// bullet-point brief. Three kinds of line:
-//   1. CONSEQUENCES of earlier answers, scheduled onto a later question.
-//   2. FLAVOUR — period headlines. Use sparingly.
-//   3. ABROAD — foreign events that went live (or ended) since the last
-//      question, read off _EVENT_DEFS: the same list the World Affairs tab and
-//      the world map draw, so the brief can never disagree with them.
+// ── NEWS ON THE DESK ──────────────────────────────────────────────────────────
+// grep: NEWS ON THE DESK
+// A story an EARLIER answer sets up, delivered on a LATER question: an object
+// (a briefing book by default) is thrown onto the desk in the portrait strip,
+// and clicking it opens the story in a popup. Only questions that carry a story
+// get one.
 //
-// Mechanism ported from 1976: Year Zero (thrownObjectsByQ + openModal in its
-// ChurchJordan Code 2), with two deliberate changes:
-//   - KEYED BY QUESTION PK, never by question_number. Year Zero never reorders;
-//     ACOP does (the campaign-length presets, the nuke arm swap,
-//     questionSwapper), so a slot index would pin a story to whatever question
-//     happened to land in that slot — silently.
-//   - TYPED HTML, not a picture of an article, so people-tooltips, educational
-//     tooltips and the historicity spans all reach inside it.
+// PORTED FROM 1976: Year Zero (its ChurchJordan Code 2 — thrownObjectsByQ, the
+// throw-in inside the footer builder, openModal/closeModal). The flight, the
+// hover glow and the popup are Year Zero's code line for line. What changed,
+// and why:
+//   - Stories hang on questionData BY QUESTION PK, not on a slot number. Year
+//     Zero never reorders its questions; ACOP does (campaign length, the nuke
+//     arm swap, questionSwapper), so a slot would silently land a story on
+//     whichever question happened to fall there.
+//   - Year Zero decided a story inside cyoAdventure the moment an answer was
+//     given (if (ans == 19546) thrownObjectsByQ[13] = …). Here the story names
+//     the answers it needs (ifAnswered), and is decided as its question arrives.
+//   - Year Zero throws the object into its own 262x253 question-image box. ACOP
+//     has no such box, so an invisible box of that same size sits in the
+//     portrait strip and the object lands on the desk inside it — the same box
+//     size means the same flight. It clips below the desk, as Year Zero's game
+//     window clipped below its footer, so nothing flies in over the page.
+//   - The engine re-renders the strip (the World Map, the Manual…). An object
+//     already on the desk is put straight back, not thrown again; once opened
+//     it is gone for good — Year Zero's one-shot click, kept.
+//   - Low demand mode lands it without the flight (Year Zero's own
+//     reduced-motion branch).
+//   - People-tooltips are baked into the story text, as in the questions.
 //
-// AUTHORING — one entry per story in PDB_ITEMS:
-//   {
-//     id:   'felt-wiretaps',        // unique; remembers that a once-story ran
-//     pks:  [512, 515, 519],        // the questions it may appear on, BY PK
-//     when: () => FBI !== 'Felt',   // optional gate (see below)
-//     once: true,                   // default true (see below)
-//     kind: 'consequence',          // 'consequence' | 'flavour'
-//     head: 'Headline in ordinary case',  // CSS sets it in capitals —
-//                                   // typing it in caps would hide the
-//                                   // names from the (case-sensitive)
-//                                   // tooltip matcher
-//     body: 'Optional line or two beneath it.',
-//   }
-// pks + once:true  — runs at the FIRST listed pk the player reaches where
-//                    when() holds. List several to give it a WINDOW: a short
-//                    campaign may skip a question, and "around the Gray
-//                    hearings" can reasonably cover two or three.
-// pks + once:false — runs at EVERY listed pk where when() holds: a story that
-//                    develops across several briefs.
-// when() is read as the question arrives, AFTER its onShow, so it can test
-// anything — a var, who is in post (FBI, SOS…), or _answered(answerPk, …),
-// which is true if the player gave ANY of those answers this run (it reads
-// campaignTrail_temp.player_answers, which the save already carries).
-// An entry with pks: [] never runs — which is how the examples below ship.
-var PDB_ITEMS = [
-    // CONSEQUENCE, from your notes: Felt, passed over and not dealt with, leaks
-    // the Kissinger wiretaps around the Gray confirmation hearings.
-    // FILL ME IN: the Gray-hearings question pk(s), and the "Felt fired"
-    // condition — nothing in the file tracks a firing yet. FBI is the live
-    // FBI Director official (it starts as 'Gray').
-    {
-        id: 'felt-wiretaps',
-        pks: [],   // FILL ME IN
-        when: () => FBI !== 'Felt' /* && Felt not fired — FILL ME IN */,
-        kind: 'consequence',
-        head: 'Bureau source leaks Kissinger wiretap logs',
-        body: 'Details of the 1969 NSC taps are with the <i>Post</i> — timed, it would appear, for the Gray confirmation hearings.',
-    },
-    // FLAVOUR example. NOTE: the Andes survivors were a Uruguayan rugby team
-    // (Uruguayan Air Force Flight 571), not Bolivian — crashed 13 Oct 1972,
-    // found 22 Dec 1972. FILL ME IN: the late-December 1972 question pk.
-    {
-        id: 'andes-survivors',
-        pks: [],   // FILL ME IN
-        kind: 'flavour',
-        head: 'Sixteen found alive in Andes, 72 days after crash',
-        body: 'Uruguayan rugby team presumed lost since October. Reports that the survivors lived off the dead.',
-    },
-];
-var _PDB_FOREIGN_ALONE = true;  // does a new foreign event, on its own, warrant a brief?
-// The embedded briefing-book cover (one long line, kept out of the way).
-var _PDB_BOOK_ART = 'data:image/webp;base64,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';
-// Cover art for the object on the desk: any image URL, portrait or landscape —
-// it is shown at a fixed height with its own aspect. '' = the typed CSS folder
-// (also the fallback if the image fails to load). Ships as an embedded WebP of
-// a White House briefing book, cut out of its photo background (186x272,
-// ~9.5 KB) so it works with no host; swap in a hosted URL any time.
-var _PDB_FOLDER_IMG    = _PDB_BOOK_ART;
-var _PDB_FOLDER_IMG_H  = 128;   // px on the desk (the portrait strip is 175)
+// AUTHORING — add `news` to the question's entry in questionData:
+//
+//   409: { date: "…", signImg: "…", historical: null,
+//          news: {
+//              ifAnswered: [72],          // any of these answer pks, earlier in
+//                                         // the run (omit = always shown)
+//              when: () => FBI !== 'Felt',// optional extra test on game state
+//              html: '<p>The story, as HTML.</p>',
+//              src:   '',                 // desk image; '' = the briefing book
+//              width: '',                 // desk width; '' = 88px for the
+//          } },                           // book, 200px (Year Zero's) otherwise
+//
+// A question with no entry in questionData yet can be given one just for this:
+//   8: { news: { ifAnswered: [72], html: '…' } },
+// `news` may also be an ARRAY — one story per outcome; the FIRST whose
+// ifAnswered/when both hold is the one thrown, so put the most specific first:
+//   news: [ { ifAnswered: [72], html: 'Felt leaks…' },
+//           { ifAnswered: [73], html: 'The Bureau stays quiet…' } ],
+// Nothing else to wire: ifAnswered reads campaignTrail_temp.player_answers,
+// which the save already carries.
+//
+// Examples waiting on question pks (FILL ME IN — see AUTHORING_TODO 4.6):
+//   Felt, passed over and never dealt with, leaks the Kissinger wiretaps
+//   around the Gray confirmation hearings —
+//     when: () => FBI !== 'Felt' /* && !_answered(<fire-Felt answer pk>) */,
+//   The Andes survivors (Uruguayan Air Force Flight 571 — not Bolivian;
+//   crashed 13 Oct 1972, found 22 Dec 1972) — on the late-December 1972 pk.
 
-const _pdbDone    = new Set(); // once-stories that have already run this campaign
-const _evLastState = {};       // event id -> state() at the last question (the ABROAD diff)
-var _pdb = null;               // the brief for the current question, or null
+// The embedded briefing-book cover (one long line, kept out of the way).
+var _NEWS_BOOK_ART = 'data:image/webp;base64,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';
+var _NEWS_DEFAULT_IMG   = _NEWS_BOOK_ART; // what lands when a story names no src
+var _NEWS_DEFAULT_WIDTH = '88px';         // …and its width (128px tall on the desk)
+
+var _news = null;   // this question's story: { pk, idx, angleAbs, landed, opened }
 
 // True if the player gave ANY of these answer pks this run.
 function _answered() {
@@ -16389,275 +16370,264 @@ function _answered() {
     return false;
 }
 
-// Which foreign events began or ended since the last question. The FIRST call
-// of a run only seeds the snapshot: otherwise the opening brief would report
-// every permanently-active event (the Troubles, the Years of Lead…) as news.
-function _pdbForeignDiff() {
-    const seeded = Object.keys(_evLastState).length > 0;
-    const began = [], ended = [];
-    _EVENT_DEFS.forEach(def => {
-        let st = 0;
-        try { st = def.state(); } catch (err) { st = 0; }
-        const was = _evLastState[def.id];
-        if (seeded) {
-            if (st === 1 && was !== 1) began.push(def);
-            else if (st === 3 && was === 1) ended.push(def);
+function _newsList(pk) {
+    const qd = (pk != null && questionData[pk]) || null;
+    if (!qd || !qd.news) return [];
+    return Array.isArray(qd.news) ? qd.news : [qd.news];
+}
+
+// The story entry _news points at (functions don't survive a save, so _news
+// stores where the story lives rather than the story itself).
+function _newsObj() {
+    if (!_news) return null;
+    if (_news.preview) return _news.preview;   // ACOPNews.preview()
+    return _newsList(_news.pk)[_news.idx] || null;
+}
+
+// Called at every question boundary, after onShow — so a flag a question's
+// onShow sets is already visible to that question's `when`.
+function _newsCompose(pk) {
+    _newsCloseAll();
+    _news = null;
+    const list = _newsList(pk);
+    for (let i = 0; i < list.length; i++) {
+        const n = list[i];
+        if (!n) continue;
+        if (Array.isArray(n.ifAnswered) && n.ifAnswered.length
+            && !_answered.apply(null, n.ifAnswered)) continue;
+        if (typeof n.when === 'function') {
+            let ok = false;
+            try { ok = !!n.when(); } catch (err) { ok = false; }
+            if (!ok) continue;
         }
-        _evLastState[def.id] = st;
-    });
-    return { began, ended };
-}
-
-// Called at every question boundary, after onShow. Builds this question's brief
-// (or clears it), and feeds the World Affairs "new this question" highlight.
-function _pdbCompose(pk, qd) {
-    const diff = _pdbForeignDiff();
-    // _markEventNew had no callers, so the World Affairs tab's red "new" styling
-    // never showed. This diff is exactly that signal.
-    diff.began.forEach(d => _markEventNew(d.id));
-
-    const items = [];
-    PDB_ITEMS.forEach(it => {
-        if (!it || !it.id || !Array.isArray(it.pks)) return;
-        if (it.pks.map(Number).indexOf(Number(pk)) === -1) return;
-        const once = it.once !== false;
-        if (once && _pdbDone.has(it.id)) return;
-        let ok = true;
-        if (typeof it.when === 'function') { try { ok = !!it.when(); } catch (err) { ok = false; } }
-        if (!ok) return;
-        if (once) _pdbDone.add(it.id);   // it happened in-world, read or not
-        items.push({ id: it.id, kind: it.kind === 'flavour' ? 'flavour' : 'consequence',
-                     head: it.head || '', body: it.body || '' });
-    });
-    // Consequences lead, flavour follows.
-    items.sort((a, b) => (a.kind === 'flavour') - (b.kind === 'flavour'));
-
-    const foreign = diff.began.length + diff.ended.length > 0;
-    if (!items.length && !(foreign && _PDB_FOREIGN_ALONE)) { _pdb = null; return; }
-    _pdb = {
-        pk: pk,
-        date: (qd && qd.date) || '',
-        items: items,
-        abroad: diff.began.map(d => ({ id: d.id, label: d.label, continent: d.continent || '' })),
-        ended:  diff.ended.map(d => ({ id: d.id, label: d.label })),
-        landed: false,
-        read: false,
-        tilt: -3 + Math.random() * 6,
-    };
-}
-
-function _pdbAnimOk() {
-    if (typeof _lowFx === 'function' && _lowFx()) return false;
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
-    return !!Element.prototype.animate;
-}
-
-function _pdbEnsureCss() {
-    if (document.getElementById('pdb-css')) return;
-    const s = document.createElement('style');
-    s.id = 'pdb-css';
-    s.textContent = [
-        /* the folder, lying on the desk in the portrait strip */
-        '#pdb-folder { position:absolute; left:23%; bottom:16px; width:138px; height:96px;',
-        '  pointer-events:auto; cursor:pointer; z-index:14; user-select:none;',
-        "  font-family:'TypewriterDry', 'Courier New', monospace; color:#3a2a12;",
-        '  transition: filter 160ms ease; }',
-        '#pdb-folder .pdb-cover { position:absolute; inset:10px 0 0 0; border-radius:2px 4px 4px 4px;',
-        '  background:linear-gradient(160deg,#e6d3a3 0%,#d9c28a 55%,#cdb277 100%);',
-        '  border:1px solid #9c8350; box-shadow:2px 4px 8px rgba(0,0,0,0.35); }',
-        '#pdb-folder .pdb-tab { position:absolute; top:0; left:8px; width:52px; height:14px;',
-        '  background:#dcc792; border:1px solid #9c8350; border-bottom:none; border-radius:4px 4px 0 0; }',
-        '#pdb-folder .pdb-title { position:absolute; top:22px; left:0; right:0; text-align:center;',
-        '  font-size:9.5px; line-height:1.25; letter-spacing:0.06em; font-weight:bold; }',
-        '#pdb-folder .pdb-fdate { position:absolute; top:52px; left:0; right:0; text-align:center; font-size:8px; }',
-        '#pdb-folder .pdb-fstamp { position:absolute; bottom:6px; right:8px; font-size:9px; font-weight:bold;',
-        '  color:#a4211a; border:1.5px solid #a4211a; padding:0 4px; transform:rotate(-6deg); letter-spacing:0.08em; }',
-        '#pdb-folder.pdb-has-art { width:auto; bottom:12px; }',
-        '#pdb-folder img.pdb-art { display:block; height:100%; width:auto;',
-        '  filter: drop-shadow(2px 4px 5px rgba(0,0,0,0.4)); }',
-        '#pdb-folder:hover, #pdb-folder:focus-visible { outline:none;',
-        '  filter: drop-shadow(0 0 10px rgba(198,198,158,0.6)) drop-shadow(0 0 18px rgba(198,198,158,0.3)); }',
-        /* the document */
-        '#pdb-backdrop { position:fixed; inset:0; z-index:10050; display:flex; align-items:center;',
-        '  justify-content:center; background:rgba(0,0,0,0.42); opacity:0; transition:opacity 180ms ease; }',
-        '#pdb-backdrop.pdb-open { opacity:1; }',
-        '#pdb-doc { position:relative; width:min(560px, 88vw); max-height:80vh; overflow-y:auto;',
-        '  background:#f4ecd6; color:#1e1a12; border:1px solid #b9a77a; box-shadow:0 18px 44px rgba(0,0,0,0.55);',
-        "  padding:26px 34px 22px; font-family:'TypewriterDry', 'Courier New', monospace; font-size:13px; line-height:1.5; }",
-        '#pdb-doc .pdb-close { position:absolute; top:8px; right:10px; background:none; border:none; cursor:pointer;',
-        '  font-size:20px; line-height:1; color:#6b5a33; }',
-        '#pdb-doc .pdb-stamp { text-align:center; color:#a4211a; font-weight:bold; letter-spacing:0.2em; font-size:12px; }',
-        '#pdb-doc .pdb-mast { text-align:center; font-weight:bold; letter-spacing:0.12em; font-size:16px; margin-top:6px; }',
-        '#pdb-doc .pdb-sub { text-align:center; font-size:11px; letter-spacing:0.08em; margin-top:2px; }',
-        '#pdb-doc hr { border:none; border-top:1px solid #8a7550; margin:12px 0 10px; }',
-        '#pdb-doc .pdb-section { font-weight:bold; letter-spacing:0.1em; font-size:11.5px; margin:12px 0 4px; }',
-        '#pdb-doc ul { margin:0; padding-left:18px; }',
-        '#pdb-doc li { margin:0 0 8px; }',
-        '#pdb-doc .pdb-head { font-weight:bold; text-transform:uppercase; }',
-        '#pdb-doc .pdb-head .mytooltiptext { text-transform:none; }',
-        '#pdb-doc .pdb-body { display:block; font-size:12px; }',
-        '#pdb-doc .pdb-flavour .pdb-head { font-weight:normal; }',
-        '#pdb-doc .pdb-cont { color:#6b5a33; font-size:11px; }',
-        '#pdb-doc .pdb-ended { text-decoration:line-through; color:#7d7160; }',
-        '#pdb-doc .pdb-map { margin-top:8px; cursor:pointer; font-family:inherit; font-size:11.5px; }',
-        '#pdb-doc .pdb-foot { margin-top:14px; font-size:10px; letter-spacing:0.08em; text-align:center; color:#6b5a33; }',
-    ].join('\n');
-    document.head.appendChild(s);
-}
-
-// The body of the document. Every authored string goes through the same
-// tooltip baking the questions get, so names in a brief carry their cards.
-function _pdbHTML() {
-    const bake = (t) => (typeof applyTooltipsMarked === 'function' ? applyTooltipsMarked(t) : t);
-    let h = '<button class="pdb-close" type="button" aria-label="Close the brief">×</button>'
-        + '<div class="pdb-stamp">TOP SECRET</div>'
-        + '<div class="pdb-mast">THE PRESIDENT’S DAILY BRIEF</div>'
-        + '<div class="pdb-sub">FOR THE PRESIDENT ONLY' + (_pdb.date ? ' · ' + _pdb.date.toUpperCase() : '') + '</div>'
-        + '<hr>';
-    if (_pdb.items.length) {
-        h += '<ul class="pdb-list">';
-        _pdb.items.forEach(it => {
-            h += '<li class="pdb-item pdb-' + it.kind + '"><span class="pdb-head">' + bake(it.head) + '</span>'
-               + (it.body ? '<span class="pdb-body">' + bake(it.body) + '</span>' : '') + '</li>';
-        });
-        h += '</ul>';
-    }
-    if (_pdb.abroad.length || _pdb.ended.length) {
-        h += '<div class="pdb-section">ABROAD</div><ul class="pdb-abroad">';
-        _pdb.abroad.forEach(a => {
-            h += '<li>' + bake(a.label) + (a.continent ? ' <span class="pdb-cont">— ' + a.continent + '</span>' : '') + '</li>';
-        });
-        _pdb.ended.forEach(a => { h += '<li class="pdb-ended">' + a.label + '</li>'; });
-        h += '</ul><button class="pdb-map" type="button">Open the World Map →</button>';
-    }
-    h += '<div class="pdb-foot">DISSEMINATION: THE PRESIDENT · COPY 1 OF 1</div>';
-    return h;
-}
-
-function _pdbKey(ev) { if (ev.key === 'Escape') _pdbClose(); }
-
-function _pdbClose(instant) {
-    document.removeEventListener('keydown', _pdbKey);
-    const back = document.getElementById('pdb-backdrop');
-    if (!back) return;
-    if (instant) { back.remove(); return; }
-    back.classList.remove('pdb-open');
-    setTimeout(() => { if (back.parentNode) back.remove(); }, 200);
-}
-
-function _pdbOpen() {
-    if (!_pdb) return;
-    _pdbEnsureCss();
-    _pdbClose(true);
-    _pdb.read = true;
-    const folder = document.getElementById('pdb-folder');
-    if (folder) folder.classList.add('pdb-read');
-    const back = document.createElement('div');
-    back.id = 'pdb-backdrop';
-    const doc = document.createElement('div');
-    doc.id = 'pdb-doc';
-    doc.setAttribute('role', 'dialog');
-    doc.setAttribute('aria-modal', 'true');
-    doc.setAttribute('aria-label', 'The President’s Daily Brief');
-    doc.innerHTML = _pdbHTML();
-    back.appendChild(doc);
-    document.body.appendChild(back);
-    requestAnimationFrame(() => back.classList.add('pdb-open'));
-    back.addEventListener('click', (ev) => { if (ev.target === back) _pdbClose(); });
-    doc.querySelector('.pdb-close').addEventListener('click', () => _pdbClose());
-    const map = doc.querySelector('.pdb-map');
-    if (map) map.addEventListener('click', () => { _pdbClose(true); _openWorldMapViaTunnel(); });
-    document.addEventListener('keydown', _pdbKey);
-    const close = doc.querySelector('.pdb-close');
-    if (close) close.focus();
-}
-
-// Called on every #game_window mutation. Keeps the folder on the desk for as
-// long as its question is up (the engine can rebuild the strip), throws it in
-// the first time only, and takes it away everywhere else.
-function _pdbMount() {
-    const strip = document.querySelector('#game_window > g');
-    const existing = document.getElementById('pdb-folder');
-    const live = !!(_pdb && strip && document.getElementById('question_form')
-        && Number(_pdb.pk) === Number(_lastQuestionPK));
-    if (!live) {
-        if (existing) existing.remove();
-        if (!_pdb) _pdbClose(true);
+        // Year Zero's rest angle for its question image, which the thrown
+        // object mirrors. Rolled once, so a re-render lands it the same way.
+        _news = { pk: pk, idx: i, angleAbs: 364 - Math.random() * 8, landed: false, opened: false };
         return;
     }
-    if (existing && existing.parentNode === strip) return;
-    if (existing) existing.remove();
-    _pdbEnsureCss();
-
-    const f = document.createElement('div');
-    f.id = 'pdb-folder';
-    f.setAttribute('role', 'button');
-    f.setAttribute('tabindex', '0');
-    f.setAttribute('aria-label', 'Open the President’s Daily Brief');
-    f.title = 'The President’s Daily Brief';
-    if (_pdb.read) f.classList.add('pdb-read');
-    const typed = '<div class="pdb-tab"></div><div class="pdb-cover"></div>'
-        + '<div class="pdb-title">THE PRESIDENT’S<br>DAILY BRIEF</div>'
-        + (_pdb.date ? '<div class="pdb-fdate">' + _pdb.date + '</div>' : '')
-        + '<div class="pdb-fstamp">TOP SECRET</div>';
-    if (_PDB_FOLDER_IMG) {
-        f.classList.add('pdb-has-art');
-        f.style.height = _PDB_FOLDER_IMG_H + 'px';
-        const art = document.createElement('img');
-        art.className = 'pdb-art';
-        art.alt = '';
-        art.draggable = false;
-        // A dead URL must not leave an invisible click target on the desk:
-        // fall back to the typed folder.
-        art.onerror = () => {
-            f.classList.remove('pdb-has-art');
-            f.style.height = '';
-            f.innerHTML = typed;
-        };
-        art.src = _PDB_FOLDER_IMG;
-        f.appendChild(art);
-    } else {
-        f.innerHTML = typed;
-    }
-    f.style.transform = 'rotate(' + _pdb.tilt.toFixed(2) + 'deg)';
-    f.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); _pdbOpen(); });
-    f.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); _pdbOpen(); }
-    });
-    strip.appendChild(f);
-
-    // Year Zero's arrival: tossed onto the desk from above-right, overshooting
-    // into place at its resting tilt. Once per brief — a strip rebuild just
-    // puts it back where it lay.
-    if (!_pdb.landed) {
-        _pdb.landed = true;
-        if (_pdbAnimOk()) {
-            const end = 'rotate(' + _pdb.tilt.toFixed(2) + 'deg)';
-            f.animate([
-                { transform: 'translate(160px, -240px) rotate(' + (_pdb.tilt + 22).toFixed(2) + 'deg)', opacity: 0 },
-                { transform: 'translate(0, 0) ' + end, opacity: 1 },
-            ], { duration: 520, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'backwards', delay: 120 });
-        }
-    }
 }
 
-// Console: ACOPPdb.preview() drops a sample brief onto the current question,
-// so the look can be checked without authoring pks.
-window.ACOPPdb = {
-    preview() {
-        if (!document.querySelector('#game_window > g')) { console.warn('ACOPPdb: open a question first.'); return; }
-        _pdb = {
-            pk: _lastQuestionPK, date: (questionData[_lastQuestionPK] || {}).date || '',
-            items: PDB_ITEMS.filter(it => it.head).map(it => ({ id: it.id,
-                kind: it.kind === 'flavour' ? 'flavour' : 'consequence', head: it.head, body: it.body || '' }))
-                .sort((a, b) => (a.kind === 'flavour') - (b.kind === 'flavour')),
-            abroad: _EVENT_DEFS.slice(0, 2).map(d => ({ id: d.id, label: d.label, continent: d.continent || '' })),
-            ended: [], landed: false, read: false, tilt: -3 + Math.random() * 6,
-        };
-        document.getElementById('pdb-folder')?.remove();
-        _pdbMount();
+function _newsBake(html) {
+    try { return typeof applyTooltipsMarked === 'function' ? applyTooltipsMarked(html) : html; }
+    catch (err) { return html; }
+}
+
+function _newsCloseAll() {
+    document.querySelectorAll('.thrown_object_modal_backdrop').forEach(b => b.remove());
+}
+
+// Runs on every game-window mutation, alongside the other injected chrome.
+function _newsMount() {
+    const strip = document.querySelector('#game_window > g');
+    const existing = document.getElementById('acop-news-desk');
+    const obj = _newsObj();
+    const live = !!(obj && !_news.opened && strip && document.getElementById('question_form')
+        && Number(_news.pk) === Number(_lastQuestionPK));
+    if (!live) { if (existing) existing.remove(); return; }
+    if (existing && existing.parentNode === strip) return;
+    if (existing) existing.remove();
+
+    const angleAbs = _news.angleAbs;
+    const angleRel = angleAbs - 360;
+
+    // Year Zero's question-image box, recreated: same size, so the same flight.
+    const imageWrapper = document.createElement('div');
+    imageWrapper.id = 'acop-news-desk';
+    imageWrapper.style.position = 'absolute';
+    imageWrapper.style.left = '23%';
+    imageWrapper.style.bottom = '0';
+    imageWrapper.style.width = '262px';
+    imageWrapper.style.height = '253px';
+    imageWrapper.style.pointerEvents = 'none';
+    imageWrapper.style.zIndex = '14';
+    // Clip below the desk only (Year Zero's game window did the same). 'clip',
+    // not 'hidden': it keeps the flight from growing the page's scroll height,
+    // and unlike 'hidden' leaves the other axis free.
+    imageWrapper.style.overflowX = 'visible';
+    imageWrapper.style.overflowY = 'clip';
+    strip.appendChild(imageWrapper);
+
+    // ── from here to the end of the click handler: Year Zero, verbatim, except
+    //    where marked ACOP ──
+    (() => {
+        if (!obj) return;
+
+        imageWrapper.style.position = imageWrapper.style.position || "relative";
+        imageWrapper.style.overflow = imageWrapper.style.overflow || "visible";   // ACOP: keep the clip above
+
+        const old = imageWrapper.querySelector(".thrown_object_img");
+        if (old) old.remove();
+
+        const thrown = document.createElement("img");
+        thrown.className = "thrown_object_img";
+        thrown.src = obj.src || _NEWS_DEFAULT_IMG;                            // ACOP: default art
+        thrown.alt = "";
+        thrown.draggable = false;
+        // ACOP: a dead URL must not leave an invisible click target on the desk.
+        thrown.onerror = () => { if (thrown.src !== _NEWS_BOOK_ART) thrown.src = _NEWS_BOOK_ART; };
+
+        const w = obj.width || (obj.src ? "200px" : _NEWS_DEFAULT_WIDTH);   // ACOP: default width
+        thrown.style.width = w;
+        thrown.style.height = "auto";
+
+        thrown.style.position = "absolute";
+        thrown.style.left = "0px";
+        thrown.style.bottom = "16px";                                         // ACOP: on the desk (was top: 0)
+        thrown.style.zIndex = "50";
+        thrown.style.cursor = "pointer";
+        thrown.style.userSelect = "none";
+        thrown.style.pointerEvents = "auto";
+
+        thrown.addEventListener("mouseenter", () => {
+            thrown.style.filter = "drop-shadow(0 0 10px rgba(198, 198, 158, 0.55)) drop-shadow(0 0 18px rgba(198, 198, 158, 0.25))";
+        });
+        thrown.addEventListener("mouseleave", () => {
+            thrown.style.filter = "none";
+        });
+
+        imageWrapper.appendChild(thrown);
+
+        const wrapW = imageWrapper.clientWidth  || 262;
+        const wrapH = imageWrapper.clientHeight || 253;
+
+        const rad = angleAbs * Math.PI / 180;
+        const ux = Math.cos(rad);
+        const uy = -Math.sin(rad);
+
+        const mirrorUx = -ux;
+        const mirrorUy = Math.abs(uy) + 0.85;
+
+        const buffer = 90;
+        const startX = mirrorUx * (wrapW + buffer);
+        const startY = mirrorUy * (wrapH + buffer);
+
+        const startRot = (-angleRel) + (angleRel >= 0 ? -10 : 10);
+        const endRot   = (-angleRel) * 3;
+
+        thrown.style.transformOrigin = "center";
+        thrown.style.transform = `translate(${startX}px, ${startY}px) rotate(${startRot}deg)`;
+        thrown.style.opacity = "0";
+
+        const delayMs = 100;
+
+        const prefersReduce = (window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+            || _lowFx()                                                       // ACOP: low demand mode
+            || _news.landed;                                                  // ACOP: already on the desk
+        _news.landed = true;
+
+        setTimeout(() => {
+            if (prefersReduce) {
+            thrown.style.transform = `translate(0, 0) rotate(${endRot}deg)`;
+            thrown.style.opacity = "1";
+            return;
+            }
+
+            const anim = thrown.animate(
+            [
+                { transform: `translate(${startX}px, ${startY}px) rotate(${startRot}deg)`, opacity: 0 },
+                { transform: `translate(0, 0) rotate(${endRot}deg)`, opacity: 1 }
+            ],
+            {
+                duration: 520,
+                easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+                fill: "forwards"
+            }
+            );
+
+            anim.addEventListener("finish", () => {
+            thrown.style.transform = `translate(0, 0) rotate(${endRot}deg)`;
+            thrown.style.opacity = "1";
+            });
+        }, prefersReduce ? 0 : delayMs);                                      // ACOP: no wait when not thrown
+
+        const gameWindowEl = document.getElementById("game_window");
+        if (!gameWindowEl) return;
+
+        // ACOP: Year Zero set this inline whenever no INLINE position was set.
+        // Here it only steps in if the window is genuinely static, so it can
+        // never re-anchor the engine's portrait strip.
+        if (getComputedStyle(gameWindowEl).position === "static") gameWindowEl.style.position = "relative";
+
+        function openModal() {
+            const existing = gameWindowEl.querySelector(".thrown_object_modal_backdrop");
+            if (existing) existing.remove();
+
+            const backdrop = document.createElement("div");
+            backdrop.className = "thrown_object_modal_backdrop";
+            backdrop.style.position = "absolute";
+            backdrop.style.left = "0";
+            backdrop.style.top = "0";
+            backdrop.style.width = "100%";
+            backdrop.style.height = "100%";
+            backdrop.style.zIndex = "9998";
+            backdrop.style.display = "flex";
+            backdrop.style.justifyContent = "center";
+            backdrop.style.alignItems = "stretch";
+            backdrop.style.background = "rgba(0,0,0,0.28)";
+            backdrop.style.backdropFilter = "blur(1px)";
+            backdrop.style.opacity = "0";
+            backdrop.style.transition = "opacity 180ms ease";
+
+            const panel = document.createElement("div");
+            panel.className = "thrown_object_modal_panel";
+            panel.style.height = "100%";
+            panel.style.width = "62%";
+            panel.style.maxWidth = "620px";
+            panel.style.minWidth = "360px";
+            panel.style.background = "rgba(8, 12, 18, 0.92)";
+            panel.style.boxShadow = "0 18px 44px rgba(0,0,0,0.55)";
+            panel.style.borderLeft = "1px solid rgba(255,255,255,0.08)";
+            panel.style.borderRight = "1px solid rgba(255,255,255,0.08)";
+            panel.style.padding = "18px 18px";
+            panel.style.overflowY = "auto";
+            panel.style.color = "#F7F9F9";
+            panel.style.fontFamily = '-apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
+
+            panel.innerHTML = obj.html ? _newsBake(obj.html) : "<p>(No content)</p>";   // ACOP: tooltips baked
+
+            backdrop.appendChild(panel);
+            gameWindowEl.appendChild(backdrop);
+
+            requestAnimationFrame(() => {
+            backdrop.style.opacity = "1";
+            });
+
+            backdrop.addEventListener("click", (e) => {
+            if (e.target !== backdrop) return;
+            closeModal(backdrop);
+            });
+        }
+
+        function closeModal(backdrop) {
+            backdrop.style.opacity = "0";
+            setTimeout(() => {
+            if (backdrop && backdrop.parentNode) backdrop.remove();
+            }, 200);
+        }
+
+        thrown.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openModal();
+            thrown.remove()
+            if (_news) _news.opened = true;                                              // ACOP: gone for good, even across a re-render
+        });
+    })();
+}
+
+// Console: ACOPNews.preview() throws a sample story onto the current question,
+// so the look can be checked without authoring one.
+window.ACOPNews = {
+    preview(html) {
+        if (!document.querySelector('#game_window > g')) { console.warn('ACOPNews: open a question first.'); return; }
+        _newsCloseAll();
+        _news = { pk: _lastQuestionPK, idx: 0, angleAbs: 364 - Math.random() * 8, landed: false, opened: false,
+                  preview: { html: html || '<h2>Sample story</h2><p>Replace this with the story, as HTML.</p>' } };
+        document.getElementById('acop-news-desk')?.remove();
+        _newsMount();
     },
-    get current() { return _pdb; },
+    get current() { return _news; },
 };
 
 // ── TURN ENGINE ───────────────────────────────────────────────────────────────
@@ -17722,7 +17692,7 @@ window.__onGameWindowMutation(() => {
             updateTypewriterVisibility();
             updateCampaignSign();
             addInnerCircleButton();
-            _pdbMount();
+            _newsMount();
 
             const _gs = _liveGameState();
             if (_gs) {
@@ -17767,8 +17737,7 @@ window.__onGameWindowMutation(() => {
                     _smeared.clear(); _interrogated.clear();
                     _pressureFrozenUntil = -1; _stonewallUntil = -1;
                     _orgNews.length = 0; _crackWarned.clear(); _orgNewsUnseen = false;
-                    _pdbDone.clear(); Object.keys(_evLastState).forEach(k => { delete _evLastState[k]; });
-                    _pdb = null; _pdbClose(true);
+                    _news = null; _newsCloseAll();
                     _enemiesReset();
                     _nukeReset();   // unwind the nuclear-war branch + candidate rename
                     // Only unwind an EVENT-driven theme swap — a look the player
@@ -17796,9 +17765,9 @@ window.__onGameWindowMutation(() => {
                     if (qd.signImg) changeImage(qd.signImg);
                     _newEvents.clear();
                     if (qd.onShow) qd.onShow();
-                    // President's Daily Brief: after onShow, so any event flag
-                    // it flips is reported this question, not next.
-                    _pdbCompose(currentPK, qd);
+                    // News on the desk: after onShow, so a flag it sets counts for this
+                    // question's story.
+                    _newsCompose(currentPK);
                     // Reactive soundtrack: section entry (queued, installs when the
                     // current song ends) + scripted stingers (fade out + play now).
                     const _mSec = _pkToSection(currentPK);
@@ -18531,11 +18500,7 @@ function _slCaptureMod() {
         interrogated: Array.from(_interrogated),
         orgNews: _orgNews.slice(),
         crackWarned: Array.from(_crackWarned),
-        pdb: {
-            done: Array.from(_pdbDone),
-            evLast: Object.assign({}, _evLastState),
-            cur: _pdb ? JSON.parse(JSON.stringify(_pdb)) : null,
-        },
+        news: _news ? JSON.parse(JSON.stringify(_news)) : null,
     };
 }
 
@@ -18575,18 +18540,9 @@ function _slRestoreMod(m) {
     (m.orgNews || []).forEach(n => _orgNews.push(n));
     _crackWarned.clear();
     (m.crackWarned || []).forEach(n => _crackWarned.add(n));
-    // President's Daily Brief. A pre-feature save carries no pdb: the ABROAD
-    // snapshot is then left empty, so the next question re-seeds it silently
-    // instead of reporting every running event as news.
-    _pdbDone.clear();
-    Object.keys(_evLastState).forEach(k => { delete _evLastState[k]; });
-    if (m.pdb) {
-        (m.pdb.done || []).forEach(id => _pdbDone.add(id));
-        Object.assign(_evLastState, m.pdb.evLast || {});
-        _pdb = m.pdb.cur || null;
-    } else {
-        _pdb = null;
-    }
+    // News on the desk: the current question's story (and whether it has
+    // landed / been opened). Older saves carry none.
+    _news = m.news || null;
     // _flipped is NOT in the save: it is rebuilt from the men's STATUS vars,
     // which are (STATUS 1 = state's witness). Deriving rather than storing also
     // repairs saves written before this was noticed — without it a load left
@@ -19483,8 +19439,8 @@ function openGameManual() {
         '<p>The machine only truly comes alive in Part II (“Fulmination”); before that, the numbers move only through your answers.</p>'+
         '<h3>Officials</h3>'+
         '<p>Your cabinet — State, Defense, Justice, National Security, CIA, FBI. Flip a card for the effects of that person in post. At certain moments you’ll be invited to <b>reshuffle</b>: the Enemies/Friends and Officials buttons glow, and the swappable roles glow — click one to choose a successor. You have <b>two turns</b> to decide; ignore it and the choice is <b>made for you at random</b> — so a bad appointment can’t simply be waited out.</p>'+
-        '<h3>The President’s Daily Brief</h3>'+
-        '<p>Some mornings a classified folder lands on the desk beside your portrait. Click it for the brief: what your earlier decisions have set in motion, the odd story from the wider world, and — under <b>Abroad</b> — any foreign crisis that has broken or ended since the last question, with a link straight to the World Map. It does not come every day; when it does, it is worth reading. It stays on the desk until you answer.</p>'+
+        '<h3>News on the desk</h3>'+
+        '<p>Now and then something lands on the desk beside your portrait — usually because of a choice you made earlier. Click it to read the story. It stays there until you do, or until you answer the question, and once read it is gone.</p>'+
         '<h3>World map</h3>'+
         '<p>Toggle display layers along the bars: <b>Allegiance</b> (colours by how pro-US a country is), <b>Flags</b>, <b>Events</b>, <b>Capitals</b>, <b>Night</b>, <b>SIGINT</b>, and <b>Stats</b> (shows the exact relations number and destabilisation count in a country’s hover, and the detailed outcome of your diplomacy actions — with it off, actions land silently).</p>'+
         '<p>The <b>Diplomacy</b> dropdown holds four actions — arm one, then click a target country:</p><ul>'+

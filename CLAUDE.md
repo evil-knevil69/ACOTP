@@ -1739,55 +1739,57 @@ added ("You get warning."). NOTE for other harnesses — the pressure tick and
 `_orgNewsAdd`/`_syncOrgNewsGlow`/`_crackWarned` stubbed (initiative_check was patched).
 Full suite green, both files EXECUTE CLEAN.
 
-**79. The President's Daily Brief (Sep 2026)** — Code 2, grep `PRESIDENT'S DAILY
-BRIEF` (block sits right after `_markEventNew`). A classified folder lands in the
-engine's portrait strip (`#game_window > g`) — NOT every question, only when there is
-something to report — and opens to a typed bullet-point brief in a modal. Mechanism
-ported from 1976: Year Zero's `thrownObjectsByQ` + `openModal` (its ChurchJordan Code
-2), with two deliberate changes: KEYED BY PK, never `question_number` (Year Zero never
-reorders; ACOP does — campaign length, the nuke arm swap, questionSwapper — so a slot
-index would silently pin a story to whichever question landed there), and TYPED HTML
-rather than a picture of an article, so tooltips and historicity spans reach inside.
-Three kinds of line: (1) CONSEQUENCES of earlier answers, scheduled onto later pks;
-(2) FLAVOUR, sparingly; (3) ABROAD — foreign events that went live or ended since the
-last question, diffed off `_EVENT_DEFS` (the list the World Affairs tab and the map
-draw, so the three can never disagree). Authoring: `PDB_ITEMS` entries
-`{id, pks:[…], when, once, kind, head, body}` — `pks` with once:true (default) runs at
-the FIRST listed pk where `when()` holds, so several pks = a WINDOW (a short campaign
-may skip one); `once: false` = a developing story at every listed pk; `when` gates on
-state, with `_answered(ansPk, …)` for "did the player pick any of these". A throwing
-`when` reads as false and does NOT burn the story. Consequences sort before flavour.
-HEADLINES ARE AUTHORED IN ORDINARY CASE — CSS sets them in capitals — because the
-tooltip matcher is case-sensitive: "KISSINGER" would never get its card (a render
-caught that; the harness now forbids caps-typed heads). The foreign diff SEEDS
-silently on the first question of a run, so permanently-running events (the
-Troubles…) are not reported as news. It also finally feeds `_markEventNew`, which had
-ZERO callers — the World Affairs tab's red "new this question" styling was dead
-until now. Compose runs at the question boundary AFTER `onShow` (so a flag it flips
-reports this question); `_pdbMount` runs with the other injected chrome and re-mounts
-after engine rebuilds without re-throwing. The throw-in (WAAPI, once) is skipped under
-low demand mode and reduced motion. The document: backdrop / Esc / close button,
-`role=dialog`, focus moves in, "Open the World Map" link via
-`_openWorldMapViaTunnel`, re-readable while the question is up. `_PDB_FOREIGN_ALONE`
-(true) lets foreign news alone summon a brief. COVER ART: the object on the desk is
-a White House BRIEFING BOOK — the user's photo, cut out of its white surround and
-embedded as a 9.5 KB WebP data URI (`_PDB_BOOK_ART`, inside the block so the harness
-slice sees it), shown `_PDB_FOLDER_IMG_H` (128px) tall at its own aspect. Point
-`_PDB_FOLDER_IMG` at any hosted URL to swap it; '' = the typed CSS folder, which is
-ALSO the fallback if the image fails to load (`onerror`), so a dead URL never leaves
-an invisible click target on the desk. Save/load: `_pdbDone`, `_evLastState` and the current `_pdb` in
-`_slCaptureMod` (a pre-feature save leaves the snapshot empty, so it re-seeds
-silently); New Game clears all three. Both examples ship INERT (`pks: []`,
-FILL ME IN): Felt leaking the Kissinger wiretaps around the Gray hearings, and the
-Andes survivors (Uruguayan Flight 571 — not Bolivian). Console: `ACOPPdb.preview()`.
-NAMING NOTE: the world map already has a "Daily Brief" fly-through button; the two
-are unrelated. Manual section added. Verified: new `tests/pdb_check.js` 46/46 (seed,
-began/ended, World Affairs feed, throwing `state()`, pk keying, once/window/
-once:false, `_answered`, throwing `when`, sorting, folder mount/clickable/throw-once/
-re-mount/leaves-with-the-question/low-fx, the document's open/close/Esc/backdrop/map/
-re-read, caps rule, the cover art: decodes, 128px at its own aspect, dead-URL
-fallback, '' = typed folder). SEVEN POISONS confirmed to fail (slot keying, once ignored, no
-silent seed, shown on any question, throwing `when` burns the story, caps-typed head, image fallback removed).
+**79. The President's Daily Brief (Sep 2026) — SUPERSEDED by 80 the next day.**
+A pk-scheduled typed brief (`PDB_ITEMS`, a CSS folder, its own document modal) plus
+an ABROAD section diffed off `_EVENT_DEFS` that also fed `_markEventNew`. Replaced
+wholesale on request; nothing of it remains except `_answered()`, the embedded
+briefing-book art and the lesson below. KEEP THE LESSON: the tooltip matcher is
+case-sensitive, so text meant to display in capitals should be authored in ordinary
+case and capitalised by CSS ("KISSINGER" never gets its card). NOTE the World Affairs
+tab's red "new this question" styling is dead again — `_markEventNew` has no callers
+now that the ABROAD diff is gone.
+
+**80. News on the desk — Year Zero's thrown object, keyed by pk (Sep 2026)** —
+Code 2, grep `NEWS ON THE DESK` (block sits right after `_markEventNew`). A story an
+EARLIER answer sets up, delivered on a LATER question: an object is thrown onto the
+desk in the portrait strip and clicking it opens the story. AUTHORING — a `news`
+field on the question's `questionData` entry:
+`8: { news: { ifAnswered: [72], html: '<p>…</p>' } }` = answer 72 earlier → story at
+question 8. Optional `when: () => bool` (state test; a throwing `when` = no story),
+`src` (default `_NEWS_DEFAULT_IMG`, the briefing book) and `width` (88px for the
+book, Year Zero's 200px otherwise). `news` may be an ARRAY: the FIRST entry whose
+`ifAnswered` + `when` both hold is thrown, so put the specific ones first and an
+unconditional one last as a fallback. A question with no `questionData` entry can
+be given one just for its news. Decided in `_newsCompose(pk)` at the question
+boundary AFTER `onShow`; `_news = {pk, idx, angleAbs, landed, opened}` stores WHERE
+the story lives (functions don't survive a save), resolved by `_newsObj()`.
+VERBATIM FROM YEAR ZERO (its ChurchJordan Code 2): the flight (rest angle
+`364 - rand*8`, mirrored start from below-left, buffer 90, spin `startRot`/`endRot`,
+100ms delay, 520ms `cubic-bezier(0.22,1,0.36,1)`), the hover glow, and the popup
+(`thrown_object_modal_backdrop` absolute over `#game_window`, the 62%/620px dark
+panel, 180ms fade, backdrop-click close, and the ONE-SHOT click: opening removes the
+object). A harness assertion pins those constants. ADAPTATIONS, each marked
+`// ACOP:` in the code: (a) keyed by pk via `questionData`, not slot — ACOP reorders
+questions; (b) Year Zero throws into its own 262x253 question-image box, so an
+invisible `#acop-news-desk` of the SAME size sits in the strip (`left:23%`, between
+Nixon and the sign) — same size = same flight; the object rests `bottom:16px` inside
+it rather than `top:0`; (c) that box is `overflow-y: clip` (NOT hidden: clip leaves
+x visible and stops the flight, which starts below the window, growing the page's
+scroll height — a harness check measures it), standing in for Year Zero's
+`overflow:hidden` game window; (d) the engine re-renders the strip, so an object
+already down is put straight back without re-throwing (`landed`) and an opened one
+never returns (`opened`); (e) low demand mode takes Year Zero's reduced-motion
+branch; (f) `#game_window` is set relative only if its COMPUTED position is static
+(Year Zero checked only the inline value — see change 29 on re-anchoring the
+strip); (g) people-tooltips baked into the html; (h) a dead `src` falls back to the
+briefing book. Compose closes any popup left open. Save/load: `_news` in
+`_slCaptureMod` (older saves carry none); New Game `_news = null; _newsCloseAll()`.
+The popup's look is Year Zero's for now — the user will restyle it and replace the
+image. Console: `ACOPNews.preview(html)`. Manual section: "News on the desk".
+Verified: `tests/news_check.js` 35/35 (replaces pdb_check). EIGHT POISONS confirmed
+to fail (ifAnswered ignored, keyed by slot, no clip below the desk, re-render
+re-throws, opened not remembered, last match wins, next question keeps the popup,
+shown on any question).
 
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
@@ -1797,7 +1799,7 @@ assertions over the areas that carry the most machinery:
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `nuketheme_check` (33),
 `initiative_check` (80),
-`orgnews_check` (29), `pdb_check` (46),
+`orgnews_check` (29), `news_check` (35),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.

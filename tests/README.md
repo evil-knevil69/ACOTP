@@ -28,7 +28,7 @@ and gets committed.
 | `nuketheme_check.js` | the page theme following the DEFCON-1 branch: swap in, unwind out, and the manual-pick case that must survive it |
 | `initiative_check.js` | the Initiative button: the three-button row, the picker, and that Cut Them Loose + Pin the Blame really spend ONE shared pool |
 | `orgnews_check.js` | the President's Men chart reporting on itself: the breaking-point warning, the state's-witness announcement, and the glow/chip/ring surfaces |
-| `pdb_check.js` | the President's Daily Brief: pk-keyed scheduling (windows, once, gates), the ABROAD diff off `_EVENT_DEFS`, the briefing book on the desk (cover art + dead-URL fallback), and the brief document |
+| `news_check.js` | news on the desk: a story set up by an earlier answer (`questionData[pk].news` + `ifAnswered`), Year Zero's throw and popup, and the adaptations around them |
 | `saveload_check.js` | `_SL_SCALARS` integrity and the capture/restore round-trips |
 | `execcheck_check.js` | the execution check itself — poisons a copy of each mod file four ways and asserts it rejects every one |
 
