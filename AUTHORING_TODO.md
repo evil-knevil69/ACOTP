@@ -6,6 +6,9 @@ in-code list is always `grep "FILL ME IN"` across both files; this document
 organises it. Systems marked **inert** do nothing until filled, so nothing
 here blocks playing the current build.
 
+**How the hooks work** (questionData, answer effects, the President's Men,
+Initiative, news on the desk): see `QUESTION_WRITING_GUIDE.md`.
+
 Last checked: Jul 2026 — after the nuke broadcast package + gratuitous
 barrage (stress-tested clean: ~90 warheads, no leaks, no dropped frames).
 
