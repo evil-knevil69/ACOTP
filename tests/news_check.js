@@ -98,6 +98,20 @@ ck('Year Zero, verbatim: the popup (backdrop, 62% dark panel, fades, backdrop-cl
     // ---- the real code
     ${NEWS}
 
+    // a story with an 800x533 photo, then a second headline: built here because
+    // the photo is drawn on a canvas, which needs the page
+    (function () {
+      const c = document.createElement('canvas'); c.width = 800; c.height = 533;
+      const x = c.getContext('2d'); x.fillStyle = '#777'; x.fillRect(0, 0, 800, 533);
+      const photo = c.toDataURL();
+      questionData[17] = { news: [
+        // short text: shorter than the photo, so without the clear rule the next
+        // headline would sit BESIDE the photo rather than under it
+        { html: '<h2>FIRST</h2><img id="ph" src="' + photo + '"><p id="body1">One short line.</p>' },
+        { html: '<h2 id="second">SECOND</h2><img id="ph2" style="float:none" src="' + photo + '"><p>after</p>' },
+      ] };
+    })();
+
     // ---- harness helpers
     window.__strip = () => {
       document.querySelector('#game_window > g')?.remove();
@@ -157,7 +171,9 @@ ck('Year Zero, verbatim: the popup (backdrop, 62% dark panel, fades, backdrop-cl
     await __wait(600);
     return { before, early, mid, pe: getComputedStyle(t).pointerEvents,
              parent: t.parentNode.parentNode === document.querySelector('#game_window > g'),
-             w: t.style.width, book: t.src.startsWith('data:image/webp'), tf: t.style.transform, op: t.style.opacity };
+             w: t.style.width, book: t.src.startsWith('data:image/webp'), tf: t.style.transform, op: t.style.opacity,
+             left: Math.round(t.parentNode.offsetLeft + t.offsetLeft),
+             gap: Math.round(t.parentNode.offsetHeight - t.offsetTop - t.offsetHeight) };
   });
   ck('it sits in Year Zero\'s 262x253 box, in the portrait strip, clickable though the strip is not',
      r.parent && r.pe === 'auto');
@@ -166,7 +182,9 @@ ck('Year Zero, verbatim: the popup (backdrop, 62% dark panel, fades, backdrop-cl
      r.mid.scroll === r.before);
   ck('it comes to rest upright-ish at Year Zero\'s end rotation, fully visible',
      /^translate\(0(px)?, 0(px)?\) rotate\(-?\d+(\.\d+)?deg\)$/.test(r.tf) && r.op === '1');
-  ck('with no src, the briefing book lands, 88px wide', r.book && r.w === '88px');
+  ck('with no src, the briefing book lands, 106px wide', r.book && r.w === '106px');
+  ck('it rests at 23% + 35px across the strip, 2px off its bottom edge',
+     r.left === Math.round(1050 * 0.23 + 35) && r.gap === 2);
   r = await ev(async () => { __strip(); _newsMount(); const t = __desk(); await __wait(150);
                              return { back: !!t, anims: t ? t.getAnimations().length : -1 }; });
   ck('an engine re-render of the strip puts it straight back, without throwing it again', r.back && r.anims === 0);
@@ -194,6 +212,21 @@ ck('Year Zero, verbatim: the popup (backdrop, 62% dark panel, fades, backdrop-cl
   ck('clicking it opens Year Zero\'s popup over the game window', r.bd && r.op === '1');
   ck('…with the story, tooltips baked in', /<span class="mytooltip">Kissinger<\/span> has been talking/.test(r.html || ''));
   ck('…and the object is gone from the desk (one-shot, as in Year Zero)', !r.desk && r.opened === true);
+  r = await ev(async () => {
+    _newsCloseAll(); __arrive(17); await __wait(700); __desk().click(); await __wait(250);
+    const img = document.getElementById('ph'), p1 = document.getElementById('body1'), h2 = document.getElementById('second');
+    const ir = img.getBoundingClientRect(), rg = document.createRange(); rg.selectNodeContents(p1);
+    const first = rg.getClientRects()[0];
+    return { w: Math.round(ir.width), h: Math.round(ir.height), float: getComputedStyle(img).float,
+             textRight: first.left >= ir.right - 0.5, textBeside: first.top < ir.bottom,
+             cleared: h2.getBoundingClientRect().top >= ir.bottom,
+             override: getComputedStyle(document.getElementById('ph2')).float };
+  });
+  ck('a photo in a story is capped at 125px tall, keeping its proportions', r.h === 125 && r.w === Math.round(125 * 800 / 533));
+  ck('…floated left, with the story text running down its right side', r.float === 'left' && r.textRight && r.textBeside);
+  ck('…and the next headline starts below it, not beside it', r.cleared);
+  ck('an inline style on a story\'s own <img> overrides the rule', r.override === 'none');
+  // (the popup is left open: the checks below click inside it and on its backdrop)
   r = await ev(() => { __strip(); _newsMount(); return !!__desk(); });
   ck('an opened story does not come back when the strip re-renders', r === false);
   r = await ev(async () => { document.querySelector('.thrown_object_modal_panel').click(); await __wait(260);

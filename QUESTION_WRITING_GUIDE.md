@@ -209,6 +209,10 @@ the *earlier* answer:
   the run. Leave it out and the story always appears at that question.
 - `when: () => FBI !== 'Felt'`: an optional extra condition on the game state.
 - `html`: the story. Tooltips work inside it, as they do in questions.
+- **Photos in the story:** just add `<img src="https://…">` after the headline. It's
+  shown at most 125px tall at its own proportions, on the left, with the story's text
+  running down its right side. The next headline always starts below it. Give an
+  image its own `style="…"` to lay that one out differently.
 - `src` / `width`: a different picture on the desk. Leave them out for the briefing
   book.
 
@@ -232,8 +236,11 @@ Good to know:
 - It stays on the desk until it's clicked or the question is answered. **Once opened
   it's gone.** The player can't reopen it, as in Year Zero.
 - There's one object on the desk per question, however many stories it holds.
-- The desk image is `_NEWS_DEFAULT_IMG`. The popup's look is the `panel.style` lines in
-  `openModal`, still Year Zero's dark panel for now.
+- The desk image is `_NEWS_DEFAULT_IMG`, 106px wide (`_NEWS_DEFAULT_WIDTH`). Where it
+  rests is `_NEWS_DESK_LEFT` (across the strip) and `_NEWS_DESK_BOTTOM` (its gap above
+  the bottom edge). The photo height cap is `_NEWS_PHOTO_MAX_H`.
+- The popup's look is the `panel.style` lines in `openModal`, still Year Zero's dark
+  panel for now.
 - To try one without authoring: open any question, then in the browser console run
   `ACOPNews.preview('<p>any html</p>')`.
 

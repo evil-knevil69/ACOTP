@@ -1799,6 +1799,21 @@ pre-stacking save's `idx`. No match = nothing on the desk. First authored story:
 Southern Airways Flight 49 at pk 402 (atmospheric, no ifAnswered). Verified:
 news_check 38/38; FIVE POISONS confirmed to fail (first match only, order reversed,
 old saves dropped, desk picture from the wrong story, ifAnswered ignored).
+PLACEMENT + PHOTOS (Oct 2026, after an in-game look): the book is 20% bigger
+(`_NEWS_DEFAULT_WIDTH` 88 → 106px, ~154px tall) and rests 35px further right and
+14px lower — now config: `_NEWS_DESK_LEFT` = 'calc(23% + 35px)' (positions the
+throwing box) and `_NEWS_DESK_BOTTOM` = '2px' (was a hard-coded 16px). Photos in an
+opened story get ONE stylesheet, `_newsEnsureCss()` (`#acop-news-css`, injected at
+mount): `.thrown_object_modal_panel img` floats left, max-height `_NEWS_PHOTO_MAX_H`
+(125px) with width following the aspect (max-width 60%, so text always has room),
+and `h2, h3 { clear: both }` so a stacked story's headline never sits beside the
+previous story's photo. A stylesheet, not inline, so an author's own `style` on an
+`<img>` overrides it — the Flight 49 image dropped its inline style for this.
+Verified: news_check 43/43; SIX POISONS confirmed to fail (old left, old bottom, no
+height cap, no float, headlines not cleared, stylesheet never injected). NOTE the
+clear check needs a story whose text is SHORTER than its photo — with long text the
+next headline lands below the photo anyway, and the first version of the check
+passed with the rule deleted.
 
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
@@ -1808,7 +1823,7 @@ assertions over the areas that carry the most machinery:
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `nuketheme_check` (33),
 `initiative_check` (80),
-`orgnews_check` (29), `news_check` (38),
+`orgnews_check` (29), `news_check` (43),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.
