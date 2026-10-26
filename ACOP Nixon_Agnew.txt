@@ -17648,6 +17648,7 @@ const questionData = {
            // Atmospheric (no ifAnswered): on the desk every run.
            news: { html: `
                <h2><b>US Jetliner Hijacked: Destination Unknown</b></h2>
+               <img src="https://file.garden/aXPgNT-ZRCxxpy0g/southern49.jpeg" alt="Southern Airways Flight 49" style="display:block; max-width:100%; height:auto; margin:0 0 12px;">
                <p>Flight 49 from Birmingham, AL has been taken over by 3 armed gunmen. They are demanding $10m in cash and threatening to crash the plane into the nuclear reactor at Oak Ridge. The FBI are on the case and hoping to divert the plane to Havana.</p>
            ` } },
     409: { date: "20 November 1972", signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/PK409.jpg",
