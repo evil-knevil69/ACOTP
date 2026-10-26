@@ -87,6 +87,8 @@ ck('Year Zero, verbatim: the popup (backdrop, 62% dark panel, fades, backdrop-cl
       12: { news: { ifAnswered: [72], src: 'data:image/png;base64,bm90IGFuIGltYWdl', html: 'dead' } },
       13: { news: { src: 'data:image/gif;base64,R0lGODlhAQABAAAAACw=', html: 'custom' } },
       14: { date: '1 Feb 1973' },
+      15: { news: [ { ifAnswered: [99], html: 'A' }, { when: () => false, html: 'B' } ] },
+      16: { news: [ { html: 'plain' }, { src: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', html: 'pictured' } ] },
     };
     var __lowfx = false;
     function _lowFx() { return __lowfx; }
@@ -123,11 +125,21 @@ ck('Year Zero, verbatim: the popup (backdrop, 62% dark panel, fades, backdrop-cl
   r = await ev(() => { __arrive(14); return { news: _news, desk: !!__desk() }; });
   ck('a question with no news gets nothing', r.news === null && !r.desk);
   r = await ev(() => { campaignTrail_temp.player_answers = [91]; __arrive(9); return _newsObj().html; });
-  ck('news as a list: the first story whose answers were given is the one thrown', r === 'NINETY-ONE');
+  ck('news as a list: every story whose conditions hold goes into the one popup, the rest are left out',
+     r === 'NINETY-ONEFALLBACK');
   r = await ev(() => { campaignTrail_temp.player_answers = [90, 91]; __arrive(9); return _newsObj().html; });
-  ck('…so the more specific story goes first', r === 'NINETY');
+  ck('…stacked in list order', r === 'NINETYNINETY-ONEFALLBACK');
   r = await ev(() => { campaignTrail_temp.player_answers = []; __arrive(9); return _newsObj().html; });
-  ck('…and a story with no ifAnswered is the fallback', r === 'FALLBACK');
+  ck('…and a story with no conditions (atmospheric) always comes along', r === 'FALLBACK');
+  r = await ev(() => { __arrive(15); return { news: _news, desk: !!__desk() }; });
+  ck('a list where no story holds puts nothing on the desk', r.news === null && !r.desk);
+  r = await ev(async () => { __arrive(16); await __wait(20); const t = __desk();
+                             return { src: t.src.slice(0, 14), w: t.style.width, html: _newsObj().html }; });
+  ck('the desk picture comes from the first story that names one', r.src === 'data:image/gif' && r.w === '200px' && r.html === 'plainpictured');
+  r = await ev(() => { campaignTrail_temp.player_answers = [72];
+                       _news = { pk: 8, idx: 0, angleAbs: 362, landed: true, opened: false };   // a pre-stacking save
+                       return (_newsObj() || {}).html; });
+  ck('a save from before stacking (one story, saved as idx) still restores', /Kissinger has been talking/.test(r || ''));
   r = await ev(() => { __arrive(10); const a = !!_news; FBI = 'Felt'; __arrive(10); const b2 = !!_news; FBI = 'Gray'; return [a, b2]; });
   ck('when() gates on game state', r[0] === true && r[1] === false);
   r = await ev(() => { try { __arrive(11); } catch (e) { return 'threw'; } return _news; });

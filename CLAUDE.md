@@ -1790,6 +1790,15 @@ Verified: `tests/news_check.js` 35/35 (replaces pdb_check). EIGHT POISONS confir
 to fail (ifAnswered ignored, keyed by slot, no clip below the desk, re-render
 re-throws, opened not remembered, last match wins, next question keeps the popup,
 shown on any question).
+STACKING (Oct 2026, on request): a `news` LIST now puts EVERY story whose
+`ifAnswered`/`when` hold into the one popup, in list order (was: first match only).
+`_news.idxs` replaces `_news.idx`; `_newsObj()` merges the matched entries (html
+concatenated with nothing between — authors add an `<hr>` if they want one; desk
+picture = the first matched entry with a `src`, else the book) and still reads a
+pre-stacking save's `idx`. No match = nothing on the desk. First authored story:
+Southern Airways Flight 49 at pk 402 (atmospheric, no ifAnswered). Verified:
+news_check 38/38; FIVE POISONS confirmed to fail (first match only, order reversed,
+old saves dropped, desk picture from the wrong story, ifAnswered ignored).
 
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
@@ -1799,7 +1808,7 @@ assertions over the areas that carry the most machinery:
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `nuketheme_check` (33),
 `initiative_check` (80),
-`orgnews_check` (29), `news_check` (35),
+`orgnews_check` (29), `news_check` (38),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.

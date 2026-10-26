@@ -16343,10 +16343,16 @@ function _markEventNew(id) { _newEvents.add(id); }
 //
 // A question with no entry in questionData yet can be given one just for this:
 //   8: { news: { ifAnswered: [72], html: '…' } },
-// `news` may also be an ARRAY — one story per outcome; the FIRST whose
-// ifAnswered/when both hold is the one thrown, so put the most specific first:
-//   news: [ { ifAnswered: [72], html: 'Felt leaks…' },
-//           { ifAnswered: [73], html: 'The Bureau stays quiet…' } ],
+// `news` may also be an ARRAY of stories, each with its own ifAnswered/when.
+// EVERY story whose conditions hold goes into the one popup, stacked in list
+// order — so an atmospheric headline (no conditions) and one that depends on
+// an earlier answer can share a question:
+//   news: [ { html: '<h2><b>Jetliner hijacked</b></h2><p>…</p>' },
+//           { ifAnswered: [72], html: '<h2><b>Felt leaks…</b></h2><p>…</p>' },
+//           { ifAnswered: [73], html: '<h2><b>Bureau stays quiet</b></h2><p>…</p>' } ],
+// Nothing is added between stories; put an <hr> in a story's html if you want
+// a dividing line. The desk picture is the first story's src that has one
+// (otherwise the briefing book). If no story's conditions hold, nothing lands.
 // Nothing else to wire: ifAnswered reads campaignTrail_temp.player_answers,
 // which the save already carries.
 //
@@ -16362,7 +16368,7 @@ var _NEWS_BOOK_ART = 'data:image/webp;base64,UklGRkglAABXRUJQVlA4WAoAAAAwAAAAuQA
 var _NEWS_DEFAULT_IMG   = _NEWS_BOOK_ART; // what lands when a story names no src
 var _NEWS_DEFAULT_WIDTH = '88px';         // …and its width (128px tall on the desk)
 
-var _news = null;   // this question's story: { pk, idx, angleAbs, landed, opened }
+var _news = null;   // this question's stories: { pk, idxs, angleAbs, landed, opened }
 
 // True if the player gave ANY of these answer pks this run.
 function _answered() {
@@ -16382,10 +16388,18 @@ function _newsList(pk) {
 
 // The story entry _news points at (functions don't survive a save, so _news
 // stores where the story lives rather than the story itself).
+// All the stories that held, merged into the one object the desk and the
+// popup draw: their html stacked in list order, the desk picture taken from the
+// first that names one. `idx` is the pre-stacking save shape (one story).
 function _newsObj() {
     if (!_news) return null;
     if (_news.preview) return _news.preview;   // ACOPNews.preview()
-    return _newsList(_news.pk)[_news.idx] || null;
+    const list = _newsList(_news.pk);
+    const idxs = Array.isArray(_news.idxs) ? _news.idxs : (_news.idx != null ? [_news.idx] : []);
+    const parts = idxs.map(i => list[i]).filter(Boolean);
+    if (!parts.length) return null;
+    const art = parts.find(n => n.src) || parts[0];
+    return { src: art.src, width: art.width, html: parts.map(n => n.html || '').join('') };
 }
 
 // Called at every question boundary, after onShow — so a flag a question's
@@ -16394,6 +16408,7 @@ function _newsCompose(pk) {
     _newsCloseAll();
     _news = null;
     const list = _newsList(pk);
+    const idxs = [];
     for (let i = 0; i < list.length; i++) {
         const n = list[i];
         if (!n) continue;
@@ -16404,11 +16419,12 @@ function _newsCompose(pk) {
             try { ok = !!n.when(); } catch (err) { ok = false; }
             if (!ok) continue;
         }
-        // Year Zero's rest angle for its question image, which the thrown
-        // object mirrors. Rolled once, so a re-render lands it the same way.
-        _news = { pk: pk, idx: i, angleAbs: 364 - Math.random() * 8, landed: false, opened: false };
-        return;
+        idxs.push(i);
     }
+    if (!idxs.length) return;
+    // Year Zero's rest angle for its question image, which the thrown object
+    // mirrors. Rolled once, so a re-render lands it the same way.
+    _news = { pk: pk, idxs: idxs, angleAbs: 364 - Math.random() * 8, landed: false, opened: false };
 }
 
 function _newsBake(html) {
@@ -16626,7 +16642,7 @@ window.ACOPNews = {
     preview(html) {
         if (!document.querySelector('#game_window > g')) { console.warn('ACOPNews: open a question first.'); return; }
         _newsCloseAll();
-        _news = { pk: _lastQuestionPK, idx: 0, angleAbs: 364 - Math.random() * 8, landed: false, opened: false,
+        _news = { pk: _lastQuestionPK, idxs: [], angleAbs: 364 - Math.random() * 8, landed: false, opened: false,
                   preview: { html: html || '<h2>Sample story</h2><p>Replace this with the story, as HTML.</p>' } };
         document.getElementById('acop-news-desk')?.remove();
         _newsMount();

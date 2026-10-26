@@ -212,21 +212,26 @@ the *earlier* answer:
 - `src` / `width`: a different picture on the desk. Leave them out for the briefing
   book.
 
-**Different stories for different earlier choices:** make `news` a list. The **first**
-one whose answers were given is the one thrown, so put the most specific first and an
-unconditional one last as a fallback:
+**Several headlines on one question:** make `news` a list. Each story has its own
+conditions, and **every** story whose conditions hold goes into the same popup,
+stacked in the order you list them. That lets an atmospheric headline (no conditions,
+always shown) share the popup with one that depends on an earlier answer:
 
 ```js
-8: { news: [
-    { ifAnswered: [72], html: '<p>Felt leaks the wiretaps…</p>' },
-    { ifAnswered: [73], html: '<p>The Bureau stays quiet…</p>' },
+402: { …, news: [
+    { html: `<h2><b>US Jetliner Hijacked</b></h2><p>…</p>` },          // always
+    { ifAnswered: [3545], html: `<h2><b>Cabinet Ordered Out</b></h2><p>…</p>` },  // only after 3545
 ] },
 ```
+
+If none of a question's stories hold, nothing lands on the desk. Nothing is added
+between stories; put an `<hr>` in a story's html if you want a dividing line. If one
+story has a `src`, the first such picture is what lands on the desk.
 
 Good to know:
 - It stays on the desk until it's clicked or the question is answered. **Once opened
   it's gone.** The player can't reopen it, as in Year Zero.
-- Only one story can sit on the desk per question.
+- There's one object on the desk per question, however many stories it holds.
 - The desk image is `_NEWS_DEFAULT_IMG`. The popup's look is the `panel.style` lines in
   `openModal`, still Year Zero's dark panel for now.
 - To try one without authoring: open any question, then in the browser console run
