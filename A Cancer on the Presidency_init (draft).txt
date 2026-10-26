@@ -4884,6 +4884,10 @@ function setupMusicPlayer() {
     window.playlist.addSong(newSong1);
     window.playlist.addSong(newSong2);
     window.playlist.addSong(newSong3);
+    window.playlist.addSong(newSong4);
+    // The credits song is deliberately NOT added above: playCreditsMusic adds
+    // it to the end of the playlist the first time Credits is clicked, so it
+    // only appears in the player from then on (as the nuke map's track does).
     // Kept on window so playCreditsMusic can find it by identity even after a
     // section playlist has replaced playlist.songs wholesale.
     window._creditsSong = newSong5;

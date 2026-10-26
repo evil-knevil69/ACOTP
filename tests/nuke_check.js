@@ -442,6 +442,10 @@ console.log('\nCENSUS MATHS:');
       </div></body>`);
     await p2.addStyleTag({ content: mainCss });
     await p2.addStyleTag({ content: noiseCss });
+    // Measure only once web fonts have settled: the stylesheet pulls fonts in,
+    // and a button laid out in the fallback font on one page but the real one
+    // on the other shifts the row — an intermittent false failure.
+    await p2.evaluate(() => document.fonts.ready);
     const r = await p2.evaluate(() => {
       const gw = document.getElementById('game_window').getBoundingClientRect();
       const f = document.getElementById('map_footer').getBoundingClientRect();
