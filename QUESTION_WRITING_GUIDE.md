@@ -213,6 +213,9 @@ the *earlier* answer:
   shown at most 125px tall at its own proportions, on the left, with the story's text
   running down its right side. The next headline always starts below it. Give an
   image its own `style="…"` to lay that one out differently.
+  If a photo's link is wrong, the photo is simply left out, and the browser console
+  (F12) says which URL failed. That's the first place to look when a picture doesn't
+  appear.
 - `src` / `width`: a different picture on the desk. Leave them out for the briefing
   book.
 

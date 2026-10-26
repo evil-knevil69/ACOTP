@@ -1814,6 +1814,17 @@ height cap, no float, headlines not cleared, stylesheet never injected). NOTE th
 clear check needs a story whose text is SHORTER than its photo — with long text the
 next headline lands below the photo anyway, and the first version of the check
 passed with the rule deleted.
+IN-GAME FOLLOW-UP (Oct 2026): (1) the user saw the photo as "a few pixels tall".
+Reproduced against the REAL Code 1 stylesheets: a loadable photo is exactly 188x125
+there, no Code 1 rule touches it, and no tooltip trigger occurs in the story — so the
+in-game photo was failing to LOAD (a broken image renders as a tiny alt-text box).
+`openModal` now hides any story `<img>` that fails (`complete && naturalWidth === 0`,
+or its `error` event) and `console.warn`s the URL. (2) Story text came out CENTRED in
+the game but left in every harness: the HOST page centres text in `#game_window`, and
+no stub loads host CSS. `#acop-news-css` now sets `p, li { text-align: left }`
+(headlines untouched). The harness simulates the host by centring `#game_window`.
+Verified: news_check 46/46; THREE POISONS confirmed to fail (no left-align, dead
+photos left showing, every photo hidden).
 
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
@@ -1823,7 +1834,7 @@ assertions over the areas that carry the most machinery:
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `nuketheme_check` (33),
 `initiative_check` (80),
-`orgnews_check` (29), `news_check` (43),
+`orgnews_check` (29), `news_check` (46),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +
 conventions: `tests/README.md`. PUT NEW HARNESSES THERE, not in the scratchpad.

@@ -110,6 +110,7 @@ ck('Year Zero, verbatim: the popup (backdrop, 62% dark panel, fades, backdrop-cl
         { html: '<h2>FIRST</h2><img id="ph" src="' + photo + '"><p id="body1">One short line.</p>' },
         { html: '<h2 id="second">SECOND</h2><img id="ph2" style="float:none" src="' + photo + '"><p>after</p>' },
       ] };
+      questionData[18] = { news: { html: '<h2>DEAD</h2><img id="deadph" src="data:image/png;base64,bm90IGFuIGltYWdl"><p>text</p>' } };
     })();
 
     // ---- harness helpers
@@ -226,6 +227,24 @@ ck('Year Zero, verbatim: the popup (backdrop, 62% dark panel, fades, backdrop-cl
   ck('…floated left, with the story text running down its right side', r.float === 'left' && r.textRight && r.textBeside);
   ck('…and the next headline starts below it, not beside it', r.cleared);
   ck('an inline style on a story\'s own <img> overrides the rule', r.override === 'none');
+  r = await ev(() => { const gw = document.getElementById('game_window'); const was = gw.style.textAlign;
+                       gw.style.textAlign = 'center';   // the host page centres text in the game window
+                       const out = { p: getComputedStyle(document.getElementById('body1')).textAlign };
+                       gw.style.textAlign = was; return out; });
+  ck('story body text is left-aligned even though the host centres the game window', r.p === 'left');
+  r = await ev(async () => {
+    const warns = []; const ow = console.warn; console.warn = (...a) => warns.push(a.join(' '));
+    _newsCloseAll(); __arrive(18); await __wait(700); __desk().click(); await __wait(300);
+    console.warn = ow;
+    const im = document.getElementById('deadph');
+    const out = { hidden: getComputedStyle(im).display === 'none', warned: warns.some(w => /story photo failed to load/.test(w)) };
+    _newsCloseAll(); __arrive(17); await __wait(700); __desk().click(); await __wait(250);   // the checks below expect a popup
+    return out;
+  });
+  ck('a story photo that will not load is hidden (no few-pixel broken box) and named in the console',
+     r.hidden && r.warned);
+  r = await ev(() => getComputedStyle(document.getElementById('ph')).display);
+  ck('…while a photo that loads stays shown', r !== 'none');
   // (the popup is left open: the checks below click inside it and on its backdrop)
   r = await ev(() => { __strip(); _newsMount(); return !!__desk(); });
   ck('an opened story does not come back when the strip re-renders', r === false);

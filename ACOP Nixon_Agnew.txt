@@ -16454,6 +16454,8 @@ function _newsEnsureCss() {
         '.thrown_object_modal_panel img { float: left; max-height: ' + _NEWS_PHOTO_MAX_H + ';',
         '  width: auto; height: auto; max-width: 60%; margin: 2px 14px 8px 0; }',
         '.thrown_object_modal_panel h2, .thrown_object_modal_panel h3 { clear: both; }',
+        // the host page centres text inside #game_window; story text reads left
+        '.thrown_object_modal_panel p, .thrown_object_modal_panel li { text-align: left; }',
     ].join('\n');
     document.head.appendChild(st);
 }
@@ -16628,6 +16630,12 @@ function _newsMount() {
             panel.style.fontFamily = '-apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif';
 
             panel.innerHTML = obj.html ? _newsBake(obj.html) : "<p>(No content)</p>";   // ACOP: tooltips baked
+            // ACOP: a photo that will not load would otherwise show as a few-pixel
+            // broken-image box. Hide it, and say which URL failed in the console.
+            panel.querySelectorAll("img").forEach(im => {
+                const dead = () => { im.style.display = "none"; console.warn("ACOP news: story photo failed to load:", im.getAttribute("src")); };
+                if (im.complete && im.naturalWidth === 0) dead(); else im.addEventListener("error", dead);
+            });
 
             backdrop.appendChild(panel);
             gameWindowEl.appendChild(backdrop);
