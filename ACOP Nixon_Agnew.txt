@@ -17628,7 +17628,12 @@ const questionData = {
             body: "During the first term we stopped their revolution. Now we can move forward with our own.",
             img: "https://file.garden/aXPgNT-ZRCxxpy0g/TRANSITION%20GIFS/PartI-ezgif.com-optimize.gif" },
             signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk401.jpg", historical: null },
-    402: { date: "11 November 1972",  signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk402.jpg", historical: null },
+    402: { date: "11 November 1972",  signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/pk402.jpg", historical: null,
+           // Atmospheric (no ifAnswered): on the desk every run.
+           news: { html: `
+               <h2><b>US Jetliner Hijacked: Destination Unknown</b></h2>
+               <p>Flight 49 from Birmingham, AL has been taken over by 3 armed gunmen. They are demanding $10m in cash and threatening to crash the plane into the nuclear reactor at Oak Ridge. The FBI are on the case and hoping to divert the plane to Havana.</p>
+           ` } },
     409: { date: "20 November 1972", signImg: "https://file.garden/aXPgNT-ZRCxxpy0g/Signimages/PK409.jpg",
             historical: `<p>This interview really happened, and Nixon did debate cutting Henry loose.</p><p>In the end, Kissinger had to make a grovelling apology to Nixon but not before calling her a bitch, a liar and worse. He backed down when she offered to release the tape transcripts from their interview.</p><p>A copy of the interview is available <a href="https://scrapsfromtheloft.com/history/oriana-fallaci-henry-kissinger-interview/" target="_blank">here</a>.</p>` },
     429: { date: "October 1975",
