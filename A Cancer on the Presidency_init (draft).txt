@@ -4880,11 +4880,16 @@ function setupMusicPlayer() {
         "Haldeman, Ehrlichman, Mitchell and Dean", "The Creep",
         "", "https://audio.jukehost.co.uk/YqGi6uMJ7vbPks8YiJaC2V0flQnuSRF5"
     );
+    const newSong6 = new Song(
+        "Someone to Watch Over Me", "Ella Fitzgerald",
+        "", "https://audio.jukehost.co.uk/01a175ac-210e-7188-997c-ec6afb166c52"
+    );
 
     window.playlist.addSong(newSong1);
     window.playlist.addSong(newSong2);
     window.playlist.addSong(newSong3);
     window.playlist.addSong(newSong4);
+    window.playlist.addSong(newSong6);
     // The credits song is deliberately NOT added above: playCreditsMusic adds
     // it to the end of the playlist the first time Credits is clicked, so it
     // only appears in the player from then on (as the nuke map's track does).
