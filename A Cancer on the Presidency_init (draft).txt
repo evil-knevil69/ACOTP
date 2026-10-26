@@ -4865,20 +4865,28 @@ function setupMusicPlayer() {
         "", "https://audio.jukehost.co.uk/vBoTcGS8IjhR9yazL8Y1v7uieoMJOhcI"
     );
     const newSong2 = new Song(
-        "You Haven't Done Nothin'", "Stevie Wonder",
-        "", "https://audio.jukehost.co.uk/KkYkAtKwaEu3faB3UYA5uA3m6JYuej8Z"
+        "Overture from Oklahoma!", "1955 Original Oklahoma! Studio Orchestra",
+        "", "https://audio.jukehost.co.uk/01a17598-45ed-729d-8440-5977acac560a"
     );
     const newSong3 = new Song(
+        "Sit Down, You're Rocking the Boat (Guys & Dolls)", "Stubby Kaye",
+        "", "https://audio.jukehost.co.uk/01a16ad4-e384-7330-b8a4-95673c0e160d"
+    );
+    const newSong4 = new Song(
+        "If I Loved You (Carousel)", "Gordon MacRae & Shirley Jones",
+        "", "https://audio.jukehost.co.uk/01a165d8-44d6-7241-933d-b7c73a69b399"
+    );
+    const newSong5 = new Song(
         "Haldeman, Ehrlichman, Mitchell and Dean", "The Creep",
         "", "https://audio.jukehost.co.uk/YqGi6uMJ7vbPks8YiJaC2V0flQnuSRF5"
     );
-    
+
     window.playlist.addSong(newSong1);
     window.playlist.addSong(newSong2);
     window.playlist.addSong(newSong3);
     // Kept on window so playCreditsMusic can find it by identity even after a
     // section playlist has replaced playlist.songs wholesale.
-    window._creditsSong = newSong3;
+    window._creditsSong = newSong5;
 
     let audio = document.getElementById("audio");
     if (!audio) {
