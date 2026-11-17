@@ -1935,6 +1935,63 @@ now call `_acopObserve`, and `_placeManualButton` calls `_acopLive`; stub them
 (enightsets_check and chrome_check do). Code 1 has no such guard: if the host
 re-runs Code 1 as well, that needs the same treatment.
 
+**83. The glows, named — signal badges (Nov 2026)** — Code 2, grep `Signal
+badges`. The Enemies/Friends button carries three signals: reshuffle offer
+(amber, red `rs-last` on its last turn), new action charges (green `ta-glow`)
+and chart news (crimson `news-glow`). FOUND: they could never show together.
+Each glow animates the same box-shadow, so on a button carrying several only
+one colour wins (`.rs-glow.rs-last` by specificity, then news, new actions,
+reshuffle by source order). The old `.ta-glow` comment claiming both could pulse
+at once was wrong (corrected). On top of that, amber against green is the
+commonest colour-blind confusion. Each live signal is now NAMED in a `.sig-badge`
+tab on the button's top edge: "Reshuffle" / "Reshuffle: last turn" (red,
+`.sig-urgent`), "New actions", "News", joined by " · ", authored in ordinary
+case and capitalised by CSS. The button's `aria-label` lists them; the badge
+itself is aria-hidden. The Officials button inside the panel gets the same
+treatment (reshuffle only). DESIGN: the glow CLASSES stay the single source of
+truth. `_watchSignals(btn)` paints the badge from them (`_SIGNAL_BADGES`) and a
+MutationObserver on the button's class attribute repaints it whenever any code
+toggles a glow, so no toggle site had to change. A real element, NOT a
+pseudo-element: Code 1 spends every button's `::before`/`::after` on its bevel
+(a test asserts the bevel survives). Absolute and pointer-events none, so the
+button and its row never move. With all three live the tab is wider than the
+button and overhangs its neighbours' top edges a little; one signal fits inside.
+Static, so it stays in low demand mode ("signals stay").
+BUG FIXED ON THE WAY (change 26's red last turn never reached this button): the
+observer builds the button BEFORE a new question's turn advances, and nothing
+re-synced the reshuffle classes afterwards, so the last turn began with the
+button still amber until the screen happened to re-render. New
+`_syncReshuffleGlow()` sets `rs-glow`/`rs-last` from `_RESHUFFLE` state; it is
+called from the reshuffle's `_everyTurn` housekeeping, and by `offer()` and
+`clear()` (which used to add/remove only `rs-glow`, leaving a stale `rs-last`).
+Manual: the NEWS / NEW ACTIONS / RESHUFFLE / LAST TURN labels named in the
+three paragraphs that describe the glows.
+Verified: new `tests/signals_check.js` (20) runs Code 1 (real button styling) +
+the whole of Code 2 and raises each signal through the code that really raises
+it. It checks each name, all three at once, the last turn in red, the Officials
+button, the badge clearing with the glow, a glow switched on later on a button
+already on screen, no layout movement, the bevel intact, the accessible name,
+and low demand mode. NINE POISONS confirmed to fail (no observer, either button
+never watched, a signal left unnamed, badge in the flow, last turn not urgent,
+no per-turn sync, clear() leaving the glow, no accessible name).
+
+**84. Initiative dropdown: locked actions say why, in plain sight (Nov 2026)** —
+Code 2, `_openInitiativePicker`. A locked or unaffordable action explained
+itself only through a hover `title`, which never shows on a touch screen, and a
+disabled button answers a tap with nothing. The reason (`_taHintText(wired)`, or
+"Costs N — you have M.") is now printed as a `.nw-init-why` caption directly
+under its button (pulled up into the column gap so it reads as that button's
+caption; italic 9.5px, wraps inside the dropdown) and linked with
+`aria-describedby`. The `title` stays for desktop hover. Open actions carry no
+caption. The dropdown overlays the chart, so a taller list moves nothing.
+Manual: "An action you can’t take yet says why, underneath it." Verified:
+initiative_check 87/87 (+7: caption under Pin the Blame / Smear / Interrogate /
+Grace, matching the title, inside the dropdown, under its own button, gone once
+the pool covers the price, absent on open actions). The harness now injects the
+stylesheet through the caption rule, and accepts `ACOP_CODE2` like the others.
+THREE POISONS confirmed to fail (caption never appended, not linked, shown on
+open actions).
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
 session went with it (they were never committed). Rebuilt and COMMITTED, 400+
@@ -1942,7 +1999,7 @@ assertions over the areas that carry the most machinery:
 `nuke_check` (106), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
 `nuketheme_check` (33), `runstate_check` (30), `rerun_check` (30),
-`initiative_check` (80),
+`initiative_check` (87), `signals_check` (20),
 `orgnews_check` (29), `news_check` (46),
 `census_split_check` (10), `execcheck_check` (6).
 `run_all.js` also runs `mod_exec_check.js` over both files first. Docs +

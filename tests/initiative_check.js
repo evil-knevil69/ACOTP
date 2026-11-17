@@ -9,7 +9,8 @@
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require(require('child_process').execSync('npm root -g').toString().trim() + '/playwright');
-const SRC = path.join(__dirname, '..', 'ACOP Nixon_Agnew.txt');
+// ACOP_CODE2=<path> runs the harness against a copy (how its poisons are checked).
+const SRC = process.env.ACOP_CODE2 || path.join(__dirname, '..', 'ACOP Nixon_Agnew.txt');
 const src = fs.readFileSync(SRC, 'utf8');
 
 function extractFn(name) {
@@ -93,7 +94,7 @@ ck('the wire glow darkens the Nixon rung only',
 ck('a locked-out reason may be a function, resolved at read time',
    /typeof h === 'function' \? h\(\) : h/.test(src)
    && /btn\.title = locked \? _taHintText\(wired\)/.test(src)
-   && /if \(locked\) btn\.title = _taHintText\(wired\)/.test(src));
+   && /const why = locked \? _taHintText\(wired\)/.test(src));
 ck('the new per-run state is saved and cleared on New Game',
    /smeared: Array\.from\(_smeared\)/.test(src) && /interrogated: Array\.from\(_interrogated\)/.test(src)
    && /'_pressureFrozenUntil', '_stonewallUntil'/.test(src)
@@ -114,7 +115,8 @@ ck('the stale "three do nothing" comment on _TA_WIRED is gone',
     '<div class="nw-node" data-person="Haldeman"><div class="nw-flip-area"></div></div>' +
     '</div></body>');
   // The real panel stylesheet, so the dropdown's geometry is the shipped one.
-  await p.addStyleTag({ content: slice('#nw-team-actions {', 'z-index: 20;\n        }') });
+  // …through the dropdown's caption rule (.nw-init-why), which follows #nw-init-pick.
+  await p.addStyleTag({ content: slice('#nw-team-actions {', 'color: #5a4626;\n        }') });
 
   await p.addScriptTag({ content: `
     // ---- stubs for everything the actions touch but this harness isn't testing
@@ -197,6 +199,18 @@ ck('the stale "three do nothing" comment on _TA_WIRED is gone',
     window.__click = node => _taHandleNodeClick(document.querySelector('.nw-node[data-person="' + node + '"]'));
     window.__pickBtn = k => document.querySelector('#nw-init-pick [data-action="' + k + '"]');
     window.__pickCost = k => window.__pickBtn(k).querySelector('.nw-ta-count').textContent;
+    // The visible reason under a dropdown action (item 7): its text, whether the
+    // button points at it, and where it sits relative to the button and the box.
+    window.__why = k => {
+      const b = window.__pickBtn(k), n = document.getElementById('nw-init-why-' + k);
+      if (!n) return { shown: false, linked: b.getAttribute('aria-describedby') };
+      const bb = b.getBoundingClientRect(), nb = n.getBoundingClientRect(),
+            pb = document.getElementById('nw-init-pick').getBoundingClientRect();
+      return { shown: n.offsetHeight > 0 && getComputedStyle(n).visibility !== 'hidden', text: n.textContent,
+               linked: b.getAttribute('aria-describedby') === n.id, title: b.title,
+               under: nb.top >= bb.bottom - 6 && nb.top - bb.bottom < 6 && n.previousElementSibling === b,
+               inside: nb.left >= pb.left && nb.right <= pb.right + 0.5 && nb.bottom <= pb.bottom + 0.5 };
+    };
     window.__open = () => window.__btn('initiative').click();
     // Drive a man to the brink: loyalty 0, exposure 8, past the 3-turn grace,
     // so the next tick rolls for his flip every time (Math.random stubbed to 0).
@@ -234,6 +248,12 @@ ck('the stale "three do nothing" comment on _TA_WIRED is gone',
   });
   ck('Pin the Blame is locked below the exposure gate, with the reason, while Cut Them Loose is live',
      r.dis === true && /exposure/i.test(r.title) && r.cut === false);
+  r = await ev(() => ({ blame: window.__why('blame'), cut: window.__why('cut') }));
+  ck('…the reason is printed under the locked action, not only in a hover title (touch screens)',
+     r.blame.shown && /exposure/i.test(r.blame.text) && r.blame.text === r.blame.title, JSON.stringify(r.blame));
+  ck('…as that button\'s caption: right under it, inside the dropdown, and named by aria-describedby',
+     r.blame.under && r.blame.inside && r.blame.linked, JSON.stringify(r.blame));
+  ck('…and an action that is open to you carries no caption', !r.cut.shown && !r.cut.linked, JSON.stringify(r.cut));
   r = await ev(() => { window.__btn('initiative').click(); return _initiativePickerOpen(); });
   ck('clicking Initiative again closes the picker', r === false);
 
@@ -342,6 +362,10 @@ ck('the stale "three do nothing" comment on _TA_WIRED is gone',
   });
   ck('one point cannot buy Smear (and says why) but still buys a 1-point action',
      r.smear === true && /Costs 2 — you have 1/.test(r.title) && r.cut === false && r.open === true);
+  r = await ev(() => window.__why('smear'));
+  ck('…and the price it can\'t meet is printed under Smear too', r.shown && r.text === 'Costs 2 — you have 1.' && r.linked, JSON.stringify(r));
+  r = await ev(() => { InitiativeStack = 4; _syncTeamActionBtns(); return window.__why('smear'); });
+  ck('…until the pool covers it, when the caption goes', !r.shown, JSON.stringify(r));
   r = await ev(() => {
     document.body.classList.remove('fog-of-war-on');
     InitiativeStack = 4; _syncTeamActionBtns();
@@ -350,14 +374,17 @@ ck('the stale "three do nothing" comment on _TA_WIRED is gone',
   });
   ck('Interrogate locks itself out when Fog of War is off, with the reason',
      r.dis === true && /Fog of War is off/.test(r.title));
+  r = await ev(() => window.__why('interrogate'));
+  ck('…printed in full under it, wrapped inside the dropdown', r.shown && /Fog of War is off/.test(r.text) && r.inside, JSON.stringify(r));
   r = await ev(() => {
     _pressureOn = false; _syncTeamActionBtns();
     const g = window.__pickBtn('grace');
-    const out = { dis: g.disabled, title: g.title };
+    const out = { dis: g.disabled, title: g.title, why: window.__why('grace') };
     _pressureOn = true; document.body.classList.add('fog-of-war-on'); _syncTeamActionBtns();
     return out;
   });
   ck('Grace locks itself out before the pressure engine wakes', r.dis === true && /not begun to bite/.test(r.title));
+  ck('…and says so under the button', r.why.shown && /not begun to bite/.test(r.why.text), JSON.stringify(r.why));
 
   console.log('\nDROPDOWN BEHAVIOUR:');
   r = await ev(() => {
