@@ -337,10 +337,15 @@ ck('"In the Bunker" exists in Code 1, so the swap cannot fail safe-but-silent',
   }, { src: (() => {
     const cfgStart = c2.indexOf('var _NUKE_TRACK = {');
     const cfgEnd = c2.indexOf('var _nukeTrackPlayed');
-    const fnStart = c2.indexOf('function _nukePlayTrack() {');
-    let i = c2.indexOf('{', fnStart), d = 0, fnEnd = fnStart;
-    for (let j = i; j < c2.length; j++) { if (c2[j] === '{') d++; else if (c2[j] === '}') { d--; if (!d) { fnEnd = j + 1; break; } } }
-    return c2.slice(cfgStart, cfgEnd) + '\n' + c2.slice(fnStart, fnEnd);
+    // _nukePlayTrack, plus the shared injector it calls (also the Allende egg's)
+    const whole = head => {
+      const fnStart = c2.indexOf(head);
+      let i = c2.indexOf('{', fnStart), d = 0;
+      for (let j = i; j < c2.length; j++) { if (c2[j] === '{') d++; else if (c2[j] === '}') { d--; if (!d) return c2.slice(fnStart, j + 1); } }
+      throw new Error('unbalanced: ' + head);
+    };
+    return c2.slice(cfgStart, cfgEnd) + '\n' + whole('function _nukePlayTrack() {')
+      + '\n' + whole('function _playInjectedSong(title, artist, url) {');
   })() });
 
   ck('arriving at the map appends the track, selects it and plays it',

@@ -21302,9 +21302,15 @@ var _NUKE_STRIKE_WAVES = [
 // break the screen if the player has not been built yet.
 function _nukePlayTrack() {
     if (_nukeTrackPlayed || !_NUKE_TRACK || !_NUKE_TRACK.url) return;
-    if (!(window.Song && window.playlist && window.loadAndPlay)) return;
-    _nukeTrackPlayed = true;
-    const track = new window.Song(_NUKE_TRACK.title, _NUKE_TRACK.artist, '', _NUKE_TRACK.url);
+    if (_playInjectedSong(_NUKE_TRACK.title, _NUKE_TRACK.artist, _NUKE_TRACK.url)) _nukeTrackPlayed = true;
+}
+// Append a one-off track to the live music player, select it and play it now.
+// Returns false — having done nothing — unless the player (Code 1's Song /
+// playlist / loadAndPlay) is up, so a caller can keep its once-per-run flag
+// unset and try again later. Shared by the Allende egg and the nuke map.
+function _playInjectedSong(title, artist, url) {
+    if (!(window.Song && window.playlist && window.loadAndPlay)) return false;
+    const track = new window.Song(title, artist, '', url);
     window.playlist.addSong(track);
     window.playlist.currentSongIndex = window.playlist.songs.length - 1;
     if (window._rebuildPlaylistSelect) {
@@ -21319,6 +21325,7 @@ function _nukePlayTrack() {
         }
     }
     window.loadAndPlay();
+    return true;
 }
 (function () {
     const orig = typeof window.electionNight === 'function' ? window.electionNight : null;
@@ -21661,26 +21668,9 @@ _everyTurn(turn => {
 function openWorldMap() {
     // Easter egg: Allende's last speech injected into the music player once,
     // on the first world map open after the Chilean coup fires.
-    if (chileanCoup === 1 && !_allendeSpeechPlayed && window.Song && window.playlist && window.loadAndPlay) {
+    if (chileanCoup === 1 && !_allendeSpeechPlayed
+        && _playInjectedSong('Last Speech', 'Salvador Allende', 'https://audio.jukehost.co.uk/019ed31c-9934-7032-afc3-1cba278a45ac')) {
         _allendeSpeechPlayed = true;
-        const allendeTrack = new window.Song(
-            'Last Speech', 'Salvador Allende',
-            '', 'https://audio.jukehost.co.uk/019ed31c-9934-7032-afc3-1cba278a45ac'
-        );
-        window.playlist.addSong(allendeTrack);
-        window.playlist.currentSongIndex = window.playlist.songs.length - 1;
-        if (window._rebuildPlaylistSelect) {
-            window._rebuildPlaylistSelect();
-        } else {
-            const sel = document.getElementById('playlist-select');
-            if (sel) {
-                const opt = document.createElement('option');
-                opt.value = window.playlist.currentSongIndex;
-                opt.textContent = allendeTrack.getTitle();
-                sel.appendChild(opt);
-            }
-        }
-        window.loadAndPlay();
     }
 
     // A previous map may still be live (globe button + its 3s fallback can both
