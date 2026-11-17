@@ -41,7 +41,8 @@ ck('decided as the question arrives, AFTER onShow',
    /if \(qd\.onShow\) qd\.onShow\(\);[\s\S]{0,200}_newsCompose\(currentPK\);/.test(src));
 ck('re-mounted on every game-window mutation, alongside the other chrome',
    /addInnerCircleButton\(\);\s*\n\s*_newsMount\(\);/.test(src));
-ck('New Game clears the story and any open popup', /_news = null; _newsCloseAll\(\);/.test(src));
+ck('New Game clears the story and any open popup',
+   (r => /_news = null;/.test(r) && /_newsCloseAll\(\);/.test(r))(src.slice(src.indexOf('function _resetRunState()'))));
 ck('the save carries the current story, and a load restores it',
    /news: _news \? JSON\.parse\(JSON\.stringify\(_news\)\) : null,/.test(extractFn('_slCaptureMod'))
    && /_news = m\.news \|\| null;/.test(extractFn('_slRestoreMod')));

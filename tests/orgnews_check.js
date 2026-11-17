@@ -65,7 +65,7 @@ ck('the glow colour is distinct from the amber reshuffle and green charge glows'
 ck('state is saved and cleared on New Game',
    /orgNews: _orgNews\.slice\(\)/.test(src) && /crackWarned: Array\.from\(_crackWarned\)/.test(src)
    && /'_orgNewsUnseen'/.test(src)
-   && /_orgNews\.length = 0; _crackWarned\.clear\(\); _orgNewsUnseen = false;/.test(src));
+   && /_refillArr\(_orgNews\);\s*\n\s*_refillSet\(_crackWarned\);/.test(src.slice(src.indexOf('function _resetRunState()'))));
 ck('low demand mode keeps both signals as STATIC halos (motion only goes)',
    /body\.low-fx-on \.news-glow,/.test(init)
    && /body\.low-fx-on \.news-glow \{ box-shadow[^}]*important/.test(init)

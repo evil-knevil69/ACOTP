@@ -16,7 +16,11 @@ const block=src.slice(src.indexOf('// ── OPENING SETS'), blockEnd);
 let pass=0,fail=0;const ck=(n,c)=>{c?pass++:fail++;console.log((c?'  ok  - ':'  FAIL- ')+n);};
 
 // ── static wiring ──
-ck('New Game resets the roll', /_enightIntroArmed = false;\s*\n\s*_enightSetIdx = -1;/.test(src));
+// New Game is DERIVED from _SL_SCALARS (_resetRunState; proven at runtime by
+// runstate_check), so "saved" and "reset" are one registration for a scalar.
+ck('New Game resets the roll (a saved scalar) and disarms the intro',
+   /'_enightSetIdx'/.test(src.match(/var _SL_SCALARS = \[[\s\S]*?\];/)[0])
+   && /_enightIntroArmed = false;/.test(src.slice(src.indexOf('function _resetRunState()'))));
 ck('_enightSetIdx registered in _SL_SCALARS', /'_enightSetIdx'/.test(src.match(/var _SL_SCALARS = \[[\s\S]*?\];/)[0]));
 ck('the sting no longer fires on the opener popup (no popup-sting observer left)',
    !/if \(_enightStingPlayed\) return;[\s\S]{0,300}election_night_window/.test(src));

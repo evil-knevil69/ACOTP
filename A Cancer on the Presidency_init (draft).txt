@@ -2081,9 +2081,19 @@ function replaceRadioButtons() {
 window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
     const subs = [];
     let _pending = false;
+    // A throwing subscriber must not stop the others — but it must not be
+    // invisible either: a silent catch here hides a broken subscriber for good.
+    // Once per distinct message, since this runs on every mutation batch.
+    const _reported = new Set();
     const run = () => {
         _pending = false;
-        for (let i = 0; i < subs.length; i++) { try { subs[i](); } catch (e) {} }
+        for (let i = 0; i < subs.length; i++) {
+            try { subs[i](); }
+            catch (e) {
+                const k = String(e && e.message);
+                if (!_reported.has(k)) { _reported.add(k); console.warn('[ACOP] observer subscriber threw:', e); }
+            }
+        }
     };
     const obs = new MutationObserver(() => {
         if (_pending) return;

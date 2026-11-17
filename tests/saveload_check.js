@@ -46,7 +46,8 @@ ck('scalars are captured and restored by direct eval (window[name] is out of sco
 ck('restore ignores names no longer in _SL_SCALARS (a stale save cannot create junk globals)',
    /if \(_SL_SCALARS\.indexOf\(n\) !== -1\)/.test(res));
 ck('const containers are restored by MUTATION, not reassignment',
-   /_shownTransitions/.test(cap) && /\.length = 0/.test(res));
+   /_shownTransitions/.test(cap) && /_refillSet\(_shownTransitions, m\.shownTransitions\)/.test(res)
+   && /function _refillArr\(a, src\) \{ a\.length = 0;/.test(src) && !/\b_(clemencies|actionCrimes|orgNews) = /.test(res));
 ck('the reshuffle offer + pending queue are snapshotted wholesale',
    /reshuffle: JSON\.parse\(JSON\.stringify\(\{ active: _RESHUFFLE\.active, pending: _RESHUFFLE\.pending \}\)\)/.test(cap)
    && /_RESHUFFLE\.active = m\.reshuffle\.active \|\| null;/.test(res));

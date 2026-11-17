@@ -45,8 +45,14 @@ const ck = (n, c) => { c ? pass++ : fail++; console.log((c ? '  ok  - ' : '  FAI
 console.log('STATIC WIRING:');
 ck('InitiativeStack is declared and saved in _SL_SCALARS',
    /var InitiativeStack\s*=\s*0;/.test(src) && /'InitiativeStack',/.test(src));
-ck('New Game resets the pool',
-   /InitiativeStack = 0;/.test(slice('HushMoneyStack = 0; CutThemLooseStack = 0;', 'InitiativeStack = 0;')));
+// New Game is DERIVED from _SL_SCALARS (_resetRunState; proven at runtime by
+// runstate_check), so "saved" and "reset" are one registration for a scalar.
+const scalarList = src.match(/var _SL_SCALARS = \[[\s\S]*?\];/)[0];
+const resetFn = src.slice(src.indexOf('function _resetRunState()'));
+ck('New Game resets the pool, and both legacy stacks with it',
+   ['InitiativeStack', 'CutThemLooseStack', 'PinTheBlameStack', 'HushMoneyStack', 'OfferClemencyStack']
+     .every(n => scalarList.includes("'" + n + "'"))
+   && /_SL_SCALARS\.forEach\(n => \{ if \(_RUN_KEEP\.indexOf\(n\) === -1\) _slSetVar\(n, _RUN_PRISTINE\.vars\[n\]\); \}\);/.test(resetFn));
 ck('a pre-Initiative save folds its cut/blame charges into the pool',
    /_foldLegacyInitiative\(\);/.test(extractFn('_slRestoreMod')));
 ck('the row is built from _TA_MAIN_ROW, not the full action list',
@@ -69,7 +75,7 @@ ck('Smear costs 2 and the others default to 1',
 ck('spending takes the action price, not a flat one',
    /const cost = _taCost\(key\);\s*\n\s*if \(a\.get\(\) < cost\) return false;\s*\n\s*a\.set\(a\.get\(\) - cost\);/.test(src));
 ck('Smear is guarded inside _flipWitness, the single choke point',
-   /function _flipWitness\(name\) \{[\s\S]{0,400}if \(_smeared\.has\(name\)\) return;[\s\S]{0,40}_flipped\.add/.test(src));
+   /function _flipWitness\(name\) \{[\s\S]{0,800}if \(_smeared\.has\(name\)\) return;[\s\S]{0,40}_flipped\.add/.test(src));
 ck('Grace stands the pressure tick down, and darkens the wire glow with it',
    /if \(_pressureFrozen\(\)\) return;\s*\/\/ Grace/.test(src)
    && /if \(_pressureFrozen\(\)\) return 0;\s*\/\/ Grace/.test(src));
@@ -91,7 +97,7 @@ ck('a locked-out reason may be a function, resolved at read time',
 ck('the new per-run state is saved and cleared on New Game',
    /smeared: Array\.from\(_smeared\)/.test(src) && /interrogated: Array\.from\(_interrogated\)/.test(src)
    && /'_pressureFrozenUntil', '_stonewallUntil'/.test(src)
-   && /_pressureFrozenUntil = -1; _stonewallUntil = -1;/.test(src));
+   && /_refillSet\(_smeared\);\s*\n\s*_refillSet\(_interrogated\);/.test(resetFn));
 ck('_flipped is rebuilt from the saved STATUS vars on restore (it is not stored)',
    /_flipped\.clear\(\);[\s\S]{0,200}_ORG_PRESSURE\[n\]\.st\(\) === 1\) _flipped\.add\(n\)/.test(src));
 ck('the stale "three do nothing" comment on _TA_WIRED is gone',

@@ -12931,8 +12931,6 @@ function updateStyling(url) {
     const img = new Image();
     img.onload = function() {
         const sign = document.querySelector('#campaign_sign');
-        const currentLeft = sign ? sign.style.left : '';
-        const currentTop = sign ? sign.style.top : '';
         const currentWidth = sign ? sign.style.width : '';
         const currentHeight = sign ? sign.style.height : '';
         const maxSignW = 350;
@@ -13190,12 +13188,13 @@ function openLegalPad() {
 // _addTeamAction('hush', 1), which also refreshes the buttons if the panel is
 // open. Console test:  _addTeamAction('initiative', 2)
 //
-// THREE BUTTONS, FOUR ACTIONS. Hush Money and Offer Clemency have their own
-// charges and sit in the row. Cut Them Loose and Pin the Blame do NOT: they live
-// behind an INITIATIVE button that opens a small picker, and both are paid for
-// out of ONE shared pool of initiative points — spend a point on either. So the
-// choice is which of the two hard options to take, not how many of each you were
-// handed.
+// THREE BUTTONS, EIGHT ACTIONS. Hush Money and Offer Clemency have their own
+// charges and sit in the row. The other six (_TA_POOLED: Cut Them Loose, Pin the
+// Blame, Smear, Interrogate, Grace, Stonewall) do NOT: they live behind an
+// INITIATIVE button that opens a dropdown, and all are paid for out of ONE
+// shared pool of initiative points, at the price each one carries (`cost`,
+// default 1). So the choice is which hard option to take, not how many of each
+// you were handed.
 //
 // Charges are per-run resources: reset to 0 on New Game.
 var HushMoneyStack     = 0;
@@ -13219,19 +13218,21 @@ function _foldLegacyInitiative() {
     PinTheBlameStack = 0;
 }
 
+// The Initiative pool, read and written through ONE accessor pair. Every
+// pooled action below carries it, so _spendTeamAction and _addTeamAction need
+// no special case: spending any of them takes its price out of the pool, and an
+// authored _addTeamAction('cut', 1) grants one point.
+const _TA_POOL = { get: () => InitiativeStack, set: v => { InitiativeStack = v; } };
 const _TEAM_ACTIONS = [
     { key: 'hush',       label: 'Hush Money',     get: () => HushMoneyStack,     set: v => { HushMoneyStack = v; } },
     { key: 'clemency',   label: 'Offer Clemency', get: () => OfferClemencyStack, set: v => { OfferClemencyStack = v; } },
-    { key: 'initiative', label: 'Initiative',     get: () => InitiativeStack,    set: v => { InitiativeStack = v; } },
-    // Both of these read and write the Initiative pool, so _spendTeamAction and
-    // _addTeamAction need no special case: spending either takes one point, and
-    // an authored _addTeamAction('cut', 1) grants one point.
-    { key: 'cut',         label: 'Cut Them Loose', pool: true, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
-    { key: 'blame',       label: 'Pin the Blame',  pool: true, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
-    { key: 'smear',       label: 'Smear',          pool: true, cost: 2, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
-    { key: 'interrogate', label: 'Interrogate',    pool: true, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
-    { key: 'grace',       label: 'Grace',          pool: true, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
-    { key: 'stonewall',   label: 'Stonewall',      pool: true, cost: 2, get: () => InitiativeStack, set: v => { InitiativeStack = v; } },
+    { key: 'initiative', label: 'Initiative',     ..._TA_POOL },
+    { key: 'cut',         label: 'Cut Them Loose', pool: true, ..._TA_POOL },
+    { key: 'blame',       label: 'Pin the Blame',  pool: true, ..._TA_POOL },
+    { key: 'smear',       label: 'Smear',          pool: true, cost: 2, ..._TA_POOL },
+    { key: 'interrogate', label: 'Interrogate',    pool: true, ..._TA_POOL },
+    { key: 'grace',       label: 'Grace',          pool: true, ..._TA_POOL },
+    { key: 'stonewall',   label: 'Stonewall',      pool: true, cost: 2, ..._TA_POOL },
 ];
 
 // Which keys render as buttons in the row, in order…
@@ -13291,9 +13292,9 @@ function _addTeamAction(key, n) {
     }
 }
 
-// Spend one charge. Returns true if a charge was available. The click handler
-// does NOT call this yet — effects/targeting aren't designed; wire them in
-// _teamActionClicked below and spend there.
+// Spend an action's price (_taCost: 1 unless the def says otherwise). Returns
+// true if the charges were there. Called once the action has actually landed —
+// on the target click, or by _taApplyGlobal for the untargeted ones.
 function _spendTeamAction(key) {
     const a = _teamAction(key);
     if (!a) return false;
@@ -13320,7 +13321,7 @@ function _taEligible(person) {
         && !_flipped.has(k);
 }
 
-// The effect of each action, plus its targeting rules. All four are wired.
+// The effect of each action, plus its targeting rules. Every action is wired.
 const _TA_WIRED = {
     hush: {
         prompt: 'Hush money: pick the man to pay off (click the button again to cancel).',
@@ -13369,7 +13370,7 @@ const _TA_WIRED = {
         prompt: 'Pin the blame: pick a wavering man (loyalty 3 or less) to hang it on (click the button again to cancel).',
         // Desperation move: only on the table once the President's own exposure
         // is serious (above 10 of 20).
-        available() { return typeof WatergateExposure !== 'undefined' && WatergateExposure > 10; },
+        available() { return WatergateExposure > 10; },
         unavailableHint: 'Available once the President\'s Watergate exposure is above 10.',
         canTarget(key) {
             const p = _ORG_PRESSURE[key];
@@ -13611,8 +13612,8 @@ function _syncTeamActionBtns() {
         btn.disabled = a.get() < need || locked;
         btn.title = locked ? _taHintText(wired) : '';
     });
-    // The picker shows the pool as a headline and gates its two buttons on it,
-    // so a charge arriving or being spent while it's open has to redraw it.
+    // The dropdown gates each of its buttons on the pool, so a charge arriving
+    // or being spent while it's open has to redraw it.
     if (_initiativePickerOpen()) { _closeInitiativePicker(); _openInitiativePicker(); }
 }
 // ── END TEAM ACTIONS ──────────────────────────────────────────────────────────
@@ -13650,6 +13651,10 @@ function openInnerCircle() {
     // stays; only the action tooling goes. _syncTaButtons already no-ops when
     // #nw-team-actions is absent.
     _taMode = null;   // never carry target-select mode across panel opens
+    // …nor the dropdown's click-away listener: if the engine re-rendered the
+    // window while the dropdown was open, its panel is gone but the document
+    // listener is not, and the next open would overwrite the only reference.
+    _closeInitiativePicker();
     _foldLegacyInitiative();   // pick up any authored CutThemLooseStack/PinTheBlameStack bump
     if (_lengthAllows('teamActions')) {
     const taBox = document.createElement('div');
@@ -13816,12 +13821,11 @@ const _ENEMIES = {
 };
 
 function _enemiesReset() {
-    Object.keys(_ENEMIES.traitors).forEach(k => { delete _ENEMIES.traitors[k]; });
-    Object.keys(_ENEMIES.hypocrites).forEach(k => { delete _ENEMIES.hypocrites[k]; });
-    _ENEMIES.media.length = 0;
+    _refillObj(_ENEMIES.traitors);
+    _refillObj(_ENEMIES.hypocrites);
+    _refillArr(_ENEMIES.media, _EN_START_MEDIA);
     _ENEMIES.closed = false;
     _EN_START_HYPOCRITES.forEach(n => { _ENEMIES.hypocrites[n] = ENEMIES_ROSTER[n].score || 0; });
-    _EN_START_MEDIA.forEach(n => { _ENEMIES.media.push(n); });
 }
 _enemiesReset();   // starting state at load
 
@@ -13830,12 +13834,9 @@ function _enemiesSnapshot() {
 }
 function _enemiesRestore(m) {
     if (!m) { _enemiesReset(); return; }   // pre-feature save: back to the starting field
-    Object.keys(_ENEMIES.traitors).forEach(k => { delete _ENEMIES.traitors[k]; });
-    Object.assign(_ENEMIES.traitors, m.traitors || {});
-    Object.keys(_ENEMIES.hypocrites).forEach(k => { delete _ENEMIES.hypocrites[k]; });
-    Object.assign(_ENEMIES.hypocrites, m.hypocrites || {});
-    _ENEMIES.media.length = 0;
-    (m.media || []).forEach(n => _ENEMIES.media.push(n));
+    _refillObj(_ENEMIES.traitors, m.traitors);
+    _refillObj(_ENEMIES.hypocrites, m.hypocrites);
+    _refillArr(_ENEMIES.media, m.media);
     _ENEMIES.closed = !!m.closed;
 }
 
@@ -14903,7 +14904,13 @@ function openOfficialsPanel(questions) {
 
         const warn = document.createElement('div');
         warn.className = 'rs-warn';
-        warn.textContent = 'Left unfilled at the end of this turn, the post falls vacant.';
+        // Since the two-turn window + random forced pick (change 22) the post
+        // does NOT fall vacant: say what actually happens, and when.
+        warn.textContent = !(slot.candidates || []).length
+            ? 'No candidates: the post falls vacant when the offer lapses.'
+            : _RESHUFFLE.turnsLeft() <= 0
+                ? 'Last turn. Leave this open and the appointment is made for you, at random.'
+                : 'Decide by next turn, or the appointment is made for you, at random.';
         pick.appendChild(warn);
 
         const cands = document.createElement('div');
@@ -15051,12 +15058,15 @@ var _RESHUFFLE = {
         return this.active.turn + (this.active.grace || 0) - _questionCount;
     },
 
+    // Seat an appointment now, or queue it for `delay` turns from now.
+    _seat(varName, person, delay) {
+        if ((delay | 0) <= 0) OFFICIALS_SETTERS[varName](person);
+        else this.pending.push({ varName, person, dueTurn: _questionCount + (delay | 0) });
+    },
     choose(varName, person) {
         const slot = this.slotFor(varName);
         if (!slot) return;
-        const delay = slot.delay | 0;
-        if (delay <= 0) OFFICIALS_SETTERS[varName](person);
-        else this.pending.push({ varName, person, dueTurn: _questionCount + delay });
+        this._seat(varName, person, slot.delay);
         delete this.active.slots[varName];
         if (!this.isActive()) this.clear();
     },
@@ -15075,10 +15085,7 @@ var _RESHUFFLE = {
             const slot = this.active.slots[vn];
             const cands = (slot && slot.candidates) || [];
             if (!cands.length) { OFFICIALS_SETTERS[vn]('none'); return; }
-            const person = cands[Math.floor(Math.random() * cands.length)];
-            const delay = slot ? (slot.delay | 0) : 0;
-            if (delay <= 0) OFFICIALS_SETTERS[vn](person);
-            else this.pending.push({ varName: vn, person, dueTurn: _questionCount + delay });
+            this._seat(vn, cands[Math.floor(Math.random() * cands.length)], slot.delay);
         });
         this.clear();
     },
@@ -16424,8 +16431,8 @@ function _newsCompose(pk) {
         if (Array.isArray(n.ifAnswered) && n.ifAnswered.length
             && !_answered.apply(null, n.ifAnswered)) continue;
         if (typeof n.when === 'function') {
-            let ok = false;
-            try { ok = !!n.when(); } catch (err) { ok = false; }
+            let ok;
+            try { ok = !!n.when(); } catch (err) { ok = false; }   // a throwing test = no story
             if (!ok) continue;
         }
         idxs.push(i);
@@ -16690,7 +16697,9 @@ const _turnTicks = [];
 function _everyTurn(fn) { _turnTicks.push(fn); }
 function _runTurnTicks() {
     for (let i = 0; i < _turnTicks.length; i++) {
-        try { _turnTicks[i](_questionCount); } catch (e) {}
+        // A throwing tick must not stop the others — but say so: a silent
+        // catch here once hid a broken tick for a whole run.
+        try { _turnTicks[i](_questionCount); } catch (e) { console.warn('[ACOP] turn tick ' + i + ' threw:', e); }
     }
 }
 
@@ -16740,7 +16749,10 @@ _everyTurn(turn => {
 _everyTurn(turn => {
     _EVENT_DEFS.forEach(def => {
         if (!def.duration || !def.set) return;
-        if (def.state() !== 1) return;
+        // Not active: no clock. (Clearing it here, not only on expiry, is what
+        // stops a stale turn number surviving an event that was switched off by
+        // a question, or a New Game.)
+        if (def.state() !== 1) { def._activatedAt = null; return; }
         if (def._activatedAt == null) { def._activatedAt = turn; return; }
         if (turn - def._activatedAt >= def.duration) {
             def.set(def.expireTo != null ? def.expireTo : 0);
@@ -16910,6 +16922,10 @@ function _payOff(name) {
 
 function _flipWitness(name) {
     const p = _ORG_PRESSURE[name];
+    // Unknown name, or already a witness: nothing to do. Without this a
+    // question effect that names a man who has ALREADY turned would run the
+    // contagion a second time (another +2 on the President).
+    if (!p || _flipped.has(name)) return;
     // Smeared (Initiative action): his credibility is gone, so he can never
     // become a witness. Guarded here rather than at the caller so it holds
     // however the flip is reached.
@@ -17480,9 +17496,19 @@ function _midtermTest(opts){ return _MIDTERM.open(opts||{}); }
 window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
     const subs = [];
     let _pending = false;
+    // A throwing subscriber must not stop the others — but it must not be
+    // invisible either: a silent catch here hides a broken subscriber for good.
+    // Once per distinct message, since this runs on every mutation batch.
+    const _reported = new Set();
     const run = () => {
         _pending = false;
-        for (let i = 0; i < subs.length; i++) { try { subs[i](); } catch (e) {} }
+        for (let i = 0; i < subs.length; i++) {
+            try { subs[i](); }
+            catch (e) {
+                const k = String(e && e.message);
+                if (!_reported.has(k)) { _reported.add(k); console.warn('[ACOP] observer subscriber threw:', e); }
+            }
+        }
     };
     const obs = new MutationObserver(() => {
         if (_pending) return;
@@ -17757,53 +17783,8 @@ window.__onGameWindowMutation(() => {
                 // to 0, so a decrease means a fresh run — reset all per-run mod state
                 // (otherwise transitions/midterm never re-fire and the pressure engine
                 // starts hot with a turn counter carried over from the last run).
-                if (_lastQNum != null && _gs.question_number < _lastQNum) {
-                    _questionCount = 0;
-                    _lastQuestionPK = null;
-                    _shownTransitions.clear();
-                    Object.keys(_pausedUntil).forEach(k => { delete _pausedUntil[k]; });
-                    _MIDTERM._fired = false;
-                    _allendeSpeechPlayed = false;
-                    _musicSectionPending = 0;
-                    window.__resetSoundtrack?.();
-                    _endAchFired = false;
-                    _projStingPlayed = false;
-                    _enightStingPlayed = false;
-                    _enightIntroPlayed = false;
-                    _enightIntroArmed = false;
-                    _enightSetIdx = -1;   // fresh roll next Election Night
-                    // The player may have changed the campaign-length dropdown
-                    // between games (Code 1 records it) — re-read + reinstall.
-                    _campaignLength = (window._acopCampaignLength in CAMPAIGN_LENGTHS) ? window._acopCampaignLength : 'full';
-                    _installCampaignLength();
-                    _pressureOn = false;
-                    _RESHUFFLE.reset();
-                    HushMoneyStack = 0; CutThemLooseStack = 0;
-                    OfferClemencyStack = 0; PinTheBlameStack = 0;
-                    InitiativeStack = 0;
-                    _taUnseen = false;
-                    _clemencies.length = 0;
-                    WatergateExposure = 1;
-                    ImproveRelationsStack = 0; SendAidStack = 0;
-                    ReduceAidStack = 0; DestabiliseStack = 0;
-                    _diploMode = null;
-                    Object.keys(_diploCooldown).forEach(k => { delete _diploCooldown[k]; });
-                    Object.keys(COUNTRY_LOYAL).forEach(c => { window[c + '_STAB'] = 0; });
-                    _president = 'nixon'; _vp = 'agnew'; _ticketStage = 1; _refreshTicket();
-                    _actionCrimes.length = 0; _actionCrimesRevealed = false;
-                    _smeared.clear(); _interrogated.clear();
-                    _pressureFrozenUntil = -1; _stonewallUntil = -1;
-                    _orgNews.length = 0; _crackWarned.clear(); _orgNewsUnseen = false;
-                    _news = null; _newsCloseAll();
-                    _enemiesReset();
-                    _nukeReset();   // unwind the nuclear-war branch + candidate rename
-                    // Only unwind an EVENT-driven theme swap — a look the player
-                    // picked themselves in the dropdown survives a New Game.
-                    if (_gameTheme) {
-                        _gameTheme = '';
-                        try { window._acopApplyTheme?.('A Cancer on the Presidency'); } catch (e) {}
-                    }
-                }
+                // The reset itself is _resetRunState (grep RUN STATE, end of file).
+                if (_lastQNum != null && _gs.question_number < _lastQNum) _resetRunState();
                 _lastQNum = _gs.question_number;
 
                 const currentPK = _gs.questions_json?.[_gs.question_number]?.pk ?? null;
@@ -18558,7 +18539,35 @@ function _slCaptureMod() {
         orgNews: _orgNews.slice(),
         crackWarned: Array.from(_crackWarned),
         news: _news ? JSON.parse(JSON.stringify(_news)) : null,
+        // The pressure engine's timers. Without these a load restarted every
+        // radiation/decay clock AND the three-turn breaking-point countdown —
+        // while _crackWarned (saved) still said the warning had been given.
+        edgeClocks: Object.assign({}, _edgeClocks),
+        expDecayClocks: Object.assign({}, _expDecayClocks),
+        loyDecayClocks: Object.assign({}, _loyDecayClocks),
+        flipDanger: Object.assign({}, _flipDanger),
+        innerCircleFlips: _innerCircleFlips.slice(),
+        // Timed world events: the turn each live one was first seen.
+        eventClocks: _eventClocksSnapshot(),
     };
+}
+
+// Replace the CONTENTS of a const container (the reference is shared across
+// the file, so reassigning is not an option). A missing source empties it —
+// which is what an older save, with no such field, should do.
+function _refillObj(o, src) { Object.keys(o).forEach(k => { delete o[k]; }); Object.assign(o, src || {}); }
+function _refillArr(a, src) { a.length = 0; (src || []).forEach(x => a.push(x)); }
+function _refillSet(set, src) { set.clear(); (src || []).forEach(x => set.add(x)); }
+
+// Timed world events keep their clock on the def itself (_activatedAt, see
+// EVENT LIFESPANS), keyed here by the def's id.
+function _eventClocksSnapshot() {
+    const o = {};
+    _EVENT_DEFS.forEach(d => { if (d._activatedAt != null) o[d.id] = d._activatedAt; });
+    return o;
+}
+function _eventClocksRestore(m) {
+    _EVENT_DEFS.forEach(d => { d._activatedAt = (m && m[d.id] != null) ? m[d.id] : null; });
 }
 
 function _slRestoreMod(m) {
@@ -18568,35 +18577,33 @@ function _slRestoreMod(m) {
     Object.keys(m.vars || {}).forEach(n => {
         if (_SL_SCALARS.indexOf(n) !== -1) _slSetVar(n, m.vars[n]);
     });
-    _shownTransitions.clear();
-    (m.shownTransitions || []).forEach(pk => _shownTransitions.add(pk));
-    Object.keys(_pausedUntil).forEach(k => { delete _pausedUntil[k]; });
-    Object.assign(_pausedUntil, m.pausedUntil || {});
-    Object.keys(_diploCooldown).forEach(k => { delete _diploCooldown[k]; });
-    Object.assign(_diploCooldown, m.diploCooldown || {});
-    _clemencies.length = 0;
-    (m.clemencies || []).forEach(c => _clemencies.push(c));
-    _actionCrimes.length = 0;
-    (m.actionCrimes || []).forEach(c => _actionCrimes.push(c));
+    _refillSet(_shownTransitions, m.shownTransitions);
+    _refillObj(_pausedUntil, m.pausedUntil);
+    _refillObj(_diploCooldown, m.diploCooldown);
+    _refillArr(_clemencies, m.clemencies);
+    _refillArr(_actionCrimes, m.actionCrimes);
     Object.keys(m.countryLoyal || {}).forEach(c => { COUNTRY_LOYAL[c] = m.countryLoyal[c]; });
     Object.keys(m.stab || {}).forEach(c => { window[c + '_STAB'] = m.stab[c]; });
+    _wmPrevLoyal = null;   // the map's "since you last looked" baseline belongs to the old run
     if (m.reshuffle) {
         _RESHUFFLE.active = m.reshuffle.active || null;
-        _RESHUFFLE.pending.length = 0;
-        (m.reshuffle.pending || []).forEach(p => _RESHUFFLE.pending.push(p));
+        _refillArr(_RESHUFFLE.pending, m.reshuffle.pending);
     }
     _MIDTERM._fired = !!m.midtermFired;
-    Object.keys(_wmEventDebutPk).forEach(k => { delete _wmEventDebutPk[k]; });
-    Object.assign(_wmEventDebutPk, m.eventDebutPk || {});
+    _refillObj(_wmEventDebutPk, m.eventDebutPk);
     _enemiesRestore(m.enemies);   // absent on a pre-feature save -> starting field
-    _smeared.clear();
-    (m.smeared || []).forEach(n => _smeared.add(n));
-    _interrogated.clear();
-    (m.interrogated || []).forEach(n => _interrogated.add(n));
-    _orgNews.length = 0;
-    (m.orgNews || []).forEach(n => _orgNews.push(n));
-    _crackWarned.clear();
-    (m.crackWarned || []).forEach(n => _crackWarned.add(n));
+    _refillSet(_smeared, m.smeared);
+    _refillSet(_interrogated, m.interrogated);
+    _refillArr(_orgNews, m.orgNews);
+    _refillSet(_crackWarned, m.crackWarned);
+    // Pressure timers + event clocks. A save from before these were captured
+    // carries none, so they start cold — exactly what that save did before.
+    _refillObj(_edgeClocks, m.edgeClocks);
+    _refillObj(_expDecayClocks, m.expDecayClocks);
+    _refillObj(_loyDecayClocks, m.loyDecayClocks);
+    _refillObj(_flipDanger, m.flipDanger);
+    _refillArr(_innerCircleFlips, m.innerCircleFlips);
+    _eventClocksRestore(m.eventClocks);
     // News on the desk: the current question's story (and whether it has
     // landed / been opened). Older saves carry none.
     _news = m.news || null;
@@ -18856,7 +18863,7 @@ function _slOpenUI() {
 
     async function refreshList() {
         list.textContent = '';
-        let saves = [];
+        let saves;
         try { saves = await _slGetAll(); }
         catch (err) { status.textContent = 'Storage unavailable: ' + err.message; return; }
         if (!saves.length) {
@@ -19939,10 +19946,8 @@ document.addEventListener('keydown', (e) => {
         if (h === _lastPadHTML && pad.dataset.renderedTab === which) return;
         _lastPadHTML = h;
         pad.dataset.renderedTab = which;
-        if (which === 'nation') pad.innerHTML = h;
-        else if (which === 'crimes') pad.innerHTML = h;
-        else if (which === 'world') {
-            pad.innerHTML = h;
+        pad.innerHTML = h;
+        if (which === 'world') {
             const gb = pad.querySelector('#fd-world-globe-btn');
             if (gb) gb.addEventListener('click', () => {
                 _close();
@@ -21585,8 +21590,9 @@ function _diploHandleCountryClick(el) {
             + ' → ' + nv
             + (saturated ? ' (channel saturated — full effect returns 3 turns after the last full push)' : '') + '.';
     }
+    // COUNTRY_LOYAL is the live value. COUNTRIES[code].loyal is deliberately
+    // left alone: it is the STARTING value, which New Game restores from.
     COUNTRY_LOYAL[code] = nv;
-    if (typeof COUNTRIES !== 'undefined' && COUNTRIES[code]) COUNTRIES[code].loyal = nv; // keep the source of truth aligned
     // Live repaint (all paths of the country) when the allegiance view is on.
     if (_wmAllegiance) {
         document.querySelectorAll('#world-map-container [id="' + code + '"]').forEach(p => {
@@ -24060,7 +24066,6 @@ function openWorldMap() {
 
             // ── Move Subs tool ───────────────────────────────────────────────
             let _subEditMode = false;
-            const _subMoves = {}; // label → { cx, cy } final positions
 
             const subOffsetPanel = document.createElement('div');
             subOffsetPanel.style.cssText = 'position:absolute;top:60px;left:16px;z-index:50;background:rgba(0,0,0,0.88);color:#7fff7f;font-family:monospace;font-size:11px;line-height:1.6;padding:10px 12px;border-radius:5px;max-width:560px;white-space:pre;display:none;user-select:text;cursor:text;';
@@ -24593,4 +24598,80 @@ function openCIAProfile(code, mapPanel, tooltip, military) {
     mapPanel.appendChild(viewer);
 }
 
+// ── RUN STATE: the New Game reset ────────────────────────────────────────────
+// MUST STAY THE LAST THING IN THE FILE: _RUN_PRISTINE reads every saved scalar's
+// value as declared, so every `var` initialiser has to have run first.
+//
+// New Game used to be a hand-kept list of about thirty assignments, while the
+// save list (_SL_SCALARS) had grown past 160 names — so a second run without a
+// page reload kept the last run's loyalty, exposure and status for every man,
+// the approval rating, the cabinet, the world events and each country's
+// relations. Now the reset is DERIVED from the save list: whatever is saved is
+// reset, so one list serves both and they cannot drift apart again. A new
+// per-run scalar needs registering once, in _SL_SCALARS. A new per-run
+// CONTAINER needs three lines: capture, restore, and a line below.
+var _RUN_KEEP = ['_campaignLength', '_lengthInstalled'];   // owned by the length re-read in step 4
+var _RUN_PRISTINE = { vars: {}, answerAssign: campaignTrail_temp.answers_json.map(a => a.fields.question) };
+_SL_SCALARS.forEach(n => { _RUN_PRISTINE.vars[n] = _slGetVar(n); });
 
+function _resetRunState() {
+    // 1. Unwinds that READ the state they undo — before that state goes back.
+    _nukeReset();                       // candidate names, turnout, EVs, visits, the bunker theme
+    // An EVENT-driven theme swap only: a look the player picked themselves in
+    // the dropdown is a session preference and survives a New Game.
+    if (_gameTheme) { try { window._acopApplyTheme?.(_ACOP_DEFAULT_THEME); } catch (e) {} }
+
+    // 2. Every saved scalar back to the value it was declared with.
+    _SL_SCALARS.forEach(n => { if (_RUN_KEEP.indexOf(n) === -1) _slSetVar(n, _RUN_PRISTINE.vars[n]); });
+
+    // 3. Containers — the same set _slCaptureMod saves.
+    _lastQuestionPK = null;
+    _newEvents.clear();
+    _refillSet(_shownTransitions);
+    _refillObj(_pausedUntil);
+    _refillObj(_diploCooldown);
+    _refillArr(_clemencies);
+    _refillArr(_actionCrimes);
+    Object.keys(COUNTRY_LOYAL).forEach(c => {
+        COUNTRY_LOYAL[c] = COUNTRIES[c].loyal;    // the starting relations
+        window[c + '_STAB'] = 0;
+    });
+    _wmPrevLoyal = null;
+    _refillObj(_wmEventDebutPk);
+    _RESHUFFLE.reset();
+    _MIDTERM._fired = false;
+    _enemiesReset();
+    _refillSet(_smeared);
+    _refillSet(_interrogated);
+    _refillArr(_orgNews);
+    _refillSet(_crackWarned);
+    _refillSet(_flipped);
+    _refillObj(_edgeClocks);
+    _refillObj(_expDecayClocks);
+    _refillObj(_loyDecayClocks);
+    _refillObj(_flipDanger);
+    _refillArr(_innerCircleFlips);
+    _eventClocksRestore(null);
+    _news = null;
+    // transient UI state that is not saved, but must not outlive the run either
+    _taMode = null;
+    _diploMode = null;
+    _enightIntroArmed = false;
+    _enightHold.reset();
+    _musicSectionPending = 0;
+
+    // 4. The question bank. The player may have changed the campaign-length
+    // dropdown between games (Code 1 records it). Forcing the reinstall also
+    // puts back any order a questionSwapper or the nuke arm left behind.
+    _campaignLength = (window._acopCampaignLength in CAMPAIGN_LENGTHS) ? window._acopCampaignLength : 'full';
+    _lengthInstalled = null;
+    _installCampaignLength();
+    _slRestoreAnswerAssignment(_RUN_PRISTINE.answerAssign);
+
+    // 5. What is on screen.
+    _refreshTicket();
+    _newsCloseAll();
+    _syncTeamActionGlow();
+    _syncOrgNewsGlow();
+    window.__resetSoundtrack?.();
+}
