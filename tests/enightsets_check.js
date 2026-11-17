@@ -59,6 +59,7 @@ ck('CBS set carries a map hold; the other set does not', /mapDelayMs: 10000/.tes
     window.Audio=class{constructor(u){this.url=u;this._h={};window.__lastClip=this;}
       addEventListener(t,f){this._h[t]=f;} play(){window.__plays.push(this.url);return Promise.resolve();}};
     const subs=[]; window.__onGameWindowMutation=cb=>subs.push(cb);
+    function _acopObserve(cb){ window.__onGameWindowMutation(cb); }   // re-run guard, single execution
     window.__tick=()=>subs.forEach(f=>f());
     ${extractFn('_playEggAudio')}
     ${block}

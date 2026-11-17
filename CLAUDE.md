@@ -1882,13 +1882,66 @@ name. FIFTEEN POISONS confirmed to fail. NOTE for harnesses: New Game
 assertions should target `_resetRunState` / `_SL_SCALARS` membership, not a
 literal `x = 0;` in the observer (five were retargeted).
 
+**82. Re-run guard: Code 2 executed again in the same page (Nov 2026)** —
+Code 2, grep `RE-RUN GUARD` (top of the file) and `RE-RUN GUARD: retiring` +
+`LOAD COMPLETE` (the end). The host can execute Code 2 more than once without a
+reload (New Game, Play twice, preview then play). Every execution leaves hooks on
+the page, so before this a re-run ran BESIDE the old one: each question's onShow
+fired twice, the egg sounds doubled, the old execution's buttons (manual,
+Enemies/Friends) opened ITS state, and its A()/electionNight wrappers stayed in
+the chain, so a war that ended last run could rewrite this run's results. Worse,
+the engine data that lives in CODE 1 and is not re-assigned by Code 2
+(`question_count`, candidate names, `has_visits`, `ElectionPopup`) stayed as the
+old run left it, and the new execution snapshotted that as its "pristine"
+originals: one Cottage Cheese run or one nuclear war and every later run that
+session was short, or tallied the census.
+MECHANISM: each execution takes a generation number (`window.__acopGen`,
+`_ACOP_GEN`, `_acopLive()`), and first calls the previous execution's
+`window.__acopRetire` (`_acopRetireRun`). Retire (1) hands the shared data back
+PRISTINE, not merely reset for a new run (`_nukeReset`, the event-theme unwind, a
+forced 'full' `_installCampaignLength` for the pristine order AND count, the
+answer assignment, `*_STAB` to 0, the soundtrack reset), and (2) takes down what
+it hung on the page: every `_acopTeardown` undo (listeners, the manual button's
+ResizeObserver, the two engine wrappers handed back to the originals they
+wrapped), the singleton elements whose handlers close over it (tooltip portal,
+honk, manual button, Enemies/Friends button, panels…), and its stylesheets
+(tagged `data-acop2`). Each step is fenced on its own. Page-level hooks go
+through `_acopOn(target, type, fn, opts)` (all 14 document/body/window
+listeners) and `_acopObserve(cb)` (all 6 observer subscribers); both refuse to
+register from a replaced execution and stand down by themselves once stale, and
+the shared observer (both files, identical) prunes subscribers flagged
+`__acopDead` and exposes `size()`. The wrappers carry `__acopWrapOf`, so the
+chain depth is inspectable.
+BUG FOUND ON THE WAY, in change 81: the observer calls a new subscriber at once,
+so if the engine already had a question up when Code 2 loaded, a whole turn ran
+MID-LOAD, before `_RUN_PRISTINE` was taken, and the New Game snapshot recorded
+turn 1 as pristine (an in-place New Game would open on "Question 2", with the
+first question's onShow effects baked into the reset). `_acopObserve` now holds
+each first call until the `LOAD COMPLETE` flush, which must stay the last
+statement in the file. It also stops a first tick running against variables
+further down the file that aren't set yet.
+New `tests/rerun_check.js` (30): Code 1 once, Code 2 five times into one page,
+covering the shared data handed back pristine (and the new execution's
+snapshots clean), only the newest execution acting (onShow, turn count, eggs,
+manual button + M, A shortcut + Enemies/Friends button, the wrappers even when
+the old ones are called directly), nothing registered from a stale execution,
+and subscribers / listeners / stylesheets / singletons flat across re-runs.
+TWELVE POISONS confirmed to fail (no retire, retire missing the count or the
+nuke unwind, no live check on the observer, first runs not held, A() not handed
+back, electionNight ignoring staleness, one listener left unguarded, honk or
+stylesheets left behind, a stale execution allowed to register, Code 1's
+observer not pruning). NOTE for harnesses that slice Code 2: subscriber blocks
+now call `_acopObserve`, and `_placeManualButton` calls `_acopLive`; stub them
+(enightsets_check and chrome_check do). Code 1 has no such guard: if the host
+re-runs Code 1 as well, that needs the same treatment.
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
 session went with it (they were never committed). Rebuilt and COMMITTED, 400+
 assertions over the areas that carry the most machinery:
 `nuke_check` (106), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
-`nuketheme_check` (33), `runstate_check` (30),
+`nuketheme_check` (33), `runstate_check` (30), `rerun_check` (30),
 `initiative_check` (80),
 `orgnews_check` (29), `news_check` (46),
 `census_split_check` (10), `execcheck_check` (6).

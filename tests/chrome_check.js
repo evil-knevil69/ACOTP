@@ -37,6 +37,7 @@ ck('the world map button is pulled for the count as well as the nuclear attack',
     function openGameManual(){}
     function openWorldMap(){}
     var _manRO = null, _manBtnW = 0;
+    function _acopLive() { return true; }   // single execution: always the live one
     ${extractFn('_enightInProgress')}
     ${extractFn('_placeManualButton')}
     ${extractFn('_addWorldMapBtn')}

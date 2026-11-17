@@ -54,6 +54,8 @@ const NOT_RUN_STATE = {
   _wmNightOn: 'map toggle', _wmSigintOn: 'map toggle', _wmNosOn: 'map toggle',
   // the reset's own bookkeeping
   _RUN_KEEP: 'config', _RUN_PRISTINE: 'the pristine snapshot itself',
+  _acopTeardown: 're-run guard plumbing (undo steps for this execution)',
+  _acopLoaded: 're-run guard plumbing (load complete)', _acopFirstRuns: 're-run guard plumbing (held first runs)',
 };
 
 const scalars = [...src.match(/var _SL_SCALARS = \[[\s\S]*?\];/)[0].matchAll(/'([^']+)'/g)].map(m => m[1]);

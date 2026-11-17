@@ -2088,6 +2088,9 @@ window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
     const run = () => {
         _pending = false;
         for (let i = 0; i < subs.length; i++) {
+            // Left behind by a Code 2 execution the host has since replaced
+            // (RE-RUN GUARD): it has marked itself dead, so drop it.
+            if (subs[i].__acopDead) { subs.splice(i--, 1); continue; }
             try { subs[i](); }
             catch (e) {
                 const k = String(e && e.message);
@@ -2105,7 +2108,9 @@ window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
         if (gw) obs.observe(gw, { childList: true, subtree: true });
         else requestAnimationFrame(attach);
     })();
-    return function (cb) { subs.push(cb); try { cb(); } catch (e) {} };
+    const register = function (cb) { subs.push(cb); try { cb(); } catch (e) {} };
+    register.size = () => subs.length;   // read by tests/rerun_check.js
+    return register;
 })();
 
 //event listeners, play music add watergate button, adjust image containers

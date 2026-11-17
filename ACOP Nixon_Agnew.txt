@@ -42,8 +42,69 @@
 // ║     on New Game (SAVELOAD_MAINTENANCE.md; runstate_check catches a miss)   ║
 // ║   • new-Function scope: top-level declarations use var; never redeclare    ║
 // ║     a const/let name                                                       ║
+// ║   • a listener on document/body/window → _acopOn; an observer subscriber   ║
+// ║     → _acopObserve; any other page hook → push its undo on _acopTeardown   ║
+// ║     (RE-RUN GUARD: the host can re-run this file; rerun_check catches it)  ║
 // ║   • grep FILL ME IN / PLACEHOLDER for the live to-do list                  ║
 // ╚═══════════════════════════════════════════════════════════════════════════╝
+
+// ── RE-RUN GUARD ─────────────────────────────────────────────────────────────
+// The host can execute this file more than once in the same page (a New Game,
+// Play pressed twice, preview then play). Every execution hangs things on the
+// page that outlive it: subscribers on the shared #game_window observer,
+// listeners on document / body / window, wrappers around the engine's A() and
+// electionNight, and buttons whose clicks close over THAT execution's state.
+// Left alone, the old execution goes on running beside the new one: every
+// question's onShow fires twice, the egg sounds double up, Enemies/Friends can
+// open the old run's chart, and a war that ended last run goes on rewriting
+// this run's results through its A() wrapper.
+//
+// So each execution takes a generation number, and before anything else it
+// asks the previous one to RETIRE (_acopRetireRun, at the end of the file):
+// hand back pristine the engine data the two share, and take down everything
+// it hung on the page. Hooks that outlive a screen go through _acopOn
+// (listeners) and _acopObserve (observer subscribers), which also stand down by
+// themselves once a newer generation exists; anything else pushes its own undo
+// onto _acopTeardown. NEW CODE THAT OUTLIVES A SCREEN MUST USE ONE OF THE THREE:
+// tests/rerun_check.js counts the page's listeners across re-runs and fails if
+// they grow.
+if (typeof window.__acopRetire === 'function') {
+    try { window.__acopRetire(); } catch (err) { console.warn('[ACOP] retiring the previous run threw:', err); }
+}
+var _ACOP_GEN = window.__acopGen = (window.__acopGen || 0) + 1;
+var _acopTeardown = [];
+window.__acopRetire = _acopRetireRun;   // the next execution calls this first
+function _acopLive() { return _ACOP_GEN === window.__acopGen; }
+// addEventListener for a target that outlives a screen (document, body, window).
+// A replaced execution adds nothing new: its retire has already run, so nothing
+// would ever take the listener down again.
+function _acopOn(target, type, fn, opts) {
+    if (!_acopLive()) return null;
+    const h = function () { if (_acopLive()) return fn.apply(this, arguments); };
+    target.addEventListener(type, h, opts);
+    _acopTeardown.push(() => target.removeEventListener(type, h, opts));
+    return h;
+}
+// A subscriber on the shared #game_window observer. Once a newer execution
+// exists it marks itself dead, and the observer drops it.
+// The observer calls a new subscriber at once, and this file registers its
+// subscribers part-way through loading. If the engine already has a question on
+// screen, that first call would run a whole turn mid-load: against variables
+// further down the file not yet set, and BEFORE the New Game snapshot at the end
+// is taken, which then records turn 1 as the pristine state. So each first call
+// is held until the load completes (the flush at the very end of the file).
+var _acopLoaded = false;
+var _acopFirstRuns = [];
+function _acopObserve(cb) {
+    if (!_acopLive()) return;
+    const w = function () {
+        if (!_acopLive()) { w.__acopDead = true; return; }
+        if (!_acopLoaded) return;
+        return cb();
+    };
+    _acopFirstRuns.push(w);
+    window.__onGameWindowMutation(w);
+}
 
 // ── BULK TEXT: the questions ──────────────────────────────────────────────────
 campaignTrail_temp.questions_json = [
@@ -12869,6 +12930,7 @@ style2.innerHTML = `
         max-height: 340px !important;
     }
 `;
+style2.dataset.acop2 = '';   // removed when a re-run retires this execution
 document.head.appendChild(style2);
 
 function updateTypewriterVisibility() {
@@ -12926,6 +12988,7 @@ function updateTypewriterVisibility() {
 let imgUrl = "https://file.garden/aXPgNT-ZRCxxpy0g/creepv2.jpg";
 
 const _signStyling = document.createElement("style");
+_signStyling.dataset.acop2 = '';
 document.head.appendChild(_signStyling);
 
 function updateStyling(url) {
@@ -12972,7 +13035,7 @@ let signStartTop = 0;
 let savedSignLeft = '';
 let savedSignTop = '';
 
-document.addEventListener('mousemove', (e) => {
+_acopOn(document, 'mousemove', (e) => {
     if (!isDraggingSign || !activeSign) return;
     const dx = e.clientX - signDragStartX;
     const dy = e.clientY - signDragStartY;
@@ -12980,7 +13043,7 @@ document.addEventListener('mousemove', (e) => {
     activeSign.style.top = (signStartTop + dy) + 'px';
 });
 
-document.addEventListener('mouseup', () => {
+_acopOn(document, 'mouseup', () => {
     isDraggingSign = false;
     if (activeSign) {
         activeSign.style.cursor = 'grab';
@@ -13992,6 +14055,7 @@ function _enThreatLabel(t) {
             color: #7a1010; margin: 0 0 6px;
         }
     `;
+    st.dataset.acop2 = '';
     document.head.appendChild(st);
 })();
 
@@ -14642,6 +14706,7 @@ const OFFICIALS_VARS = {
         }
         #rs-picker .rs-close { margin-top: 8px; }
     `;
+    _ocStyle.dataset.acop2 = '';
     document.head.appendChild(_ocStyle);
 })();
 
@@ -15539,6 +15604,7 @@ var _RESHUFFLE = {
             z-index: 10;
         }
     `;
+    _orgStyle.dataset.acop2 = '';
     document.head.appendChild(_orgStyle);
 
     const _orgPeople = {
@@ -17504,6 +17570,9 @@ window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
     const run = () => {
         _pending = false;
         for (let i = 0; i < subs.length; i++) {
+            // Left behind by a Code 2 execution the host has since replaced
+            // (RE-RUN GUARD): it has marked itself dead, so drop it.
+            if (subs[i].__acopDead) { subs.splice(i--, 1); continue; }
             try { subs[i](); }
             catch (e) {
                 const k = String(e && e.message);
@@ -17521,7 +17590,9 @@ window.__onGameWindowMutation = window.__onGameWindowMutation || (function () {
         if (gw) obs.observe(gw, { childList: true, subtree: true });
         else requestAnimationFrame(attach);
     })();
-    return function (cb) { subs.push(cb); try { cb(); } catch (e) {} };
+    const register = function (cb) { subs.push(cb); try { cb(); } catch (e) {} };
+    register.size = () => subs.length;   // read by tests/rerun_check.js
+    return register;
 })();
 
 // ── ACHIEVEMENTS (ported from Obamanation) ───────────────────────────────────
@@ -17771,7 +17842,7 @@ const _liveGameState = () => {
     return null;
 };
 
-window.__onGameWindowMutation(() => {
+_acopObserve(() => {
         {
             updateTypewriterVisibility();
             updateCampaignSign();
@@ -18393,7 +18464,7 @@ document.body.appendChild(_tooltipPortal);
 let _hoveredTooltip = null;
 let _ttW = 0, _ttH = 0, _ttDirty = false; // cached tooltip size; remeasured only when content changes
 
-document.addEventListener('mouseover', (e) => {
+_acopOn(document, 'mouseover', (e) => {
     const src = e.target.closest('.mytooltip');
     if (src === _hoveredTooltip) return;
     _hoveredTooltip = src;
@@ -18412,7 +18483,7 @@ document.addEventListener('mouseover', (e) => {
     }
 });
 
-document.addEventListener('mousemove', (e) => {
+_acopOn(document, 'mousemove', (e) => {
     if (!_hoveredTooltip) return;
     _tooltipPortal.style.display = 'block';
     const pad = 16;
@@ -18429,7 +18500,7 @@ document.addEventListener('mousemove', (e) => {
     _tooltipPortal.style.top = y + 'px';
 });
 
-document.addEventListener('mouseleave', () => {
+_acopOn(document, 'mouseleave', () => {
     _tooltipPortal.style.display = 'none';
     _hoveredTooltip = null;
 }, true);
@@ -19090,7 +19161,7 @@ function _playEggAudio(url) {
 // Routed through _playEggAudio so the tape ducks and is restored on end/error.
 var _PROJ_STING_URL = '';   // FILL ME IN — the ACOP News election night theme
 var _projStingPlayed = false;
-window.__onGameWindowMutation(() => {
+_acopObserve(() => {
     if (_projStingPlayed || !_PROJ_STING_URL) return;
     if (!document.getElementById('overlay_result_button')) return;
     _projStingPlayed = true;
@@ -19196,7 +19267,7 @@ var _enightHold = {
 };
 var _enightIntroPlayed = false;
 var _enightIntroArmed = false;   // transient — Election Night can't be saved into
-window.__onGameWindowMutation(() => {
+_acopObserve(() => {
     if (_nukeWar >= 2) return;   // DEFCON-1: no coverage title card either
     if (_enightIntroPlayed) return;
     if (!document.getElementById('final_result_button')) { _enightIntroArmed = false; return; }
@@ -19244,7 +19315,7 @@ window.__onGameWindowMutation(() => {
 let nixonClickCount = 0;
 let nixonClickTimer = null;
 
-document.body.addEventListener('click', (e) => {
+_acopOn(document.body, 'click', (e) => {
     if (!e.target.closest('#candidate_pic')) return;
     nixonClickCount++;
     if (nixonClickTimer) clearTimeout(nixonClickTimer);
@@ -19260,7 +19331,7 @@ document.body.addEventListener('click', (e) => {
 let agnewClickCount = 0;
 let agnewClickTimer = null;
 
-document.body.addEventListener('click', (e) => {
+_acopOn(document.body, 'click', (e) => {
     if (!e.target.closest('#running_mate_pic')) return;
     agnewClickCount++;
     if (agnewClickTimer) clearTimeout(agnewClickTimer);
@@ -19277,7 +19348,7 @@ document.body.addEventListener('click', (e) => {
 let honkClickCount = 0;
 let honkClickTimer = null;
 
-document.body.addEventListener('click', (e) => {
+_acopOn(document.body, 'click', (e) => {
     if (!e.target.closest('#honk')) return;
     honkClickCount++;
     if (honkClickTimer) clearTimeout(honkClickTimer);
@@ -19319,12 +19390,12 @@ let bannerClickCount = 0;
 let bannerClickTimer = null;
 let _bannerDownX = 0, _bannerDownY = 0;
 
-document.body.addEventListener('mousedown', (e) => {
+_acopOn(document.body, 'mousedown', (e) => {
     if (!e.target.closest('div.center img, img#header')) return;
     _bannerDownX = e.clientX; _bannerDownY = e.clientY;
 });
 
-document.body.addEventListener('click', (e) => {
+_acopOn(document.body, 'click', (e) => {
     const banner = e.target.closest('div.center img, img#header');
     if (!banner) return;
     // Ignore click events that travelled — a text-select or sloppy drag over
@@ -19344,7 +19415,7 @@ document.body.addEventListener('click', (e) => {
 const konamiCode = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
 let konamiIndex = 0;
 
-document.addEventListener('keydown', (e) => {
+_acopOn(document, 'keydown', (e) => {
     if (e.key === konamiCode[konamiIndex]) {
         konamiIndex++;
         if (konamiIndex === konamiCode.length) {
@@ -19392,7 +19463,7 @@ function _openWorldMapViaTunnel() {
 // contexts (inputs/textareas), modifier chords, an in-progress Konami entry
 // (konamiIndex > 0 — so the final 'a' of the code doesn't also open a screen),
 // and does nothing until the game is actually on screen.
-document.addEventListener('keydown', (e) => {
+_acopOn(document, 'keydown', (e) => {
     if (e.ctrlKey || e.altKey || e.metaKey) return;
     const tgt = e.target;
     if (tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.tagName === 'SELECT' || tgt.isContentEditable)) return;
@@ -19465,6 +19536,7 @@ document.addEventListener('keydown', (e) => {
         '#manual_panel .man-key{display:inline-block;min-width:18px;text-align:center;font-weight:bold;background:#241c0e;'+
         'color:#f2e6c8;border-radius:3px;padding:1px 6px;margin-right:6px;}'+
         '#manual_panel ul{margin:4px 0 4px 2px;padding-left:16px;} #manual_panel li{margin:3px 0;} #manual_panel p{margin:4px 0;}';
+    st.dataset.acop2 = '';
     document.head.appendChild(st);
 })();
 
@@ -19561,6 +19633,7 @@ function _enightInProgress() {
 var _manRO = null;
 var _manBtnW = 0; // cached offsetWidth — reading it every observer tick forced a layout
 function _placeManualButton() {
+    if (!_acopLive()) return false;   // a newer execution owns the button now
     const gw = document.getElementById('game_window');
     if (!gw) return false;
     let btn = document.getElementById('game-manual-button');
@@ -19598,12 +19671,13 @@ function _placeManualButton() {
     return true;
 }
 _placeManualButton();
-window.addEventListener('resize', _placeManualButton);
-window.__onGameWindowMutation(() => _placeManualButton()); // catches first appearance + screen changes
+_acopTeardown.push(() => { if (_manRO) { _manRO.disconnect(); _manRO = null; } });
+_acopOn(window, 'resize', _placeManualButton);
+_acopObserve(() => _placeManualButton()); // catches first appearance + screen changes
 // A late font swap can change the button's width — re-measure once fonts settle.
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { _manBtnW = 0; _placeManualButton(); });
 // Fallback so the manual is always reachable while wiring the button: press 'M'.
-document.addEventListener('keydown', (e) => {
+_acopOn(document, 'keydown', (e) => {
     if (e.ctrlKey || e.altKey || e.metaKey) return;
     const t = e.target;
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
@@ -19785,6 +19859,7 @@ document.addEventListener('keydown', (e) => {
     }
     #btn_game_stats { margin-left: 1.5em; }
     `;
+    _fdStyle.dataset.acop2 = '';
     document.head.appendChild(_fdStyle);
 
     /* ── Helpers ── */
@@ -20053,7 +20128,7 @@ document.addEventListener('keydown', (e) => {
     }
 
     // Folded into the shared #game_window observer instead of a 4th observer.
-    window.__onGameWindowMutation(() => {
+    _acopObserve(() => {
         _injectBtn();
         _refresh();
     });
@@ -20240,7 +20315,7 @@ document.addEventListener('keydown', (e) => {
         _injectStateLabels();
     }
 
-    window.__onGameWindowMutation(_checkAndSimplify);
+    _acopObserve(_checkAndSimplify);
 })();
 
 // ── LOW DEMAND MODE (JS half; CSS half + the checkbox live in Code 1) ────────
@@ -21241,9 +21316,9 @@ function _nukeStateShares(abbr) {
 (function () {
     const origA = typeof window.A === 'function' ? window.A : null;
     if (!origA) return;
-    window.A = function (t) {
+    const wrapped = function (t) {
         const out = origA.apply(this, arguments);
-        if (_nukeWar < 2 || !Array.isArray(out)) return out;
+        if (!_acopLive() || _nukeWar < 2 || !Array.isArray(out)) return out;
         try {
             out.forEach(st => {
                 if (!st || !Array.isArray(st.result) || !st.result.length) return;
@@ -21274,6 +21349,11 @@ function _nukeStateShares(abbr) {
         } catch (e) {}
         return out;
     };
+    // Retiring hands the engine its own A() back, so a re-run wraps the
+    // original rather than this wrapper (see RE-RUN GUARD).
+    wrapped.__acopWrapOf = origA;
+    window.A = wrapped;
+    _acopTeardown.push(() => { if (window.A === wrapped) window.A = origA; });
 })();
 
 // ── The strike TIMETABLE: missiles decide when states report ─────────────────
@@ -21330,8 +21410,9 @@ function _playInjectedSong(title, artist, url) {
 (function () {
     const orig = typeof window.electionNight === 'function' ? window.electionNight : null;
     if (!orig) return;
-    window.electionNight = function () {
+    const wrapped = function () {
         const r = orig.apply(this, arguments);
+        if (!_acopLive()) return r;
         try {
             // The nuke MAP is the moment, not the census — the census fires a
             // question earlier, at the bunker answer. This wrapper is where the
@@ -21358,6 +21439,9 @@ function _playInjectedSong(title, artist, url) {
         } catch (e) {}
         return r;
     };
+    wrapped.__acopWrapOf = orig;
+    window.electionNight = wrapped;
+    _acopTeardown.push(() => { if (window.electionNight === wrapped) window.electionNight = orig; });
 })();
 
 // Code 1's missile animation needs to recognise a "state was just called"
@@ -24590,8 +24674,10 @@ function openCIAProfile(code, mapPanel, tooltip, military) {
 }
 
 // ── RUN STATE: the New Game reset ────────────────────────────────────────────
-// MUST STAY THE LAST THING IN THE FILE: _RUN_PRISTINE reads every saved scalar's
-// value as declared, so every `var` initialiser has to have run first.
+// MUST STAY AT THE END OF THE FILE: _RUN_PRISTINE reads every saved scalar's
+// value as declared, so every `var` initialiser has to have run first. Only the
+// LOAD COMPLETE flush may follow it (the retire function below is a declaration,
+// so where it sits doesn't matter).
 //
 // New Game used to be a hand-kept list of about thirty assignments, while the
 // save list (_SL_SCALARS) had grown past 160 names — so a second run without a
@@ -24666,3 +24752,49 @@ function _resetRunState() {
     _syncOrgNewsGlow();
     window.__resetSoundtrack?.();
 }
+
+// ── RE-RUN GUARD: retiring this execution ───────────────────────────────────
+// Called by the NEXT execution of this file, at its very top, before it reads
+// anything (see RE-RUN GUARD at the top of the file). Two jobs:
+//  1. Hand back PRISTINE the engine data the two executions share. Not merely
+//     reset for a new run: the next execution snapshots its "originals" from
+//     these objects (candidate names, question count, has_visits, the election
+//     popup), so anything left changed here would be baked in as the original
+//     for the rest of the session. The question bank itself is re-assigned by
+//     the next execution; these pieces live in Code 1's data and are not.
+//  2. Take down everything this execution hung on the page.
+// Each step is fenced on its own, so an execution that died part-way through
+// loading still retires whatever it did get to set up.
+function _acopRetireRun() {
+    if (window.__acopRetire === _acopRetireRun) window.__acopRetire = null;
+    const step = fn => { try { fn(); } catch (err) { console.warn('[ACOP] retiring the previous run:', err); } };
+    step(() => _nukeReset());   // candidate names, turnout, EVs, visits, election popup, the war's theme
+    step(() => { if (_gameTheme) { _gameTheme = ''; window._acopApplyTheme?.(_ACOP_DEFAULT_THEME); } });
+    step(() => { _campaignLength = 'full'; _lengthInstalled = null; _installCampaignLength(); });   // pristine order + count
+    step(() => _slRestoreAnswerAssignment(_RUN_PRISTINE.answerAssign));
+    step(() => Object.keys(COUNTRY_LOYAL).forEach(c => { window[c + '_STAB'] = 0; }));
+    step(() => window.__resetSoundtrack?.());
+    step(() => _closeInitiativePicker());
+    step(() => { if (window._wmActiveClose) window._wmActiveClose(); });
+    step(() => _newsCloseAll());
+    for (let i = _acopTeardown.length - 1; i >= 0; i--) step(_acopTeardown[i]);
+    _acopTeardown.length = 0;
+    // Elements whose handlers close over this execution, and its stylesheets.
+    step(() => {
+        ['tooltip-portal', 'honk', 'game-manual-button', 'manual_panel', 'nw-hover-tip',
+         'inner_circle_button', 'inner_circle_panel', 'officials_panel', 'enemies_panel',
+         'legal_pad_panel', 'btn_game_stats', 'fd-overlay', 'world_map_button',
+         'historical-panel', 'acop-saveload-panel', 'acop-news-desk', 'rs-fly',
+         'enight-intro-anim', 'cia-profile-viewer']
+            .forEach(id => document.getElementById(id)?.remove());
+        document.querySelectorAll('[id^="section-transition-"], style[data-acop2]').forEach(el => el.remove());
+    });
+}
+
+// ── LOAD COMPLETE ── must stay the LAST statement in the file ────────────────
+// Every variable is set and the New Game snapshot is taken: now give each
+// observer subscriber the first run that _acopObserve held back.
+_acopLoaded = true;
+_acopFirstRuns.splice(0).forEach(w => {
+    try { w(); } catch (err) { console.warn('[ACOP] observer subscriber threw:', err); }
+});
