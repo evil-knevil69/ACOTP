@@ -30,6 +30,7 @@ and gets committed.
 | `orgnews_check.js` | the President's Men chart reporting on itself: the breaking-point warning, the state's-witness announcement, and the glow/chip/ring surfaces |
 | `news_check.js` | news on the desk: a story set up by an earlier answer (`questionData[pk].news` + `ifAnswered`), Year Zero's throw and popup, and the adaptations around them |
 | `saveload_check.js` | `_SL_SCALARS` integrity and the capture/restore round-trips |
+| `runstate_check.js` | the WHOLE of Code 2, executed: New Game resets everything, a save/load round trip loses nothing, and every module-level mutable is classified as saved or knowingly not (a new unregistered variable fails by name) |
 | `execcheck_check.js` | the execution check itself — poisons a copy of each mod file four ways and asserts it rejects every one |
 
 ## Writing a new one

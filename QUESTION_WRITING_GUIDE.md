@@ -102,7 +102,9 @@ Kleindienst. The burglars use lower-case `Watergateburglarsloyalty` /
 - `themeSwap('In the Bunker')`: change the page theme.
 
 **Adding a brand-new variable?** Declare it with `var` (never `const` or `let` at the
-top level), and add its name to `_SL_SCALARS`, or it won't survive a save and load.
+top level), and add its name to `_SL_SCALARS`. That one line makes it survive a save
+and load AND reset on New Game. Forget it and `node tests/runstate_check.js` fails,
+naming the variable.
 
 ---
 
@@ -267,7 +269,8 @@ Good to know:
 1. **Never put a backtick inside a comment within the CSS or HTML strings.** It
    silently breaks everything after it.
 2. Module-level variables are `var`. Never declare the same `const` or `let` twice.
-3. A new per-run variable must go in `_SL_SCALARS`, or saves forget it.
+3. A new per-run variable must go in `_SL_SCALARS`, or saves forget it and New Game
+   doesn't reset it. (The test suite catches an unregistered one by name.)
 4. After any edit, run the checks below. Both files must say **EXECUTED CLEAN**.
 
 ---

@@ -38,7 +38,8 @@
 // ║   ctsAchievement calls … names must EXACTLY match Code 1's                 ║
 // ║                      campaignTrail_temp.achievements registry              ║
 // ║ RULES THAT BITE:                                                           ║
-// ║   • new per-run var → add it to _SL_SCALARS (SAVELOAD_MAINTENANCE.md)      ║
+// ║   • new per-run var → add it to _SL_SCALARS: that saves it AND resets it   ║
+// ║     on New Game (SAVELOAD_MAINTENANCE.md; runstate_check catches a miss)   ║
 // ║   • new-Function scope: top-level declarations use var; never redeclare    ║
 // ║     a const/let name                                                       ║
 // ║   • grep FILL ME IN / PLACEHOLDER for the live to-do list                  ║

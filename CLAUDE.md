@@ -1826,13 +1826,69 @@ no stub loads host CSS. `#acop-news-css` now sets `p, li { text-align: left }`
 Verified: news_check 46/46; THREE POISONS confirmed to fail (no left-align, dead
 photos left showing, every photo hidden).
 
+**81. Code review pass: New Game reset derived from the save list (Nov 2026)** —
+Code 2, grep `RUN STATE` (the LAST block in the file, and it must stay last).
+BUG: New Game was a hand-kept list of ~30 assignments in the observer while
+`_SL_SCALARS` had grown to 168 — a second run without a page reload kept every
+man's loyalty/exposure/status, approval, mental state, the cabinet, world-event
+flags, `COUNTRY_LOYAL`, and the witness set + pressure clocks. Now
+`_resetRunState()` restores every `_SL_SCALARS` name from `_RUN_PRISTINE.vars`
+(their declared values, snapshotted at the end of the file once every `var`
+initialiser has run) and empties the same containers the save captures. ONE
+registration = saved + reset. `_RUN_KEEP` (`_campaignLength`, `_lengthInstalled`)
+is exempt: the reset re-reads the dropdown and FORCES a question-set reinstall,
+which also undoes a questionSwapper / the nuke arm; the answer assignment goes
+back from `_RUN_PRISTINE.answerAssign`. Order inside the reset matters:
+`_nukeReset()` and the event-theme unwind run FIRST because they read the state
+they undo. `COUNTRIES[c].loyal` is now strictly the STARTING relation (the
+diplomacy click no longer writes it), so New Game restores from it.
+SAVE GAPS closed: `edgeClocks`, `expDecayClocks`, `loyDecayClocks`, `flipDanger`,
+`innerCircleFlips` and `eventClocks` (timed world events' `_activatedAt`, keyed
+by def id) are now in the save — a load used to restart the three-turn
+breaking-point countdown while `_crackWarned` (saved) said the warning had
+already been given. Older saves carry none and start cold, as before.
+`_wmPrevLoyal` is nulled on load and New Game (the map's delta flashes compared
+against the previous run). Container restores go through `_refillObj` /
+`_refillArr` / `_refillSet` (a missing source empties — right for an old save).
+SMALLER FIXES: `_flipWitness` refuses an unknown or ALREADY-flipped name (a
+question effect naming a witness twice doubled the +2 on Nixon); the EVENT
+LIFESPANS tick clears `_activatedAt` whenever the event is not active (not only
+on expiry); `_runTurnTicks` and the shared observer (both files) `console.warn`
+a throwing callback instead of swallowing it (observer: once per distinct
+message); the reshuffle picker's warning said the post "falls vacant" — wrong
+since change 22 — and now states the random forced pick and whether this is the
+last turn; `openInnerCircle` calls `_closeInitiativePicker()` so a click-away
+listener orphaned by an engine re-render is released.
+SIMPLIFIED: `_TA_POOL` (one get/set pair spread into the seven pooled action
+rows), `_RESHUFFLE._seat` (choose + expire shared the seat-or-queue logic),
+enemies reset/restore on the refill helpers, stale team-action comments
+rewritten, four dead locals removed.
+MEASURED, nothing to fix: Code 1 + Code 2 execute in ~65ms in Chromium (tooltip
+baking 15ms of it); no previously-swallowed errors surfaced when the catches
+were made audible; world-map document listeners and intervals all go through
+`mapCleanup`.
+LEFT ALONE, noted: five near-identical drag-tool blocks in `openWorldMap`
+(Move Capitals/Icons/Flags/Subs + panels) could share one helper, but they are
+authoring tools with no harness; `_markEventNew` still has no callers; the
+inner-circle name list is hard-coded in three places (tests grep one of them).
+OPEN QUESTION for the host: if the loader RE-EXECUTES Code 2 on New Game, the
+old instance's observer subscribers stay registered beside the new one's.
+Nothing here depends on the answer, but a generation guard would be the fix.
+New `tests/runstate_check.js` (30): whole-file execution, reset + round trip
+via a state fingerprint, and a CLASSIFICATION guard — every module-level
+mutable must be in `_SL_SCALARS`, a known container, ALL_CAPS config, or in the
+test's `NOT_RUN_STATE` list with a reason; an unregistered new variable fails by
+name. FIFTEEN POISONS confirmed to fail. NOTE for harnesses: New Game
+assertions should target `_resetRunState` / `_SL_SCALARS` membership, not a
+literal `x = 0;` in the observer (five were retargeted).
+
 **TESTS NOW LIVE IN THE REPO (`tests/`) — run `node tests/run_all.js`.** The
 scratchpad was wiped when the container recycled and every harness built that
-session went with it (they were never committed). Rebuilt and COMMITTED, 258
+session went with it (they were never committed). Rebuilt and COMMITTED, 400+
 assertions over the areas that carry the most machinery:
 `nuke_check` (106), `midterm_check` (32), `enightsets_check` (23),
 `saveload_check` (20), `rsanim_check` (16), `chrome_check` (11),
-`nuketheme_check` (33),
+`nuketheme_check` (33), `runstate_check` (30),
 `initiative_check` (80),
 `orgnews_check` (29), `news_check` (46),
 `census_split_check` (10), `execcheck_check` (6).
